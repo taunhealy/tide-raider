@@ -53,6 +53,21 @@ model User {
   @@index([skillLevel])
 }
 
+model LogEntry {
+  id          String   @id @default(cuid())
+  date        DateTime
+  surferName  String
+  surferEmail String
+  beachName   String
+  forecast    Json
+  surferRating Int
+  comments    String
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@index([surferEmail])
+  @@index([date])
+}
 
 // Safari Booking Model
 model SafariBooking {

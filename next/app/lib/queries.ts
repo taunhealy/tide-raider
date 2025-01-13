@@ -1,4 +1,4 @@
-import { groq } from 'next-sanity'
+import { groq } from "next-sanity";
 
 // Simple query to test connection and see all documents
 export const homePageQuery = groq`{
@@ -37,9 +37,19 @@ export const homePageQuery = groq`{
         slug
       }
     },
+    heroProduct {
+      title,
+      leftDescription,
+      rightDescription,
+      "leftImage": leftImage.asset->url,
+      "filterItems": filterItems[] {
+        type,
+        "icon": icon.asset->url
+      }
+    },
     heroImage
   }
-}`
+}`;
 
 // Fetches all blog posts, sorted by publish date
 // Returns: post details including title, slug, image, date, description and categories
@@ -55,7 +65,7 @@ export const postsQuery = `
       slug
     }
   }
-`
+`;
 
 // Fetches homepage content including hero and about sections
 // Returns: hero and about section content
@@ -65,7 +75,7 @@ export const homepageQuery = groq`
     about,
     // other sections
   }
-`
+`;
 
 // Add this with the other query exports
 export const pricingQuery = groq`
@@ -77,4 +87,4 @@ export const pricingQuery = groq`
     priceSubtext,
     features
   }
-`
+`;

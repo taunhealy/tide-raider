@@ -31,6 +31,7 @@ import { useSearchParams } from "next/navigation";
 import BlogPostsSidebar from "./BlogPostsSidebar";
 import GoldSeeker from "./GoldSeeker";
 import BeachFeedback from "./BeachFeedback";
+import LogbookSidebar from "./LogbookSidebar";
 
 interface BeachContainerProps {
   initialBeaches: Beach[];
@@ -275,6 +276,7 @@ export default function BeachContainer({
           <BlogPostsSidebar posts={blogPosts} />
           <div className="space-y-6">
             <GoldSeeker />
+            <LogbookSidebar />
             <BeachFeedback beaches={initialBeaches} />
           </div>
         </aside>

@@ -12,15 +12,19 @@ export default defineType({
       fields: [
         {name: 'heroImageTitle', type: 'string'},
         {name: 'description', type: 'string'},
-        {name: 'image', type: 'image', options: { hotspot: true }},
-        {name: 'imagePhotographer', type: 'string', description: 'Name of the photographer for image credits'},
-        {name: 'heroAboutImage', type: 'image', options: { hotspot: true }},
+        {name: 'image', type: 'image', options: {hotspot: true}},
+        {
+          name: 'imagePhotographer',
+          type: 'string',
+          description: 'Name of the photographer for image credits',
+        },
+        {name: 'heroAboutImage', type: 'image', options: {hotspot: true}},
         {name: 'aboutHeading', type: 'string'},
         {name: 'aboutDescription', type: 'text'},
         {name: 'viewAppHeading', type: 'string'},
-        {name: 'viewAppImage', type: 'image', options: { hotspot: true }},
-        {name: 'aboutImage', type: 'image', options: { hotspot: true }},
-      ]
+        {name: 'viewAppImage', type: 'image', options: {hotspot: true}},
+        {name: 'aboutImage', type: 'image', options: {hotspot: true}},
+      ],
     }),
     defineField({
       name: 'about',
@@ -29,10 +33,10 @@ export default defineType({
       fields: [
         {name: 'aboutHeading', type: 'string'},
         {name: 'aboutDescription1', type: 'text'},
-        {name: 'aboutDescription1Image', type: 'image', options: { hotspot: true }},
+        {name: 'aboutDescription1Image', type: 'image', options: {hotspot: true}},
         {name: 'aboutDescription2', type: 'text'},
-        {name: 'aboutDescription2Image', type: 'image', options: { hotspot: true }},
-      ]
+        {name: 'aboutDescription2Image', type: 'image', options: {hotspot: true}},
+      ],
     }),
     defineField({
       name: 'blog',
@@ -46,7 +50,7 @@ export default defineType({
           type: 'array',
           of: [{type: 'reference', to: [{type: 'post'}]}],
         },
-      ]
+      ],
     }),
     defineField({
       name: 'heroImage',
@@ -57,7 +61,7 @@ export default defineType({
           name: 'image',
           title: 'Image',
           type: 'image',
-          options: { hotspot: true },
+          options: {hotspot: true},
         },
         {
           name: 'title',
@@ -68,10 +72,39 @@ export default defineType({
           name: 'imagePhotographer',
           title: 'Image Photographer',
           type: 'string',
-          description: 'Name of the photographer for image credits'
-        }
-      ]
+          description: 'Name of the photographer for image credits',
+        },
+      ],
+    }),
+    defineField({
+      name: 'heroProduct',
+      title: 'Hero Product Section',
+      type: 'object',
+      fields: [
+        {name: 'title', type: 'string', description: 'The main title for the hero product section'},
+        {name: 'leftDescription', type: 'text', description: 'Description text for the left side'},
+        {
+          name: 'rightDescription',
+          type: 'text',
+          description: 'Description text for the right side',
+        },
+        {name: 'leftImage', type: 'image', options: {hotspot: true}},
+        {
+          name: 'filterItems',
+          title: 'Filter Items',
+          type: 'array',
+          of: [
+            {
+              type: 'object',
+              fields: [
+                {name: 'type', type: 'string'},
+                {name: 'icon', type: 'image', options: {hotspot: true}},
+              ],
+            },
+          ],
+        },
+      ],
     }),
     // Add other sections as needed
-  ]
+  ],
 })

@@ -26,6 +26,7 @@ export default function Navbar() {
     { href: "/raid", label: "Daily Raid" },
     { href: "/blog", label: "Log" },
     { href: "/pricing", label: "Pricing" },
+    { href: "/logbook", label: "LogBook"}
   ];
 
   if (status === "loading") {

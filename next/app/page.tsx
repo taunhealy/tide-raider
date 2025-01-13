@@ -18,6 +18,7 @@ export default async function Home() {
       }
     );
     console.log("Hero data:", data?.homepage?.hero);
+    console.log("Hero Product data:", data?.homepage?.heroProduct);
 
     if (!data?.homepage) {
       return (

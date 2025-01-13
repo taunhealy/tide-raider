@@ -1,0 +1,183 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* Hide scrollbar but maintain functionality */
+.no-scrollbar {
+  -ms-overflow-style: none; /* IE and Edge */
+  scrollbar-width: none; /* Firefox */
+}
+
+.no-scrollbar::-webkit-scrollbar {
+  display: none; /* Chrome, Safari and Opera */
+}
+
+@layer base {
+  :root {
+    /* Fonts */
+    --font-inter: "Inter";
+    --font-montserrat: "Montserrat";
+
+    /* Brand Colors */
+    --color-primary: #000000;
+    --color-secondary: #f3f3f3;
+    --color-tertiary: #1cd9ff;
+
+    /* Base Colors */
+    --color-black: #000000;
+    --color-white: #ffffff;
+
+    /* Text Colors */
+    --color-text-primary: var(--color-black);
+    --color-text-secondary: #4b5563;
+    --color-text-tertiary: #9ca3af;
+
+    /* Background Colors */
+    --color-bg-primary: var(--color-white);
+    --color-bg-secondary: #f7f7f7;
+    --color-bg-tertiary: var(--color-tertiary);
+
+    /* Border Colors */
+    --color-border-light: #e5e7eb;
+    --color-border-medium: #d1d5db;
+    --color-border-dark: #9ca3af;
+
+    /* Play Icon Colors */
+    --color-play-icon-bg: #ffffff;
+    --color-play-icon-border: var(--color-tertiary);
+  }
+
+  /* Base Typography */
+  .heading-1 {
+    @apply text-white font-secondary !font-black uppercase text-[197px] leading-tight tracking-tight;
+  }
+
+  .heading-2 {
+    @apply font-primary text-[81px] font-semibold leading-tight;
+  }
+
+  .heading-3 {
+    @apply font-primary text-[54px] font-semibold leading-snug;
+  }
+
+  .heading-4 {
+    @apply font-primary text-[32px] font-normal leading-snug;
+  }
+
+  .heading-5 {
+    @apply font-primary text-[21px] font-semibold leading-snug;
+  }
+
+  .heading-6 {
+    @apply font-primary text-[16px] font-normal leading-snug;
+  }
+}
+
+@layer components {
+  .text-main {
+    @apply font-primary text-[16px] font-normal leading-relaxed max-w-[54ch];
+  }
+
+  .text-large {
+    @apply font-primary text-[21px] font-normal leading-snug max-w-[54ch];
+  }
+
+  .section-padding {
+    @apply py-20;
+  }
+}
+
+@layer utilities {
+  .text-balance {
+    text-wrap: balance;
+  }
+
+  .text-pretty {
+    text-wrap: pretty;
+  }
+}
+
+/* Slider styles */
+.slider-container {
+  position: relative;
+  cursor: grab;
+  user-select: none;
+  -webkit-user-select: none;
+  -moz-user-select: none;
+  -ms-user-select: none;
+}
+
+.slider-container:active {
+  cursor: grabbing;
+}
+
+/* Optional: Add a visual indicator for draggable area */
+.slider-container::before {
+  content: "";
+  position: absolute;
+  bottom: -8px;
+  left: 0;
+  width: 100%;
+  height: 2px;
+  background-color: #e5e7eb;
+  border-radius: 2px;
+}
+
+/* Optional: Add a visual indicator for current scroll position */
+.slider-container::after {
+  content: "";
+  position: absolute;
+  bottom: -8px;
+  left: 0;
+  width: var(--scroll-width, 33.33%);
+  height: 2px;
+  background-color: var(--color-primary);
+  border-radius: 2px;
+  transition: width 0.1s ease-out;
+}
+
+.hero-title {
+  @apply text-[156px] leading-[0.9] font-bold;
+}
+
+@media (max-width: 1024px) {
+  .hero-title {
+    @apply text-[96px];
+  }
+}
+
+@media (max-width: 768px) {
+  .hero-title {
+    @apply text-[72px];
+  }
+}
+
+@keyframes shimmer {
+  0% {
+    background-position: 100% 0;
+  }
+  100% {
+    background-position: -100% 0;
+  }
+}
+
+.animate-shimmer {
+  animation: shimmer 1.5s infinite linear;
+}
+
+@keyframes scroll {
+  0% {
+    transform: translateX(0);
+  }
+  100% {
+    transform: translateX(-50%);
+  }
+}
+
+.news-banner-scroll {
+  animation: scroll 30s linear infinite;
+}
+
+.animate-scroll {
+  animation: scroll 20s linear infinite;
+}

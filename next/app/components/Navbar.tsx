@@ -23,10 +23,10 @@ export default function Navbar() {
   };
 
   const navLinks = [
-    { href: "/raid", label: "Daily Raid" },
-    { href: "/blog", label: "Log" },
+    { href: "/raid", label: "Raid" },
+    { href: "/blog", label: "Blog" },
     { href: "/pricing", label: "Pricing" },
-    { href: "/logbook", label: "LogBook"}
+    { href: "/log", label: "Log" },
   ];
 
   if (status === "loading") {
@@ -59,7 +59,7 @@ export default function Navbar() {
           "relative z-50"
         )}
       >
-        <a
+        <Link
           href="/"
           onClick={handleHomeClick}
           className="font-semibold hover:text-[var(--color-bg-tertiary)] transition-all duration-300"
@@ -67,7 +67,7 @@ export default function Navbar() {
           <h6 className="heading-6 text-[var(--color-text-primary)]">
             Tide Raider
           </h6>
-        </a>
+        </Link>
 
         {/* Desktop Navigation */}
         <div className="hidden md:flex items-center gap-8">
@@ -82,15 +82,7 @@ export default function Navbar() {
                       pathname === link.href && "text-gray-900 font-medium"
                     )}
                   >
-                    <span
-                      className={`relative after:content-[""] after:absolute after:left-0 after:bottom-[-3px] after:h-[2px] after:bg-[var(--color-bg-tertiary)] after:transition-all after:duration-300 after:ease-out ${
-                        pathname === link.href
-                          ? "after:w-full"
-                          : "after:w-0 hover:after:w-full"
-                      }`}
-                    >
-                      {link.label}
-                    </span>
+                    <span>{link.label}</span>
                   </Link>
                 </li>
               ))}

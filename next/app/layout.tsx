@@ -45,7 +45,6 @@ export default function RootLayout({
           <Navbar />
           <main>{children}</main>
           <Footer />
-          {/* @ts-expect-error Async Server Component */}
           <NewsBannerWrapper />
         </AppProviders>
       </body>

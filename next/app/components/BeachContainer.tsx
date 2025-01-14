@@ -47,7 +47,12 @@ interface BeachContainerProps {
   isPro: boolean;
 }
 
-const inter = Inter({ subsets: ["latin"] });
+const inter = Inter({
+  subsets: ["latin"],
+  display: "swap",
+  preload: true,
+  fallback: ["system-ui", "arial"],
+});
 
 export default function BeachContainer({
   initialBeaches,

@@ -18,11 +18,9 @@ interface LogbookTableProps {
 }
 
 export function LogbookTable({
-  entries = [],
+  entries,
   columns = DEFAULT_COLUMNS,
 }: LogbookTableProps) {
-  const safeEntries = Array.isArray(entries) ? entries : [];
-
   return (
     <div className="overflow-x-auto">
       <table className="min-w-full divide-y divide-gray-200">
@@ -31,17 +29,17 @@ export function LogbookTable({
             {columns.map((column) => (
               <th
                 key={column.key}
-                className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+                className="px-9 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
               >
                 {column.label}
               </th>
             ))}
           </tr>
         </thead>
-        <tbody className="bg-white divide-y divide-gray-200">
-          {safeEntries.map((entry) => (
+        <tbody className="bg-white divide-y divide-gray-200 p-3">
+          {entries.map((entry) => (
             <tr key={entry.id} className="hover:bg-gray-50">
-              <td className="px-6 py-4 whitespace-nowrap">
+              <td className="px-9 py-4 whitespace-nowrap">
                 {format(new Date(entry.date), "MMM d, yyyy")}
               </td>
               <td className="px-6 py-4">{entry.beachName}</td>
@@ -61,7 +59,51 @@ export function LogbookTable({
                   ))}
                 </div>
               </td>
+              <td className="px-1 py-4">
+                {entry.forecast ? (
+                  <div className="space-y-1 text-sm">
+                    <p>
+                      <span
+                        title={`Wind Speed: ${entry.forecast.wind.speed < 5 ? "Light" : entry.forecast.wind.speed < 12 ? "Moderate" : entry.forecast.wind.speed < 20 ? "Strong" : "Very Strong"}`}
+                      >
+                        {getWindEmoji(entry.forecast.wind.speed)}
+                      </span>{" "}
+                      {entry.forecast.wind.direction} @{" "}
+                      {entry.forecast.wind.speed}km/h
+                    </p>
+                    <p>
+                      <span
+                        title={`Swell Height: ${entry.forecast.swell.height < 0.5 ? "Flat" : entry.forecast.swell.height < 1 ? "Small" : entry.forecast.swell.height < 2 ? "Medium" : "Large"}`}
+                      >
+                        {getSwellEmoji(entry.forecast.swell.height)}
+                      </span>{" "}
+                      {entry.forecast.swell.height}m @{" "}
+                      {entry.forecast.swell.period}s
+                    </p>
+                    <p>
+                      <span
+                        title={`Swell Direction: ${entry.forecast.swell.cardinalDirection}`}
+                      >
+                        {getDirectionEmoji(
+                          parseInt(entry.forecast.swell.direction)
+                        )}
+                      </span>{" "}
+                      {entry.forecast.swell.cardinalDirection}
+                    </p>
+                  </div>
+                ) : (
+                  "No forecast data"
+                )}
+              </td>
               <td className="px-6 py-4">{entry.comments}</td>
+              <td className="px-4 py-2">
+                {entry.forecastConditions && (
+                  <div className="flex flex-col gap-1 text-sm">
+                    <div>{entry.forecastConditions.wind}</div>
+                    <div>{entry.forecastConditions.swell}</div>
+                  </div>
+                )}
+              </td>
             </tr>
           ))}
         </tbody>

@@ -10,7 +10,7 @@ import type { LogEntry } from "@/app/types/logbook";
 const inter = Inter({ subsets: ["latin"] });
 
 export default function LogbookSidebar() {
-  console.log('LogbookSidebar rendering');
+  console.log("LogbookSidebar rendering");
 
   const { data: logEntries = [], isLoading } = useQuery({
     queryKey: ["logEntries"],
@@ -26,8 +26,10 @@ export default function LogbookSidebar() {
   return (
     <div className="bg-[var(--color-bg-primary)] p-6 rounded-lg shadow-sm border border-gray-200">
       <div className="flex items-center justify-between mb-6">
-        <h3 className={`text-lg font-semibold text-gray-800 ${inter.className}`}>
-          Today's Sessions
+        <h3
+          className={`text-lg font-semibold text-gray-800 ${inter.className}`}
+        >
+          Recent Sessions
         </h3>
         <Link
           href="/logbook"

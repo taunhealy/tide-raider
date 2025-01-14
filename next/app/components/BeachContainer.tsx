@@ -19,7 +19,13 @@ import {
 import FunFacts from "@/app/components/FunFacts";
 import { cn } from "@/app/lib/utils";
 import { Inter } from "next/font/google";
-import { ChevronLeft, ChevronRight, Map as MapIcon, List, X } from "lucide-react";
+import {
+  ChevronLeft,
+  ChevronRight,
+  Map as MapIcon,
+  List,
+  X,
+} from "lucide-react";
 import Insights from "./Insights";
 import { INITIAL_FILTERS } from "@/app/lib/constants";
 import RegionFilter from "./RegionFilter";
@@ -174,7 +180,7 @@ export default function BeachContainer({
       );
     }
 
-    // Apply region filter
+    // Apply region filter only if regions are specifically selected
     if (filters.region.length > 0) {
       filtered = filtered.filter((beach) =>
         filters.region.includes(beach.region)
@@ -405,9 +411,7 @@ export default function BeachContainer({
                         `}
                       >
                         <Image
-                          src={
-                            WAVE_TYPE_ICONS[waveType as WaveType] 
-                          }
+                          src={WAVE_TYPE_ICONS[waveType as WaveType]}
                           alt={`${waveType} icon`}
                           fill
                           className="object-cover"

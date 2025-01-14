@@ -24,6 +24,7 @@ export type Region =
   | "Liberia";
 
 export interface Beach {
+  id: string;
   name: string;
   continent: string;
   country: string;
@@ -105,6 +106,7 @@ export interface AdSlot {
 
 export const beachData: Beach[] = [
   {
+    id: "muizenberg-beach",
     name: "Muizenberg Beach",
     continent: "Africa",
     country: "South Africa",
@@ -167,6 +169,7 @@ export const beachData: Beach[] = [
     coffeeShop: [{ url: "Harvest Café, Muizenberg", name: "Harvest Café" }],
   },
   {
+    id: "long-beach",
     name: "Long Beach",
     continent: "Africa",
     country: "South Africa",
@@ -231,6 +234,7 @@ export const beachData: Beach[] = [
   },
 
   {
+    id: "llandudno",
     name: "Llandudno",
     continent: "Africa",
     country: "South Africa",
@@ -289,6 +293,7 @@ export const beachData: Beach[] = [
     advertisingPrice: 1000,
   },
   {
+    id: "big-bay",
     name: "Big Bay",
     continent: "Africa",
     country: "South Africa",
@@ -339,6 +344,7 @@ export const beachData: Beach[] = [
     coffeeShop: [{ url: "The Surf Cafe, Big Bay", name: "The Surf Cafe" }],
   },
   {
+    id: "dunes",
     name: "Dunes",
     continent: "Africa",
     country: "South Africa",
@@ -398,6 +404,7 @@ export const beachData: Beach[] = [
     ],
   },
   {
+    id: "scarborough",
     name: "Scarborough",
     continent: "Africa",
     country: "South Africa",
@@ -449,6 +456,7 @@ export const beachData: Beach[] = [
     ],
   },
   {
+    id: "dungeons",
     name: "Dungeons 💀",
     continent: "Africa",
     country: "South Africa",
@@ -496,6 +504,7 @@ export const beachData: Beach[] = [
     },
   },
   {
+    id: "glen-beach",
     name: "Glen Beach",
     continent: "Africa",
     country: "South Africa",
@@ -538,6 +547,7 @@ export const beachData: Beach[] = [
     },
   },
   {
+    id: "kalk-bay-reef",
     name: "Kalk Bay Reef",
     continent: "Africa",
     country: "South Africa",
@@ -598,6 +608,7 @@ export const beachData: Beach[] = [
     ],
   },
   {
+    id: "crayfish-factory",
     name: "Crayfish Factory",
     continent: "Africa",
     country: "South Africa",
@@ -639,6 +650,7 @@ export const beachData: Beach[] = [
     },
   },
   {
+    id: "betty's-bay",
     name: "Betty's Bay",
     continent: "Africa",
     country: "South Africa",
@@ -688,6 +700,7 @@ export const beachData: Beach[] = [
     ],
   },
   {
+    id: "pringle-bay",
     name: "Pringle Bay",
     continent: "Africa",
     country: "South Africa",
@@ -743,6 +756,7 @@ export const beachData: Beach[] = [
     ],
   },
   {
+    id: "elands-bay-the-point",
     name: "Elands Bay The Point",
     continent: "Africa",
     country: "South Africa",
@@ -785,6 +799,7 @@ export const beachData: Beach[] = [
     },
   },
   {
+    id: "derdesteen",
     name: "Derdesteen",
     continent: "Africa",
     country: "South Africa",
@@ -827,6 +842,7 @@ export const beachData: Beach[] = [
     },
   },
   {
+    id: "melkbos",
     name: "Melkbos",
     continent: "Africa",
     country: "South Africa",
@@ -868,6 +884,7 @@ export const beachData: Beach[] = [
     },
   },
   {
+    id: "kogel-bay",
     name: "Kogel Bay",
     continent: "Africa",
     country: "South Africa",
@@ -917,6 +934,7 @@ export const beachData: Beach[] = [
     },
   },
   {
+    id: "strand",
     name: "Strand",
     continent: "Africa",
     country: "South Africa",
@@ -958,6 +976,7 @@ export const beachData: Beach[] = [
     },
   },
   {
+    id: "langebaan",
     name: "Langebaan",
     continent: "Africa",
     country: "South Africa",
@@ -1000,6 +1019,7 @@ export const beachData: Beach[] = [
     },
   },
   {
+    id: "bruce's-beauties",
     name: "Bruce's Beauties",
     continent: "Africa",
     country: "South Africa",
@@ -1042,6 +1062,7 @@ export const beachData: Beach[] = [
     },
   },
   {
+    id: "seal-point",
     name: "Seal Point",
     continent: "Africa",
     country: "South Africa",
@@ -1084,6 +1105,7 @@ export const beachData: Beach[] = [
     },
   },
   {
+    id: "clapton's-coils",
     name: "Clapton's Coils",
     continent: "Africa",
     country: "South Africa",
@@ -1126,6 +1148,7 @@ export const beachData: Beach[] = [
     },
   },
   {
+    id: "jeffreys-bay",
     name: "Jeffreys Bay",
     continent: "Africa",
     country: "South Africa",
@@ -1199,6 +1222,7 @@ export const beachData: Beach[] = [
     ],
   },
   {
+    id: "witsands",
     name: "Witsands",
     continent: "Africa",
     country: "South Africa",
@@ -1247,6 +1271,7 @@ export const beachData: Beach[] = [
     ],
   },
   {
+    id: "hermanus",
     name: "Hermanus",
     continent: "Africa",
     country: "South Africa",
@@ -1288,6 +1313,7 @@ export const beachData: Beach[] = [
     },
   },
   {
+    id: "sandy-bay",
     name: "Sandy Bay",
     continent: "Africa",
     country: "South Africa",
@@ -1330,6 +1356,7 @@ export const beachData: Beach[] = [
     },
   },
   {
+    id: "outer-kom",
     name: "Outer Kom",
     continent: "Africa",
     country: "South Africa",
@@ -1371,6 +1398,7 @@ export const beachData: Beach[] = [
     },
   },
   {
+    id: "inner-kom",
     name: "Inner Kom",
     continent: "Africa",
     country: "South Africa",
@@ -1430,6 +1458,7 @@ export const beachData: Beach[] = [
     ],
   },
   {
+    id: "noordhoek",
     name: "Noordhoek",
     continent: "Africa",
     country: "South Africa",
@@ -1442,7 +1471,7 @@ export const beachData: Beach[] = [
       max: 247.5,
     },
     bestSeasons: ["winter"],
-    optimalTide: "All",
+    optimalTide: "Low",
     description:
       "Long beach with multiple peaks. Best on bigger swells. Watch out for rips.",
     difficulty: "Intermediate",
@@ -1490,6 +1519,7 @@ export const beachData: Beach[] = [
     ],
   },
   {
+    id: "clovelly",
     name: "Clovelly",
     continent: "Africa",
     country: "South Africa",
@@ -1539,6 +1569,7 @@ export const beachData: Beach[] = [
   },
 
   {
+    id: "misty-cliffs",
     name: "Misty Cliffs",
     continent: "Africa",
     country: "South Africa",
@@ -1592,6 +1623,7 @@ export const beachData: Beach[] = [
     ],
   },
   {
+    id: "buffels-bay",
     name: "Buffels Bay",
     continent: "Africa",
     country: "South Africa",
@@ -1633,6 +1665,7 @@ export const beachData: Beach[] = [
     },
   },
   {
+    id: "hawston",
     name: "Hawston 💀🔫",
     continent: "Africa",
     country: "South Africa",
@@ -1674,6 +1707,7 @@ export const beachData: Beach[] = [
     },
   },
   {
+    id: "yzerfontein",
     name: "Yzerfontein",
     continent: "Africa",
     country: "South Africa",
@@ -1735,6 +1769,7 @@ export const beachData: Beach[] = [
     ],
   },
   {
+    id: "off-the-wall",
     name: "Off The Wall",
     continent: "Africa",
     country: "South Africa",
@@ -1777,6 +1812,7 @@ export const beachData: Beach[] = [
     },
   },
   {
+    id: "horse-trails",
     name: "Horse Trails",
     continent: "Africa",
     country: "South Africa",
@@ -1789,7 +1825,7 @@ export const beachData: Beach[] = [
       max: 247.5,
     },
     bestSeasons: ["winter"],
-    optimalTide: "All",
+    optimalTide: "Low",
     description:
       "Right-hand point break near Noordhoek. Works on bigger swells. Long walk required.",
     difficulty: "Intermediate",
@@ -1825,6 +1861,7 @@ export const beachData: Beach[] = [
     ],
   },
   {
+    id: "cemetery",
     name: "Cemetery",
     continent: "Africa",
     country: "South Africa",
@@ -1866,6 +1903,7 @@ export const beachData: Beach[] = [
     },
   },
   {
+    id: "caves",
     name: "Caves",
     continent: "Africa",
     country: "South Africa",
@@ -1907,6 +1945,7 @@ export const beachData: Beach[] = [
     },
   },
   {
+    id: "the-hoek",
     name: "The Hoek",
     continent: "Africa",
     country: "South Africa",
@@ -1920,7 +1959,7 @@ export const beachData: Beach[] = [
       cardinal: "SW", // Added cardinal direction
     },
     bestSeasons: ["autumn", "winter"], // Updated seasons
-    optimalTide: "Low to Mid", // Updated tide
+    optimalTide: "Low", // Updated tide
     description:
       "Exposed beach break offering both left and right-handers. Wave quality is inconsistent and highly dependent on conditions. Best performance comes from SW groundswell combined with SE offshore winds. Can get crowded when working, making surfing potentially hazardous. Despite inconsistency, can produce quality waves during autumn and winter months when conditions align. Watch for strong currents and rips between sandbars.",
     difficulty: "Intermediate",
@@ -1961,6 +2000,7 @@ export const beachData: Beach[] = [
     ],
   },
   {
+    id: "doodles",
     name: "Doodles",
     continent: "Africa",
     country: "South Africa",
@@ -2003,6 +2043,7 @@ export const beachData: Beach[] = [
     },
   },
   {
+    id: "silverstroom",
     name: "Silverstroom",
     continent: "Africa",
     country: "South Africa",
@@ -2044,6 +2085,7 @@ export const beachData: Beach[] = [
     },
   },
   {
+    id: "boneyards",
     name: "Boneyards",
     continent: "Africa",
     country: "South Africa",
@@ -2085,6 +2127,7 @@ export const beachData: Beach[] = [
     },
   },
   {
+    id: "farmers",
     name: "Farmers",
     continent: "Africa",
     country: "South Africa",
@@ -2097,7 +2140,7 @@ export const beachData: Beach[] = [
       max: 247.5,
     },
     bestSeasons: ["winter"],
-    optimalTide: "All",
+    optimalTide: "Low",
     description:
       "Right-hand point break near Noordhoek. Long walk through private property required.",
     difficulty: "Intermediate",
@@ -2126,6 +2169,7 @@ export const beachData: Beach[] = [
     },
   },
   {
+    id: "nine-miles",
     name: "Nine Miles",
     continent: "Africa",
     country: "South Africa",
@@ -2167,6 +2211,7 @@ export const beachData: Beach[] = [
     },
   },
   {
+    id: "crons",
     name: "Crons",
     continent: "Africa",
     country: "South Africa",
@@ -2214,6 +2259,7 @@ export const beachData: Beach[] = [
     },
   },
   {
+    id: "rivermouth",
     name: "Rivermouth",
     continent: "Africa",
     country: "South Africa",
@@ -2255,6 +2301,7 @@ export const beachData: Beach[] = [
     },
   },
   {
+    id: "boilers",
     name: "Boilers",
     continent: "Africa",
     country: "South Africa",
@@ -2296,6 +2343,7 @@ export const beachData: Beach[] = [
     },
   },
   {
+    id: "paranoia",
     name: "Paranoia",
     continent: "Africa",
     country: "South Africa",
@@ -2356,6 +2404,7 @@ export const beachData: Beach[] = [
   },
 
   {
+    id: "platboom",
     name: "Platboom",
     continent: "Africa",
     country: "South Africa",
@@ -2404,6 +2453,7 @@ export const beachData: Beach[] = [
     ],
   },
   {
+    id: "dias-beach",
     name: "Dias Beach",
     continent: "Africa",
     country: "South Africa",
@@ -2463,6 +2513,7 @@ export const beachData: Beach[] = [
     ],
   },
   {
+    id: "cape-st-francis",
     name: "Cape St Francis",
     continent: "Africa",
     country: "South Africa",
@@ -2505,6 +2556,7 @@ export const beachData: Beach[] = [
     },
   },
   {
+    id: "glencairn",
     name: "Glencairn",
     continent: "Africa",
     country: "South Africa",
@@ -2547,6 +2599,7 @@ export const beachData: Beach[] = [
     },
   },
   {
+    id: "st-james",
     name: "St James",
     continent: "Africa",
     country: "South Africa",
@@ -2595,6 +2648,7 @@ export const beachData: Beach[] = [
     },
   },
   {
+    id: "fish-hoek",
     name: "Fish Hoek",
     continent: "Africa",
     country: "South Africa",
@@ -2649,6 +2703,7 @@ export const beachData: Beach[] = [
     },
   },
   {
+    id: "second-beach",
     name: "Second Beach",
     continent: "Africa",
     country: "South Africa",
@@ -2717,6 +2772,7 @@ export const beachData: Beach[] = [
     },
   },
   {
+    id: "plettenberg-bay",
     name: "Plettenberg Bay",
     continent: "Africa",
     country: "South Africa",
@@ -2772,6 +2828,7 @@ export const beachData: Beach[] = [
     },
   },
   {
+    id: "nahoon-reef",
     name: "Nahoon Reef",
     continent: "Africa",
     country: "South Africa",
@@ -2820,6 +2877,7 @@ export const beachData: Beach[] = [
     },
   },
   {
+    id: "mossel-bay",
     name: "Mossel Bay",
     continent: "Africa",
     country: "South Africa",
@@ -2886,6 +2944,7 @@ export const beachData: Beach[] = [
     ],
   },
   {
+    id: "stilbaai",
     name: "Stilbaai",
     continent: "Africa",
     country: "South Africa",
@@ -2941,6 +3000,7 @@ export const beachData: Beach[] = [
     ],
   },
   {
+    id: "wilderness",
     name: "Wilderness",
     continent: "Africa",
     country: "South Africa",
@@ -2990,6 +3050,7 @@ export const beachData: Beach[] = [
     },
   },
   {
+    id: "coffee-bay",
     name: "Coffee Bay",
     continent: "Africa",
     country: "South Africa",
@@ -3044,6 +3105,7 @@ export const beachData: Beach[] = [
     ],
   },
   {
+    id: "mdumbi",
     name: "Mdumbi",
     continent: "Africa",
     country: "South Africa",
@@ -3106,6 +3168,7 @@ export const beachData: Beach[] = [
     ],
   },
   {
+    id: "ntlonyane-breezy-point",
     name: "Ntlonyane (Breezy Point)",
     continent: "Africa",
     country: "South Africa",
@@ -3152,6 +3215,7 @@ export const beachData: Beach[] = [
     },
   },
   {
+    id: "hole-in-the-wall",
     name: "Hole in the Wall",
     continent: "Africa",
     country: "South Africa",
@@ -3207,6 +3271,7 @@ export const beachData: Beach[] = [
   },
 
   {
+    id: "lamberts-bay",
     name: "Lamberts Bay",
     continent: "Africa",
     country: "South Africa",
@@ -3248,6 +3313,7 @@ export const beachData: Beach[] = [
     },
   },
   {
+    id: "doring-bay",
     name: "Doring Bay",
     continent: "Africa",
     country: "South Africa",
@@ -3289,6 +3355,7 @@ export const beachData: Beach[] = [
     },
   },
   {
+    id: "paternoster",
     name: "Paternoster",
     continent: "Africa",
     country: "South Africa",
@@ -3330,6 +3397,7 @@ export const beachData: Beach[] = [
     },
   },
   {
+    id: "famous",
     name: "Famous",
     continent: "Africa",
     country: "South Africa",
@@ -3371,6 +3439,7 @@ export const beachData: Beach[] = [
     },
   },
   {
+    id: "britannia-bay",
     name: "Britannia Bay",
     continent: "Africa",
     country: "South Africa",
@@ -3419,6 +3488,7 @@ export const beachData: Beach[] = [
     ],
   },
   {
+    id: "tietiesbaai",
     name: "Tietiesbaai",
     continent: "Africa",
     country: "South Africa",
@@ -3465,6 +3535,7 @@ export const beachData: Beach[] = [
     },
   },
   {
+    id: "garies",
     name: "Garies",
     continent: "Africa",
     country: "South Africa",
@@ -3518,6 +3589,7 @@ export const beachData: Beach[] = [
     ],
   },
   {
+    id: "hondeklip-bay",
     name: "Hondeklip Bay",
     continent: "Africa",
     country: "South Africa",
@@ -3566,6 +3638,7 @@ export const beachData: Beach[] = [
     ],
   },
   {
+    id: "port-nolloth",
     name: "Port Nolloth",
     continent: "Africa",
     country: "South Africa",
@@ -3607,6 +3680,7 @@ export const beachData: Beach[] = [
     },
   },
   {
+    id: "heaven",
     name: "Heaven",
     continent: "Africa",
     country: "South Africa",
@@ -3648,6 +3722,7 @@ export const beachData: Beach[] = [
     },
   },
   {
+    id: "baboon-point",
     name: "Baboon Point",
     continent: "Africa",
     country: "South Africa",
@@ -3689,6 +3764,7 @@ export const beachData: Beach[] = [
     },
   },
   {
+    id: "donkin-bay",
     name: "Donkin Bay",
     continent: "Africa",
     country: "South Africa",
@@ -3730,6 +3806,7 @@ export const beachData: Beach[] = [
     },
   },
   {
+    id: "strandfontein",
     name: "Strandfontein",
     continent: "Africa",
     country: "South Africa",
@@ -3771,6 +3848,7 @@ export const beachData: Beach[] = [
     },
   },
   {
+    id: "haardebaai",
     name: "Haardebaai",
     continent: "Africa",
     country: "South Africa",
@@ -3812,6 +3890,7 @@ export const beachData: Beach[] = [
     },
   },
   {
+    id: "moonlight-bay",
     name: "Moonlight Bay",
     continent: "Africa",
     country: "South Africa",
@@ -3854,6 +3933,7 @@ export const beachData: Beach[] = [
     },
   },
   {
+    id: "black-rocks",
     name: "Black Rocks",
     continent: "Africa",
     country: "South Africa",
@@ -3896,6 +3976,7 @@ export const beachData: Beach[] = [
     },
   },
   {
+    id: "thermopylae",
     name: "Thermopylae",
     continent: "Africa",
     country: "South Africa",
@@ -3938,6 +4019,7 @@ export const beachData: Beach[] = [
     },
   },
   {
+    id: "virgin-point",
     name: "Virgin Point",
     continent: "Africa",
     country: "South Africa",
@@ -3980,6 +4062,7 @@ export const beachData: Beach[] = [
     },
   },
   {
+    id: "bellows",
     name: "Bellows 💀", // Added skull emoji
     continent: "Africa",
     country: "South Africa",
@@ -4022,6 +4105,7 @@ export const beachData: Beach[] = [
     },
   },
   {
+    id: "i&js",
     name: "I&J's",
     continent: "Africa",
     country: "South Africa",
@@ -4064,6 +4148,7 @@ export const beachData: Beach[] = [
     },
   },
   {
+    id: "sandy-bay",
     name: "Sandy Bay",
     continent: "Africa",
     country: "South Africa",
@@ -4106,6 +4191,7 @@ export const beachData: Beach[] = [
     },
   },
   {
+    id: "yellow-sands",
     name: "Yellow Sands",
     continent: "Africa",
     country: "South Africa",
@@ -4148,6 +4234,7 @@ export const beachData: Beach[] = [
     },
   },
   {
+    id: "365s",
     name: "365s",
     continent: "Africa",
     country: "South Africa",
@@ -4190,6 +4277,7 @@ export const beachData: Beach[] = [
     },
   },
   {
+    id: "olifants-bos",
     name: "Olifants Bos",
     continent: "Africa",
     country: "South Africa",
@@ -4232,6 +4320,7 @@ export const beachData: Beach[] = [
     },
   },
   {
+    id: "extensions",
     name: "Extensions",
     continent: "Africa",
     country: "South Africa",
@@ -4274,6 +4363,7 @@ export const beachData: Beach[] = [
     },
   },
   {
+    id: "bikini-beach",
     name: "Bikini Beach",
     continent: "Africa",
     country: "South Africa",
@@ -4316,6 +4406,7 @@ export const beachData: Beach[] = [
     },
   },
   {
+    id: "second-beach",
     name: "Second Beach 💀", // Added skull emoji due to multiple fatal shark attacks
     continent: "Africa",
     country: "South Africa",
@@ -4384,6 +4475,7 @@ export const beachData: Beach[] = [
     },
   },
   {
+    id: "black-rocks",
     name: "Black Rocks 💀", // Added skull emoji due to extreme wave conditions
     continent: "Africa",
     country: "South Africa",
@@ -4426,6 +4518,7 @@ export const beachData: Beach[] = [
     },
   },
   {
+    id: "sunset-reef",
     name: "Sunset Reef 💀", // Added skull emoji due to big wave conditions and shark presence
     continent: "Africa",
     country: "South Africa",
@@ -4474,6 +4567,7 @@ export const beachData: Beach[] = [
     ],
   },
   {
+    id: "gabathan",
     name: "Gabathan",
     continent: "Africa",
     country: "South Africa",
@@ -4517,6 +4611,7 @@ export const beachData: Beach[] = [
   },
 
   {
+    id: "herolds-bay",
     name: "Herolds Bay",
     continent: "Africa",
     country: "South Africa",
@@ -4559,6 +4654,7 @@ export const beachData: Beach[] = [
     },
   },
   {
+    id: "gerickes-point",
     name: "Gerickes Point",
     continent: "Africa",
     country: "South Africa",
@@ -4601,6 +4697,7 @@ export const beachData: Beach[] = [
     },
   },
   {
+    id: "reunion",
     name: "Reunion",
     continent: "Africa",
     country: "South Africa",
@@ -4656,6 +4753,7 @@ export const beachData: Beach[] = [
     ],
   },
   {
+    id: "ansteys",
     name: "Ansteys",
     continent: "Africa",
     country: "South Africa",
@@ -4698,6 +4796,7 @@ export const beachData: Beach[] = [
     },
   },
   {
+    id: "baggies",
     name: "Baggies",
     continent: "Africa",
     country: "South Africa",
@@ -4740,6 +4839,7 @@ export const beachData: Beach[] = [
     },
   },
   {
+    id: "salt-rock",
     name: "Salt Rock",
     continent: "Africa",
     country: "South Africa",
@@ -4782,6 +4882,7 @@ export const beachData: Beach[] = [
     },
   },
   {
+    id: "scottburgh-point",
     name: "Scottburgh Point",
     continent: "Africa",
     country: "South Africa",
@@ -4824,6 +4925,7 @@ export const beachData: Beach[] = [
     },
   },
   {
+    id: "skeleton-bay",
     name: "Skeleton Bay",
     continent: "Africa",
     country: "Namibia", // Changed from South Africa to Namibia
@@ -4899,6 +5001,7 @@ export const beachData: Beach[] = [
   },
 
   {
+    id: "off-the-wall",
     name: "Off The Wall",
     continent: "Africa",
     country: "South Africa",
@@ -4948,6 +5051,7 @@ export const beachData: Beach[] = [
     ],
   },
   {
+    id: "guns",
     name: "Guns",
     continent: "Africa",
     country: "Namibia", // Changed from South Africa to Namibia
@@ -5008,6 +5112,7 @@ export const beachData: Beach[] = [
     ],
   },
   {
+    id: "anchor-point",
     name: "Anchor Point",
     continent: "Africa",
     country: "Morocco",
@@ -5058,6 +5163,7 @@ export const beachData: Beach[] = [
     ],
   },
   {
+    id: "koeel-bay",
     name: "Koeel Bay",
     continent: "Africa",
     country: "South Africa",
@@ -5100,6 +5206,7 @@ export const beachData: Beach[] = [
     },
   },
   {
+    id: "jongensfontein",
     name: "Jongensfontein",
     continent: "Africa",
     country: "South Africa",
@@ -5142,6 +5249,7 @@ export const beachData: Beach[] = [
     },
   },
   {
+    id: "dolphin-point",
     name: "Dolphin Point",
     continent: "Africa",
     country: "South Africa",
@@ -5184,6 +5292,7 @@ export const beachData: Beach[] = [
     },
   },
   {
+    id: "kanon",
     name: "Kanon",
     continent: "Africa",
     country: "South Africa",
@@ -5226,6 +5335,7 @@ export const beachData: Beach[] = [
     },
   },
   {
+    id: "outer-pool",
     name: "Outer Pool",
     continent: "Africa",
     country: "South Africa",
@@ -5285,6 +5395,7 @@ export const beachData: Beach[] = [
     ],
   },
   {
+    id: "ding-dangs",
     name: "Ding Dangs",
     continent: "Africa",
     country: "South Africa",
@@ -5344,6 +5455,7 @@ export const beachData: Beach[] = [
     ],
   },
   {
+    id: "victoria-bay",
     name: "Victoria Bay",
     continent: "Africa",
     country: "South Africa",
@@ -5386,6 +5498,7 @@ export const beachData: Beach[] = [
     },
   },
   {
+    id: "ferme-aux-cochons",
     name: "Ferme aux Cochons 🦛",
     continent: "Africa",
     country: "Gabon",
@@ -5445,6 +5558,7 @@ export const beachData: Beach[] = [
     ],
   },
   {
+    id: "petit-loango",
     name: "Petit Loango 🦛",
     continent: "Africa",
     country: "Gabon",
@@ -5487,6 +5601,7 @@ export const beachData: Beach[] = [
     },
   },
   {
+    id: "mussels",
     name: "Mussels",
     continent: "Africa",
     country: "South Africa",
@@ -5529,6 +5644,7 @@ export const beachData: Beach[] = [
     },
   },
   {
+    id: "farmer-burgers",
     name: "Farmer Burgers",
     continent: "Africa",
     country: "South Africa",
@@ -5571,6 +5687,7 @@ export const beachData: Beach[] = [
     },
   },
   {
+    id: "praia-tofo",
     name: "Praia Tofo",
     continent: "Africa",
     country: "Mozambique",
@@ -5627,6 +5744,7 @@ export const beachData: Beach[] = [
     ],
   },
   {
+    id: "tofinho",
     name: "Tofinho",
     continent: "Africa",
     country: "Mozambique",
@@ -5669,6 +5787,7 @@ export const beachData: Beach[] = [
     },
   },
   {
+    id: "shipwreck",
     name: "Shipwreck",
     continent: "Africa",
     country: "Liberia",
@@ -5740,6 +5859,7 @@ export const beachData: Beach[] = [
   },
 
   {
+    id: "plage-du-dahu",
     name: "Plage du Dahu",
     continent: "Africa",
     country: "Gabon", // Based on location and characteristics similar to other Gabon spots
@@ -5782,6 +5902,7 @@ export const beachData: Beach[] = [
     },
   },
   {
+    id: "ambriz-point",
     name: "Ambriz Point",
     continent: "Africa",
     country: "Angola",
@@ -5831,6 +5952,7 @@ export const beachData: Beach[] = [
     ],
   },
   {
+    id: "cabo-ledo",
     name: "Cabo Ledo",
     continent: "Africa",
     country: "Angola",
@@ -5873,6 +5995,7 @@ export const beachData: Beach[] = [
     },
   },
   {
+    id: "praia-do-buraco",
     name: "Praia do Buraco",
     continent: "Africa",
     country: "Angola",
@@ -5915,6 +6038,7 @@ export const beachData: Beach[] = [
     },
   },
   {
+    id: "bocock's-bay",
     name: "Bocock's Bay",
     continent: "Africa",
     country: "South Africa",
@@ -5957,6 +6081,7 @@ export const beachData: Beach[] = [
     },
   },
   {
+    id: "vredenberg-point",
     name: "Vredenberg Point",
     continent: "Africa",
     country: "South Africa",
@@ -5999,6 +6124,7 @@ export const beachData: Beach[] = [
     },
   },
   {
+    id: "jacobs-bay",
     name: "Jacobs Bay",
     continent: "Africa",
     country: "South Africa",
@@ -6041,6 +6167,7 @@ export const beachData: Beach[] = [
     },
   },
   {
+    id: "treskostraal",
     name: "Treskostraal",
     continent: "Africa",
     country: "South Africa",
@@ -6083,6 +6210,7 @@ export const beachData: Beach[] = [
     },
   },
   {
+    id: "cape-st-martin",
     name: "Cape St Martin",
     continent: "Africa",
     country: "South Africa",
@@ -6125,6 +6253,7 @@ export const beachData: Beach[] = [
     },
   },
   {
+    id: "pastures",
     name: "Pastures",
     continent: "Africa",
     country: "South Africa",
@@ -6167,6 +6296,7 @@ export const beachData: Beach[] = [
     },
   },
   {
+    id: "silverstroom",
     name: "Silverstroom",
     continent: "Africa",
     country: "South Africa",
@@ -6209,6 +6339,7 @@ export const beachData: Beach[] = [
     },
   },
   {
+    id: "kreefte-reef",
     name: "Kreefte Reef",
     continent: "Africa",
     country: "South Africa",
@@ -6251,6 +6382,7 @@ export const beachData: Beach[] = [
     },
   },
   {
+    id: "pointe-dimessouane",
     name: "Pointe d'Imessouane",
     continent: "Africa",
     country: "Morocco",
@@ -6293,6 +6425,7 @@ export const beachData: Beach[] = [
     },
   },
   {
+    id: "dracula",
     name: "Dracula",
     continent: "Africa",
     country: "Morocco",
@@ -6335,6 +6468,7 @@ export const beachData: Beach[] = [
     },
   },
   {
+    id: "the-wedge",
     name: "The Wedge",
     continent: "Africa",
     country: "South Africa",

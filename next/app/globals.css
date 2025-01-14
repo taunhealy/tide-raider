@@ -85,6 +85,41 @@
   .section-padding {
     @apply py-20;
   }
+
+  input[type="range"] {
+    -webkit-appearance: none;
+    background: var(--color-border-light);
+    height: 4px;
+    border-radius: 2px;
+  }
+
+  input[type="range"]::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    width: 16px;
+    height: 16px;
+    border-radius: 50%;
+    background: var(--color-tertiary);
+    cursor: pointer;
+    border: none;
+  }
+
+  input[type="range"]::-moz-range-thumb {
+    width: 16px;
+    height: 16px;
+    border-radius: 50%;
+    background: var(--color-tertiary);
+    cursor: pointer;
+    border: none;
+  }
+
+  input[type="range"]::-ms-thumb {
+    width: 16px;
+    height: 16px;
+    border-radius: 50%;
+    background: var(--color-tertiary);
+    cursor: pointer;
+    border: none;
+  }
 }
 
 @layer utilities {

@@ -57,15 +57,37 @@ const SurfForecastWidget = ({ date }: SurfForecastWidgetProps) => {
     <div className="bg-white p-4 rounded-lg shadow-sm">
       <h3 className="font-semibold">Surf Forecast for {date}</h3>
       {forecast ? (
-        <div className="space-y-2">
-          <p>Wave Height: {forecast.swell.height.toFixed(1)}m</p>
-          <p>Wind Direction: {forecast.wind.direction}</p>
-          <p>Wind Speed: {forecast.wind.speed} km/h</p>
-          <p>Swell Direction: {forecast.swell.direction}°</p>
-          <p>Swell Period: {forecast.swell.period}s</p>
-          <p className="text-sm text-gray-500">
+        <div className="space-y-2 text-base">
+          <div className="flex justify-between items-center">
+            <span className="text-gray-600">Wave Height:</span>
+            <span className="font-medium">
+              {forecast.swell.height.toFixed(1)}m
+            </span>
+          </div>
+
+          <div className="flex justify-between items-center">
+            <span className="text-gray-600">Wind Direction:</span>
+            <span className="font-medium">{forecast.wind.direction}</span>
+          </div>
+
+          <div className="flex justify-between items-center">
+            <span className="text-gray-600">Wind Speed:</span>
+            <span className="font-medium">{forecast.wind.speed} km/h</span>
+          </div>
+
+          <div className="flex justify-between items-center">
+            <span className="text-gray-600">Swell Direction:</span>
+            <span className="font-medium">{forecast.swell.direction}°</span>
+          </div>
+
+          <div className="flex justify-between items-center">
+            <span className="text-gray-600">Swell Period:</span>
+            <span className="font-medium">{forecast.swell.period}s</span>
+          </div>
+
+          <div className="text-xs text-gray-500 mt-4">
             Last updated: {new Date(forecast.timestamp).toLocaleString()}
-          </p>
+          </div>
         </div>
       ) : (
         <p>No forecast available for this date</p>

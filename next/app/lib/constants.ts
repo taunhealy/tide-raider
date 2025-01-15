@@ -34,3 +34,13 @@ export const WAVE_TYPE_ICONS = {
 } as const;
 
 export type WaveType = keyof typeof WAVE_TYPE_ICONS;
+
+export const STORY_CATEGORIES = [
+  "Travel",
+  "Wipeouts",
+  "Crime",
+  "Favourite Sessions",
+  "Wildlife Encounters",
+] as const;
+
+export type StoryCategory = (typeof STORY_CATEGORIES)[number];

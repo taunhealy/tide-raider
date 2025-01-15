@@ -22,6 +22,7 @@ export interface LogEntry {
   beachName: string;
   surferRating: number;
   comments: string;
+  isAnonymous: boolean;
   beach?: {
     continent: string;
     country: string;
@@ -87,7 +88,7 @@ export interface LogbookTableColumn {
 export const DEFAULT_COLUMNS: LogbookTableColumn[] = [
   { key: "date", label: "Date", sortable: true },
   { key: "beachName", label: "Beach", sortable: true },
-  { key: "surferName", label: "Surfer", sortable: true },
+  { key: "surferName", label: "Logger", sortable: true },
   { key: "surferRating", label: "Rating", sortable: true },
   {
     key: "forecastSummary",

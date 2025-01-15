@@ -11,9 +11,9 @@ import { useState } from "react";
 
 const NAVIGATION_ITEMS = [
   { href: "/raid", label: "Raid" },
+  { href: "/log", label: "Log" },
   { href: "/blog", label: "Blog" },
   { href: "/pricing", label: "Pricing" },
-  { href: "/log", label: "Log" },
 ];
 
 export default function Navbar() {
@@ -56,7 +56,7 @@ export default function Navbar() {
   }
 
   return (
-    <header className="sticky top-0 z-50 bg-white border-b border-[var(--color-border-light)]">
+    <header className="sticky top-0 z-50 bg-white ">
       <div
         className={cn(
           "flex justify-between items-center px-4 md:px-8 py-4 bg-white",
@@ -97,9 +97,7 @@ export default function Navbar() {
                   >
                     {link.label}
                   </Link>
-                  {index < NAVIGATION_ITEMS.length - 1 && (
-                    <div className="border-t border-[var(--color-border-light)]" />
-                  )}
+                  {index < NAVIGATION_ITEMS.length - 1 && <div className="" />}
                 </li>
               ))}
             </ul>

@@ -2,8 +2,10 @@
 
 import { client } from "@/app/lib/sanity";
 import { urlForImage } from "@/app/lib/urlForImage";
+import Image from "next/image";
 import Link from "next/link";
-import { useState, useMemo } from "react";
+import { useState } from "react";
+import { useQuery } from "@tanstack/react-query";
 
 interface Category {
   title: string;
@@ -19,12 +21,7 @@ interface Post {
   categories: Category[];
 }
 
-interface BlogPageProps {
-  initialPosts: Post[];
-  categories: Category[];
-}
-
-async function getData() {
+async function fetchBlogData() {
   const posts = await client.fetch(`
     *[_type == "post"] | order(publishedAt desc) {
       title,
@@ -46,28 +43,45 @@ async function getData() {
     }
   `);
 
-  return {
-    posts,
-    categories,
-  };
+  return { posts, categories };
 }
 
-export default async function BlogPage() {
-  const { posts, categories } = await getData();
-
-  return <BlogPageContent initialPosts={posts} categories={categories} />;
-}
-
-function BlogPageContent({ initialPosts, categories }: BlogPageProps) {
+export default function BlogPage() {
   const [activeCategory, setActiveCategory] = useState("All");
 
-  const filteredPosts = useMemo(() => {
-    if (activeCategory === "All") return initialPosts;
+  const { data, isLoading } = useQuery({
+    queryKey: ["blogData"],
+    queryFn: fetchBlogData,
+    staleTime: 1000 * 60 * 5, // Consider data fresh for 5 minutes
+  });
 
-    return initialPosts.filter((post) =>
-      post.categories?.some((category) => category.title === activeCategory)
+  const filteredPosts =
+    data?.posts?.filter(
+      (post) =>
+        activeCategory === "All" ||
+        post.categories?.some((category) => category.title === activeCategory)
+    ) ?? [];
+
+  if (isLoading) {
+    return (
+      <div className="container mx-auto py-16 px-4">
+        <div className="animate-pulse">
+          <div className="h-8 bg-gray-200 rounded w-1/4 mb-8"></div>
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+            {[...Array(6)].map((_, i) => (
+              <div key={i} className="bg-white rounded-lg overflow-hidden">
+                <div className="h-48 bg-gray-200"></div>
+                <div className="p-6">
+                  <div className="h-4 bg-gray-200 rounded w-3/4 mb-4"></div>
+                  <div className="h-4 bg-gray-200 rounded w-1/2"></div>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      </div>
     );
-  }, [initialPosts, activeCategory]);
+  }
 
   return (
     <section className="container mx-auto py-16 px-4">
@@ -79,43 +93,36 @@ function BlogPageContent({ initialPosts, categories }: BlogPageProps) {
           Kraken's grasp? Will ye uncover the troves of pirate kings past? The
           only thing certain is the thrill of the chase and the bond of yer
           loyal crew. So sharpen yer cutlass, stow yer doubloons, and set yer
-          heart ablaze with wanderlust! The seas be vast, and the treasure waits
-          for none! Onward, ye scallywags, to adventure and a life worthy of
-          song! 🏴‍☠️⚓✨'
+          heart ablaze with wanderlust. The seas be calling, and the gold favors
+          the bold! Onward, ye scallywags! 🏴‍☠️⚓✨'
         </p>
       </div>
 
       {/* Category Navigation */}
-      <div className="mb-12 border-b border-gray-200">
-        <div className="flex overflow-x-auto no-scrollbar gap-8 pb-4">
+      <div className="mb-12">
+        <div className="flex items-center justify-start overflow-x-auto no-scrollbar border-b border-gray-200">
           <button
             onClick={() => setActiveCategory("All")}
-            className={`shrink-0 relative pb-4 ${
+            className={`px-6 py-4 font-medium text-sm transition-colors duration-200 ${
               activeCategory === "All"
-                ? "text-gray-900"
-                : "text-gray-500 hover:text-gray-700"
+                ? "text-gray-900 bg-gray-50"
+                : "text-gray-500 hover:text-gray-700 hover:bg-gray-50"
             }`}
           >
             <span className="whitespace-nowrap">All Posts</span>
-            {activeCategory === "All" && (
-              <span className="absolute bottom-0 left-0 w-full h-0.5 bg-gray-900" />
-            )}
           </button>
 
-          {categories.map((category) => (
+          {data?.categories?.map((category) => (
             <button
               key={category.slug.current}
               onClick={() => setActiveCategory(category.title)}
-              className={`shrink-0 relative pb-4 ${
+              className={`px-6 py-4 font-medium text-sm transition-colors duration-200 ${
                 activeCategory === category.title
-                  ? "text-gray-900"
-                  : "text-gray-500 hover:text-gray-700"
+                  ? "text-gray-900 bg-gray-50"
+                  : "text-gray-500 hover:text-gray-700 hover:bg-gray-50"
               }`}
             >
               <span className="whitespace-nowrap">{category.title}</span>
-              {activeCategory === category.title && (
-                <span className="absolute bottom-0 left-0 w-full h-0.5 bg-gray-900" />
-              )}
             </button>
           ))}
         </div>
@@ -132,13 +139,14 @@ function BlogPageContent({ initialPosts, categories }: BlogPageProps) {
             <article className="h-full bg-[var(--color-bg-secondary)] rounded-lg overflow-hidden">
               {post.mainImage && (
                 <div className="relative aspect-[16/9] overflow-hidden">
-                  <img
+                  <Image
                     src={urlForImage(post.mainImage)
                       .width(600)
                       .height(400)
                       .url()}
                     alt={post.title}
-                    className="object-cover w-full h-full transition duration-300 group-hover:scale-105"
+                    fill
+                    className="object-cover transition duration-300 group-hover:scale-105"
                   />
                 </div>
               )}
@@ -152,7 +160,7 @@ function BlogPageContent({ initialPosts, categories }: BlogPageProps) {
                 </p>
                 {post.categories && (
                   <div className="flex flex-wrap gap-2">
-                    {post.categories.map((category: Category) => (
+                    {post.categories.map((category) => (
                       <span
                         key={category.slug.current}
                         className="text-xs bg-[var(--color-bg-tertiary)] text-white px-2 py-1 rounded font-secondary font-semibold uppercase"

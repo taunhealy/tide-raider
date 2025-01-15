@@ -28,6 +28,7 @@ export function LogSessionForm({
   const [surferRating, setSurferRating] = useState<number>(0);
   const [comments, setComments] = useState<string>("");
   const [searchTerm, setSearchTerm] = useState<string>("");
+  const [isAnonymous, setIsAnonymous] = useState<boolean>(false);
 
   const createLogEntry = useMutation({
     mutationFn: async (newEntry: CreateLogEntryInput) => {
@@ -73,7 +74,7 @@ export function LogSessionForm({
       beachName: selectedBeach.name,
       date: selectedDate,
       surferEmail: userEmail,
-      surferName: userEmail.split("@")[0],
+      surferName: isAnonymous ? "Anonymous" : userEmail.split("@")[0],
       surferRating: surferRating,
       comments,
       beach: {
@@ -214,9 +215,25 @@ export function LogSessionForm({
                     </div>
                   </div>
 
+                  <div className="flex items-center space-x-2">
+                    <input
+                      type="checkbox"
+                      id="anonymous"
+                      checked={isAnonymous}
+                      onChange={(e) => setIsAnonymous(e.target.checked)}
+                      className="rounded border-gray-300 text-[#1cd9ff] focus:ring-[#1cd9ff]"
+                    />
+                    <label
+                      htmlFor="anonymous"
+                      className="text-sm text-gray-600"
+                    >
+                      Post Anonymously
+                    </label>
+                  </div>
+
                   <button
                     type="submit"
-                    className="w-full bg-blue-600 text-white py-2 px-4 rounded-lg hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed"
+                    className="w-full bg-[#1cd9ff] text-white py-2 px-4 rounded-lg hover:bg-[#1cd9ff]/90 disabled:opacity-50 disabled:cursor-not-allowed"
                     disabled={!selectedBeach || !selectedDate}
                   >
                     Log Session

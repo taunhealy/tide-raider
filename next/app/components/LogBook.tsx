@@ -9,7 +9,11 @@ import { LogbookTable } from "./LogbookTable";
 import { LogbookFilter } from "./LogbookFilter";
 import type { Beach, LogEntry } from "@/app/types/logbook";
 import Image from "next/image";
-import { getWindEmoji, getSwellEmoji, getDirectionEmoji } from "@/app/lib/forecastUtils";
+import {
+  getWindEmoji,
+  getSwellEmoji,
+  getDirectionEmoji,
+} from "@/app/lib/forecastUtils";
 
 interface LogBookProps {
   beaches: Beach[];
@@ -47,12 +51,34 @@ const defaultFilters: CombinedFilters = {
 };
 
 export default function LogBook({ beaches }: LogBookProps) {
-  const { data: sessionData } = useSession();
+  const { data: session, status } = useSession();
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [activeTab, setActiveTab] = useState<"logs" | "new">("logs");
   const [isFilterOpen, setIsFilterOpen] = useState(false);
   const [filteredEntries, setFilteredEntries] = useState<LogEntry[]>([]);
   const [filters, setFilters] = useState<CombinedFilters>(defaultFilters);
+
+  const { data: logEntries = [], isLoading } = useQuery<LogEntry[]>({
+    queryKey: ["logEntries"],
+    queryFn: async () => {
+      const response = await fetch("/api/logbook");
+      if (!response.ok) throw new Error("Failed to fetch log entries");
+      const data = await response.json();
+      return Array.isArray(data) ? data : [];
+    },
+    retry: 3,
+    retryDelay: 1000,
+    onError: (error) => {
+      console.error("Error fetching log entries:", error);
+    },
+    enabled: status === "authenticated",
+  });
+
+  useEffect(() => {
+    if (logEntries && Array.isArray(logEntries)) {
+      setFilteredEntries(logEntries);
+    }
+  }, [logEntries]);
 
   const handleFilterChange = (newFilters: any) => {
     let filtered = [...logEntries];
@@ -91,28 +117,9 @@ export default function LogBook({ beaches }: LogBookProps) {
   const handleOpenModal = () => setIsModalOpen(true);
   const handleCloseModal = () => setIsModalOpen(false);
 
-  const { data: logEntries = [], isLoading } = useQuery<LogEntry[]>({
-    queryKey: ["logEntries"],
-    queryFn: async () => {
-      const response = await fetch("/api/logbook");
-      if (!response.ok) throw new Error("Failed to fetch log entries");
-      const data = await response.json();
-      return Array.isArray(data) ? data : [];
-    },
-    retry: 3,
-    retryDelay: 1000,
-    onError: (error) => {
-      console.error("Error fetching log entries:", error);
-    },
-  });
+  if (status === "loading") return null;
 
-  useEffect(() => {
-    if (logEntries && Array.isArray(logEntries)) {
-      setFilteredEntries(logEntries);
-    }
-  }, [logEntries]);
-
-  if (!sessionData) {
+  if (!session) {
     return (
       <div className="max-h-full min-h-[60vh] bg-[var(--color-bg-secondary)] p-9 flex flex-col items-center justify-center">
         <h2 className="text-2xl font-semibold mb-4">
@@ -166,11 +173,11 @@ export default function LogBook({ beaches }: LogBookProps) {
     <div className="min-h-screen bg-[var(--color-bg-secondary)] p-9">
       <div className="max-w-[1600px] mx-auto">
         {/* Tabs */}
-        <div className="flex gap-6 mb-9 justify-start max-h-[250px]">
+        <div className="flex gap-6 mb-4 justify-start max-h-[250px]">
           <button
             onClick={() => setActiveTab("logs")}
             className={cn(
-              "px-6 py-4 text-[16px] font-medium transition-all duration-300",
+              "px-6 py-2 text-[16px] font-medium transition-all duration-300",
               activeTab === "logs"
                 ? "border-[var(--color-text-primary)] text-[var(--color-text-primary)]"
                 : "border-transparent text-gray-500 hover:text-[var(--color-text-primary)]"
@@ -181,7 +188,7 @@ export default function LogBook({ beaches }: LogBookProps) {
           <button
             onClick={handleOpenModal}
             className={cn(
-              "px-6 py-4 text-[16px] font-medium transition-all duration-300",
+              "px-6 py-2 text-[16px] font-medium transition-all duration-300",
               "border-b-2",
               activeTab === "new"
                 ? "border-[var(--color-text-primary)] text-[var(--color-text-primary)]"
@@ -198,7 +205,7 @@ export default function LogBook({ beaches }: LogBookProps) {
             <div className="w-full">
               <div className="flex justify-between items-center mb-6">
                 <h2 className={cn("text-[21px] font-semibold")}>
-                  Previous Sessions
+                  Logged Sessions
                 </h2>
                 <button
                   onClick={() => setIsFilterOpen(true)}
@@ -210,14 +217,17 @@ export default function LogBook({ beaches }: LogBookProps) {
               {isLoading ? (
                 <div>Loading...</div>
               ) : filteredEntries.length > 0 ? (
-                <LogbookTable 
-                  entries={filteredEntries.map(entry => ({
+                <LogbookTable
+                  entries={filteredEntries.map((entry) => ({
                     ...entry,
-                    forecastConditions: entry.windSpeed && entry.swellHeight ? {
-                      wind: `${getWindEmoji(entry.windSpeed)} ${entry.windSpeed}kts ${getDirectionEmoji(entry.windDirection || 0)}`,
-                      swell: `${getSwellEmoji(entry.swellHeight)} ${entry.swellHeight}m ${getDirectionEmoji(entry.swellDirection || 0)}`,
-                    } : undefined
-                  }))} 
+                    forecastConditions:
+                      entry.windSpeed && entry.swellHeight
+                        ? {
+                            wind: `${getWindEmoji(entry.windSpeed)} ${entry.windSpeed}kts ${getDirectionEmoji(entry.windDirection || 0)}`,
+                            swell: `${getSwellEmoji(entry.swellHeight)} ${entry.swellHeight}m ${getDirectionEmoji(entry.swellDirection || 0)}`,
+                          }
+                        : undefined,
+                  }))}
                 />
               ) : (
                 <div>No entries available</div>
@@ -238,7 +248,7 @@ export default function LogBook({ beaches }: LogBookProps) {
       {/* Modal for Log Session Form */}
       <LogSessionForm
         beaches={beaches}
-        userEmail={sessionData.user?.email || ""}
+        userEmail={session.user?.email || ""}
         isOpen={isModalOpen}
         onClose={handleCloseModal}
       />

@@ -6,13 +6,9 @@ import { authOptions } from "@/app/api/auth/[...nextauth]/route";
 export async function GET() {
   try {
     const session = await getServerSession(authOptions);
-    if (!session?.user?.email) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-    }
-
     const entries = await prisma.logEntry.findMany({
       where: {
-        surferEmail: session.user.email,
+        surferEmail: session?.user?.email,
       },
       orderBy: {
         date: "desc",
@@ -32,12 +28,8 @@ export async function GET() {
 export async function POST(request: Request) {
   try {
     const session = await getServerSession(authOptions);
-    if (!session?.user?.email) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-    }
-
     const data = await request.json();
-    
+
     // Fetch forecast data for the date
     const forecastResponse = await fetch(
       `${process.env.NEXT_PUBLIC_BASE_URL}/api/surf-conditions?date=${data.date}`
@@ -48,7 +40,7 @@ export async function POST(request: Request) {
       data: {
         date: new Date(data.date),
         surferName: data.surferName,
-        surferEmail: session.user.email,
+        surferEmail: session?.user?.email,
         beachName: data.beachName,
         forecast: forecast.data,
         surferRating: data.surferRating,

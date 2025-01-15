@@ -201,11 +201,17 @@ export function LogSessionForm({
                     </label>
                     <textarea
                       value={comments}
-                      onChange={(e) => setComments(e.target.value)}
+                      onChange={(e) =>
+                        setComments(e.target.value.slice(0, 140))
+                      }
                       className="w-full p-2 border rounded-lg"
                       rows={4}
                       placeholder="How was your session?"
+                      maxLength={140}
                     />
+                    <div className="text-sm text-gray-500 mt-1">
+                      Characters remaining: {140 - comments.length}
+                    </div>
                   </div>
 
                   <button

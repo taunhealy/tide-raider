@@ -96,14 +96,7 @@ export function LogbookTable({
                 )}
               </td>
               <td className="px-6 py-4">{entry.comments}</td>
-              <td className="px-4 py-2">
-                {entry.forecastConditions && (
-                  <div className="flex flex-col gap-1 text-sm">
-                    <div>{entry.forecastConditions.wind}</div>
-                    <div>{entry.forecastConditions.swell}</div>
-                  </div>
-                )}
-              </td>
+              
             </tr>
           ))}
         </tbody>

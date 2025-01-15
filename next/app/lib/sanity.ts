@@ -14,9 +14,23 @@ export const client = createClient({
   projectId: process.env.NEXT_PUBLIC_SANITY_PROJECT_ID,
   dataset: process.env.NEXT_PUBLIC_SANITY_DATASET,
   apiVersion: "2024-01-12",
-  useCdn: false,
+  useCdn: true,
   perspective: "published",
   stega: {
     enabled: false,
   },
+  token: process.env.SANITY_API_TOKEN,
+  requestHandler: {
+    maxRetries: 3,
+    retryDelay: 1000,
+  },
 });
+
+export async function sanityQuery<T>(operation: () => Promise<T>): Promise<T> {
+  try {
+    return await operation();
+  } catch (error) {
+    console.error("Sanity query error:", error);
+    throw new Error("Failed to fetch data from Sanity");
+  }
+}

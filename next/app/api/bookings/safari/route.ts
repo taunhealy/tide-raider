@@ -1,40 +1,29 @@
-import { NextResponse } from 'next/server'
-import { getServerSession } from 'next-auth'
-import { prisma } from '@/app/lib/prisma'
-import { authOptions } from '@/app/api/auth/[...nextauth]/route'
+import { NextResponse } from "next/server";
+import { prisma } from "@/app/lib/prisma";
 
 export async function POST(request: Request) {
   try {
-    const session = await getServerSession(authOptions)
-    if (!session?.user?.id) {
-      return NextResponse.json(
-        { error: 'Unauthorized' },
-        { status: 401 }
-      )
-    }
-
-    const body = await request.json()
-    const { safariId, date, skillLevel, bringingBoard, requiresRental, notes } = body
+    const { safariId, date, skillLevel, bringingBoard, requiresRental, notes } =
+      await request.json();
 
     const booking = await prisma.safariBooking.create({
       data: {
         safariId,
-        userId: session.user.id,
+        userId: req.nextauth.token.sub,
         date: new Date(date),
         skillLevel,
         bringingBoard,
         requiresRental,
-        notes
-      }
-    })
+        notes,
+      },
+    });
 
-    return NextResponse.json(booking)
-    
+    return NextResponse.json(booking);
   } catch (error) {
-    console.error('Failed to create safari booking:', error)
+    console.error("Failed to create safari booking:", error);
     return NextResponse.json(
-      { error: 'Failed to create booking' },
+      { error: "Failed to create booking" },
       { status: 500 }
-    )
+    );
   }
 }

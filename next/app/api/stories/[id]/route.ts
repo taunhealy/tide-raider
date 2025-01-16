@@ -83,3 +83,42 @@ export async function PUT(
     );
   }
 }
+
+export async function DELETE(
+  request: Request,
+  { params }: { params: { id: string } }
+) {
+  try {
+    const session = await getServerSession(authOptions);
+    if (!session?.user) {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    }
+
+    // Verify the story exists and belongs to the user
+    const story = await prisma.story.findUnique({
+      where: { id: params.id },
+      include: { author: true },
+    });
+
+    if (!story) {
+      return NextResponse.json({ error: "Story not found" }, { status: 404 });
+    }
+
+    if (story.author.email !== session.user.email) {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    }
+
+    // Delete the story
+    await prisma.story.delete({
+      where: { id: params.id },
+    });
+
+    return NextResponse.json({ message: "Story deleted successfully" });
+  } catch (error) {
+    console.error("Failed to delete story:", error);
+    return NextResponse.json(
+      { error: "Failed to delete story" },
+      { status: 500 }
+    );
+  }
+}

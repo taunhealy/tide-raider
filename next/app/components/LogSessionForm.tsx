@@ -8,6 +8,7 @@ import type { Beach } from "@/app/types/beaches";
 import type { CreateLogEntryInput } from "@/app/types/logbook";
 import SurfForecastWidget from "./SurfForecastWidget";
 import confetti from "canvas-confetti";
+import { Button } from "@/app/components/ui/Button";
 
 interface LogSessionFormProps {
   userEmail: string;
@@ -112,9 +113,9 @@ export function LogSessionForm({
 
             <h2 className="text-xl font-semibold mb-4">Log a Session</h2>
 
-            <div className="flex gap-6">
+            <div className="flex flex-col lg:flex-row gap-3 sm:gap-4 lg:gap-6">
               {/* Left Column - Beach Selection */}
-              <div className="flex-1 min-w-500px">
+              <div className="w-full lg:flex-1 lg:min-w-[400px]">
                 <div>
                   <label className="block text-sm font-medium mb-1">
                     Select a Beach
@@ -122,12 +123,12 @@ export function LogSessionForm({
                   <input
                     type="text"
                     placeholder="Search beaches..."
-                    className="w-full p-2 border rounded-lg"
+                    className="w-full p-2 border rounded-lg text-sm sm:text-base"
                     value={searchTerm}
                     onChange={(e) => setSearchTerm(e.target.value)}
                   />
                   {searchTerm && (
-                    <div className="border rounded-lg mt-2 max-h-60 overflow-y-auto">
+                    <div className="border rounded-lg mt-2 max-h-48 sm:max-h-60 overflow-y-auto">
                       {filteredBeaches.map((beach) => (
                         <button
                           key={beach.name}
@@ -149,7 +150,7 @@ export function LogSessionForm({
               </div>
 
               {/* Right Column - Form */}
-              <div className="flex-1 w-full">
+              <div className="w-full lg:flex-1">
                 <form onSubmit={handleSubmit} className="space-y-4">
                   <div>
                     <label className="block text-sm font-medium mb-1">
@@ -160,6 +161,7 @@ export function LogSessionForm({
                       value={selectedDate}
                       onChange={(e) => setSelectedDate(e.target.value)}
                       className="w-full p-2 border rounded-lg"
+                      max={new Date().toISOString().split("T")[0]}
                       required
                     />
                   </div>
@@ -231,13 +233,15 @@ export function LogSessionForm({
                     </label>
                   </div>
 
-                  <button
+                  <Button
                     type="submit"
-                    className="w-full bg-[#1cd9ff] text-white py-2 px-4 rounded-lg hover:bg-[#1cd9ff]/90 disabled:opacity-50 disabled:cursor-not-allowed"
+                    variant="secondary"
+                    className="w-full lg:bg-[#1cd9ff] lg:text-white lg:hover:bg-[#1cd9ff]/90"
                     disabled={!selectedBeach || !selectedDate}
+                    isLoading={createLogEntry.isPending}
                   >
-                    Log Session
-                  </button>
+                    {createLogEntry.isPending ? "Logging..." : "Log Session"}
+                  </Button>
                 </form>
               </div>
             </div>

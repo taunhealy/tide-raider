@@ -36,11 +36,23 @@ export const WAVE_TYPE_ICONS = {
 export type WaveType = keyof typeof WAVE_TYPE_ICONS;
 
 export const STORY_CATEGORIES = [
-  "Travel",
-  "Wipeouts",
-  "Crime",
-  "Favourite Sessions",
+  "Longest Wave",
+  "Best Barrels",
   "Wildlife Encounters",
+  "Hidden Gems",
+  "Epic Road Trips",
+  "Coastal Adventures",
+  "Cultural Experiences",
+  "Survival Stories",
+  "Camping Adventures",
+  "Storm Stories",
+  "Environmental Impact",
+  "Seasonal Changes",
+  "Local Surfing Legends",
+  "Boat Access Spots",
+  "Weather Phenomena",
+  "Restricted Access Spots",
+  "Crime",
 ] as const;
 
 export type StoryCategory = (typeof STORY_CATEGORIES)[number];

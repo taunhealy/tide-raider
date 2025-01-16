@@ -7,6 +7,7 @@ import { Inter } from "next/font/google";
 import { cn } from "@/app/lib/utils";
 import type { Story, StoryCategory } from "@/app/types/stories";
 import { beachData } from "@/app/types/beaches";
+import { Button } from "@/app/components/ui/Button"
 
 const inter = Inter({ subsets: ["latin"] });
 
@@ -64,7 +65,7 @@ export function EditPostModal({ isOpen, onClose, story }: EditPostModalProps) {
           setFormData({ ...formData, beach: e.target.value });
           setSearchTerm(e.target.value === "other" ? "Other" : beachData.find(b => b.id === e.target.value)?.name || "");
         }}
-        className="w-full px-3 py-2 bg-[var(--color-bg-secondary)] border border-[var(--color-border-light)] rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+        className="w-full px-3 py-2 bg-[var(--color-bg-secondary)] border border-[var(--color-border-light)] rounded-md focus:outline-none focus:ring-2 focus:ring-[var(--color-tertiary)]"
       >
         <option value="other">Other</option>
         {beachData.map((beach) => (
@@ -150,10 +151,8 @@ export function EditPostModal({ isOpen, onClose, story }: EditPostModalProps) {
                 type="text"
                 required
                 value={formData.title}
-                onChange={(e) =>
-                  setFormData({ ...formData, title: e.target.value })
-                }
-                className="w-full px-3 py-2 bg-[var(--color-bg-secondary)] border border-[var(--color-border-light)] rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                onChange={(e) => setFormData({ ...formData, title: e.target.value })}
+                className="modal-input"
               />
             </div>
 
@@ -174,7 +173,7 @@ export function EditPostModal({ isOpen, onClose, story }: EditPostModalProps) {
                     category: e.target.value as StoryCategory,
                   })
                 }
-                className="w-full px-3 py-2 bg-[var(--color-bg-secondary)] border border-[var(--color-border-light)] rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                className="w-full px-3 py-2 bg-[var(--color-bg-secondary)] border border-[var(--color-border-light)] rounded-md focus:outline-none focus:ring-2 focus:ring-[var(--color-tertiary)]"
               >
                 {CATEGORIES.map((category) => (
                   <option key={category} value={category}>
@@ -196,7 +195,7 @@ export function EditPostModal({ isOpen, onClose, story }: EditPostModalProps) {
                 onChange={(e) =>
                   setFormData({ ...formData, date: e.target.value })
                 }
-                className="w-full px-3 py-2 bg-[var(--color-bg-secondary)] border border-[var(--color-border-light)] rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                className="w-full px-3 py-2 bg-[var(--color-bg-secondary)] border border-[var(--color-border-light)] rounded-md focus:outline-none focus:ring-2 focus:ring-[var(--color-tertiary)]"
               />
             </div>
 
@@ -212,7 +211,7 @@ export function EditPostModal({ isOpen, onClose, story }: EditPostModalProps) {
                   setFormData({ ...formData, details: e.target.value })
                 }
                 rows={6}
-                className="w-full px-3 py-2 bg-[var(--color-bg-secondary)] border border-[var(--color-border-light)] rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                className="w-full px-3 py-2 bg-[var(--color-bg-secondary)] border border-[var(--color-border-light)] rounded-md focus:outline-none focus:ring-2 focus:ring-[var(--color-tertiary)]"
               />
             </div>
 
@@ -231,7 +230,7 @@ export function EditPostModal({ isOpen, onClose, story }: EditPostModalProps) {
                   onChange={(e) =>
                     setFormData({ ...formData, link: e.target.value })
                   }
-                  className="w-full pl-10 px-3 py-2 bg-[var(--color-bg-secondary)] border border-[var(--color-border-light)] rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  className="w-full pl-10 px-3 py-2 bg-[var(--color-bg-secondary)] border border-[var(--color-border-light)] rounded-md focus:outline-none focus:ring-2 focus:ring-[var(--color-tertiary)]"
                   placeholder="https://example.com"
                 />
               </div>
@@ -239,22 +238,17 @@ export function EditPostModal({ isOpen, onClose, story }: EditPostModalProps) {
 
             {/* Submit Button */}
             <div className="flex justify-end gap-3">
-              <button
-                type="button"
+              <Button
+                variant="outline"
                 onClick={onClose}
-                className="px-4 py-2 text-sm font-medium text-[var(--color-text-primary)] bg-[var(--color-bg-secondary)] border border-[var(--color-border-light)] rounded-md hover:bg-[var(--color-bg-tertiary)]"
+                size="sm"
               >
                 Cancel
-              </button>
-              <button
+              </Button>
+              <Button
                 type="submit"
                 disabled={editStoryMutation.isPending}
-                className={cn(
-                  "px-4 py-2 text-sm font-medium text-white bg-blue-600 rounded-md",
-                  "hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500",
-                  "disabled:opacity-50 disabled:cursor-not-allowed",
-                  "flex items-center gap-2"
-                )}
+                size="sm"
               >
                 {editStoryMutation.isPending ? (
                   <>
@@ -264,7 +258,7 @@ export function EditPostModal({ isOpen, onClose, story }: EditPostModalProps) {
                 ) : (
                   <span>Save Changes</span>
                 )}
-              </button>
+              </Button>
             </div>
           </form>
         </div>

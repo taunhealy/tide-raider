@@ -96,7 +96,8 @@ export default function BeachDetailsModal({
           />
         </div>
 
-        <div className="grid grid-cols-2 gap-6 py-4">
+        <div className="grid grid-cols-2 gap-6 py-4 border-b border-gray-200">
+          {/* Details Section */}
           <div className="space-y-3">
             <DetailItem label="Region" value={beach.region} />
             <DetailItem label="Location" value={beach.location} />
@@ -113,18 +114,10 @@ export default function BeachDetailsModal({
             <DetailItem
               label="Optimal Tide"
               value={
-                isSubscribed ? (
+                
                   <span aria-label={`Optimal Tide: ${beach.optimalTide}`}>
                     {getTideIcon(beach.optimalTide)} {beach.optimalTide}
                   </span>
-                ) : (
-                  <button
-                    onClick={handleSubscribeClick}
-                    className="text-[var(--color-tertiary)] hover:underline"
-                  >
-                    Subscribe to view
-                  </button>
-                )
               }
             />
           </div>
@@ -136,18 +129,7 @@ export default function BeachDetailsModal({
             />
             <DetailItem
               label="Optimal Swell"
-              value={
-                isSubscribed ? (
-                  `${beach.optimalSwellDirections.min}°-${beach.optimalSwellDirections.max}°`
-                ) : (
-                  <button
-                    onClick={handleSubscribeClick}
-                    className="text-[var(--color-tertiary)] hover:underline"
-                  >
-                    Subscribe to view
-                  </button>
-                )
-              }
+              value={`${beach.optimalSwellDirections.min}°-${beach.optimalSwellDirections.max}°`}
             />
             <DetailItem
               label="Ideal Swell Period"
@@ -190,9 +172,10 @@ export default function BeachDetailsModal({
           </div>
         </div>
 
-        <div className="mt-4 pt-4 border-t">
-          <h4 className="font-semibold mb-2">Description</h4>
-          <p className="text-gray-700">{beach.description}</p>
+        {/* Description Section */}
+        <div className="mt-2 pt-4 mb-5">
+          <h4 className="font-semibold text-lg mb-2 mt-2">Description</h4>
+          <p className="text-gray-700 text-sm mt-2">{beach.description}</p>
         </div>
       </DialogContent>
     </Dialog>
@@ -207,9 +190,9 @@ function DetailItem({
   value: React.ReactNode;
 }) {
   return (
-    <div>
-      <span className="font-medium text-gray-700">{label}:</span>{" "}
-      <span className="text-gray-600">{value}</span>
+    <div mb-4>
+      <span className=" text-black">{label}:</span>{" "}
+      <span className="text-gray-400">{value}</span>
     </div>
   );
 }

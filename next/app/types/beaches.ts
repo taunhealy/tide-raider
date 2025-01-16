@@ -37,6 +37,7 @@ export interface Beach {
     max: number;
     cardinal?: string;
   };
+  sheltered?: boolean; // Made optional with ?
   bestSeasons: string[];
   optimalTide:
     | "Low"
@@ -79,8 +80,8 @@ export interface Beach {
     title: string;
     platform: "youtube" | "vimeo";
   }[];
-  profileImage?: string; // URL for the beach's profile image
-  advertisingPrice?: number; // Price per month in ZAR
+  profileImage?: string;
+  advertisingPrice?: number;
   advertising?: {
     pricePerMonth: number;
     maxSlots: number;
@@ -116,9 +117,9 @@ export const beachData: Beach[] = [
     optimalWindDirections: ["NW", "N", "NE"],
     optimalSwellDirections: {
       min: 225,
-      max: 315,
-    },
-    bestSeasons: ["winter"],
+      max: 247.5,
+    }, // single closing brace for optimalSwellDirections
+    bestSeasons: ["winter"], // continue with the rest of the properties
     optimalTide: "All",
     description: "Gentle beach break, perfect for beginners",
     difficulty: "Beginner",
@@ -351,10 +352,10 @@ export const beachData: Beach[] = [
     region: "Western Cape",
     location: "Noordhoek",
     distanceFromCT: 40,
-    optimalWindDirections: ["ESE"],
+    optimalWindDirections: ["ESE", "SE", "E"],
     optimalSwellDirections: {
-      min: 225,
-      max: 247.5,
+      min: 225.5,
+      max: 275.5,
     },
     bestSeasons: ["winter"],
     optimalTide: "Low",
@@ -709,8 +710,8 @@ export const beachData: Beach[] = [
     distanceFromCT: 85,
     optimalWindDirections: ["SE"],
     optimalSwellDirections: {
-      min: 202.5,
-      max: 247.5,
+      min: 200.5,
+      max: 245.5,
       cardinal: "SW",
     },
     bestSeasons: ["sumer"],
@@ -763,10 +764,10 @@ export const beachData: Beach[] = [
     region: "Western Cape",
     location: "Elands Bay",
     distanceFromCT: 220,
-    optimalWindDirections: ["SE"],
+    optimalWindDirections: ["SE", "E", "NE"],
     optimalSwellDirections: {
       min: 225,
-      max: 250,
+      max: 270,
       cardinal: "SW",
     },
     bestSeasons: ["winter"],
@@ -1227,12 +1228,13 @@ export const beachData: Beach[] = [
     continent: "Africa",
     country: "South Africa",
     region: "Western Cape",
-    location: "Scarborough",
+    location: "Kommetjie",
     distanceFromCT: 30,
-    optimalWindDirections: ["SE", "E"],
+    optimalWindDirections: ["N", "NE"],
     optimalSwellDirections: {
-      min: 157.5,
+      min: 220,
       max: 247.5,
+      cardinal: "SW",
     },
     bestSeasons: ["winter"],
     optimalTide: "All",
@@ -1363,10 +1365,10 @@ export const beachData: Beach[] = [
     region: "Western Cape",
     location: "Kommetjie",
     distanceFromCT: 40,
-    optimalWindDirections: ["SE", "ESE"],
+    optimalWindDirections: ["NE"],
     optimalSwellDirections: {
-      min: 157.5,
-      max: 247.5,
+      min: 260.5,
+      max: 280.5,
     },
     bestSeasons: ["winter"],
     optimalTide: "High",
@@ -1434,6 +1436,7 @@ export const beachData: Beach[] = [
     sharkAttack: {
       hasAttack: false,
     },
+    sheltered: true,
     image: "",
     coordinates: {
       lat: -34.1012,
@@ -1465,10 +1468,10 @@ export const beachData: Beach[] = [
     region: "Western Cape",
     location: "Noordhoek",
     distanceFromCT: 30,
-    optimalWindDirections: ["SE", "E", "NE"],
+    optimalWindDirections: ["SE"],
     optimalSwellDirections: {
-      min: 157.5,
-      max: 247.5,
+      min: 225.5,
+      max: 275.5,
     },
     bestSeasons: ["winter"],
     optimalTide: "Low",
@@ -1576,9 +1579,9 @@ export const beachData: Beach[] = [
     region: "Western Cape",
     location: "Misty Cliffs",
     distanceFromCT: 30,
-    optimalWindDirections: ["SE", "E"],
+    optimalWindDirections: ["ENE", "E"],
     optimalSwellDirections: {
-      min: 157.5,
+      min: 220,
       max: 247.5,
     },
     bestSeasons: ["winter"],
@@ -1588,7 +1591,7 @@ export const beachData: Beach[] = [
     difficulty: "Advanced",
     waveType: "Beach Break",
     swellSize: {
-      min: 0.6,
+      min: 1.6,
       max: 3.0, // Was 0.6
     },
     idealSwellPeriod: {
@@ -1821,8 +1824,8 @@ export const beachData: Beach[] = [
     distanceFromCT: 30,
     optimalWindDirections: ["SE", "E"],
     optimalSwellDirections: {
-      min: 157.5,
-      max: 247.5,
+      min: 225.5,
+      max: 275.5,
     },
     bestSeasons: ["winter"],
     optimalTide: "Low",
@@ -1900,48 +1903,6 @@ export const beachData: Beach[] = [
     coordinates: {
       lat: -34.1012,
       lng: 18.4987,
-    },
-  },
-  {
-    id: "caves",
-    name: "Caves",
-    continent: "Africa",
-    country: "South Africa",
-    region: "Western Cape",
-    location: "Crayfish Factory",
-    distanceFromCT: 40,
-    optimalWindDirections: ["SE", "ESE"],
-    optimalSwellDirections: {
-      min: 157.5,
-      max: 247.5,
-    },
-    bestSeasons: ["winter"],
-    optimalTide: "High",
-    description:
-      "Heavy right-hand reef break near Crayfish Factory requiring precise positioning and timing. Three challenging sections: steep takeoff zone leading into a fast barrel section, followed by powerful wall, ending with inside bowl. Only breaks properly on low to mid tide with solid swell (6ft+). Wave focuses energy over shallow reef creating perfect shape but serious consequences for errors. Best conditions on SE winds with SW swell direction and 12+ second period. Entry and exit points critical - study spot at length before attempting. Strong currents on outside require excellent fitness. Local knowledge essential for safe navigation of boils and channels. Early morning sessions recommended before wind shift. Deep-water channel provides refuge but difficult to access when big. Not suitable for inexperienced surfers - heavy wipeouts often result in reef contact. Rarely crowded due to intensity but locals are protective.",
-    difficulty: "Advanced",
-    waveType: "Reef Break",
-    swellSize: {
-      min: 1.5,
-      max: 4.0, // Was 3.0
-    },
-    idealSwellPeriod: {
-      min: 12,
-      max: 24,
-    },
-    waterTemp: {
-      summer: 16,
-      winter: 12,
-    },
-    hazards: ["Rocks", "Strong currents", "Big waves", "Remote location"],
-    crimeLevel: "Medium",
-    sharkAttack: {
-      hasAttack: false,
-    },
-    image: "",
-    coordinates: {
-      lat: -34.1123,
-      lng: 18.4876,
     },
   },
   {
@@ -2092,11 +2053,13 @@ export const beachData: Beach[] = [
     region: "Western Cape",
     location: "Boneyards",
     distanceFromCT: 40,
-    optimalWindDirections: ["SE", "ESE"],
+    optimalWindDirections: ["ESE"],
     optimalSwellDirections: {
-      min: 157.5,
-      max: 247.5,
+      min: 265,
+      max: 275,
+      cardinal: "W",
     },
+
     bestSeasons: ["winter"],
     optimalTide: "High",
     description:
@@ -2127,48 +2090,6 @@ export const beachData: Beach[] = [
     },
   },
   {
-    id: "farmers",
-    name: "Farmers",
-    continent: "Africa",
-    country: "South Africa",
-    region: "Western Cape",
-    location: "Noordhoek",
-    distanceFromCT: 30,
-    optimalWindDirections: ["SE", "E"],
-    optimalSwellDirections: {
-      min: 157.5,
-      max: 247.5,
-    },
-    bestSeasons: ["winter"],
-    optimalTide: "Low",
-    description:
-      "Right-hand point break near Noordhoek. Long walk through private property required.",
-    difficulty: "Intermediate",
-    waveType: "Point Break",
-    swellSize: {
-      min: 2.1,
-      max: 4.1,
-    },
-    idealSwellPeriod: {
-      min: 12,
-      max: 24,
-    },
-    waterTemp: {
-      summer: 18,
-      winter: 14,
-    },
-    hazards: ["Remote location", "Rocks", "Strong currents"],
-    crimeLevel: "Medium",
-    sharkAttack: {
-      hasAttack: false,
-    },
-    image: "",
-    coordinates: {
-      lat: -34.1012,
-      lng: 18.4987,
-    },
-  },
-  {
     id: "nine-miles",
     name: "Nine Miles",
     continent: "Africa",
@@ -2176,10 +2097,10 @@ export const beachData: Beach[] = [
     region: "Western Cape",
     location: "Nine Miles",
     distanceFromCT: 40,
-    optimalWindDirections: ["SE", "E"],
+    optimalWindDirections: ["N", "NW"],
     optimalSwellDirections: {
       min: 157.5,
-      max: 247.5,
+      max: 180.5,
     },
     bestSeasons: ["winter"],
     optimalTide: "All",
@@ -2301,48 +2222,6 @@ export const beachData: Beach[] = [
     },
   },
   {
-    id: "boilers",
-    name: "Boilers",
-    continent: "Africa",
-    country: "South Africa",
-    region: "Western Cape",
-    location: "Scarborough",
-    distanceFromCT: 30,
-    optimalWindDirections: ["SE", "E"],
-    optimalSwellDirections: {
-      min: 157.5,
-      max: 247.5,
-    },
-    bestSeasons: ["winter"],
-    optimalTide: "Mid to High",
-    description:
-      "Right-hand reef break. Shallow reef. Works best on bigger swells at mid tide.",
-    difficulty: "Advanced",
-    waveType: "Reef Break",
-    swellSize: {
-      min: 0.3,
-      max: 4.6,
-    },
-    idealSwellPeriod: {
-      min: 12,
-      max: 24,
-    },
-    waterTemp: {
-      summer: 16,
-      winter: 12,
-    },
-    hazards: ["Rocks", "Shallow reef", "Strong currents"],
-    crimeLevel: "Medium",
-    sharkAttack: {
-      hasAttack: false,
-    },
-    image: "",
-    coordinates: {
-      lat: -34.1123,
-      lng: 18.4876,
-    },
-  },
-  {
     id: "paranoia",
     name: "Paranoia",
     continent: "Africa",
@@ -2350,10 +2229,10 @@ export const beachData: Beach[] = [
     region: "Western Cape",
     location: "Scarborough",
     distanceFromCT: 40,
-    optimalWindDirections: ["SE", "ESE"],
+    optimalWindDirections: ["ESE"],
     optimalSwellDirections: {
-      min: 157.5,
-      max: 247.5,
+      min: 180.5,
+      max: 183.5,
     },
     bestSeasons: ["winter"],
     optimalTide: "High",
@@ -2411,10 +2290,10 @@ export const beachData: Beach[] = [
     region: "Western Cape",
     location: "Cape Point",
     distanceFromCT: 35,
-    optimalWindDirections: ["SE", "E"],
+    optimalWindDirections: ["NW"],
     optimalSwellDirections: {
-      min: 225,
-      max: 315,
+      min: 255,
+      max: 285,
     },
     bestSeasons: ["winter"],
     optimalTide: "Low",
@@ -2462,8 +2341,8 @@ export const beachData: Beach[] = [
     distanceFromCT: 40,
     optimalWindDirections: ["N", "NE"],
     optimalSwellDirections: {
-      min: 157.5,
-      max: 247.5,
+      min: 160.5,
+      max: 200.5,
       cardinal: "S to SW",
     },
     bestSeasons: ["winter"],
@@ -2884,20 +2763,20 @@ export const beachData: Beach[] = [
     region: "Western Cape",
     location: "Mossel Bay",
     distanceFromCT: 400,
-    optimalWindDirections: ["SW", "W"],
+    optimalWindDirections: ["NW", "W", "SW"],
     optimalSwellDirections: {
-      min: 180,
-      max: 270,
+      min: 90,
+      max: 120,
     },
     bestSeasons: ["winter"],
     optimalTide: "All",
     description:
-      "Various reef and beach breaks offering different wave types. Inner Pool and Outer Pool provide good right-handers.",
+      "Various reef and beach breaks offering different wave types. Inner Pool and Outer Pool provide good right-handers.  The local surfing community is known for its welcoming nature, making it an ideal destination for surfers of all skill levels. Whether you’re a seasoned pro or just starting out, Mossel Bay offers a supportive environment to hone your skills and enjoy the waves.",
     difficulty: "Intermediate",
     waveType: "Beach Break",
     swellSize: {
       min: 1.3,
-      max: 4.0,
+      max: 5.0,
     },
     idealSwellPeriod: {
       min: 12,
@@ -2951,10 +2830,10 @@ export const beachData: Beach[] = [
     region: "Western Cape",
     location: "Stilbaai",
     distanceFromCT: 350,
-    optimalWindDirections: ["W", "SW"],
+    optimalWindDirections: ["N", "W", "NW"],
     optimalSwellDirections: {
-      min: 180,
-      max: 270,
+      min: 90,
+      max: 150,
     },
     bestSeasons: ["winter"],
     optimalTide: "All",
@@ -3278,10 +3157,10 @@ export const beachData: Beach[] = [
     region: "Western Cape",
     location: "Lamberts Bay",
     distanceFromCT: 280,
-    optimalWindDirections: ["SE", "E"],
+    optimalWindDirections: ["E"],
     optimalSwellDirections: {
-      min: 157.5,
-      max: 247.5,
+      min: 225,
+      max: 270,
     },
     bestSeasons: ["winter"],
     optimalTide: "Mid",
@@ -3322,8 +3201,8 @@ export const beachData: Beach[] = [
     distanceFromCT: 300,
     optimalWindDirections: ["SE", "E"],
     optimalSwellDirections: {
-      min: 157.5,
-      max: 247.5,
+      min: 240.5,
+      max: 285.5,
     },
     bestSeasons: ["winter"],
     optimalTide: "Mid to High",
@@ -3364,8 +3243,8 @@ export const beachData: Beach[] = [
     distanceFromCT: 155,
     optimalWindDirections: ["SE", "E"],
     optimalSwellDirections: {
-      min: 157.5,
-      max: 247.5,
+      min: 340.5,
+      max: 345.5,
     },
     bestSeasons: ["winter"],
     optimalTide: "Mid",
@@ -3375,7 +3254,7 @@ export const beachData: Beach[] = [
     waveType: "Beach Break",
     swellSize: {
       min: 3.3,
-      max: 5.5,
+      max: 7.5,
     },
     idealSwellPeriod: {
       min: 12,
@@ -3404,10 +3283,10 @@ export const beachData: Beach[] = [
     region: "Western Cape",
     location: "Elands Bay",
     distanceFromCT: 220,
-    optimalWindDirections: ["SE", "E", "NE"],
+    optimalWindDirections: ["E"],
     optimalSwellDirections: {
-      min: 157.5,
-      max: 247.5,
+      min: 225,
+      max: 270,
     },
     bestSeasons: ["winter"],
     optimalTide: "Mid to High",
@@ -3446,10 +3325,10 @@ export const beachData: Beach[] = [
     region: "Western Cape",
     location: "St Helena Bay",
     distanceFromCT: 175,
-    optimalWindDirections: ["SE", "E"],
+    optimalWindDirections: ["SE", "S"],
     optimalSwellDirections: {
-      min: 157.5,
-      max: 247.5,
+      min: 135.5,
+      max: 180.5,
     },
     bestSeasons: ["winter"],
     optimalTide: "Mid",
@@ -3495,9 +3374,9 @@ export const beachData: Beach[] = [
     region: "Western Cape",
     location: "Paternoster",
     distanceFromCT: 160,
-    optimalWindDirections: ["SE", "E"],
+    optimalWindDirections: ["NE", "E"],
     optimalSwellDirections: {
-      min: 157.5,
+      min: 180.5,
       max: 247.5,
     },
     bestSeasons: ["winter"],
@@ -3815,8 +3694,8 @@ export const beachData: Beach[] = [
     distanceFromCT: 300, // Approximate distance, please adjust if needed
     optimalWindDirections: ["E"], // Best wind direction is from the east
     optimalSwellDirections: {
-      min: 202.5, // SW swell direction
-      max: 247.5,
+      min: 227.5, // SW swell direction
+      max: 270.5,
     },
     bestSeasons: ["winter"], // Assuming winter based on SW swell direction
     optimalTide: "All", // No specific tide mentioned
@@ -3848,22 +3727,22 @@ export const beachData: Beach[] = [
     },
   },
   {
-    id: "haardebaai",
-    name: "Haardebaai",
+    id: "hangklip-lighthouse",
+    name: "Hangklip Lighthouse",
     continent: "Africa",
     country: "South Africa",
     region: "Western Cape",
-    location: "West Coast",
+    location: "Pringle Bay",
     distanceFromCT: 250, // Approximate distance, please adjust if needed
     optimalWindDirections: ["NW"], // Best wind direction is from the northwest
     optimalSwellDirections: {
-      min: 260, // W swell direction
-      max: 280,
+      min: 180, // W swell direction
+      max: 230,
     },
     bestSeasons: ["winter"], // Assuming winter based on W swell direction
     optimalTide: "All", // No specific tide mentioned
     description:
-      "Consistent reef break that works best with westerly swell and northwest offshore winds. Rated as a 3-star wave, offering reliable conditions when other spots might not be working.",
+      "Consistent reef break offering reliable conditions when other spots might not be working.",
     difficulty: "Intermediate",
     waveType: "Reef Break",
     swellSize: {
@@ -3922,6 +3801,49 @@ export const beachData: Beach[] = [
       winter: 14,
     },
     hazards: ["Rocks", "Rip currents", "Localism"],
+    crimeLevel: "Low",
+    sharkAttack: {
+      hasAttack: false,
+    },
+    image: "",
+    coordinates: {
+      lat: -34.1234,
+      lng: 18.4567,
+    },
+  },
+  {
+    id: "harold-porter",
+    name: "Harold Porter",
+    continent: "Africa",
+    country: "South Africa",
+    region: "Western Cape",
+    location: "Betty's Bay",
+    distanceFromCT: 90, // Approximate distance from Cape Town in km
+    optimalWindDirections: ["N", "NE", "NW"],
+    optimalSwellDirections: {
+      min: 150, // S
+      max: 200, // SW
+      cardinal: "S to SW",
+    },
+    bestSeasons: ["winter"], // Added based on swell direction preference
+    optimalTide: "Mid",
+    description:
+      "Incredible reef break that breaks rarely, only on massive swell.",
+    difficulty: "Advanced",
+    waveType: "Reef Break",
+    swellSize: {
+      min: 2.3,
+      max: 4.6,
+    },
+    idealSwellPeriod: {
+      min: 12,
+      max: 24,
+    },
+    waterTemp: {
+      summer: 18,
+      winter: 14,
+    },
+    hazards: ["Rocks", "Rip currents", "Sharks", "Remote location"],
     crimeLevel: "Low",
     sharkAttack: {
       hasAttack: false,
@@ -4147,49 +4069,7 @@ export const beachData: Beach[] = [
       lng: 18.4567,
     },
   },
-  {
-    id: "sandy-bay",
-    name: "Sandy Bay",
-    continent: "Africa",
-    country: "South Africa",
-    region: "Western Cape",
-    location: "Cape Peninsula",
-    distanceFromCT: 25, // Approximate distance
-    optimalWindDirections: ["SE"],
-    optimalSwellDirections: {
-      min: 225, // SW
-      max: 270, // W
-      cardinal: "SW to W",
-    },
-    bestSeasons: ["winter"], // Added based on swell directions
-    optimalTide: "Low to Mid",
-    description:
-      "Powerful beach break known for its punchy shore break barrels. Multiple peaks offer waves that break for up to 50 meters over sand bottom. Wave quality varies from hollow barrels to more manageable shoulders depending on swell size and sand configuration. Consistent (7/10) with moderate crowds during prime conditions (5/10). Best performance in SE winds with SW to W swells. Watch for strong rips and sudden size increases during large swells.",
-    difficulty: "Advanced",
-    waveType: "Beach Break",
-    swellSize: {
-      min: 2.5, // Chest high
-      max: 4.6, // Double overhead plus
-    },
-    idealSwellPeriod: {
-      min: 12,
-      max: 18,
-    },
-    waterTemp: {
-      summer: 16,
-      winter: 12,
-    },
-    hazards: ["Rip currents", "Shore break", "Remote location"],
-    crimeLevel: "Medium", // Due to isolated location
-    sharkAttack: {
-      hasAttack: false,
-    },
-    image: "",
-    coordinates: {
-      lat: -34.1234,
-      lng: 18.4567,
-    },
-  },
+
   {
     id: "yellow-sands",
     name: "Yellow Sands",
@@ -5651,11 +5531,10 @@ export const beachData: Beach[] = [
     region: "Western Cape",
     location: "West Coast",
     distanceFromCT: 200, // Approximate distance, please adjust if needed
-    optimalWindDirections: ["ENE"],
+    optimalWindDirections: ["E", "ENE"],
     optimalSwellDirections: {
-      min: 247.5, // WSW
-      max: 270, // W
-      cardinal: "WSW",
+      min: 225,
+      max: 270,
     },
     bestSeasons: ["spring", "summer"], // Notably different from most spots which favor winter
     optimalTide: "All", // No specific tide mentioned
@@ -5667,6 +5546,7 @@ export const beachData: Beach[] = [
       min: 1.2,
       max: 5.5,
     },
+
     idealSwellPeriod: {
       min: 12,
       max: 18,

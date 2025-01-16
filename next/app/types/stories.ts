@@ -8,6 +8,7 @@ export type StoryCategory =
 export type StoryBeach = {
   id: string;
   name: string;
+  region: string;
 };
 
 export interface Story {

@@ -90,10 +90,7 @@ export default function PricingPage() {
               <div className="px-[32px] py-[32px] bg-white">
                 <ul className="space-y-[16px] mb-[32px]">
                   {(
-                    data?.features || [
-                      "Access to all surf spots",
-                      "Access to all surf spot details",
-                    ]
+                    data?.features || ["Reveal breaks with 4/5 star ratings"]
                   ).map((feature) => (
                     <li
                       key={feature}

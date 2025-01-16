@@ -24,8 +24,6 @@ export default withAuth(
 
 export const config = {
   matcher: [
-    "/log/:path*",
-    "/raid/:path*",
     "/api/logbook/:path*",
     "/api/subscription-status/:path*",
     "/api/user/filters/:path*",

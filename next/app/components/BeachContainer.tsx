@@ -8,7 +8,6 @@ import BeachGrid from "./BeachGrid";
 import Map from "./Map";
 import { useSubscription } from "../context/SubscriptionContext";
 import { useHandleSubscription } from "../hooks/useHandleSubscription";
-import { useSession } from "next-auth/react";
 import { Button } from "./ui/Button";
 import { useQuery } from "@tanstack/react-query";
 import {
@@ -38,13 +37,12 @@ import BlogPostsSidebar from "./BlogPostsSidebar";
 import GoldSeeker from "./GoldSeeker";
 import BeachFeedback from "./BeachFeedback";
 import LogbookSidebar from "./LogbookSidebar";
+import RecentChronicles from "./RecentChronicles";
 
 interface BeachContainerProps {
   initialBeaches: Beach[];
   windData: any;
   blogPosts: any;
-  userPreferences: any | null;
-  isPro: boolean;
 }
 
 const inter = Inter({
@@ -59,7 +57,6 @@ export default function BeachContainer({
   windData: initialWindData,
   blogPosts,
 }: BeachContainerProps) {
-  const { data: session } = useSession();
   const { isSubscribed } = useSubscription();
   const { mutate: handleSubscriptionChange } = useHandleSubscription();
   const [minPoints, setMinPoints] = useState(0);

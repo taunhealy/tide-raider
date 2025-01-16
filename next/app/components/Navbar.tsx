@@ -11,7 +11,8 @@ import { useState } from "react";
 
 const NAVIGATION_ITEMS = [
   { href: "/raid", label: "Raid" },
-  { href: "/log", label: "Log" },
+  { href: "/log", label: "Sessions" },
+  { href: "/chronicles", label: "Community Chronicles" },
   { href: "/blog", label: "Blog" },
   { href: "/pricing", label: "Pricing" },
 ];
@@ -83,12 +84,8 @@ export default function Navbar() {
                     href={link.href}
                     prefetch={true}
                     onClick={(e) => {
-                      console.log("Link clicked:", link.href);
-                      console.log("Current pathname:", pathname);
                       e.preventDefault();
-                      console.log("Attempting navigation to:", link.href);
                       window.location.href = link.href;
-                      console.log("Navigation completed");
                     }}
                     className={cn(
                       "relative text-gray-600 hover:text-gray-900 transition-colors",

@@ -1,58 +1,37 @@
 import BeachContainer from "@/app/components/BeachContainer";
 import { beachData } from "@/app/types/beaches";
 import { client } from "@/app/lib/sanity";
-import { getServerSession } from "next-auth";
-import { authOptions } from "@/app/api/auth/[...nextauth]/route";
-import { prisma } from "@/app/lib/prisma";
 
-// Mark the component as async
 export default async function RaidPage() {
   try {
-    // Get user session and saved filters
-    const session = await getServerSession(authOptions);
-    let userPreferences = null;
-    let isPro = false;
-
-    if (session?.user?.id) {
-      const user = await prisma.user.findUnique({
-        where: { id: session.user.id },
-        select: {
-          savedFilters: true,
-          membership: true,
-        },
-      });
-      userPreferences = user?.savedFilters;
-      isPro = !!user?.membership;
-    }
-
-    // Get initial wind data and blog posts
     const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || "http://localhost:3000";
 
-    // Fetch data with error handling
-    const windResponse = await fetch(`${baseUrl}/api/surf-conditions`, {
-      cache: "no-store",
-      headers: {
-        "Content-Type": "application/json",
-      },
-    });
+    // Fetch wind data and blog posts first
+    const [windResponse, blogPosts] = await Promise.all([
+      fetch(`${baseUrl}/api/surf-conditions`, {
+        cache: "no-store",
+        headers: {
+          "Content-Type": "application/json",
+        },
+      }),
+      client.fetch(`
+        *[_type == "post"] | order(publishedAt desc) {
+          title,
+          slug,
+          mainImage,
+          publishedAt,
+          description,
+          categories[]-> {
+            title,
+            slug
+          }
+        }
+      `),
+    ]);
 
     if (!windResponse.ok) {
       throw new Error("Failed to fetch wind data");
     }
-
-    const blogPosts = await client.fetch(`
-      *[_type == "post"] | order(publishedAt desc) {
-        title,
-        slug,
-        mainImage,
-        publishedAt,
-        description,
-        categories[]-> {
-          title,
-          slug
-        }
-      }
-    `);
 
     const { data: windData } = await windResponse.json();
 
@@ -63,8 +42,6 @@ export default async function RaidPage() {
             initialBeaches={beachData}
             windData={windData}
             blogPosts={blogPosts}
-            userPreferences={userPreferences}
-            isPro={isPro}
           />
         </div>
       </div>

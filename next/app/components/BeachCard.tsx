@@ -253,9 +253,7 @@ export default function BeachCard({
                 {/* Poor Conditions Explanation */}
                 {windData && (
                   <div className="text-sm flex flex-col gap-2">
-                    <p className="text-main font-semibold">
-                      Optimal Conditions:
-                    </p>
+                    <p className="text-main font-semibold">Conditions:</p>
                     <ul className="space-y-1">
                       {getConditionReasons(
                         beach,
@@ -300,25 +298,6 @@ export default function BeachCard({
                           {condition.text}
                         </li>
                       ))}
-                    </ul>
-                  </div>
-                )}
-                {suitability.score >= 4 && windData && (
-                  <div className="text-sm">
-                    <p className="text-main font-medium mb-1">
-                      Great conditions because:
-                    </p>
-                    <ul className="text-main list-disc list-inside space-y-1">
-                      {getConditionReasons(beach, windData, true).reasons.map(
-                        (reason, index) => (
-                          <li
-                            key={index}
-                            className="text-gray-600 text-main mb-1"
-                          >
-                            {reason}
-                          </li>
-                        )
-                      )}
                     </ul>
                   </div>
                 )}

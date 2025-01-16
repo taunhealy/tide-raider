@@ -38,6 +38,11 @@ export function isBeachSuitable(
     score = Math.max(0, score - 1); // Apply -1 penalty for wrong wind direction
   }
 
+  // Add penalty for strong winds unless beach is sheltered
+  if (windData.wind.speed > 25 && !beach.sheltered) {
+    score = Math.max(0, score - 1); // Subtract 1 point but don't go below 0
+  }
+
   // Check swell direction
   const swellDeg = parseInt(windData.swell.direction);
   const hasGoodSwellDirection =
@@ -184,6 +189,10 @@ export function getConditionReasons(
     {
       text: `Optimal Wind: ${beach.optimalWindDirections.join(", ")}`,
       isMet: hasGoodWind,
+    },
+    {
+      text: `Wind Speed: 0-25km/h${windData.wind.speed > 25 && !beach.sheltered ? " (Current winds too strong)" : ""}`,
+      isMet: windData.wind.speed <= 25 || beach.sheltered,
     },
     {
       text: `Optimal Swell Direction: ${beach.optimalSwellDirections.min}° - ${beach.optimalSwellDirections.max}°`,

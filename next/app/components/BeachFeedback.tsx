@@ -1,13 +1,13 @@
-'use client'
+"use client";
 
-import { useState } from 'react';
-import { Beach } from '@/app/types/beaches';
-import { Button } from './ui/Button';
-import { cn } from '@/app/lib/utils';
-import { Inter } from 'next/font/google';
-import { Check, Calendar, Search, ChevronDown } from 'lucide-react';
+import { useState } from "react";
+import { Beach } from "@/app/types/beaches";
+import { Button } from "./ui/Button";
+import { cn } from "@/app/lib/utils";
+import { Inter } from "next/font/google";
+import { Check, Calendar, Search, ChevronDown } from "lucide-react";
 
-const inter = Inter({ subsets: ['latin'] });
+const inter = Inter({ subsets: ["latin"] });
 
 interface FeedbackProps {
   beaches: Beach[];
@@ -22,55 +22,55 @@ interface Condition {
 export default function Feedback({ beaches }: FeedbackProps) {
   const [isOpen, setIsOpen] = useState(false);
   const [selectedDate, setSelectedDate] = useState<string>(
-    new Date().toISOString().split('T')[0]
+    new Date().toISOString().split("T")[0]
   );
-  const [searchQuery, setSearchQuery] = useState('');
+  const [searchQuery, setSearchQuery] = useState("");
   const [selectedBeach, setSelectedBeach] = useState<Beach | null>(null);
-  const [improvements, setImprovements] = useState('');
+  const [improvements, setImprovements] = useState("");
   const [showSuggestions, setShowSuggestions] = useState(false);
   const [conditions, setConditions] = useState<Condition[]>([
-    { id: '1', title: 'Wind Direction', isAccurate: true },
-    { id: '2', title: 'Wind Speed', isAccurate: true },
-    { id: '3', title: 'Swell Height', isAccurate: true },
-    { id: '4', title: 'Swell Direction', isAccurate: true },
-    { id: '5', title: 'Wave Quality', isAccurate: true },
+    { id: "1", title: "Wind Direction", isAccurate: true },
+    { id: "2", title: "Wind Speed", isAccurate: true },
+    { id: "3", title: "Swell Height", isAccurate: true },
+    { id: "4", title: "Swell Direction", isAccurate: true },
+    { id: "5", title: "Wave Quality", isAccurate: true },
   ]);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isSubmitted, setIsSubmitted] = useState(false);
 
-  const filteredBeaches = beaches.filter(beach =>
+  const filteredBeaches = beaches.filter((beach) =>
     beach.name.toLowerCase().includes(searchQuery.toLowerCase())
   );
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!selectedBeach) return;
-    
-    console.log('Selected beach:', selectedBeach);
-    
+
+    console.log("Selected beach:", selectedBeach);
+
     setIsSubmitting(true);
-    
+
     try {
-      const response = await fetch('/api/feedback', {
-        method: 'POST',
+      const response = await fetch("/api/feedback", {
+        method: "POST",
         headers: {
-          'Content-Type': 'application/json',
+          "Content-Type": "application/json",
         },
         body: JSON.stringify({
           date: selectedDate,
           beach: { name: selectedBeach.name },
-          conditions: conditions.filter(c => !c.isAccurate),
+          conditions: conditions.filter((c) => !c.isAccurate),
           improvements,
         }),
       });
 
       if (!response.ok) {
-        throw new Error('Failed to submit feedback');
+        throw new Error("Failed to submit feedback");
       }
 
       setIsSubmitted(true);
     } catch (error) {
-      console.error('Error submitting feedback:', error);
+      console.error("Error submitting feedback:", error);
     } finally {
       setIsSubmitting(false);
     }
@@ -81,34 +81,37 @@ export default function Feedback({ beaches }: FeedbackProps) {
       {/* Dropdown Header */}
       <button
         onClick={() => setIsOpen(!isOpen)}
-        className={cn(
-          "w-full px-9 py-6",
-          "flex items-center justify-between",
-          "text-[18px] font-semibold text-[var(--color-text-primary)]",
-          inter.className
-        )}
+        className={cn("w-full px-9 py-6", "flex items-start justify-start")}
       >
-        <span className="text-[18px] text-left font-semibold text-[var(--color-text-primary)]">Surf Conditions Feedback</span>
-        <ChevronDown className={cn(
-          "w-5 h-5 transition-transform duration-200",
-          isOpen ? "transform rotate-180" : ""
-        )} />
+        <h3 className="text-lg font-semibold text-gray-800 text-start">
+          Surf Conditions Feedback
+        </h3>
+        <ChevronDown
+          className={cn(
+            "w-5 h-5 transition-transform duration-200",
+            isOpen ? "transform rotate-180" : ""
+          )}
+        />
       </button>
 
       {/* Dropdown Content */}
-      <div className={cn(
-        "transition-all duration-200 ease-in-out",
-        "overflow-hidden",
-        isOpen ? "max-h-[2000px] opacity-100" : "max-h-0 opacity-0"
-      )}>
+      <div
+        className={cn(
+          "transition-all duration-200 ease-in-out",
+          "overflow-hidden",
+          isOpen ? "max-h-[2000px] opacity-100" : "max-h-0 opacity-0"
+        )}
+      >
         <div className="px-9 pb-9">
           <form onSubmit={handleSubmit} className="space-y-6">
             {/* Date Selection */}
             <div className="space-y-2">
-              <label className={cn(
-                "block text-[14px] font-medium text-[var(--color-text-secondary)]",
-                inter.className
-              )}>
+              <label
+                className={cn(
+                  "block text-[14px] font-medium text-[var(--color-text-secondary)]",
+                  inter.className
+                )}
+              >
                 Date
               </label>
               <div className="relative">
@@ -129,10 +132,12 @@ export default function Feedback({ beaches }: FeedbackProps) {
 
             {/* Beach Selection */}
             <div className="space-y-2 relative">
-              <label className={cn(
-                "block text-[14px] font-medium text-[var(--color-text-secondary)]",
-                inter.className
-              )}>
+              <label
+                className={cn(
+                  "block text-[14px] font-medium text-[var(--color-text-secondary)]",
+                  inter.className
+                )}
+              >
                 Beach
               </label>
               <div className="relative">
@@ -153,14 +158,16 @@ export default function Feedback({ beaches }: FeedbackProps) {
                   )}
                 />
               </div>
-              
+
               {/* Beach Suggestions */}
               {showSuggestions && searchQuery && (
-                <div className={cn(
-                  "absolute z-10 w-full mt-1",
-                  "bg-white border border-gray-200 rounded-lg shadow-lg",
-                  "max-h-[240px] overflow-auto"
-                )}>
+                <div
+                  className={cn(
+                    "absolute z-10 w-full mt-1",
+                    "bg-white border border-gray-200 rounded-lg shadow-lg",
+                    "max-h-[240px] overflow-auto"
+                  )}
+                >
                   {filteredBeaches.map((beach) => (
                     <div
                       key={beach.id}
@@ -185,10 +192,12 @@ export default function Feedback({ beaches }: FeedbackProps) {
 
             {/* Conditions */}
             <div className="space-y-2">
-              <label className={cn(
-                "block text-[16px] font-medium text-[var(--color-text-secondary)] mb-2",
-                inter.className
-              )}>
+              <label
+                className={cn(
+                  "block text-[16px] font-medium text-[var(--color-text-secondary)] mb-2",
+                  inter.className
+                )}
+              >
                 Inaccurate Conditions
               </label>
               <div className="space-y-0 bg-gray-50 p-4 rounded-lg">
@@ -201,26 +210,34 @@ export default function Feedback({ beaches }: FeedbackProps) {
                       "transition-colors duration-150"
                     )}
                     onClick={() => {
-                      setConditions(conditions.map(c => 
-                        c.id === condition.id 
-                          ? { ...c, isAccurate: !c.isAccurate }
-                          : c
-                      ));
+                      setConditions(
+                        conditions.map((c) =>
+                          c.id === condition.id
+                            ? { ...c, isAccurate: !c.isAccurate }
+                            : c
+                        )
+                      );
                     }}
                   >
-                    <div className={cn(
-                      "w-6 h-6 rounded-md flex items-center justify-center",
-                      "transition-colors duration-150",
-                      condition.isAccurate 
-                        ? "bg-[var(--color-bg-tertiary)]" 
-                        : "border-2 border-gray-300 bg-white"
-                    )}>
-                      {condition.isAccurate && <Check className="w-4 h-4 text-white" />}
+                    <div
+                      className={cn(
+                        "w-6 h-6 rounded-md flex items-center justify-center",
+                        "transition-colors duration-150",
+                        condition.isAccurate
+                          ? "bg-[var(--color-bg-tertiary)]"
+                          : "border-2 border-gray-300 bg-white"
+                      )}
+                    >
+                      {condition.isAccurate && (
+                        <Check className="w-4 h-4 text-white" />
+                      )}
                     </div>
-                    <span className={cn(
-                      "text-[14px] text-[var(--color-text-primary)]",
-                      inter.className
-                    )}>
+                    <span
+                      className={cn(
+                        "text-[14px] text-[var(--color-text-primary)]",
+                        inter.className
+                      )}
+                    >
                       {condition.title}
                     </span>
                   </div>
@@ -230,10 +247,12 @@ export default function Feedback({ beaches }: FeedbackProps) {
 
             {/* Improvements */}
             <div className="space-y-2">
-              <label className={cn(
-                "block text-[16px] font-medium text-[var(--color-text-secondary)] mb-2",
-                inter.className
-              )}>
+              <label
+                className={cn(
+                  "block text-[16px] font-medium text-[var(--color-text-secondary)] mb-2",
+                  inter.className
+                )}
+              >
                 Improvements
               </label>
               <textarea
@@ -251,8 +270,8 @@ export default function Feedback({ beaches }: FeedbackProps) {
             </div>
 
             {/* Submit Button */}
-            <Button 
-              type="submit" 
+            <Button
+              type="submit"
               disabled={isSubmitting || isSubmitted}
               className={cn(
                 "w-full h-[54px]",
@@ -262,7 +281,11 @@ export default function Feedback({ beaches }: FeedbackProps) {
                 (isSubmitting || isSubmitted) && "opacity-50"
               )}
             >
-              {isSubmitting ? 'Submitting...' : isSubmitted ? 'Thanks!' : 'Submit Feedback'}
+              {isSubmitting
+                ? "Submitting..."
+                : isSubmitted
+                  ? "Thanks!"
+                  : "Submit Feedback"}
             </Button>
           </form>
         </div>

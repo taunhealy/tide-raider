@@ -17,7 +17,11 @@ interface CreatePostModalProps {
   beaches: Beach[];
 }
 
-export function CreatePostModal({ isOpen, onClose, beaches }: CreatePostModalProps) {
+export function CreatePostModal({
+  isOpen,
+  onClose,
+  beaches,
+}: CreatePostModalProps) {
   const { data: session } = useSession();
   const queryClient = useQueryClient();
   const [isCustomBeach, setIsCustomBeach] = useState(false);
@@ -27,7 +31,7 @@ export function CreatePostModal({ isOpen, onClose, beaches }: CreatePostModalPro
     title: "",
     beachId: "",
     customBeach: "",
-    date: new Date().toISOString().split('T')[0],
+    date: new Date().toISOString().split("T")[0],
     details: "",
     category: "" as StoryCategory | "",
     link: "",
@@ -35,18 +39,18 @@ export function CreatePostModal({ isOpen, onClose, beaches }: CreatePostModalPro
 
   const createStoryMutation = useMutation({
     mutationFn: async (data: FormData) => {
-      const response = await fetch('/api/stories', {
-        method: 'POST',
+      const response = await fetch("/api/stories", {
+        method: "POST",
         body: data,
       });
       if (!response.ok) {
         const errorData = await response.json();
-        throw new Error(errorData.error || 'Failed to create story');
+        throw new Error(errorData.error || "Failed to create story");
       }
       return response.json();
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['stories'] });
+      queryClient.invalidateQueries({ queryKey: ["stories"] });
       onClose();
       resetForm();
       // TODO: Add confetti here
@@ -58,15 +62,18 @@ export function CreatePostModal({ isOpen, onClose, beaches }: CreatePostModalPro
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    
+
     const formDataToSend = new FormData();
-    formDataToSend.append('title', formData.title);
-    formDataToSend.append('date', formData.date);
-    formDataToSend.append('details', formData.details);
-    formDataToSend.append('category', formData.category);
-    formDataToSend.append('beach', isCustomBeach ? formData.customBeach : formData.beachId);
-    formDataToSend.append('isCustomBeach', String(isCustomBeach));
-    formDataToSend.append('link', formData.link);
+    formDataToSend.append("title", formData.title);
+    formDataToSend.append("date", formData.date);
+    formDataToSend.append("details", formData.details);
+    formDataToSend.append("category", formData.category);
+    formDataToSend.append(
+      "beach",
+      isCustomBeach ? formData.customBeach : formData.beachId
+    );
+    formDataToSend.append("isCustomBeach", String(isCustomBeach));
+    formDataToSend.append("link", formData.link);
 
     createStoryMutation.mutate(formDataToSend);
   };
@@ -76,7 +83,7 @@ export function CreatePostModal({ isOpen, onClose, beaches }: CreatePostModalPro
       title: "",
       beachId: "",
       customBeach: "",
-      date: new Date().toISOString().split('T')[0],
+      date: new Date().toISOString().split("T")[0],
       details: "",
       category: "",
       link: "",
@@ -89,11 +96,19 @@ export function CreatePostModal({ isOpen, onClose, beaches }: CreatePostModalPro
   return (
     <div className="fixed inset-0 z-50 overflow-y-auto">
       <div className="flex items-center justify-center min-h-screen px-4 pt-4 pb-20 text-center sm:block sm:p-0">
-        <div className="fixed inset-0 transition-opacity bg-gray-500 bg-opacity-75" onClick={onClose} />
+        <div
+          className="fixed inset-0 transition-opacity bg-gray-500 bg-opacity-75"
+          onClick={onClose}
+        />
 
         <div className="inline-block w-full max-w-2xl my-8 overflow-hidden text-left align-middle transition-all transform bg-[var(--color-bg-primary)] rounded-lg shadow-xl">
           <div className="flex items-center justify-between p-6 border-b border-[var(--color-border-light)]">
-            <h3 className={cn("text-lg font-semibold text-[var(--color-text-primary)]", inter.className)}>
+            <h3
+              className={cn(
+                "text-lg font-semibold text-[var(--color-text-primary)]",
+                inter.className
+              )}
+            >
               Share Your Story
             </h3>
             <button
@@ -114,8 +129,10 @@ export function CreatePostModal({ isOpen, onClose, beaches }: CreatePostModalPro
                 type="text"
                 required
                 value={formData.title}
-                onChange={(e) => setFormData({ ...formData, title: e.target.value })}
-                className="w-full px-3 py-2 bg-[var(--color-bg-secondary)] border border-[var(--color-border-light)] rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                onChange={(e) =>
+                  setFormData({ ...formData, title: e.target.value })
+                }
+                className="w-full px-3 py-2 bg-[var(--color-bg-secondary)] border border-[var(--color-border-light)] rounded-md focus:outline-none focus:ring-2 focus:ring-[var(--color-tertiary)]"
                 placeholder="Give your story a catchy title"
               />
             </div>
@@ -128,8 +145,10 @@ export function CreatePostModal({ isOpen, onClose, beaches }: CreatePostModalPro
               <select
                 required
                 value={formData.beachId}
-                onChange={(e) => setFormData({ ...formData, beachId: e.target.value })}
-                className="w-full px-3 py-2 bg-[var(--color-bg-secondary)] border border-[var(--color-border-light)] rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                onChange={(e) =>
+                  setFormData({ ...formData, beachId: e.target.value })
+                }
+                className="w-full px-3 py-2 bg-[var(--color-bg-secondary)] border border-[var(--color-border-light)] rounded-md focus:outline-none focus:ring-2 focus:ring-[var(--color-tertiary)]"
               >
                 <option value="">Select a beach</option>
                 <option value="other">Other</option>
@@ -149,8 +168,13 @@ export function CreatePostModal({ isOpen, onClose, beaches }: CreatePostModalPro
               <select
                 required
                 value={formData.category}
-                onChange={(e) => setFormData({ ...formData, category: e.target.value as StoryCategory })}
-                className="w-full px-3 py-2 bg-[var(--color-bg-secondary)] border border-[var(--color-border-light)] rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                onChange={(e) =>
+                  setFormData({
+                    ...formData,
+                    category: e.target.value as StoryCategory,
+                  })
+                }
+                className="w-full px-3 py-2 bg-[var(--color-bg-secondary)] border border-[var(--color-border-light)] rounded-md focus:outline-none focus:ring-2 focus:ring-[var(--color-tertiary)]"
               >
                 <option value="">Select a category</option>
                 {STORY_CATEGORIES.map((category) => (
@@ -170,8 +194,10 @@ export function CreatePostModal({ isOpen, onClose, beaches }: CreatePostModalPro
                 type="date"
                 required
                 value={formData.date}
-                onChange={(e) => setFormData({ ...formData, date: e.target.value })}
-                className="w-full px-3 py-2 bg-[var(--color-bg-secondary)] border border-[var(--color-border-light)] rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                onChange={(e) =>
+                  setFormData({ ...formData, date: e.target.value })
+                }
+                className="w-full px-3 py-2 bg-[var(--color-bg-secondary)] border border-[var(--color-border-light)] rounded-md focus:outline-none focus:ring-2 focus:ring-[var(--color-tertiary)]"
               />
             </div>
 
@@ -183,9 +209,11 @@ export function CreatePostModal({ isOpen, onClose, beaches }: CreatePostModalPro
               <textarea
                 required
                 value={formData.details}
-                onChange={(e) => setFormData({ ...formData, details: e.target.value })}
+                onChange={(e) =>
+                  setFormData({ ...formData, details: e.target.value })
+                }
                 rows={6}
-                className="w-full px-3 py-2 bg-[var(--color-bg-secondary)] border border-[var(--color-border-light)] rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                className="w-full px-3 py-2 bg-[var(--color-bg-secondary)] border border-[var(--color-border-light)] rounded-md focus:ring-[var(--color-tertiary)]"
                 placeholder="Share your wild story..."
               />
             </div>
@@ -202,8 +230,10 @@ export function CreatePostModal({ isOpen, onClose, beaches }: CreatePostModalPro
                 <input
                   type="url"
                   value={formData.link}
-                  onChange={(e) => setFormData({ ...formData, link: e.target.value })}
-                  className="w-full pl-10 px-3 py-2 bg-[var(--color-bg-secondary)] border border-[var(--color-border-light)] rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  onChange={(e) =>
+                    setFormData({ ...formData, link: e.target.value })
+                  }
+                  className="w-full pl-10 px-3 py-2 bg-[var(--color-bg-secondary)] border border-[var(--color-border-light)] rounded-md focus:outline-none focus:ring-2 focus:ring-[var(--color-tertiary)]"
                   placeholder="https://example.com"
                 />
               </div>
@@ -220,7 +250,7 @@ export function CreatePostModal({ isOpen, onClose, beaches }: CreatePostModalPro
               <button
                 type="button"
                 onClick={onClose}
-                className="px-4 py-2 text-sm font-medium text-[var(--color-text-primary)] bg-[var(--color-bg-secondary)] border border-[var(--color-border-light)] rounded-md hover:bg-[var(--color-bg-tertiary)]"
+                className="px-4 py-2 text-sm font-medium text-[var(--color-text-primary)] bg-[var(--color-bg-secondary)] border border-[var(--color-border-light)] rounded-md"
               >
                 Cancel
               </button>
@@ -228,8 +258,8 @@ export function CreatePostModal({ isOpen, onClose, beaches }: CreatePostModalPro
                 type="submit"
                 disabled={createStoryMutation.isPending}
                 className={cn(
-                  "px-4 py-2 text-sm font-medium text-white bg-blue-600 rounded-md",
-                  "hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500",
+                  "px-4 py-2 text-sm font-medium text-black bg-[var(--color-tertiary)] rounded-md",
+                  "focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[var(--color-tertiary)]",
                   "disabled:opacity-50 disabled:cursor-not-allowed",
                   "flex items-center gap-2"
                 )}

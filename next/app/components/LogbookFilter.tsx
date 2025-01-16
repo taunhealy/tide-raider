@@ -48,14 +48,10 @@ export function LogbookFilter({
     ...new Set(entries.map((entry) => entry.surferName).filter(Boolean)),
   ].sort();
   const uniqueCountries = [
-    ...new Set(
-      entries.map((entry) => entry.beach?.location?.country).filter(Boolean)
-    ),
+    ...new Set(entries.map((entry) => entry.beach?.country).filter(Boolean)),
   ].sort();
   const uniqueRegions = [
-    ...new Set(
-      entries.map((entry) => entry.beach?.location?.region).filter(Boolean)
-    ),
+    ...new Set(entries.map((entry) => entry.beach?.region).filter(Boolean)),
   ].sort();
 
   // Update parent component when filters change
@@ -148,7 +144,7 @@ export function LogbookFilter({
                 </div>
               ))}
             </div>
-            {beachSearch.length >= 2 && (
+            {beachSearch && (
               <div className="w-full mt-1 max-h-40 overflow-y-auto bg-white border rounded-md shadow-lg">
                 {uniqueBeaches
                   .filter(

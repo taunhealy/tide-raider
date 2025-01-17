@@ -162,14 +162,14 @@ async function scrapeData() {
   } catch (error) {
     // Enhanced error logging
     console.error("Scraping error details:", {
-      message: error.message,
-      status: error.response?.status,
-      statusText: error.response?.statusText,
-      headers: error.response?.headers,
-      data: error.response?.data,
+      message: (error as Error).message,
+      status: (error as any).response?.status,
+      statusText: (error as any).response?.statusText,
+      headers: (error as any).response?.headers,
+      data: (error as any).response?.data,
     });
 
-    throw new Error(`Failed to scrape data: ${error.message}`);
+    throw new Error(`Failed to scrape data`);
   }
 }
 

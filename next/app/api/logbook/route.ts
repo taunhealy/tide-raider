@@ -1,14 +1,14 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/app/lib/prisma";
 import { getServerSession } from "next-auth";
-import { authOptions } from "@/app/api/auth/[...nextauth]/route";
+import { authOptions } from "@/app/lib/authOptions";
 
 export async function GET() {
   try {
     const session = await getServerSession(authOptions);
     const entries = await prisma.logEntry.findMany({
       where: {
-        surferEmail: session?.user?.email,
+        surferEmail: session?.user?.email ?? "",
       },
       orderBy: {
         date: "desc",
@@ -40,7 +40,7 @@ export async function POST(request: Request) {
       data: {
         date: new Date(data.date),
         surferName: data.surferName,
-        surferEmail: session?.user?.email,
+        surferEmail: session?.user?.email ?? "",
         beachName: data.beachName,
         forecast: forecast.data,
         surferRating: data.surferRating,

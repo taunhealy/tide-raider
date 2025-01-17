@@ -1,8 +1,6 @@
 import { NextResponse } from 'next/server';
 import { prisma } from '@/app/lib/prisma';
-import { sendEmail } from '@/app/lib/email';
-import { adRequestTemplate } from '@/app/lib/email-templates';
-import crypto from 'crypto';
+
 
 export async function POST(request: Request) {
   try {

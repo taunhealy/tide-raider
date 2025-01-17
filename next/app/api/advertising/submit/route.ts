@@ -3,7 +3,7 @@ import { prisma } from '@/app/lib/prisma';
 import { writeFile, mkdir } from 'fs/promises';
 import path from 'path';
 import { getServerSession } from 'next-auth/next';
-import { authOptions } from '../../auth/[...nextauth]/route';
+import { authOptions } from '@/app/lib/authOptions';
 
 const isProduction = process.env.NODE_ENV === 'production';
 
@@ -49,15 +49,7 @@ export async function POST(req: Request) {
 
     if (file) {
       try {
-        if (isProduction && process.env.BLOB_READ_WRITE_TOKEN) {
-          const blob = await put(`ads/${id}-${file.name}`, file, {
-            access: 'public',
-            addRandomSuffix: true
-          });
-          imageUrl = blob.url;
-        } else {
-          imageUrl = await saveLocalFile(file, id);
-        }
+        imageUrl = await saveLocalFile(file, id);
       } catch (error) {
         console.error('File upload error:', error);
         if (!imageUrl) {

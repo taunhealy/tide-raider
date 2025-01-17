@@ -36,7 +36,7 @@ export async function POST(request: Request) {
           Beach: ${beach.name}
           
           Inaccurate Conditions:
-          ${conditions.map(c => `- ${c.title}`).join('\n')}
+          ${conditions.map((c: any) => `- ${c.title}`).join('\n')}
           
           Improvements:
           ${improvements}

@@ -172,7 +172,7 @@ export default function Blog({ data }: BlogProps) {
                 className="flex flex-row md:flex-col"
               >
                 <div className="relative w-[140px] md:w-full h-[140px] md:h-[410px] overflow-hidden">
-                  {post.mainImage?.asset && (
+                  {post.mainImage && post.mainImage?.asset && (
                     <>
                       <div className="w-full h-full absolute inset-0 bg-[var(--color-bg-tertiary)] opacity-0 group-hover:opacity-30 transition-all duration-300 z-10" />
                       <img

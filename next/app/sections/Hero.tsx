@@ -1,26 +1,26 @@
-'use client';
+"use client";
 
-import { urlForImage } from '@/app/lib/urlForImage';
-import Image from 'next/image';
-import Link from 'next/link';
-import { useState, useEffect, useRef } from 'react';
-import { SectionData } from '@/app/types';
-import { Button } from '@/app/components/ui/Button';
-import gsap from 'gsap';
-import ScrollTrigger from 'gsap/ScrollTrigger';
+import { urlForImage } from "@/app/lib/urlForImage";
+import Image from "next/image";
+import Link from "next/link";
+import { useState, useEffect, useRef } from "react";
+import { SectionData } from "@/app/types";
+import { Button } from "@/app/components/ui/Button";
+import gsap from "gsap";
+import ScrollTrigger from "gsap/ScrollTrigger";
 
 interface HeroProps {
   data?: {
     heroImageTitle?: string;
     description?: string;
-    image?: string;
+    image?: any;
     aboutHeading?: string;
     aboutDescription?: string;
     viewAppHeading?: string;
-    viewAppImage?: string;
-    heroAboutImage?: string;
+    viewAppImage?: any;
+    heroAboutImage?: any;
     imagePhotographer?: string;
-  }
+  };
 }
 
 export default function Hero({ data }: HeroProps) {
@@ -31,17 +31,17 @@ export default function Hero({ data }: HeroProps) {
 
   useEffect(() => {
     gsap.registerPlugin(ScrollTrigger);
-    
+
     gsap.to(imageRef.current, {
       opacity: 1,
       scale: 1.05,
       ease: "power3.out",
       scrollTrigger: {
         trigger: imageRef.current,
-        start: 'top bottom',
-        end: 'bottom bottom',
+        start: "top bottom",
+        end: "bottom bottom",
         scrub: 1,
-      }
+      },
     });
   }, []);
 
@@ -60,7 +60,7 @@ export default function Hero({ data }: HeroProps) {
             onLoadingComplete={() => setHeroImageLoaded(true)}
           />
         )}
-        
+
         {/* Overlay */}
         <div className="absolute inset-0 bg-[var(--color-tertiary)] opacity-45" />
 
@@ -73,14 +73,18 @@ export default function Hero({ data }: HeroProps) {
       </section>
 
       {/* About section with side-by-side layout */}
-      <section className="hero-about-section      bg-white px-4 pb-[121px] md:pb-[54px] pt-[54px] md:pt-[121.5px] md:px-[121.51px] ">
-        <div className="  gap-[16px]  flex flex-col md:flex-row  md:gap-[54px] w-full">
+      <section className="hero-about-section bg-white px-4 pb-[121px] md:pb-[54px] pt-[54px] md:pt-[121.5px] md:px-[121.51px]">
+        <div className="gap-[16px] flex flex-col md:flex-row md:gap-[54px] w-full">
           {/* Left content */}
           <div className="flex w-full md:w-auto">
             <div className="flex flex-col gap-[16px]">
-              <h3 className="text-[32px] font-semibold md:heading-3 md:text-[54px]">{data?.aboutHeading}</h3>
+              <h3 className="text-[32px] font-semibold md:heading-3 md:text-[54px]">
+                {data?.aboutHeading}
+              </h3>
               <div className="hero-about-content-container md:pl-[54px] flex flex-col gap-4 md:gap-6">
-                <p className="text-base md:text-lg max-w-[36ch]">{data?.aboutDescription}</p>
+                <p className="text-base md:text-lg max-w-[36ch]">
+                  {data?.aboutDescription}
+                </p>
                 <div className="mt-2">
                   <Link href="/raid">
                     <span className="text-main text-base md:text-lg underline text-[var(--color-text-primary)] hover:text-[var(--color-text-secondary)] transition-colors duration-300">
@@ -96,29 +100,35 @@ export default function Hero({ data }: HeroProps) {
           <div className="w-full md:flex-1 relative h-[240px] md:h-[360px] md:max-w-[540px] overflow-hidden rounded-lg">
             <div className="absolute inset-0 bg-[var(--color-tertiary)]" />
             {data?.heroAboutImage && (
-              <div 
+              <div
                 className="relative w-full h-full"
                 onMouseEnter={() => setShowPhotographerCredit(true)}
                 onMouseLeave={() => setShowPhotographerCredit(false)}
               >
-                <Image 
-                  ref={imageRef}
-                  src={urlForImage(data?.heroAboutImage).url()}
-                  alt="Hero about right" 
-                  fill 
-                  className="object-cover transition-opacity duration-300 opacity-50 hover:opacity-70"
-                  onLoad={() => setAboutImageLoaded(true)}
-                />
+                {/* Ensure the image URL is valid */}
+                {urlForImage(data?.heroAboutImage)?.url() ? (
+                  <Image
+                    ref={imageRef}
+                    src={urlForImage(data?.heroAboutImage)?.url() as string} // Explicitly cast the result to string
+                    alt="Hero about right"
+                    fill
+                    className="object-cover transition-opacity duration-300 opacity-50 hover:opacity-70"
+                    onLoad={() => setAboutImageLoaded(true)}
+                  />
+                ) : (
+                  <div className="w-full h-full bg-gray-300 flex items-center justify-center text-white">
+                    Image not available
+                  </div>
+                )}
+
                 {data?.imagePhotographer && (
-                  <div 
-                    className={`
-                      absolute bottom-4 right-4 
+                  <div
+                    className={`absolute bottom-4 right-4 
                       bg-black bg-opacity-50 
                       px-3 py-1 rounded-md 
                       text-white text-sm 
                       transition-all duration-300 ease-in-out
-                      ${showPhotographerCredit ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-2'}
-                    `}
+                      ${showPhotographerCredit ? "opacity-100 translate-y-0" : "opacity-0 translate-y-2"}`}
                   >
                     Image: {data.imagePhotographer}
                   </div>

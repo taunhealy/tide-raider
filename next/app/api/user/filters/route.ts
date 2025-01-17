@@ -1,12 +1,15 @@
 import { prisma } from "@/app/lib/prisma";
 import { NextResponse } from "next/server";
+import { getServerSession } from "next-auth";
+import { authOptions } from "@/app/lib/authOptions";
 
 export async function POST(req: Request) {
   try {
+    const session = await getServerSession(authOptions);
     const { continents, countries, regions } = await req.json();
 
     const updatedUser = await prisma.user.update({
-      where: { id: req.nextauth.token.sub },
+      where: { id: session?.user?.id },
       data: {
         savedFilters: {
           continents,

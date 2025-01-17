@@ -51,7 +51,7 @@ async function getPost(slug: string) {
     { slug }
   );
 
-  return post;
+  return post || null;
 }
 
 // Add metadata generation
@@ -64,15 +64,17 @@ export async function generateMetadata({
 
   if (!post) return { title: "Post Not Found" };
 
+  const mainImageUrl = post.mainImage
+    ? urlForImage(post.mainImage)?.width(1200).height(675).url()
+    : null;
+
   return {
     title: post.title,
     description: post.description,
     openGraph: {
       title: post.title,
       description: post.description,
-      images: post.mainImage
-        ? [urlForImage(post.mainImage).width(1200).height(675).url()]
-        : [],
+      images: mainImageUrl ? [mainImageUrl] : [],
     },
   };
 }
@@ -82,11 +84,15 @@ export default async function BlogPost({
 }: {
   params: { slug: string };
 }) {
-  const post: Post = await getPost(params.slug);
+  const post: Post | null = await getPost(params.slug);
 
   if (!post) {
     notFound();
   }
+
+  const mainImageUrl = post.mainImage
+    ? urlForImage(post.mainImage)?.width(1200).height(675).url()
+    : null;
 
   return (
     <article className="max-w-4xl mx-auto px-4 py-12">
@@ -117,10 +123,10 @@ export default async function BlogPost({
         </div>
 
         {/* Main Image - Updated to use Next/Image */}
-        {post.mainImage && (
+        {mainImageUrl && (
           <div className="relative aspect-[16/9] mb-8 rounded-lg overflow-hidden">
             <Image
-              src={urlForImage(post.mainImage).width(1200).height(675).url()}
+              src={mainImageUrl}
               alt={post.title}
               fill
               className="object-cover"
@@ -130,7 +136,7 @@ export default async function BlogPost({
         )}
 
         {/* Description */}
-        <p className="text-[21px]] text-[var(--color-text-secondary)] leading-relaxed">
+        <p className="text-[21px] text-[var(--color-text-secondary)] leading-relaxed">
           {post.description}
         </p>
       </header>
@@ -141,16 +147,21 @@ export default async function BlogPost({
           value={post.body}
           components={{
             types: {
-              image: ({ value }) => (
-                <div className="relative aspect-[16/9] my-8 rounded-lg overflow-hidden">
-                  <Image
-                    src={urlForImage(value).width(1200).height(675).url()}
-                    alt={value.alt || ""}
-                    fill
-                    className="object-cover"
-                  />
-                </div>
-              ),
+              image: ({ value }) => {
+                const imageUrl = value && value.asset
+                  ? urlForImage(value)?.width(1200).height(675).url()
+                  : null;
+                return imageUrl ? (
+                  <div className="relative aspect-[16/9] my-8 rounded-lg overflow-hidden">
+                    <Image
+                      src={imageUrl}
+                      alt={value.alt || ""}
+                      fill
+                      className="object-cover"
+                    />
+                  </div>
+                ) : null;
+              },
             },
             marks: {
               link: ({ children, value }) => (

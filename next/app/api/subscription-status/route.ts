@@ -1,6 +1,6 @@
 import { getServerSession } from "next-auth/next";
 import { NextResponse } from "next/server";
-import { authOptions } from "@/app/api/auth/[...nextauth]/route";
+import { authOptions } from "@/app/lib/authOptions";
 import { prisma } from "@/app/lib/prisma";
 
 export async function GET(request: Request) {
@@ -13,14 +13,14 @@ export async function GET(request: Request) {
 
     const user = await prisma.user.findUnique({
       where: { email: session.user.email },
-      select: { subscriptionStatus: true },
+      select: { lemonSubscriptionId: true },
     });
 
     if (!user) {
       return NextResponse.json({ error: "User not found" }, { status: 404 });
     }
 
-    return NextResponse.json({ subscriptionStatus: user.subscriptionStatus });
+    return NextResponse.json({ lemonSubscriptionId: user.lemonSubscriptionId });
   } catch (error) {
     console.error("Error checking subscription status:", error);
     return NextResponse.json(

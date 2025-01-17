@@ -15,7 +15,7 @@ interface Category {
 interface Post {
   title: string;
   slug: { current: string };
-  mainImage: any;
+  mainImage: { asset: { url: string } } | null; // Ensure mainImage is nullable
   publishedAt: string;
   description: string;
   categories: Category[];
@@ -57,9 +57,11 @@ export default function BlogPage() {
 
   const filteredPosts =
     data?.posts?.filter(
-      (post) =>
+      (post: any) =>
         activeCategory === "All" ||
-        post.categories?.some((category) => category.title === activeCategory)
+        post.categories?.some(
+          (category: any) => category.title === activeCategory
+        )
     ) ?? [];
 
   if (isLoading) {
@@ -112,7 +114,7 @@ export default function BlogPage() {
             <span className="whitespace-nowrap">All Posts</span>
           </button>
 
-          {data?.categories?.map((category) => (
+          {data?.categories?.map((category: any) => (
             <button
               key={category.slug.current}
               onClick={() => setActiveCategory(category.title)}
@@ -130,7 +132,7 @@ export default function BlogPage() {
 
       {/* Posts Grid */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-        {filteredPosts.map((post) => (
+        {filteredPosts.map((post: any) => (
           <Link
             href={`/blog/${post.slug.current}`}
             key={post.slug.current}
@@ -139,15 +141,21 @@ export default function BlogPage() {
             <article className="h-full bg-[var(--color-bg-secondary)] rounded-lg overflow-hidden">
               {post.mainImage && (
                 <div className="relative aspect-[16/9] overflow-hidden">
-                  <Image
-                    src={urlForImage(post.mainImage)
-                      .width(600)
-                      .height(400)
-                      .url()}
-                    alt={post.title}
-                    fill
-                    className="object-cover transition duration-300 group-hover:scale-105"
-                  />
+                  {urlForImage(post.mainImage)?.url() ? (
+                    <Image
+                      src={
+                        urlForImage(post.mainImage)!
+                          .width(600)
+                          .height(400)
+                          .url() || "" // Default to empty string if url() returns null
+                      }
+                      alt={post.title}
+                      fill
+                      className="object-cover transition duration-300 group-hover:scale-105"
+                    />
+                  ) : (
+                    <span>Image not available</span> // Placeholder if the image URL is missing
+                  )}
                 </div>
               )}
 
@@ -160,7 +168,7 @@ export default function BlogPage() {
                 </p>
                 {post.categories && (
                   <div className="flex flex-wrap gap-2">
-                    {post.categories.map((category) => (
+                    {post.categories.map((category: any) => (
                       <span
                         key={category.slug.current}
                         className="text-xs bg-[var(--color-bg-tertiary)] text-white px-2 py-1 rounded font-secondary font-semibold uppercase"

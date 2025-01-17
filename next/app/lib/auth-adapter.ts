@@ -1,9 +1,14 @@
 import type { Adapter } from "next-auth/adapters";
-import { prisma } from './prisma';
+import { prisma } from "./prisma";
 
 export function PrismaAdapter(): Adapter {
   return {
-    async createUser(data) {
+    async createUser(data: {
+      email: string;
+      emailVerified: Date | null;
+      name?: string | null;
+      image?: string | null;
+    }) {
       return await prisma.user.create({
         data: {
           email: data.email,
@@ -14,15 +19,21 @@ export function PrismaAdapter(): Adapter {
       });
     },
 
-    async getUser(id) {
+    async getUser(id: string) {
       return await prisma.user.findUnique({ where: { id } });
     },
 
-    async getUserByEmail(email) {
+    async getUserByEmail(email: string) {
       return await prisma.user.findUnique({ where: { email } });
     },
 
-    async getUserByAccount({ providerAccountId, provider }) {
+    async getUserByAccount({
+      providerAccountId,
+      provider,
+    }: {
+      providerAccountId: string;
+      provider: string;
+    }) {
       const account = await prisma.account.findUnique({
         where: {
           provider_providerAccountId: {
@@ -35,7 +46,7 @@ export function PrismaAdapter(): Adapter {
       return account?.user ?? null;
     },
 
-    async updateUser(data) {
+    async updateUser(data: any) {
       const { id, ...userData } = data;
       return await prisma.user.update({
         where: { id },
@@ -43,11 +54,23 @@ export function PrismaAdapter(): Adapter {
       });
     },
 
-    async deleteUser(userId) {
+    async deleteUser(userId: string) {
       await prisma.user.delete({ where: { id: userId } });
     },
 
-    async linkAccount(data) {
+    async linkAccount(data: {
+      userId: string;
+      type: string;
+      provider: string;
+      providerAccountId: string;
+      refresh_token?: string | null;
+      access_token?: string | null;
+      expires_at?: number | null;
+      token_type?: string | null;
+      scope?: string | null;
+      id_token?: string | null;
+      session_state?: string | null;
+    }) {
       await prisma.account.create({
         data: {
           userId: data.userId,
@@ -65,7 +88,13 @@ export function PrismaAdapter(): Adapter {
       });
     },
 
-    async unlinkAccount({ providerAccountId, provider }) {
+    async unlinkAccount({
+      providerAccountId,
+      provider,
+    }: {
+      providerAccountId: string;
+      provider: string;
+    }) {
       await prisma.account.delete({
         where: {
           provider_providerAccountId: {
@@ -76,7 +105,11 @@ export function PrismaAdapter(): Adapter {
       });
     },
 
-    async createSession(data) {
+    async createSession(data: {
+      userId: string;
+      sessionToken: string;
+      expires: Date;
+    }) {
       return await prisma.session.create({
         data: {
           userId: data.userId,
@@ -86,7 +119,7 @@ export function PrismaAdapter(): Adapter {
       });
     },
 
-    async getSessionAndUser(sessionToken) {
+    async getSessionAndUser(sessionToken: string) {
       const session = await prisma.session.findUnique({
         where: { sessionToken },
         include: {
@@ -107,14 +140,14 @@ export function PrismaAdapter(): Adapter {
       };
     },
 
-    async updateSession(data) {
+    async updateSession(data: { sessionToken: string; expires?: Date }) {
       return await prisma.session.update({
         where: { sessionToken: data.sessionToken },
         data,
       });
     },
 
-    async deleteSession(sessionToken) {
+    async deleteSession(sessionToken: string) {
       await prisma.session.delete({ where: { sessionToken } });
     },
   };

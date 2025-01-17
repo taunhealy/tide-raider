@@ -3,8 +3,9 @@ import {defineCliConfig} from 'sanity/cli'
 export default defineCliConfig({
   api: {
     projectId: process.env.SANITY_PROJECT_ID!,
-    dataset: process.env.SANITY_DATASET!
+    dataset: process.env.SANITY_DATASET!,
   },
+  studioHost: 'tide-raider',
   /**
    * Enable auto-updates for studios.
    * Learn more at https://www.sanity.io/docs/cli#auto-updates

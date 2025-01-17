@@ -46,6 +46,10 @@ export interface LogEntry {
     country: string;
     region: string;
   };
+  windSpeed?: number;
+  windDirection?: number;
+  swellHeight?: number;
+  swellDirection?: number;
 }
 
 export interface CreateLogEntryInput {

@@ -1,3 +1,5 @@
+import { Beach } from "./beaches";
+
 export type StoryCategory =
   | "Travel"
   | "Wipeouts"
@@ -9,6 +11,8 @@ export type StoryBeach = {
   id: string;
   name: string;
   region: string;
+  country: string;
+  continent: string;
 };
 
 export interface Story {
@@ -26,4 +30,5 @@ export interface Story {
     name: string;
     email: string;
   };
+  customBeach?: string;
 }

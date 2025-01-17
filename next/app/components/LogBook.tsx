@@ -68,9 +68,7 @@ export default function LogBook({ beaches }: LogBookProps) {
     },
     retry: 3,
     retryDelay: 1000,
-    onError: (error) => {
-      console.error("Error fetching log entries:", error);
-    },
+
     enabled: status === "authenticated",
   });
 

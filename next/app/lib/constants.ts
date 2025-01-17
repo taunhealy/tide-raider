@@ -1,3 +1,5 @@
+
+
 export const HARDCODED_WIND_DATA = {
   wind: {
     direction: "SE",
@@ -15,13 +17,16 @@ export const HARDCODED_WIND_DATA = {
 export const MAX_DISTANCE = 10000;
 
 export const INITIAL_FILTERS = {
-  region: ["Western Cape"],
-  difficulty: [],
-  crimeLevel: [],
+  continent: [],
+  country: [],
   waveType: [],
+  difficulty: [],
+  region: [],
+  crimeLevel: [],
+  minPoints: 0,
+  sharkAttack: [],
   minDistance: 0,
   maxDistance: 10000,
-  sharkAttack: [],
 };
 
 export const DEFAULT_PROFILE_IMAGE = "/images/profile/hero-cover.jpg";
@@ -53,6 +58,6 @@ export const STORY_CATEGORIES = [
   "Weather Phenomena",
   "Restricted Access Spots",
   "Crime",
-] as const;
+];
 
 export type StoryCategory = (typeof STORY_CATEGORIES)[number];

@@ -11,24 +11,14 @@ export interface SharkIncident {
   }[];
 }
 
-export type Region =
-  | "Western Cape"
-  | "Eastern Cape"
-  | "Mozambique"
-  | "KwaZulu-Natal"
-  | "Namibia"
-  | "Northern Cape"
-  | "Morocco"
-  | "Gabon"
-  | "Angola"
-  | "Liberia";
+export type Region = string;
 
 export interface Beach {
   id: string;
   name: string;
   continent: string;
   country: string;
-  region: string;
+  region: Region;
   location: string;
   distanceFromCT: number;
   optimalWindDirections: string[];
@@ -2771,7 +2761,7 @@ export const beachData: Beach[] = [
     bestSeasons: ["winter"],
     optimalTide: "All",
     description:
-      "Various reef and beach breaks offering different wave types. Inner Pool and Outer Pool provide good right-handers.  The local surfing community is known for its welcoming nature, making it an ideal destination for surfers of all skill levels. Whether you’re a seasoned pro or just starting out, Mossel Bay offers a supportive environment to hone your skills and enjoy the waves.",
+      "Various reef and beach breaks offering different wave types. Inner Pool and Outer Pool provide good right-handers.  The local surfing community is known for its welcoming nature, making it an ideal destination for surfers of all skill levels. Whether you're a seasoned pro or just starting out, Mossel Bay offers a supportive environment to hone your skills and enjoy the waves.",
     difficulty: "Intermediate",
     waveType: "Beach Break",
     swellSize: {

@@ -1,15 +1,15 @@
-'use client'
+"use client";
 
-import React, { useState } from 'react';
-import Image from 'next/image';
-import { urlForImage } from '@/app/lib/urlForImage';
+import React, { useState } from "react";
+import Image from "next/image";
+import { urlForImage } from "@/app/lib/urlForImage";
 
 interface HeroImageProps {
   data?: {
     image?: any;
     title?: string;
     imagePhotographer?: string;
-  }
+  };
 }
 
 const HeroImage: React.FC<HeroImageProps> = ({ data }) => {
@@ -19,14 +19,18 @@ const HeroImage: React.FC<HeroImageProps> = ({ data }) => {
     <section className="py-[32px] md:py-[54px] px-4 md:px-[81px]">
       <div className="md:pl-[54px]">
         <div className="relative w-full max-w-full min-h-[300px] md:min-h-[508px]">
-          <div 
+          <div
             className="relative w-full h-[300px] md:h-[508px]"
             onMouseEnter={() => setShowPhotographerCredit(true)}
             onMouseLeave={() => setShowPhotographerCredit(false)}
           >
             {data?.image && (
               <Image
-                src={urlForImage(data.image).url()}
+                src={
+                  data?.image?.asset
+                    ? urlForImage(data.image)?.url() || "/placeholder.jpg"
+                    : "/placeholder.jpg"
+                }
                 alt="Hero background"
                 fill
                 priority
@@ -36,14 +40,14 @@ const HeroImage: React.FC<HeroImageProps> = ({ data }) => {
               />
             )}
             {data?.imagePhotographer && (
-              <div 
+              <div
                 className={`
                   absolute bottom-4 right-4 
                   bg-black bg-opacity-50 
                   px-3 py-1 rounded-md 
                   text-white text-sm 
                   transition-all duration-300 ease-in-out
-                  ${showPhotographerCredit ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-2'}
+                  ${showPhotographerCredit ? "opacity-100 translate-y-0" : "opacity-0 translate-y-2"}
                 `}
               >
                 Photo by {data.imagePhotographer}

@@ -68,12 +68,15 @@ export default function BeachContainer({
     country: searchParams?.get("country")?.split(",") || ["South Africa"],
     waveType: searchParams?.get("waveType")?.split(",") || [],
     difficulty: searchParams?.get("difficulty")?.split(",") || [],
-    region: searchParams?.get("region")?.split(",") || ["Western Cape"],
+    region: (searchParams?.get("region")?.split(",") || [
+      "Western Cape",
+    ]) as Region[],
     crimeLevel: searchParams?.get("crimeLevel")?.split(",") || [],
     minPoints: parseInt(searchParams?.get("minPoints") || "0"),
     sharkAttack: searchParams?.get("sharkAttack")?.split(",") || [],
     minDistance: parseInt(searchParams?.get("minDistance") || "0"),
     maxDistance: parseInt(searchParams?.get("maxDistance") || "10000"),
+    maxWaveHeight: parseInt(searchParams?.get("maxWaveHeight") || "10"),
     // Add any other filters you need
   };
 
@@ -263,7 +266,7 @@ export default function BeachContainer({
     new Set(initialBeaches.map((beach) => beach.country))
   ).sort();
 
-  const handleRegionClick = (region: string) => {
+  const handleRegionClick = (region: Region) => {
     const newRegions = filters.region.includes(region)
       ? filters.region.filter((r) => r !== region)
       : [...filters.region, region];

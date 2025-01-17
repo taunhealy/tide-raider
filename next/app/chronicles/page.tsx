@@ -8,6 +8,8 @@ export default async function StoriesPage() {
     name: beach.name,
     location: beach.location,
     region: beach.region,
+    country: beach.country,
+    continent: beach.continent,
     isCustom: false,
   }));
 

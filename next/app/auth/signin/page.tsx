@@ -2,6 +2,7 @@
 
 import { signIn } from "next-auth/react";
 import { useSearchParams } from "next/navigation";
+import { Suspense } from "react";
 
 export default function SignIn() {
   const searchParams = useSearchParams();
@@ -9,12 +10,14 @@ export default function SignIn() {
 
   return (
     <div className="flex min-h-screen items-center justify-center">
-      <button
-        onClick={() => signIn("google", { callbackUrl })}
-        className="rounded-md bg-blue-500 px-4 py-2 text-white"
-      >
-        Sign in with Google
-      </button>
+      <Suspense fallback={<div>Loading...</div>}>
+        <button
+          onClick={() => signIn("google", { callbackUrl })}
+          className="rounded-md bg-black px-4 py-2 text-white"
+        >
+          Sign in with Google
+        </button>
+      </Suspense>
     </div>
   );
 }

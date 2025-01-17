@@ -11,12 +11,26 @@ import {
 import Image from "next/image";
 import { ChevronDown } from "lucide-react";
 
+type FilterType = {
+  continent: string[];
+  country: string[];
+  waveType: string[];
+  difficulty: string[];
+  region: Region[];
+  crimeLevel: string[];
+  minPoints: number;
+  sharkAttack: string[];
+  minDistance: number;
+  maxDistance: number;
+  maxWaveHeight: number;
+};
+
 interface SidebarFilterProps {
   beaches: Beach[];
   minPoints: number;
-  onMinPointsChange: (points: number) => void;
-  onFilterChange: (filters: typeof INITIAL_FILTERS) => void;
-  filters: typeof INITIAL_FILTERS;
+  onMinPointsChange: (value: number) => void;
+  onFilterChange: (filters: FilterType) => void;
+  filters: FilterType;
 }
 
 export default function SidebarFilter({
@@ -41,8 +55,8 @@ export default function SidebarFilter({
     new Set(beaches.map((beach) => beach.region))
   ).sort() as Region[];
 
-  const handleFilterChange = (newFilters: typeof INITIAL_FILTERS) => {
-    console.log("Filter change:", newFilters); // Debug log
+  const handleFilterChange = (newFilters: FilterType) => {
+    console.log("Filter change:", newFilters);
     let filteredBeaches = [...beaches];
 
     // Apply region filter
@@ -283,7 +297,7 @@ export default function SidebarFilter({
                 {/* Black base overlay */}
                 <div className="absolute inset-0 bg-black opacity-30"></div>
                 {/* Blue brand overlay */}
-                <div className="absolute inset-0 bg-blue-500 opacity-50"></div>
+                <div className="absolute inset-0 bg-black opacity-30"></div>
                 {/* Text */}
                 <span className="relative z-10 text-white text-sm font-medium px-2 text-center">
                   {waveType}

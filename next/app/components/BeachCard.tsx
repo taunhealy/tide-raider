@@ -15,9 +15,6 @@ import { useRouter, useSearchParams } from "next/navigation";
 import { Inter } from "next/font/google";
 import GoogleMapsButton from "./GoogleMapsButton";
 import {
-  getVideoThumbnail,
-  getVideoId,
-  getVideoGridItems,
 } from "@/app/lib/videoUtils";
 import Image from "next/image";
 import {
@@ -31,6 +28,7 @@ interface BeachCardProps {
   beach: Beach;
   windData: WindData | null;
   isFirst?: boolean;
+  isLocked?: boolean;
 }
 
 const inter = Inter({ subsets: ["latin"] });

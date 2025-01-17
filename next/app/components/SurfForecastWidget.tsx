@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 
 interface SurfForecastWidgetProps {
+  beachId: string;
   date: string;
 }
 
@@ -18,7 +19,10 @@ interface SurfCondition {
   timestamp: number;
 }
 
-const SurfForecastWidget = ({ date }: SurfForecastWidgetProps) => {
+export default function SurfForecastWidget({
+  beachId,
+  date,
+}: SurfForecastWidgetProps) {
   const [forecast, setForecast] = useState<SurfCondition | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -94,6 +98,4 @@ const SurfForecastWidget = ({ date }: SurfForecastWidgetProps) => {
       )}
     </div>
   );
-};
-
-export default SurfForecastWidget;
+}

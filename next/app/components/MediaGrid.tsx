@@ -38,7 +38,7 @@ function MediaGridBase({ videos, beach }: MediaGridProps) {
           return (
             <a
               key={`coffee-${index}`}
-              href={`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(item.url)}`}
+              href={`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent("name" in item ? item.url : "")}`}
               target="_blank"
               rel="noopener noreferrer"
               className="relative aspect-video rounded-lg overflow-hidden bg-gray-100 flex items-center justify-center group"
@@ -67,7 +67,7 @@ function MediaGridBase({ videos, beach }: MediaGridProps) {
                 </div>
 
                 <h4 className="text-sm sm:text-base text-gray-700 font-semibold group-hover:text-gray-900 transition-colors text-center">
-                  {item.name || "View on Maps"}
+                  {"name" in item ? item.name : "View on Maps"}
                 </h4>
                 <span>
                   <h6 className="text-sm sm:text-base">⚡☕⚡</h6>
@@ -131,7 +131,10 @@ function MediaGridBase({ videos, beach }: MediaGridProps) {
             onClick={(e) => e.stopPropagation()}
           >
             <img
-              src={getVideoThumbnail(item.url, item.platform)}
+              src={getVideoThumbnail(
+                item.url,
+                "platform" in item ? item.platform : "youtube"
+              )}
               alt={item.title || "Surf video"}
               className="w-full h-full object-cover"
             />

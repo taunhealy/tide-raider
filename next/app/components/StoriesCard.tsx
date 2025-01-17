@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { Story, StoryCategory } from "@/app/types/stories";
+import { Story } from "@/app/types/stories";
 import { useSession } from "next-auth/react";
 import { Edit2, Trash2, Calendar, MapPin, ExternalLink } from "lucide-react";
 import { formatDistanceToNow } from "date-fns";
@@ -126,7 +126,10 @@ export function PostCard({ story, isAuthor }: PostCardProps) {
             <div className="flex items-center gap-1">
               <MapPin className="w-3 h-3 sm:w-4 sm:h-4" />
               <span className="truncate">
-                {story.customBeach || story.beach?.name}
+                {story.customBeach ||
+                  (typeof story.beach === "string"
+                    ? story.beach
+                    : story.beach?.name?.toString() || "")}
               </span>
             </div>
             <div className="flex items-center gap-1">

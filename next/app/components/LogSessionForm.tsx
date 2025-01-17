@@ -14,6 +14,7 @@ interface LogSessionFormProps {
   userEmail: string;
   isOpen: boolean;
   onClose: () => void;
+  beaches: any;
 }
 
 export function LogSessionForm({

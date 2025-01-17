@@ -1,5 +1,16 @@
 import Image from "next/image";
 
+interface HeroProductContent {
+  title?: string;
+  leftDescription?: string;
+  rightDescription?: string;
+  leftImage?: string;
+  filterItems?: Array<{
+    type: string;
+    icon: string;
+  }>;
+}
+
 export default async function HeroProduct({
   data,
 }: {
@@ -60,7 +71,7 @@ export default async function HeroProduct({
 
             <div className="rounded-lg bg-[var(--color-brand-tertiary)]/10 backdrop-blur-sm p-[16px]] w-full md:w-[540px] h-[200px] md:h-[300px]">
               <div className="grid grid-cols-2 gap-4 h-full max-w-[320px] place-content-center">
-                {filterItems.map((item) => (
+                {filterItems.map((item: any) => (
                   <div
                     key={item.type}
                     className="group relative flex flex-col items-center gap-2 transform transition-all duration-300 hover:-translate-y-2"

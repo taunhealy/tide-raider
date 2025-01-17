@@ -52,10 +52,15 @@ async function Blog() {
               <Link href={`/blog/${post.slug.current}`} className="block">
                 {/* Image Container */}
                 <div className="relative h-48 overflow-hidden">
-                  {post.mainImage && (
+                  {post.mainImage?.asset && (
                     <Image
-                      src={urlForImage(post.mainImage).url()}
-                      alt={post.title}
+                      src={
+                        post.mainImage?.asset
+                          ? urlForImage(post.mainImage)?.url() ||
+                            "/placeholder.jpg"
+                          : "/placeholder.jpg"
+                      }
+                      alt={post.title || "Blog post"}
                       fill
                       className="object-cover transform group-hover:scale-105 transition-transform duration-300"
                     />

@@ -30,7 +30,7 @@ interface RegionFilterProps {
   windData: WindData | null;
   onContinentClick: (continent: string) => void;
   onCountryClick: (country: string) => void;
-  onRegionClick: (region: string) => void;
+  onRegionClick: (region: any) => void;
   isPro?: boolean;
   initialSavedFilters?: SavedFilters | null;
 }

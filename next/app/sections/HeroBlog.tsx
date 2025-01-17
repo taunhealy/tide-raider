@@ -172,31 +172,38 @@ export default function Blog({ data }: BlogProps) {
                 className="flex flex-row md:flex-col"
               >
                 <div className="relative w-[140px] md:w-full h-[140px] md:h-[410px] overflow-hidden">
-                  {post.mainImage && post.mainImage?.asset && (
+                  {/* @ts-ignore */}
+                  {post.mainImage?.asset && (
                     <>
                       <div className="w-full h-full absolute inset-0 bg-[var(--color-bg-tertiary)] opacity-0 group-hover:opacity-30 transition-all duration-300 z-10" />
                       <img
-                        src={urlForImage(post.mainImage)
-                          .width(600)
-                          .height(400)
-                          .url()}
+                        src={
+                          urlForImage(post.mainImage?.asset)
+                            ?.width(600)
+                            ?.height(400)
+                            ?.url() ?? ""
+                        }
                         alt={post.title || "Blog post image"}
                         className="w-full h-full object-cover"
                       />
-                      {post.hoverImage?.asset && (
-                        <img
-                          src={urlForImage(post.hoverImage)
-                            .width(600)
-                            .height(400)
-                            .url()}
-                          alt={
-                            `${post.title} hover image` ||
-                            "Blog post hover image"
-                          }
-                          className="absolute inset-0 w-full h-full object-cover opacity-0 group-hover:opacity-100 transition-all duration-300"
-                        />
-                      )}
                     </>
+                  )}
+
+                  {post.hoverImage?.asset && (
+                    <img
+                      src={
+                        urlForImage(post.hoverImage?.asset)
+                          ?.width(600)
+                          ?.height(400)
+                          ?.url() ?? ""
+                      }
+                      alt={
+                        post.title
+                          ? `${post.title} hover image`
+                          : "Blog post hover image"
+                      }
+                      className="your-class-name"
+                    />
                   )}
                 </div>
 

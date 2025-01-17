@@ -1,11 +1,8 @@
 "use client ";
 
-import { useState, useEffect } from "react";
-import { cn } from "@/app/lib/utils";
 import { Inter } from "next/font/google";
 import { FilterButton } from "./ui/FilterButton";
 import { LogEntry } from "../types/logbook";
-import { Waves } from "lucide-react";
 
 const inter = Inter({ subsets: ["latin"] });
 
@@ -30,13 +27,25 @@ export function LogbookRegionFilter({
 }: LogbookRegionFilterProps) {
   // Extract unique values from entries
   const uniqueContinents = [
-    ...new Set(entries.map((entry) => entry.beach?.continent).filter(Boolean)),
+    ...new Set(
+      entries
+        .map((entry) => entry.beach?.continent)
+        .filter((continent): continent is string => continent !== undefined)
+    ),
   ].sort();
   const uniqueCountries = [
-    ...new Set(entries.map((entry) => entry.beach?.country).filter(Boolean)),
+    ...new Set(
+      entries
+        .map((entry) => entry.beach?.country)
+        .filter((country): country is string => country !== undefined)
+    ),
   ].sort();
   const uniqueRegions = [
-    ...new Set(entries.map((entry) => entry.beach?.region).filter(Boolean)),
+    ...new Set(
+      entries
+        .map((entry) => entry.beach?.region)
+        .filter((region): region is string => region !== undefined)
+    ),
   ].sort();
   const uniqueBeaches = [
     ...new Set(entries.map((entry) => entry.beachName).filter(Boolean)),
@@ -60,6 +69,8 @@ export function LogbookRegionFilter({
               <FilterButton
                 key={continent}
                 label={continent}
+                count={0}
+                variant="continent"
                 isSelected={selectedFilters.continents.includes(continent)}
                 onClick={() => {
                   updateFilters(
@@ -85,6 +96,8 @@ export function LogbookRegionFilter({
               <FilterButton
                 key={country}
                 label={country}
+                count={0}
+                variant="country"
                 isSelected={selectedFilters.countries.includes(country)}
                 onClick={() => {
                   updateFilters(
@@ -108,6 +121,8 @@ export function LogbookRegionFilter({
               <FilterButton
                 key={region}
                 label={region}
+                count={0}
+                variant="region"
                 isSelected={selectedFilters.regions.includes(region)}
                 onClick={() => {
                   updateFilters(
@@ -131,6 +146,8 @@ export function LogbookRegionFilter({
               <FilterButton
                 key={beach}
                 label={beach}
+                count={0}
+                variant="region"
                 isSelected={selectedFilters.beaches.includes(beach)}
                 onClick={() => {
                   updateFilters(

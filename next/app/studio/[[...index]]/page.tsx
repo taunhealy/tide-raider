@@ -1,14 +1,14 @@
-'use client'
+"use client";
 
-import {NextStudio} from 'next-sanity/studio'
-import config from '../../../../sanity/sanity.config'
-import { Config } from 'sanity'
+import { NextStudio } from "next-sanity/studio";
+import config from "../../../../sanity/sanity.config";
 
-const studioConfig: Config = {
+const studioConfig = {
   ...config,
-  basePath: '/studio'
-}
+  basePath: "/studio",
+};
 
 export default function StudioPage() {
-  return <NextStudio config={studioConfig} />
+  // @ts-ignore
+  return <NextStudio config={studioConfig} />;
 }

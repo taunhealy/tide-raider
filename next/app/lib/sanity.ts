@@ -20,10 +20,6 @@ export const client = createClient({
     enabled: false,
   },
   token: process.env.SANITY_API_TOKEN,
-  requestHandler: {
-    maxRetries: 3,
-    retryDelay: 1000,
-  },
 });
 
 export async function sanityQuery<T>(operation: () => Promise<T>): Promise<T> {

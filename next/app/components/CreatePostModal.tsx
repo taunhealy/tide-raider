@@ -8,13 +8,14 @@ import { Inter } from "next/font/google";
 import { cn } from "@/app/lib/utils";
 import type { Beach } from "@/app/types/beaches";
 import { STORY_CATEGORIES, type StoryCategory } from "@/app/lib/constants";
+import { StoryBeach } from "../types/stories";
 
 const inter = Inter({ subsets: ["latin"] });
 
 interface CreatePostModalProps {
   isOpen: boolean;
   onClose: () => void;
-  beaches: Beach[];
+  beaches: StoryBeach[];
 }
 
 export function CreatePostModal({

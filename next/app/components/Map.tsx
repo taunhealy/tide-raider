@@ -1,48 +1,60 @@
-'use client'
+"use client";
 
-import { useEffect, useState, useRef } from 'react';
-import { Beach } from '@/app/types/beaches';
-import { WindData } from '@/app/types/wind';
-import { isBeachSuitable, getScoreEmoji, getGatedBeaches } from '@/app/lib/surfUtils';
-import { Map as OLMap, View } from 'ol';
-import TileLayer from 'ol/layer/Tile';
-import OSM from 'ol/source/OSM';
-import { fromLonLat } from 'ol/proj';
-import { Feature } from 'ol';
-import { Point } from 'ol/geom';
-import { Vector as VectorLayer } from 'ol/layer';
-import { Vector as VectorSource } from 'ol/source';
-import { Style, Icon } from 'ol/style';
-import { cn } from '@/app/lib/utils';
-import { Inter } from 'next/font/google';
-import { MapPin } from 'lucide-react';
-import 'ol/ol.css';
+import { useEffect, useState, useRef } from "react";
+import { Beach, Region } from "@/app/types/beaches";
+import { WindData } from "@/app/types/wind";
+import {
+  isBeachSuitable,
+  getScoreEmoji,
+  getGatedBeaches,
+} from "@/app/lib/surfUtils";
+import { Map as OLMap, View } from "ol";
+import TileLayer from "ol/layer/Tile";
+import OSM from "ol/source/OSM";
+import { fromLonLat } from "ol/proj";
+import { Feature } from "ol";
+import { Point } from "ol/geom";
+import { Vector as VectorLayer } from "ol/layer";
+import { Vector as VectorSource } from "ol/source";
+import { Style, Icon } from "ol/style";
+import { cn } from "@/app/lib/utils";
+import { Inter } from "next/font/google";
+import { MapPin } from "lucide-react";
+import "ol/ol.css";
 import { useSubscription } from "../context/SubscriptionContext";
-import WindCompass from './WindCompass';
+import WindCompass from "./WindCompass";
 
 const inter = Inter({ subsets: ["latin"] });
 
 interface MapProps {
   beaches: Beach[];
   windData: WindData | null;
+  regions: Region[];
+  selectedRegions: any;
+  onRegionClick: any;
+  filters: any;
 }
 
 export default function Map({ beaches, windData }: MapProps) {
   const { isSubscribed } = useSubscription();
-  const [selectedBeach, setSelectedBeach] = useState<(Beach & { score: number }) | null>(null);
+  const [selectedBeach, setSelectedBeach] = useState<
+    (Beach & { score: number }) | null
+  >(null);
   const mapRef = useRef<HTMLDivElement>(null);
   const mapInstance = useRef<OLMap | null>(null);
 
   // Apply gating to beaches before processing
   const { visibleBeaches } = getGatedBeaches(beaches, windData, isSubscribed);
-  
-  const topBeaches = windData ? visibleBeaches
-    .map(beach => ({
-      ...beach,
-      score: isBeachSuitable(beach, windData).score
-    }))
-    .filter(beach => beach.score >= 4)
-    .sort((a, b) => b.score - a.score) : [];
+
+  const topBeaches = windData
+    ? visibleBeaches
+        .map((beach) => ({
+          ...beach,
+          score: isBeachSuitable(beach, windData).score,
+        }))
+        .filter((beach) => beach.score >= 4)
+        .sort((a, b) => b.score - a.score)
+    : [];
 
   const navigateToBeach = (beach: Beach & { score: number }) => {
     if (!mapInstance.current) return;
@@ -51,7 +63,7 @@ export default function Map({ beaches, windData }: MapProps) {
     mapInstance.current.getView().animate({
       center: fromLonLat([beach.coordinates.lng, beach.coordinates.lat]),
       zoom: 13,
-      duration: 1000
+      duration: 1000,
     });
 
     // Set the selected beach to show its popup
@@ -66,13 +78,13 @@ export default function Map({ beaches, windData }: MapProps) {
       target: mapRef.current,
       layers: [
         new TileLayer({
-          source: new OSM()
-        })
+          source: new OSM(),
+        }),
       ],
       view: new View({
         center: fromLonLat([18.5, -34.0]), // Cape Town coordinates
-        zoom: 9
-      })
+        zoom: 9,
+      }),
     });
 
     mapInstance.current = map;
@@ -85,37 +97,43 @@ export default function Map({ beaches, windData }: MapProps) {
 
   useEffect(() => {
     if (!windData || !mapInstance.current) return;
-    
+
     const filtered = beaches
-      .map(beach => ({
+      .map((beach) => ({
         ...beach,
-        score: isBeachSuitable(beach, windData).score
+        score: isBeachSuitable(beach, windData).score,
       }))
-      .filter(beach => beach.score >= 2);
+      .filter((beach) => beach.score >= 2);
 
     // Create features for beaches
-    const features = filtered.map(beach => {
+    const features = filtered.map((beach) => {
       const feature = new Feature({
-        geometry: new Point(fromLonLat([beach.coordinates.lng, beach.coordinates.lat])),
-        properties: beach
+        geometry: new Point(
+          fromLonLat([beach.coordinates.lng, beach.coordinates.lat])
+        ),
+        properties: beach,
       });
 
       // Only make feature clickable if subscribed or not a premium spot
       const isPremiumSpot = beach.score >= 4;
       if (isSubscribed || !isPremiumSpot) {
-        feature.setStyle(new Style({
-          image: new Icon({
-            src: '/marker.png',
-            scale: 0.5
+        feature.setStyle(
+          new Style({
+            image: new Icon({
+              src: "/marker.png",
+              scale: 0.5,
+            }),
           })
-        }));
+        );
       } else {
-        feature.setStyle(new Style({
-          image: new Icon({
-            src: '/locked-marker.png',
-            scale: 0.5
+        feature.setStyle(
+          new Style({
+            image: new Icon({
+              src: "/locked-marker.png",
+              scale: 0.5,
+            }),
           })
-        }));
+        );
       }
 
       return feature;
@@ -124,8 +142,8 @@ export default function Map({ beaches, windData }: MapProps) {
     // Create vector layer for markers
     const vectorLayer = new VectorLayer({
       source: new VectorSource({
-        features
-      })
+        features,
+      }),
     });
 
     // Clear existing layers except base layer
@@ -137,10 +155,13 @@ export default function Map({ beaches, windData }: MapProps) {
     mapInstance.current.addLayer(vectorLayer);
 
     // Add click handler
-    mapInstance.current.on('click', (event) => {
-      const feature = mapInstance.current?.forEachFeatureAtPixel(event.pixel, feature => feature);
+    mapInstance.current.on("click", (event) => {
+      const feature = mapInstance.current?.forEachFeatureAtPixel(
+        event.pixel,
+        (feature) => feature
+      );
       if (feature) {
-        const properties = feature.get('properties');
+        const properties = feature.get("properties");
         const isPremiumSpot = properties.score >= 4;
         // Only show popup if subscribed or not a premium spot
         if (isSubscribed || !isPremiumSpot) {
@@ -166,11 +187,15 @@ export default function Map({ beaches, windData }: MapProps) {
             {topBeaches.map((beach) => (
               <button
                 key={beach.name}
-                onClick={() => isSubscribed ? navigateToBeach(beach) : undefined}
+                onClick={() =>
+                  isSubscribed ? navigateToBeach(beach) : undefined
+                }
                 className={cn(
                   "w-full text-left p-3 rounded-lg",
                   "flex items-center gap-2",
-                  isSubscribed ? "hover:bg-gray-50 transition-colors" : "cursor-not-allowed opacity-75",
+                  isSubscribed
+                    ? "hover:bg-gray-50 transition-colors"
+                    : "cursor-not-allowed opacity-75",
                   "border border-gray-200",
                   selectedBeach?.name === beach.name ? "bg-gray-50" : "",
                   inter.className
@@ -178,7 +203,7 @@ export default function Map({ beaches, windData }: MapProps) {
               >
                 <div className="flex-1">
                   <div className="font-medium">
-                    {isSubscribed ? beach.name : '🔒 Premium Spot'}
+                    {isSubscribed ? beach.name : "🔒 Premium Spot"}
                   </div>
                   <div className="text-sm text-gray-500">{beach.region}</div>
                 </div>
@@ -221,11 +246,14 @@ export default function Map({ beaches, windData }: MapProps) {
                   <span>{getScoreEmoji(selectedBeach.score)}</span>
                   <span>{"⭐".repeat(selectedBeach.score)}</span>
                 </div>
-                <p>Wave Height: {selectedBeach.swellSize.min}-{selectedBeach.swellSize.max}m</p>
+                <p>
+                  Wave Height: {selectedBeach.swellSize.min}-
+                  {selectedBeach.swellSize.max}m
+                </p>
                 <p>Wave Type: {selectedBeach.waveType}</p>
                 <p>Difficulty: {selectedBeach.difficulty}</p>
               </div>
-              <button 
+              <button
                 onClick={() => setSelectedBeach(null)}
                 className="absolute top-2 right-2 text-gray-500 hover:text-gray-700"
               >

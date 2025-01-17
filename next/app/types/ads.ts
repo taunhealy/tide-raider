@@ -24,6 +24,7 @@ export interface Ad {
   campaignId?: string;
   impressions?: number;
   clicks?: number;
+  beachId?: string;
 }
 
 export interface AdImpression {

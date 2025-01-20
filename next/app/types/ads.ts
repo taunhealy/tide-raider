@@ -6,25 +6,28 @@ interface AdCampaign {
   endDate: Date;
   budget: number;
   ads: Ad[];
-  status: 'active' | 'paused' | 'completed';
+  status: "active" | "paused" | "completed";
   targeting?: {
     regions?: string[];
     devices?: string[];
     timeOfDay?: string[];
   };
 }
-
 export interface Ad {
   id: string;
-  clientId: string;
+  category: string;
+  companyName: string;
   imageUrl?: string;
-  link?: string;
+  linkUrl: string;
   title?: string;
+  region: string;
+  startDate: Date;
+  endDate: Date;
+  status: "active" | "pending" | "rejected";
+  categoryData?: Record<string, any>;
+  yearlyPrice: number;
+  googleAdsContribution: number;
   isAd: true;
-  campaignId?: string;
-  impressions?: number;
-  clicks?: number;
-  beachId?: string;
 }
 
 export interface AdImpression {

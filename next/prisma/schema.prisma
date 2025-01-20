@@ -12,6 +12,38 @@ datasource db {
   // directUrl = env("DATABASE_URL_UNPOOLED")
 }
 
+model AdRequest {
+  id                   String    @id
+  category             String    // Store the ad category
+  companyName          String
+  contactEmail         String
+  imageUrl             String?
+  linkUrl             String
+  title               String?
+  region              String    // Required field for regional targeting
+  startDate           DateTime  // Changed to DateTime
+  endDate             DateTime  // Changed to DateTime
+  status              String   
+  rejectionReason     String?
+  categoryData        Json?     // Store category-specific fields
+  yearlyPrice         Float     // Yearly price for the ad
+  googleAdsContribution Float   // Monthly contribution to Google Ads budget
+  createdAt           DateTime  @default(now())
+  updatedAt           DateTime  @updatedAt
+  userId              String?
+  lemonSubscriptionId String?
+  googleAdsCampaignId String?
+   payfastSubscriptionId String?
+   variantId           String?
+  
+  @@index([payfastSubscriptionId])
+  
+  user User? @relation(fields: [userId], references: [id])
+
+  @@index([region])
+  @@index([category])
+  @@index([status])
+}
 
 // Core User Model
 model User {
@@ -356,28 +388,6 @@ model SurfCondition {
   timestamp     Float    // Regular timestamp, no need for BigInt
   createdAt     DateTime @default(now())
   updatedAt     DateTime @updatedAt
-}
-
-model AdRequest {
-  id                  String   @id
-  beachName           String
-  companyName         String
-  contactEmail        String
-  imageUrl            String?
-  linkUrl             String
-  startDate           String
-  endDate             String
-  status              String   
-  rejectionReason     String?
-  createdAt           DateTime @default(now())
-  updatedAt           DateTime @updatedAt
-  
-  // Add these fields
-  userId              String?
-  lemonSubscriptionId String?  // Store the Lemon Squeezy subscription ID
-  variantId           Int?     // Store the variant ID
-  
-  user User? @relation(fields: [userId], references: [id])
 }
 
 model Feedback {

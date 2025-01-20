@@ -35,12 +35,16 @@ export function isBeachSuitable(
   if (beach.optimalWindDirections.includes(windData.wind.direction)) {
     score += 2;
   } else {
-    score = Math.max(0, score - 1); // Apply -1 penalty for wrong wind direction
+    score = Math.max(0, score - 0.5);
   }
 
   // Add penalty for strong winds unless beach is sheltered
-  if (windData.wind.speed > 25 && !beach.sheltered) {
-    score = Math.max(0, score - 1); // Subtract 1 point but don't go below 0
+  if (
+    windData.wind.speed >= 15 &&
+    windData.wind.speed > 25 &&
+    !beach.sheltered
+  ) {
+    score = Math.max(0, score - 0.5);
   }
 
   // Check swell direction
@@ -50,9 +54,9 @@ export function isBeachSuitable(
     swellDeg <= beach.optimalSwellDirections.max;
 
   if (hasGoodSwellDirection) {
-    score += 1;
+    score += 2;
   } else {
-    score = Math.max(0, score - 2); // Penalize wrong swell direction but don't go below 0
+    score = Math.max(0, score - 1.5); // Penalize wrong swell direction but don't go below 0
   }
 
   // Check swell height with harsh penalty for wrong size

@@ -1,5 +1,3 @@
-
-
 export const HARDCODED_WIND_DATA = {
   wind: {
     direction: "SE",
@@ -61,3 +59,62 @@ export const STORY_CATEGORIES = [
 ];
 
 export type StoryCategory = (typeof STORY_CATEGORIES)[number];
+
+export const GOOGLE_ADS_CONFIG = {
+  dailyBudget: 23, // Combined daily budget from all contributions
+  keywords: [
+    "surfing south africa",
+    "surf spots sa",
+    "learn to surf",
+    "surf gear",
+    "surf equipment",
+    "surf lessons",
+    "surf camps",
+    "surfboard shapers",
+    "4x4 surf spots",
+    "surf forecast",
+    "surf travel",
+    "surf travel south africa",
+    "surf spots cape town",
+    "surf spots transkei",
+  ],
+  location: "South Africa",
+  language: "en",
+} as const;
+
+export const AD_CATEGORIES = {
+  SURF_CAMP: {
+    id: "surf_camp",
+    label: "Surf Camp",
+    monthlyPrice: 100,
+    fields: ["title", "description", "websiteUrl"],
+    adPosition: "sidebar",
+    googleAdsContribution: 30, // 30% of monthly price
+  },
+  SHAPER: {
+    id: "shaper",
+    label: "Surfboard Shaper",
+    monthlyPrice: 100,
+    fields: ["title", "description", "websiteUrl"],
+    adPosition: "sidebar",
+    googleAdsContribution: 30,
+  },
+  PRODUCTS: {
+    id: "products",
+    label: "Surf Products",
+    monthlyPrice: 150,
+    fields: ["title", "description", "websiteUrl"],
+    adPosition: "sidebar",
+    googleAdsContribution: 45,
+  },
+  FOUR_BY_FOUR: {
+    id: "four_by_four",
+    label: "4x4 Services",
+    monthlyPrice: 150,
+    fields: ["title", "description", "websiteUrl"],
+    adPosition: "sidebar",
+    googleAdsContribution: 45,
+  },
+} as const;
+
+export type AdCategory = keyof typeof AD_CATEGORIES;

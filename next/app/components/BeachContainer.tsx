@@ -38,11 +38,14 @@ import GoldSeeker from "./GoldSeeker";
 import BeachFeedback from "./BeachFeedback";
 import LogbookSidebar from "./LogbookSidebar";
 import RecentChronicles from "./RecentChronicles";
+import RegionalSidebar from "@/app/components/RegionalSidebar";
+import type { Ad } from "@/app/types/ads";
 
 interface BeachContainerProps {
   initialBeaches: Beach[];
   windData: any;
   blogPosts: any;
+  availableAds: Ad[];
 }
 
 const inter = Inter({
@@ -56,6 +59,7 @@ export default function BeachContainer({
   initialBeaches,
   windData: initialWindData,
   blogPosts,
+  availableAds,
 }: BeachContainerProps) {
   const { isSubscribed } = useSubscription();
   const { mutate: handleSubscriptionChange } = useHandleSubscription();
@@ -116,7 +120,9 @@ export default function BeachContainer({
     [filters]
   );
 
-  const [selectedRegion, setSelectedRegion] = useState<string | null>(null);
+  const [selectedRegion, setSelectedRegion] = useState<string>(
+    initialFilters.region[0]
+  );
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 9;
@@ -277,6 +283,13 @@ export default function BeachContainer({
   // Get unique wave types from beach data
   const waveTypes = [...new Set(initialBeaches.map((beach) => beach.waveType))];
 
+  // Update selected region when filter changes
+  useEffect(() => {
+    if (initialFilters.region.length > 0) {
+      setSelectedRegion(initialFilters.region[0]);
+    }
+  }, [initialFilters.region]);
+
   return (
     <div className="bg-[var(--color-bg-secondary)] p-6 mx-auto relative min-h-[calc(100vh-72px)] flex flex-col">
       {/* Main Layout */}
@@ -289,6 +302,10 @@ export default function BeachContainer({
             <GoldSeeker />
             <LogbookSidebar />
             <BeachFeedback beaches={initialBeaches} />
+            <RegionalSidebar
+              selectedRegion={selectedRegion}
+              ads={availableAds}
+            />
           </div>
         </aside>
 
@@ -524,7 +541,7 @@ export default function BeachContainer({
                 <h3
                   className={`text-[21px] font-semibold text-gray-800 ${inter.className}`}
                 >
-                  Today's Forecast
+                  Cape Town's Forecast
                 </h3>
                 <div
                   className={`
@@ -654,7 +671,6 @@ export default function BeachContainer({
           </aside>
         </div>
       </div>
-
       {/* Filter Sidebar */}
       <div
         className={`
@@ -684,7 +700,6 @@ export default function BeachContainer({
           />
         </div>
       </div>
-
       {/* Backdrop */}
       {isSidebarOpen && (
         <div
@@ -692,6 +707,7 @@ export default function BeachContainer({
           onClick={() => setIsSidebarOpen(false)}
         />
       )}
+      x
     </div>
   );
 }

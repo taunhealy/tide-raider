@@ -1,0 +1,105 @@
+"use client";
+
+import { useState, useEffect } from "react";
+import Image from "next/image";
+import { Ad } from "@/app/types/ads";
+import { AD_CATEGORIES } from "@/app/lib/constants";
+
+interface RegionalSidebarProps {
+  selectedRegion: string;
+  ads: Ad[];
+}
+
+export default function RegionalSidebar({
+  selectedRegion,
+  ads,
+}: RegionalSidebarProps) {
+  const [filteredAds, setFilteredAds] = useState<
+    (Ad | { id: string; category: string; isPlaceholder: true })[]
+  >([]);
+
+  useEffect(() => {
+    if (!selectedRegion) return;
+
+    // Filter ads based on selected region and category
+    const regionAds =
+      ads?.filter((ad) => {
+        const categoryData = ad.categoryData as Record<string, any>;
+        return categoryData?.location?.includes(selectedRegion);
+      }) ?? [];
+
+    // Group ads by category and select one from each
+    const categorizedAds = Object.keys(AD_CATEGORIES).reduce(
+      (acc, category) => {
+        const categoryAds = regionAds.filter((ad) => ad.category === category);
+        if (categoryAds.length > 0) {
+          // Rotate ads daily using timestamp
+          const dayTimestamp = Math.floor(Date.now() / (1000 * 60 * 60 * 24));
+          const selectedIndex = dayTimestamp % categoryAds.length;
+          acc.push(categoryAds[selectedIndex]);
+        } else {
+          // Add placeholder for empty category
+          acc.push({
+            id: `placeholder-${category}`,
+            category,
+            isPlaceholder: true,
+          });
+        }
+        return acc;
+      },
+      [] as (Ad | { id: string; category: string; isPlaceholder: true })[]
+    );
+
+    setFilteredAds(categorizedAds);
+  }, [selectedRegion, ads]);
+
+  if (!selectedRegion) return null;
+
+  return (
+    <aside className="hidden lg:block w-64 space-y-4 flex-shrink-0">
+      {filteredAds.map((ad) => {
+        if ("isPlaceholder" in ad) {
+          return (
+            <a
+              key={ad.id}
+              href="/advertising"
+              className="block bg-gray-50 rounded-lg p-4 text-center hover:bg-gray-100 transition-colors"
+            >
+              <p className="text-gray-600 text-sm">
+                {AD_CATEGORIES[ad.category as keyof typeof AD_CATEGORIES].label}{" "}
+                in {selectedRegion}?
+              </p>
+              <p className="text-gray-800 font-medium mt-1">
+                Sponsor this space
+              </p>
+            </a>
+          );
+        }
+
+        return (
+          <a
+            key={ad.id}
+            href={ad.linkUrl}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="block bg-white rounded-lg p-4 hover:shadow-md transition-shadow"
+            onClick={() => {
+              fetch("/api/ads/click", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ adId: ad.id }),
+              }).catch(console.error);
+            }}
+          >
+            <h3 className="font-semibold text-gray-900">
+              {ad.title || ad.companyName}
+            </h3>
+            <p className="text-sm text-gray-600 mt-1">
+              {AD_CATEGORIES[ad.category as keyof typeof AD_CATEGORIES].label}
+            </p>
+          </a>
+        );
+      })}
+    </aside>
+  );
+}

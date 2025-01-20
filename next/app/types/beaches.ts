@@ -1559,6 +1559,13 @@ export const beachData: Beach[] = [
       lat: -34.1123,
       lng: 18.4876,
     },
+    videos: [
+      {
+        url: "https://www.youtube.com/watch?v=EtuL36D_2lY&ab_channel=RobbiePOV",
+        title: "RAW BODYBOARD POV: MICROWEDGE",
+        platform: "youtube",
+      },
+    ],
   },
 
   {
@@ -2695,6 +2702,13 @@ export const beachData: Beach[] = [
       lat: -34.0527,
       lng: 23.3716,
     },
+    videos: [
+      {
+        url: "https://www.youtube.com/watch?v=BotuctY6XzI&ab_channel=PsychedOut",
+        title: "Bodyboarding // Plett Wedge // Plettenberg Bay",
+        platform: "youtube",
+      },
+    ],
   },
   {
     id: "nahoon-reef",
@@ -2873,7 +2887,7 @@ export const beachData: Beach[] = [
     name: "Wilderness",
     continent: "Africa",
     country: "South Africa",
-    region: "Eastern Cape",
+    region: "Western Cape",
     location: "Wilderness",
     distanceFromCT: 440,
     optimalWindDirections: ["SW", "W"],

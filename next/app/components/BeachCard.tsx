@@ -14,8 +14,7 @@ import BeachDetailsModal from "./BeachDetailsModal";
 import { useRouter, useSearchParams } from "next/navigation";
 import { Inter } from "next/font/google";
 import GoogleMapsButton from "./GoogleMapsButton";
-import {
-} from "@/app/lib/videoUtils";
+import {} from "@/app/lib/videoUtils";
 import Image from "next/image";
 import {
   DEFAULT_PROFILE_IMAGE,
@@ -23,6 +22,8 @@ import {
   WaveType,
 } from "@/app/lib/constants";
 import { MediaGrid } from "./MediaGrid";
+import { useQuery } from "@tanstack/react-query";
+import type { LogEntry } from "@/app/types/logbook";
 
 interface BeachCardProps {
   beach: Beach;
@@ -38,8 +39,6 @@ export default function BeachCard({
   windData,
   isFirst = false,
 }: BeachCardProps) {
-  console.log("BeachCard beach prop:", beach);
-
   const router = useRouter();
   const searchParams = useSearchParams();
   const { isSubscribed } = useSubscription();
@@ -107,6 +106,22 @@ export default function BeachCard({
     if (shouldBeLocked) return;
     handleOpenModal();
   };
+
+  const { data: sessions } = useQuery({
+    queryKey: ["sessions", beach.name],
+    queryFn: async () => {
+      const response = await fetch(
+        `/api/logbook?beach=${encodeURIComponent(beach.name)}`
+      );
+      if (!response.ok) throw new Error("Failed to fetch sessions");
+      const allSessions = await response.json();
+      // Filter sessions for this specific beach
+      return allSessions.filter(
+        (session: LogEntry) =>
+          session.beachName.toLowerCase() === beach.name.toLowerCase()
+      );
+    },
+  });
 
   return (
     <>
@@ -184,14 +199,20 @@ export default function BeachCard({
                     />
                   </svg>
                   <span className="text-[var(--color-text-tertiary)] heading-6">
-                    Premium Spot
+                    Members Only
                   </span>
                 </div>
               ) : (
                 <>
                   <div>
-                    <h4 className="heading-5 text-[var(--color-text-primary)]">
+                    <h4 className="heading-5 text-[var(--color-text-primary)] flex items-center gap-2">
                       {beach.name}
+                      {windData && windData.wind.speed > 25 && (
+                        <span title="Strong winds">🌪️</span>
+                      )}
+                      {beach.sharkAttack.hasAttack && (
+                        <span title="At least 1 shark attack reported">🦈</span>
+                      )}
                     </h4>
                     <h5 className="heading-6 text-[var(--color-text-secondary)]">
                       {beach.region}
@@ -207,6 +228,8 @@ export default function BeachCard({
                 <GoogleMapsButton
                   coordinates={beach.coordinates}
                   name={beach.name}
+                  region={beach.region}
+                  location={beach.location}
                 />
                 <button
                   onClick={(e) => {
@@ -336,7 +359,11 @@ export default function BeachCard({
       )}
 
       {!shouldBeLocked && (
-        <MediaGrid beach={beach} videos={beach.videos || []} />
+        <MediaGrid
+          beach={beach}
+          videos={beach.videos || []}
+          sessions={sessions || []}
+        />
       )}
     </>
   );

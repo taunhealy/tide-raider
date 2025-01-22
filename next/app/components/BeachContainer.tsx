@@ -40,6 +40,9 @@ import LogbookSidebar from "./LogbookSidebar";
 import RecentChronicles from "./RecentChronicles";
 import RegionalSidebar from "@/app/components/RegionalSidebar";
 import type { Ad } from "@/app/types/ads";
+import EventsSidebar from "./EventsSidebar";
+import { beachData } from "@/app/types/beaches";
+import { format } from "date-fns";
 
 interface BeachContainerProps {
   initialBeaches: Beach[];
@@ -301,6 +304,7 @@ export default function BeachContainer({
           <div className="space-y-6">
             <GoldSeeker />
             <LogbookSidebar />
+            <EventsSidebar />
             <BeachFeedback beaches={initialBeaches} />
             <RegionalSidebar
               selectedRegion={selectedRegion}
@@ -662,10 +666,10 @@ export default function BeachContainer({
             </div>
             <div className="mt-4">
               <div className="hidden lg:block">
-                <Insights region={selectedRegion || "Western Cape"} />
+                <FunFacts />
               </div>
               <div className="hidden lg:block">
-                <FunFacts />
+                <Insights region={selectedRegion || "Western Cape"} />
               </div>
             </div>
           </aside>
@@ -707,7 +711,6 @@ export default function BeachContainer({
           onClick={() => setIsSidebarOpen(false)}
         />
       )}
-      x
     </div>
   );
 }

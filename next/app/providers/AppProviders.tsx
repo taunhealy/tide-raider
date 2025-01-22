@@ -4,7 +4,6 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { useState } from "react";
 import { ErrorBoundary } from "react-error-boundary";
 import { SubscriptionProvider } from "../context/SubscriptionContext";
-import { AdProvider } from "../context/AdContext";
 import { SessionProvider } from "../context/SessionProvider";
 
 function ErrorFallback({ error }: { error: Error }) {
@@ -33,9 +32,7 @@ export function AppProviders({ children }: { children: React.ReactNode }) {
     <ErrorBoundary FallbackComponent={ErrorFallback}>
       <QueryClientProvider client={queryClient}>
         <SessionProvider>
-          <SubscriptionProvider>
-            <AdProvider>{children}</AdProvider>
-          </SubscriptionProvider>
+          <SubscriptionProvider>{children}</SubscriptionProvider>
         </SessionProvider>
       </QueryClientProvider>
     </ErrorBoundary>

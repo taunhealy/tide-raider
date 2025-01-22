@@ -11,10 +11,12 @@ import {
   getSwellEmoji,
   getDirectionEmoji,
 } from "@/app/lib/forecastUtils";
+import Image from "next/image";
 
 interface LogbookTableProps {
   entries: LogEntry[];
   columns?: LogbookTableColumn[];
+  isSubscribed?: boolean;
 }
 
 interface LogEntryDisplayProps {
@@ -77,6 +79,7 @@ function StarRating({ rating }: { rating: number }) {
 export function LogbookTable({
   entries,
   columns = DEFAULT_COLUMNS,
+  isSubscribed = false,
 }: LogbookTableProps) {
   return (
     <div className="w-full">
@@ -102,7 +105,7 @@ export function LogbookTable({
                 Logger:{" "}
                 <LogEntryDisplay
                   entry={entry}
-                  isAnonymous={entry.isAnonymous}
+                  isAnonymous={entry.isAnonymous ?? false}
                 />
               </p>
               <div className="mt-2">
@@ -147,7 +150,7 @@ export function LogbookTable({
                   <td className="px-6 py-4 whitespace-nowrap">
                     <LogEntryDisplay
                       entry={entry}
-                      isAnonymous={entry.isAnonymous}
+                      isAnonymous={entry.isAnonymous ?? false}
                     />
                   </td>
                   <td className="px-6 py-4">
@@ -157,6 +160,17 @@ export function LogbookTable({
                     <ForecastInfo forecast={entry.forecast} />
                   </td>
                   <td className="px-6 py-4">{entry.comments}</td>
+                  {isSubscribed && entry.imageUrl && (
+                    <td className="px-4 py-2">
+                      <Image
+                        src={entry.imageUrl}
+                        alt="Session photo"
+                        width={100}
+                        height={100}
+                        className="rounded-md object-cover"
+                      />
+                    </td>
+                  )}
                 </tr>
               ))}
             </tbody>

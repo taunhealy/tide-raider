@@ -1,4 +1,4 @@
-import { MapPin } from 'lucide-react';
+import { MapPin } from "lucide-react";
 
 interface GoogleMapsButtonProps {
   coordinates: {
@@ -6,11 +6,18 @@ interface GoogleMapsButtonProps {
     lng: number;
   };
   name: string;
+  region: string;
+  location: string;
 }
 
-export default function GoogleMapsButton({ coordinates, name }: GoogleMapsButtonProps) {
-  const googleMapsUrl = `https://www.google.com/maps/search/?api=1&query=${coordinates.lat},${coordinates.lng}`;
-  
+export default function GoogleMapsButton({
+  name,
+  region,
+  location,
+}: GoogleMapsButtonProps) {
+  const searchQuery = encodeURIComponent(`${name}, ${location}, ${region}`);
+  const googleMapsUrl = `https://www.google.com/maps/search/?api=1&query=${searchQuery}`;
+
   return (
     <a
       href={googleMapsUrl}
@@ -23,4 +30,4 @@ export default function GoogleMapsButton({ coordinates, name }: GoogleMapsButton
       <span>Map</span>
     </a>
   );
-} 
+}

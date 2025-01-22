@@ -1,5 +1,4 @@
 import BeachContainer from "@/app/components/BeachContainer";
-import RegionalSidebar from "@/app/components/RegionalSidebar";
 import { beachData } from "@/app/types/beaches";
 import { client } from "@/app/lib/sanity";
 import { prisma } from "@/app/lib/prisma";
@@ -71,6 +70,7 @@ export default async function RaidPage() {
                 initialBeaches={beachData}
                 windData={windData}
                 blogPosts={blogPosts}
+                availableAds={activeAds}
               />
             </div>
           </div>

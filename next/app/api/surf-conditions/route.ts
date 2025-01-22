@@ -208,15 +208,40 @@ export async function GET(request: Request) {
     });
   }
 
-  // If no date provided, get/create today's data
-  const scrapedData = await scrapeData();
+  // If no date provided, check if we already have today's data
   const today = getTodayDate();
+  const existingConditions = await prisma.surfCondition.findFirst({
+    where: { date: today },
+    orderBy: { timestamp: "desc" },
+  });
 
-  // Store the scraped data with the specific date
+  if (existingConditions) {
+    return Response.json({
+      data: {
+        wind: {
+          direction: existingConditions.windDirection,
+          speed: existingConditions.windSpeed,
+        },
+        swell: {
+          height: existingConditions.swellHeight,
+          direction: existingConditions.swellDirection,
+          period: existingConditions.swellPeriod,
+          cardinalDirection: degreesToCardinal(
+            existingConditions.swellDirection
+          ),
+        },
+        timestamp: existingConditions.timestamp,
+      },
+    });
+  }
+
+  // Only scrape and create new entry if we don't have today's data
+  const scrapedData = await scrapeData();
+
   await prisma.surfCondition.create({
     data: {
       id: randomUUID(),
-      date: today, // This ensures we store the date
+      date: today,
       windDirection: scrapedData.windDirection,
       windSpeed: scrapedData.windSpeed,
       swellHeight: scrapedData.swellHeight,

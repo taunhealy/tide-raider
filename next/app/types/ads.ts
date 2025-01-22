@@ -17,14 +17,14 @@ export interface Ad {
   id: string;
   category: string;
   companyName: string;
-  imageUrl?: string;
+  imageUrl: string | null | undefined;
   linkUrl: string;
-  title?: string;
+  title: string | null;
   region: string;
   startDate: Date;
   endDate: Date;
-  status: "active" | "pending" | "rejected";
-  categoryData?: Record<string, any>;
+  status: string;
+  categoryData: any;
   yearlyPrice: number;
   googleAdsContribution: number;
   isAd: true;

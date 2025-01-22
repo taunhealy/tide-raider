@@ -75,18 +75,18 @@ export default function AdvertisingPage() {
     }
   };
   return (
-    <div className="max-w-2xl mx-auto p-6">
-      <h1 className="text-2xl font-bold mb-6">Advertise Your Business</h1>
+    <div className="max-w-2xl mx-auto p-8">
+      <h1 className="text-2xl font-bold mb-8">Advertise Your Business</h1>
 
       {error && (
-        <div className="bg-red-50 text-red-500 p-4 rounded-md mb-6">
+        <div className="bg-red-50 text-red-500 p-4 rounded-md mb-8">
           {error}
         </div>
       )}
 
-      <form onSubmit={handleSubmit} className="space-y-4">
+      <form onSubmit={handleSubmit} className="space-y-6">
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1">
+          <label className="block text-sm font-medium text-gray-700 mb-2">
             Advertisement Category
           </label>
           <select
@@ -105,7 +105,7 @@ export default function AdvertisingPage() {
         </div>
 
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1">
+          <label className="block text-sm font-medium text-gray-700 mb-2">
             Region
           </label>
           <select
@@ -124,7 +124,7 @@ export default function AdvertisingPage() {
         </div>
 
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1">
+          <label className="block text-sm font-medium text-gray-700 mb-2">
             Title
           </label>
           <input
@@ -139,7 +139,7 @@ export default function AdvertisingPage() {
         </div>
 
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1">
+          <label className="block text-sm font-medium text-gray-700 mb-2">
             Description
           </label>
           <textarea
@@ -154,7 +154,7 @@ export default function AdvertisingPage() {
         </div>
 
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1">
+          <label className="block text-sm font-medium text-gray-700 mb-2">
             Website URL
           </label>
           <input
@@ -170,7 +170,7 @@ export default function AdvertisingPage() {
 
         <button
           type="submit"
-          className="w-full bg-blue-600 text-white py-2 px-4 rounded-md hover:bg-blue-700 transition-colors"
+          className="w-full bg-[var(--color-tertiary)] text-white py-3 px-6 rounded-md hover:bg-[var(--color-tertiary)] hover:opacity-80 transition-colors mt-8"
         >
           Continue to Payment - R
           {selectedCategory ? AD_CATEGORIES[selectedCategory].monthlyPrice : 0}

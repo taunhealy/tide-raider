@@ -18,11 +18,20 @@ export async function GET(request: Request) {
       select: { lemonSubscriptionId: true },
     });
 
+    console.log("User subscription check:", {
+      email: session.user.email,
+      lemonSubscriptionId: user?.lemonSubscriptionId,
+      isSubscribed: !!user?.lemonSubscriptionId,
+    });
+
     if (!user) {
       return NextResponse.json({ error: "User not found" }, { status: 404 });
     }
 
-    return NextResponse.json({ lemonSubscriptionId: user.lemonSubscriptionId });
+    return NextResponse.json({
+      isSubscribed: !!user.lemonSubscriptionId,
+      lemonSubscriptionId: user.lemonSubscriptionId,
+    });
   } catch (error) {
     console.error("Error checking subscription status:", error);
     return NextResponse.json(

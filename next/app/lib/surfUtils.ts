@@ -3,6 +3,8 @@ import type { WindData } from "@/app/types/wind";
 
 export function getEmojiDescription(score: number) {
   switch (score) {
+    case 5:
+      return "Yeeew!";
     case 4:
       return "Surfs up?!";
     case 3:
@@ -47,16 +49,25 @@ export function isBeachSuitable(
     score = Math.max(0, score - 0.5);
   }
 
-  // Check swell direction
+  // Check swell direction with graduated penalties
   const swellDeg = parseInt(windData.swell.direction);
-  const hasGoodSwellDirection =
-    swellDeg >= beach.optimalSwellDirections.min &&
-    swellDeg <= beach.optimalSwellDirections.max;
+  const minSwellDiff = Math.abs(swellDeg - beach.optimalSwellDirections.min);
+  const maxSwellDiff = Math.abs(swellDeg - beach.optimalSwellDirections.max);
+  const swellDirDiff = Math.min(minSwellDiff, maxSwellDiff);
 
-  if (hasGoodSwellDirection) {
-    score += 2;
+  if (
+    swellDeg >= beach.optimalSwellDirections.min &&
+    swellDeg <= beach.optimalSwellDirections.max
+  ) {
+    score += 2; // Optimal direction
+  } else if (swellDirDiff <= 10) {
+    score = Math.max(0, score - 1); // Slightly off optimal (-1)
+  } else if (swellDirDiff <= 20) {
+    score = Math.max(0, score - 2); // Moderately off optimal (-2)
+  } else if (swellDirDiff <= 30) {
+    score = Math.max(0, score - 3); // Significantly off optimal (-3)
   } else {
-    score = Math.max(0, score - 1.5); // Penalize wrong swell direction but don't go below 0
+    score = Math.max(0, score - 4); // Completely wrong direction (-4)
   }
 
   // Check swell height with harsh penalty for wrong size
@@ -93,14 +104,16 @@ export function isBeachSuitable(
   }
 
   return {
-    score,
-    maxScore: 4,
+    score: Math.round(score),
+    maxScore: 5,
     suitable: score > 0,
   };
 }
 
 export function getScoreEmoji(score: number) {
   switch (score) {
+    case 5:
+      return "🤩🔥";
     case 4:
       return "🏄‍♂️";
     case 3:
@@ -109,6 +122,8 @@ export function getScoreEmoji(score: number) {
       return "🐶💩";
     case 1:
       return "💩";
+    case 0:
+      return "🐎💩";
     default:
       return "🐎💩";
   }
@@ -161,11 +176,19 @@ export function getConditionReasons(
 
   // Check swell direction
   const swellDeg = parseInt(windData.swell.direction);
-  const hasGoodSwellDirection =
-    swellDeg >= beach.optimalSwellDirections.min &&
-    swellDeg <= beach.optimalSwellDirections.max;
+  const minSwellDiff = Math.abs(swellDeg - beach.optimalSwellDirections.min);
+  const maxSwellDiff = Math.abs(swellDeg - beach.optimalSwellDirections.max);
+  const swellDirDiff = Math.min(minSwellDiff, maxSwellDiff);
 
-  if (isGoodConditions ? hasGoodSwellDirection : !hasGoodSwellDirection) {
+  if (
+    isGoodConditions
+      ? swellDeg >= beach.optimalSwellDirections.min &&
+        swellDeg <= beach.optimalSwellDirections.max
+      : !(
+          swellDeg >= beach.optimalSwellDirections.min &&
+          swellDeg <= beach.optimalSwellDirections.max
+        )
+  ) {
     reasons.push(
       isGoodConditions
         ? `Great swell direction (${windData.swell.direction}°)`
@@ -195,12 +218,14 @@ export function getConditionReasons(
       isMet: hasGoodWind,
     },
     {
-      text: `Wind Speed: 0-25km/h${windData.wind.speed > 25 && !beach.sheltered ? " (Current winds too strong)" : ""}`,
+      text: `Wind Speed: 0-25km/h${windData.wind.speed > 25 && !beach.sheltered ? "" : ""}`,
       isMet: windData.wind.speed <= 25 || beach.sheltered,
     },
     {
       text: `Optimal Swell Direction: ${beach.optimalSwellDirections.min}° - ${beach.optimalSwellDirections.max}°`,
-      isMet: hasGoodSwellDirection,
+      isMet:
+        swellDeg >= beach.optimalSwellDirections.min &&
+        swellDeg <= beach.optimalSwellDirections.max,
     },
     {
       text: `Optimal Wave Size: ${beach.swellSize.min}m - ${beach.swellSize.max}m`,

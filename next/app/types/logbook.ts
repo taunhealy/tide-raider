@@ -17,30 +17,33 @@ export interface Beach {
 
 export interface LogEntry {
   id: string;
-  date: string;
+  date: Date;
   surferName: string;
+  surferEmail: string;
   beachName: string;
+  forecast: {
+    wind: {
+      speed: number;
+      direction: string;
+    };
+    swell: {
+      height: number;
+      period: number;
+      direction: string;
+      cardinalDirection: string;
+    };
+  };
   surferRating: number;
   comments: string;
-  isAnonymous: boolean;
+  imageUrl?: string;
+  isAnonymous?: boolean;
+  createdAt: Date;
+  updatedAt: Date;
   beach?: {
     continent: string;
     country: string;
     region: string;
     waveType: string;
-  };
-  forecast?: {
-    wind: {
-      direction: string;
-      speed: number;
-    };
-    swell: {
-      height: number;
-      direction: string;
-      period: number;
-      cardinalDirection: string;
-    };
-    timestamp: number;
   };
   location?: {
     country: string;
@@ -53,11 +56,13 @@ export interface LogEntry {
 }
 
 export interface CreateLogEntryInput {
-  date: string;
-  surferName: string;
   beachName: string;
+  date: string;
+  surferEmail: string;
+  surferName: string;
   surferRating: number;
   comments: string;
+  imageUrl?: string;
   beach: {
     continent: string;
     country: string;

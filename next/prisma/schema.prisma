@@ -83,8 +83,25 @@ model User {
 
   stories       Story[]
 
+  events        Event[]
+
   @@index([email])
   @@index([skillLevel])
+}
+
+model Event {
+  id          String   @id @default(cuid())
+  title       String
+  description String
+  country     String
+  region      String
+  startTime   DateTime
+  link        String?
+  createdAt   DateTime @default(now())
+  userId      String
+  user        User     @relation(fields: [userId], references: [id])
+
+  @@index([userId])
 }
 
 model LogEntry {
@@ -96,6 +113,7 @@ model LogEntry {
   forecast    Json
   surferRating Int
   comments    String
+  imageUrl    String?
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
 

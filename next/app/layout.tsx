@@ -1,5 +1,9 @@
+import { Inter } from "next/font/google";
+
+// Use local font
+
 import "./globals.css";
-import { Inter, Montserrat } from "next/font/google";
+import { Montserrat } from "next/font/google";
 import { AppProviders } from "./providers/AppProviders";
 import Navbar from "./components/Navbar";
 import Footer from "./sections/Footer";
@@ -40,6 +44,18 @@ export default function RootLayout({
 }) {
   return (
     <html lang="en" className={`${inter.variable} ${montserrat.variable}`}>
+      <head>
+        <link rel="preconnect" href="https://fonts.googleapis.com" />
+        <link
+          rel="preconnect"
+          href="https://fonts.gstatic.com"
+          crossOrigin="anonymous"
+        />
+        <link
+          href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap"
+          rel="stylesheet"
+        />
+      </head>
       <body className={inter.className}>
         <AppProviders>
           <Navbar />

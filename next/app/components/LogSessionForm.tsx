@@ -1,6 +1,6 @@
 "use client";
 import { useState, useEffect } from "react";
-import { Star, Search, X } from "lucide-react";
+import { Star, Search, X, Upload } from "lucide-react";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { cn } from "@/app/lib/utils";
 import { beachData } from "@/app/types/beaches";
@@ -9,6 +9,7 @@ import type { CreateLogEntryInput } from "@/app/types/logbook";
 import SurfForecastWidget from "./SurfForecastWidget";
 import confetti from "canvas-confetti";
 import { Button } from "@/app/components/ui/Button";
+import { validateFile, compressImageIfNeeded } from "@/app/lib/file";
 
 interface LogSessionFormProps {
   userEmail: string;
@@ -31,6 +32,10 @@ export function LogSessionForm({
   const [comments, setComments] = useState<string>("");
   const [searchTerm, setSearchTerm] = useState<string>("");
   const [isAnonymous, setIsAnonymous] = useState<boolean>(false);
+  const [selectedImage, setSelectedImage] = useState<File | null>(null);
+  const [imagePreview, setImagePreview] = useState<string | null>(null);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isSubmitted, setIsSubmitted] = useState(false);
 
   const createLogEntry = useMutation({
     mutationFn: async (newEntry: CreateLogEntryInput) => {
@@ -68,26 +73,88 @@ export function LogSessionForm({
     },
   });
 
+  const handleImageUpload = async (file: File) => {
+    const formData = new FormData();
+    formData.append("file", file);
+
+    const response = await fetch("/api/upload", {
+      method: "POST",
+      body: formData,
+    });
+
+    if (!response.ok) {
+      throw new Error("Failed to upload image");
+    }
+
+    const { imageUrl } = await response.json();
+    return imageUrl;
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!selectedBeach || !selectedDate || !userEmail) return;
 
-    const newEntry = {
-      beachName: selectedBeach.name,
-      date: selectedDate,
-      surferEmail: userEmail,
-      surferName: isAnonymous ? "Anonymous" : userEmail.split("@")[0],
-      surferRating: surferRating,
-      comments,
-      beach: {
-        continent: selectedBeach.continent,
-        country: selectedBeach.country,
-        region: selectedBeach.region,
-        waveType: selectedBeach.waveType,
-      },
-    };
+    setIsSubmitting(true);
+    try {
+      let imageUrl;
+      if (selectedImage) {
+        console.log("Starting image upload process...");
+        try {
+          imageUrl = await handleImageUpload(selectedImage);
+          console.log("Image upload successful:", imageUrl);
+        } catch (uploadError) {
+          console.error("Image upload failed:", uploadError);
+          alert("Failed to upload image");
+          setIsSubmitting(false);
+          return;
+        }
+      }
 
-    createLogEntry.mutate(newEntry);
+      console.log("Creating log entry with image:", imageUrl);
+      const newEntry = {
+        beachName: selectedBeach.name,
+        date: selectedDate,
+        surferEmail: userEmail,
+        surferName: isAnonymous ? "Anonymous" : userEmail.split("@")[0],
+        surferRating: surferRating,
+        comments,
+        imageUrl,
+        beach: {
+          continent: selectedBeach.continent,
+          country: selectedBeach.country,
+          region: selectedBeach.region,
+          waveType: selectedBeach.waveType,
+        },
+      };
+
+      await createLogEntry.mutateAsync(newEntry);
+      console.log("Log entry created successfully");
+
+      // Success handling
+      setIsSubmitted(true);
+      confetti({
+        particleCount: 100,
+        spread: 70,
+        origin: { y: 0.6 },
+      });
+
+      // Reset form
+      setTimeout(() => {
+        setSelectedDate(new Date().toISOString().split("T")[0]);
+        setSelectedBeach(null);
+        setSurferRating(0);
+        setComments("");
+        setSelectedImage(null);
+        setImagePreview(null);
+        onClose();
+        setIsSubmitting(false);
+        setIsSubmitted(false);
+      }, 2000);
+    } catch (error) {
+      console.error("Form submission error:", error);
+      alert("Failed to submit log entry");
+      setIsSubmitting(false);
+    }
   };
 
   const filteredBeaches = beachData.filter((beach) =>
@@ -97,6 +164,28 @@ export function LogSessionForm({
   const handleBeachSelect = (beach: Beach) => {
     setSelectedBeach(beach);
     setSearchTerm(beach.name);
+  };
+
+  const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    // Validate file
+    const validation = validateFile(file);
+    if (!validation.valid) {
+      alert(validation.error);
+      return;
+    }
+
+    try {
+      // Compress if needed
+      const processedFile = await compressImageIfNeeded(file);
+      setSelectedImage(processedFile);
+      setImagePreview(URL.createObjectURL(processedFile));
+    } catch (error) {
+      console.error("Error processing image:", error);
+      alert("Failed to process image");
+    }
   };
 
   return (
@@ -234,14 +323,46 @@ export function LogSessionForm({
                     </label>
                   </div>
 
+                  <div className="mb-4">
+                    <label className="block text-sm font-medium mb-1">
+                      Session Image
+                    </label>
+                    <div className="mt-1 flex items-center">
+                      <label className="relative cursor-pointer bg-white rounded-md font-medium text-blue-600 hover:text-blue-500 focus-within:outline-none focus-within:ring-2 focus-within:ring-offset-2 focus-within:ring-blue-500">
+                        <span className="inline-flex items-center px-3 py-2 border border-gray-300 rounded-md shadow-sm text-sm leading-4 font-medium text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500">
+                          <Upload className="h-4 w-4 mr-2" />
+                          Upload Image
+                        </span>
+                        <input
+                          type="file"
+                          className="sr-only"
+                          accept="image/*"
+                          onChange={handleFileChange}
+                        />
+                      </label>
+                    </div>
+                    {imagePreview && (
+                      <div className="mt-2">
+                        <img
+                          src={imagePreview}
+                          alt="Preview"
+                          className="h-32 w-32 object-cover rounded-md"
+                        />
+                      </div>
+                    )}
+                  </div>
+
                   <Button
                     type="submit"
                     variant="secondary"
                     className="w-full lg:bg-[#1cd9ff] lg:text-white lg:hover:bg-[#1cd9ff]/90"
-                    disabled={!selectedBeach || !selectedDate}
-                    isLoading={createLogEntry.isPending}
+                    disabled={!selectedBeach || !selectedDate || isSubmitting}
                   >
-                    {createLogEntry.isPending ? "Logging..." : "Log Session"}
+                    {isSubmitting
+                      ? "Submitting..."
+                      : isSubmitted
+                        ? "Submitted!"
+                        : "Log Session"}
                   </Button>
                 </form>
               </div>

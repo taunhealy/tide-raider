@@ -4,8 +4,6 @@ import { urlForImage } from "@/app/lib/urlForImage";
 import Image from "next/image";
 import Link from "next/link";
 import { useState, useEffect, useRef } from "react";
-import { SectionData } from "@/app/types";
-import { Button } from "@/app/components/ui/Button";
 import gsap from "gsap";
 import ScrollTrigger from "gsap/ScrollTrigger";
 

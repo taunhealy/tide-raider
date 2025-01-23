@@ -32,7 +32,7 @@ export default function Footer() {
           {/* Brand Column */}
           <div className="col-span-1">
             <Link href="/" className="block mb-[16px]">
-              <h6 className="font-semibold">Tide Raider</h6>
+              <h6 className="font-semibold">Side Quest</h6>
             </Link>
             <p className="text-main text-[var(--color-text-secondary)] max-w-[36ch]">
               Get daily surf spot recommendations and wave insights, based on
@@ -84,7 +84,7 @@ export default function Footer() {
         {/* Bottom Bar */}
         <div className="mt-8 md:mt-[54px] pt-[32px] border-t border-[var(--color-border-light)] flex flex-col md:flex-row justify-between items-center gap-4">
           <p className="text-main text-[var(--color-text-secondary)] text-center md:text-left">
-            © {currentYear} Tide Raider. All rights reserved.
+            © {currentYear} Side Quest. All rights reserved.
           </p>
         </div>
       </div>

@@ -10,8 +10,8 @@ import { Menu, X } from "lucide-react";
 import { useState } from "react";
 
 const NAVIGATION_ITEMS = [
-  { href: "/raid", label: "Raid" },
-  { href: "/log", label: "Sessions" },
+  { href: "/quest", label: "Daily Quest" },
+  { href: "/sidequests", label: "Side Quests" },
   { href: "/chronicles", label: "Community Chronicles" },
   { href: "/blog", label: "Blog" },
   { href: "/pricing", label: "Pricing" },
@@ -37,7 +37,7 @@ export default function Navbar() {
       <header className="sticky top-0 z-50 flex justify-between items-center px-8 py-4 bg-white min-h-[72px]">
         <div className="opacity-40">
           <Link href="/" className="text-[var(--color-text-primary)]">
-            <h6>Tide Raider</h6>
+            <h6>Side Quest</h6>
           </Link>
         </div>
         <div className="flex items-center gap-8">
@@ -70,7 +70,7 @@ export default function Navbar() {
           className="font-semibold hover:text-[var(--color-bg-tertiary)] transition-all duration-300"
         >
           <h6 className="heading-6 text-[var(--color-text-primary)]">
-            Tide Raider
+            Side Quest
           </h6>
         </Link>
 

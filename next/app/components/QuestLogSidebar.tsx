@@ -5,18 +5,16 @@ import { Inter } from "next/font/google";
 import Link from "next/link";
 import { Star } from "lucide-react";
 import { cn } from "@/app/lib/utils";
-import type { LogEntry } from "@/app/types/logbook";
+import type { LogEntry } from "@/app/types/questlogs";
 
 const inter = Inter({ subsets: ["latin"] });
 
-export default function LogbookSidebar() {
-  console.log("LogbookSidebar rendering");
-
-  const { data: logEntries = [], isLoading } = useQuery({
-    queryKey: ["logEntries"],
+export default function QuestLogSidebar() {
+  const { data: questEntries = [], isLoading } = useQuery({
+    queryKey: ["questEntries"],
     queryFn: async () => {
-      const response = await fetch("/api/logbook");
-      if (!response.ok) throw new Error("Failed to fetch log entries");
+      const response = await fetch("/api/quest-log");
+      if (!response.ok) throw new Error("Failed to fetch quest entries");
       return response.json();
     },
     refetchOnMount: false,
@@ -29,10 +27,10 @@ export default function LogbookSidebar() {
         <h3
           className={`text-lg font-semibold text-gray-800 ${inter.className}`}
         >
-          Recent Sessions
+          Recent Quests
         </h3>
         <Link
-          href="/logbook"
+          href="/quest-log"
           className="text-sm text-[var(--color-text-secondary)] hover:underline"
         >
           View All
@@ -43,7 +41,7 @@ export default function LogbookSidebar() {
         {isLoading ? (
           <div>Loading...</div>
         ) : (
-          logEntries.slice(0, 3).map((entry: LogEntry) => (
+          questEntries.slice(0, 3).map((entry: LogEntry) => (
             <div key={entry.id} className="group">
               <article className="flex gap-4">
                 <div className="flex-1 min-w-0">

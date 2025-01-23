@@ -1,4 +1,4 @@
-import LogBook from "@/app/components/LogBook";
+import LogBook from "@/app/components/QuestLogs";
 import { getBeaches } from "@/app/lib/data";
 
 export default async function LogBookPage() {

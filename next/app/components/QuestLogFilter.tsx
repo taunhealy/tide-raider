@@ -1,7 +1,8 @@
 import { useState, useEffect } from "react";
 import { X, ChevronDown } from "lucide-react";
 import { cn } from "@/app/lib/utils";
-import { LogEntry } from "../types/logbook";
+import { LogEntry } from "../types/questlogs";
+import RegionFilter from "./RegionFilter";
 
 interface Beach {
   id: string;
@@ -13,19 +14,29 @@ interface Beach {
   };
 }
 
-interface LogbookFilterProps {
+interface RegionFilterType {
+  continents: string[];
+  countries: string[];
+  regions: string[];
+  beaches: string[];
+  waveTypes: string[];
+}
+
+interface QuestLogFilterProps {
   entries: LogEntry[];
   onFilterChange: (filters: any) => void;
+  onRegionFilterChange: (filters: RegionFilterType) => void;
   isOpen: boolean;
   onClose: () => void;
 }
 
-export function LogbookFilter({
+export function QuestLogFilter({
   entries,
   onFilterChange,
+  onRegionFilterChange,
   isOpen,
   onClose,
-}: LogbookFilterProps) {
+}: QuestLogFilterProps) {
   const [filters, setFilters] = useState({
     dateRange: {
       start: "",

@@ -87,18 +87,18 @@ export interface FilterConfig {
   };
 }
 
-export interface LogbookTableColumn {
+export interface QuestLogTableColumn {
   key: keyof LogEntry | "forecastSummary";
   label: string;
   sortable?: boolean;
   render?: (entry: LogEntry) => React.ReactNode;
 }
 
-export const DEFAULT_COLUMNS: LogbookTableColumn[] = [
-  { key: "date", label: "Date", sortable: true },
-  { key: "beachName", label: "Beach", sortable: true },
-  { key: "surferName", label: "Logger", sortable: true },
-  { key: "surferRating", label: "Rating", sortable: true },
+export const DEFAULT_COLUMNS: QuestLogTableColumn[] = [
+  { key: "date", label: "Quest Date", sortable: true },
+  { key: "beachName", label: "Location", sortable: true },
+  { key: "surferName", label: "Adventurer", sortable: true },
+  { key: "surferRating", label: "Wave Rating", sortable: true },
   {
     key: "forecastSummary",
     label: "Conditions",

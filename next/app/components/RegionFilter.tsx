@@ -6,10 +6,11 @@ import { Beach } from "@/app/types/beaches";
 import { WindData } from "@/app/types/wind";
 import { isBeachSuitable } from "@/app/lib/surfUtils";
 import { FilterButton } from "@/app/components/ui/FilterButton";
-import { useEffect, useState } from "react";
+import { useEffect, useState, memo } from "react";
 import { useSession } from "next-auth/react";
 import { toast } from "sonner";
 import { ChevronDown } from "lucide-react";
+import { Region } from "@/app/types/beaches";
 
 const inter = Inter({ subsets: ["latin"] });
 
@@ -33,6 +34,8 @@ interface RegionFilterProps {
   onRegionClick: (region: any) => void;
   isPro?: boolean;
   initialSavedFilters?: SavedFilters | null;
+  selectedRegion: Region;
+  onRegionChange: (region: Region) => void;
 }
 
 function getPremiumBeachCount(
@@ -66,7 +69,7 @@ async function saveFiltersToDb(filters: SavedFilters) {
   }
 }
 
-export default function RegionFilter({
+const RegionFilter = memo(function RegionFilter({
   continents,
   countries,
   regions,
@@ -80,6 +83,8 @@ export default function RegionFilter({
   onRegionClick,
   isPro = false,
   initialSavedFilters,
+  selectedRegion,
+  onRegionChange,
 }: RegionFilterProps) {
   const { data: session } = useSession();
   const [isOpen, setIsOpen] = useState(true);
@@ -246,4 +251,6 @@ export default function RegionFilter({
       )}
     </div>
   );
-}
+});
+
+export default RegionFilter;

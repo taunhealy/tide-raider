@@ -23,7 +23,7 @@ import {
 } from "@/app/lib/constants";
 import { MediaGrid } from "./MediaGrid";
 import { useQuery } from "@tanstack/react-query";
-import type { LogEntry } from "@/app/types/logbook";
+import type { LogEntry } from "@/app/types/questlogs";
 
 interface BeachCardProps {
   beach: Beach;

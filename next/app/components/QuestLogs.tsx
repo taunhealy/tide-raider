@@ -1,13 +1,14 @@
 "use client";
 
 import React, { useState, useEffect } from "react";
-import { LogSessionForm } from "./LogSessionForm";
+import { QuestLogForm } from "./QuestLogForm";
 import { useSession, signIn } from "next-auth/react";
 import { useQuery } from "@tanstack/react-query";
 import { cn } from "@/app/lib/utils";
-import { LogbookTable } from "./LogbookTable";
-import { LogbookFilter } from "./LogbookFilter";
-import type { Beach, LogEntry } from "@/app/types/logbook";
+import { QuestLogTable } from "./QuestLogTable";
+import { QuestLogFilter } from "./QuestLogFilter";
+import type { LogEntry } from "@/app/types/questlogs";
+import type { Beach } from "@/app/types/beaches";
 import Image from "next/image";
 import {
   getWindEmoji,
@@ -15,7 +16,7 @@ import {
   getDirectionEmoji,
 } from "@/app/lib/forecastUtils";
 
-interface LogBookProps {
+interface QuestLogsProps {
   beaches: Beach[];
 }
 
@@ -50,36 +51,47 @@ const defaultFilters: CombinedFilters = {
   surfers: [],
 };
 
-export default function LogBook({ beaches }: LogBookProps) {
+export default function QuestLogs({ beaches }: QuestLogsProps) {
   const { data: session, status } = useSession();
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [activeTab, setActiveTab] = useState<"logs" | "new">("logs");
   const [isFilterOpen, setIsFilterOpen] = useState(false);
   const [filteredEntries, setFilteredEntries] = useState<LogEntry[]>([]);
   const [filters, setFilters] = useState<CombinedFilters>(defaultFilters);
+  const [selectedRegion, setSelectedRegion] = useState<string | null>(null);
 
-  const { data: logEntries = [], isLoading } = useQuery<LogEntry[]>({
-    queryKey: ["logEntries"],
+  const { data: questEntries = [], isLoading } = useQuery({
+    queryKey: ["questEntries"],
     queryFn: async () => {
-      const response = await fetch("/api/logbook");
-      if (!response.ok) throw new Error("Failed to fetch log entries");
-      const data = await response.json();
-      return Array.isArray(data) ? data : [];
+      const response = await fetch("/api/quest-log");
+      if (!response.ok) throw new Error("Failed to fetch quest entries");
+      return response.json();
     },
-    retry: 3,
-    retryDelay: 1000,
+    refetchOnMount: false,
+    refetchOnWindowFocus: false,
+  });
 
-    enabled: status === "authenticated",
+  const { data: conditions } = useQuery({
+    queryKey: ["surfConditions", selectedRegion],
+    queryFn: async () => {
+      const response = await fetch(
+        `/api/surf-conditions?region=${selectedRegion || ""}`
+      );
+      if (!response.ok) throw new Error("Failed to fetch conditions");
+      const data = await response.json();
+      return data;
+    },
+    enabled: !!selectedRegion,
   });
 
   useEffect(() => {
-    if (logEntries && Array.isArray(logEntries)) {
-      setFilteredEntries(logEntries);
+    if (questEntries && Array.isArray(questEntries)) {
+      setFilteredEntries(questEntries);
     }
-  }, [logEntries]);
+  }, [questEntries]);
 
   const handleFilterChange = (newFilters: any) => {
-    let filtered = [...logEntries];
+    let filtered = [...questEntries];
 
     // Filter by beaches
     if (newFilters.beaches.length > 0) {
@@ -112,6 +124,14 @@ export default function LogBook({ beaches }: LogBookProps) {
     setFilteredEntries(filtered);
   };
 
+  const handleRegionFilterChange = (newFilters: RegionFilters) => {
+    setSelectedRegion(newFilters.regions[0]);
+    setFilters((prev) => ({
+      ...prev,
+      regions: newFilters.regions,
+    }));
+  };
+
   const handleOpenModal = () => setIsModalOpen(true);
   const handleCloseModal = () => setIsModalOpen(false);
 
@@ -120,8 +140,8 @@ export default function LogBook({ beaches }: LogBookProps) {
   if (!session) {
     return (
       <div className="max-h-full min-h-[60vh] bg-[var(--color-bg-secondary)] p-9 flex flex-col items-center justify-center">
-        <h2 className="text-2xl font-semibold mb-4">
-          Sign in to view the logs
+        <h2 className="text-center text-lg font-semibold mb-4">
+          Sign in to view your Side Quests
         </h2>
         <div className="relative">
           <Image
@@ -181,7 +201,7 @@ export default function LogBook({ beaches }: LogBookProps) {
                   : "text-gray-500 hover:text-gray-700 hover:bg-gray-50"
               }`}
             >
-              <span className="whitespace-nowrap">Logged Sessions</span>
+              <span className="whitespace-nowrap">Logged Side Quests</span>
             </button>
             <button
               onClick={handleOpenModal}
@@ -202,7 +222,7 @@ export default function LogBook({ beaches }: LogBookProps) {
             <div className="w-full">
               <div className="flex justify-between items-center mb-6">
                 <h2 className={cn("text-[21px] font-semibold")}>
-                  Logged Sessions
+                  Logged Side Quests
                 </h2>
                 <button
                   onClick={() => setIsFilterOpen(true)}
@@ -214,7 +234,7 @@ export default function LogBook({ beaches }: LogBookProps) {
               {isLoading ? (
                 <div>Loading...</div>
               ) : filteredEntries.length > 0 ? (
-                <LogbookTable
+                <QuestLogTable
                   entries={filteredEntries.map((entry) => ({
                     ...entry,
                     forecastConditions:
@@ -235,15 +255,16 @@ export default function LogBook({ beaches }: LogBookProps) {
       </div>
 
       {/* Right Sidebar Filter */}
-      <LogbookFilter
-        entries={logEntries}
+      <QuestLogFilter
+        entries={questEntries}
         onFilterChange={handleFilterChange}
+        onRegionFilterChange={handleRegionFilterChange}
         isOpen={isFilterOpen}
         onClose={() => setIsFilterOpen(false)}
       />
 
       {/* Modal for Log Session Form */}
-      <LogSessionForm
+      <QuestLogForm
         beaches={beaches}
         userEmail={session.user?.email || ""}
         isOpen={isModalOpen}

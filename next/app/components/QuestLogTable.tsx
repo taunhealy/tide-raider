@@ -1,8 +1,8 @@
 import {
-  LogEntry,
-  LogbookTableColumn,
   DEFAULT_COLUMNS,
-} from "../types/logbook";
+  QuestLogTableColumn,
+  LogEntry,
+} from "../types/questlogs";
 import { format } from "date-fns";
 import { Star } from "lucide-react";
 import { cn } from "@/app/lib/utils";
@@ -13,9 +13,9 @@ import {
 } from "@/app/lib/forecastUtils";
 import Image from "next/image";
 
-interface LogbookTableProps {
+interface QuestTableProps {
   entries: LogEntry[];
-  columns?: LogbookTableColumn[];
+  columns?: QuestLogTableColumn[];
   isSubscribed?: boolean;
 }
 
@@ -76,11 +76,11 @@ function StarRating({ rating }: { rating: number }) {
   );
 }
 
-export function LogbookTable({
+export function QuestLogTable({
   entries,
   columns = DEFAULT_COLUMNS,
   isSubscribed = false,
-}: LogbookTableProps) {
+}: QuestTableProps) {
   return (
     <div className="w-full">
       {/* Mobile View - Cards */}

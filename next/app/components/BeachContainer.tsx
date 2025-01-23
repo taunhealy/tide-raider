@@ -9,7 +9,7 @@ import Map from "./Map";
 import { useSubscription } from "../context/SubscriptionContext";
 import { useHandleSubscription } from "../hooks/useHandleSubscription";
 import { Button } from "./ui/Button";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import {
   isBeachSuitable,
   getEmojiDescription,
@@ -36,13 +36,14 @@ import { useSearchParams } from "next/navigation";
 import BlogPostsSidebar from "./BlogPostsSidebar";
 import GoldSeeker from "./GoldSeeker";
 import BeachFeedback from "./BeachFeedback";
-import LogbookSidebar from "./LogbookSidebar";
+import QuestSidebar from "./QuestLogSidebar";
 import RecentChronicles from "./RecentChronicles";
 import RegionalSidebar from "@/app/components/RegionalSidebar";
 import type { Ad } from "@/app/types/ads";
 import EventsSidebar from "./EventsSidebar";
 import { beachData } from "@/app/types/beaches";
 import { format } from "date-fns";
+import QuestLogSidebar from "./QuestLogSidebar";
 
 interface BeachContainerProps {
   initialBeaches: Beach[];
@@ -75,9 +76,7 @@ export default function BeachContainer({
     country: searchParams?.get("country")?.split(",") || ["South Africa"],
     waveType: searchParams?.get("waveType")?.split(",") || [],
     difficulty: searchParams?.get("difficulty")?.split(",") || [],
-    region: (searchParams?.get("region")?.split(",") || [
-      "Western Cape",
-    ]) as Region[],
+    region: searchParams?.get("region")?.split(",") || [],
     crimeLevel: searchParams?.get("crimeLevel")?.split(",") || [],
     minPoints: parseInt(searchParams?.get("minPoints") || "0"),
     sharkAttack: searchParams?.get("sharkAttack")?.split(",") || [],
@@ -123,35 +122,62 @@ export default function BeachContainer({
     [filters]
   );
 
+  // Initialize with Western Cape as default
   const [selectedRegion, setSelectedRegion] = useState<string>(
-    initialFilters.region[0]
+    searchParams?.get("region") || "Western Cape"
   );
+
+  const handleRegionChange = (newRegion: string) => {
+    console.log("Region changed to:", newRegion); // Debug log
+    setSelectedRegion(newRegion);
+    updateFilters("region", [newRegion]); // Update filters to match
+  };
+
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 9;
   const [viewMode, setViewMode] = useState<"list" | "map">("list");
   const [searchQuery, setSearchQuery] = useState("");
 
-  // Replace windData state and fetch logic with useQuery
-  const {
-    data: windData,
-    isLoading,
-    refetch: refreshData,
-  } = useQuery({
-    queryKey: ["windData"],
+  // Use a single query for all beaches' log entries
+  const { data: questEntries } = useQuery({
+    queryKey: ["questEntries"],
     queryFn: async () => {
-      const response = await fetch("/api/surf-conditions");
-      if (!response.ok)
-        throw new Error(`HTTP error! status: ${response.status}`);
-      const { data } = await response.json();
+      console.log("Fetching all quest entries"); // Debug log
+      const response = await fetch("/api/quest-log");
+      if (!response.ok) throw new Error("Failed to fetch quest entries");
+      return response.json();
+    },
+    staleTime: 1000 * 60 * 5,
+    gcTime: 1000 * 60 * 30,
+  });
+
+  // And for surf conditions, ensure we're not making duplicate requests
+  const { data: windData, isLoading } = useQuery({
+    queryKey: ["surfConditions", selectedRegion],
+    queryFn: async () => {
+      console.log("Fetching data for region:", selectedRegion); // Debug log
+      if (!selectedRegion) return null;
+      const response = await fetch(
+        `/api/surf-conditions?region=${selectedRegion}`
+      );
+      if (!response.ok) throw new Error("Failed to fetch conditions");
+      const data = await response.json();
+      console.log("Received wind data:", data); // Debug log
       return data;
     },
-    initialData: initialWindData,
-    staleTime: Infinity,
-    refetchInterval: false,
-    refetchOnWindowFocus: false,
-    refetchOnMount: false,
+    enabled: !!selectedRegion,
+    staleTime: 1000 * 60 * 5,
+    gcTime: 1000 * 60 * 30,
   });
+
+  // Add debug effect
+  useEffect(() => {
+    console.log("Current windData:", windData);
+    console.log("Current region:", selectedRegion);
+  }, [windData, selectedRegion]);
+
+  const queryClient = useQueryClient();
 
   // Compute filtered beaches based on windData
   const filteredBeaches = useMemo(() => {
@@ -275,23 +301,8 @@ export default function BeachContainer({
     new Set(initialBeaches.map((beach) => beach.country))
   ).sort();
 
-  const handleRegionClick = (region: Region) => {
-    const newRegions = filters.region.includes(region)
-      ? filters.region.filter((r) => r !== region)
-      : [...filters.region, region];
-
-    updateFilters("region", newRegions);
-  };
-
   // Get unique wave types from beach data
   const waveTypes = [...new Set(initialBeaches.map((beach) => beach.waveType))];
-
-  // Update selected region when filter changes
-  useEffect(() => {
-    if (initialFilters.region.length > 0) {
-      setSelectedRegion(initialFilters.region[0]);
-    }
-  }, [initialFilters.region]);
 
   return (
     <div className="bg-[var(--color-bg-secondary)] p-6 mx-auto relative min-h-[calc(100vh-72px)] flex flex-col">
@@ -303,11 +314,11 @@ export default function BeachContainer({
           <BlogPostsSidebar posts={blogPosts} />
           <div className="space-y-6">
             <GoldSeeker />
-            <LogbookSidebar />
+            <QuestLogSidebar />
             <EventsSidebar />
             <BeachFeedback beaches={initialBeaches} />
             <RegionalSidebar
-              selectedRegion={selectedRegion}
+              selectedRegion={selectedRegion || "Western Cape"}
               ads={availableAds}
             />
           </div>
@@ -407,7 +418,9 @@ export default function BeachContainer({
                           : [...filters.country, country]
                       )
                     }
-                    onRegionClick={handleRegionClick}
+                    onRegionClick={handleRegionChange}
+                    selectedRegion={filters.region[0] || ""}
+                    onRegionChange={handleRegionChange}
                   />
                 </div>
 
@@ -530,7 +543,7 @@ export default function BeachContainer({
                   windData={windData}
                   regions={uniqueRegions}
                   selectedRegions={filters.region}
-                  onRegionClick={handleRegionClick}
+                  onRegionClick={handleRegionChange}
                   filters={filters}
                 />
               </div>
@@ -545,7 +558,7 @@ export default function BeachContainer({
                 <h3
                   className={`text-[21px] font-semibold text-gray-800 ${inter.className}`}
                 >
-                  Cape Town's Forecast
+                  Today's Forecast
                 </h3>
                 <div
                   className={`
@@ -565,103 +578,99 @@ export default function BeachContainer({
 
               {/* Responsive Grid Layout */}
               <div className="grid grid-cols-2 gap-4">
-                {/* Wind Direction */}
-                <div className="bg-gray-50 p-4 rounded-lg border border-gray-100 aspect-square flex flex-col">
-                  <label
-                    className={cn(
-                      "text-sm text-gray-500 uppercase tracking-wide mb-2",
-                      inter.className
-                    )}
-                  >
-                    Wind
-                  </label>
-                  <div className="flex-1 flex flex-col items-center justify-center">
-                    {isLoading ? (
-                      "Updating..."
-                    ) : windData ? (
-                      <div className="space-y-2 text-center">
-                        <span className="text-xl font-semibold text-gray-800">
-                          {windData.wind.direction}
-                        </span>
-                        <span className="block text-sm text-gray-600">
-                          {windData.wind.speed} km/h
-                        </span>
-                      </div>
-                    ) : (
-                      "Loading..."
-                    )}
-                  </div>
-                </div>
-
-                {/* Swell Height */}
-                <div className="bg-gray-50 p-4 rounded-lg border border-gray-100 aspect-square flex flex-col">
-                  <label
-                    className={cn(
-                      "text-sm text-gray-500 uppercase tracking-wide mb-2",
-                      inter.className
-                    )}
-                  >
-                    Swell Height
-                  </label>
-                  <div className="flex-1 flex flex-col items-center justify-center">
-                    <span className="text-xl font-semibold text-gray-800">
-                      {isLoading
-                        ? "Updating..."
-                        : windData
-                          ? `${windData.swell.height}m`
-                          : ""}
+                {isLoading ? (
+                  <div className="col-span-2 flex items-center justify-center p-8">
+                    <span className="text-gray-600">
+                      Loading forecast data...
                     </span>
                   </div>
-                </div>
-
-                {/* Swell Period */}
-                <div className="bg-gray-50 p-4 rounded-lg border border-gray-100 aspect-square flex flex-col">
-                  <label
-                    className={cn(
-                      "text-sm text-gray-500 uppercase tracking-wide mb-2",
-                      inter.className
-                    )}
-                  >
-                    Swell Period
-                  </label>
-                  <div className="flex-1 flex flex-col items-center justify-center">
-                    <span className="text-xl font-semibold text-gray-800">
-                      {isLoading
-                        ? "Updating..."
-                        : windData
-                          ? `${windData.swell.period}s`
-                          : "Loading..."}
+                ) : !windData ? (
+                  <div className="col-span-2 flex items-center justify-center p-8">
+                    <span className="text-gray-600">
+                      No forecast data available
                     </span>
                   </div>
-                </div>
+                ) : (
+                  <>
+                    {/* Wind Direction */}
+                    <div className="bg-gray-50 p-4 rounded-lg border border-gray-100 aspect-square flex flex-col">
+                      <label
+                        className={cn(
+                          "text-sm text-gray-500 uppercase tracking-wide mb-2",
+                          inter.className
+                        )}
+                      >
+                        Wind
+                      </label>
+                      <div className="flex-1 flex flex-col items-center justify-center">
+                        <div className="space-y-2 text-center">
+                          <span className="text-xl font-semibold text-gray-800">
+                            {windData.wind.direction}
+                          </span>
+                          <span className="block text-sm text-gray-600">
+                            {windData.wind.speed} km/h
+                          </span>
+                        </div>
+                      </div>
+                    </div>
 
-                {/* Swell Direction */}
-                <div className="bg-gray-50 p-4 rounded-lg border border-gray-100 aspect-square flex flex-col">
-                  <label
-                    className={cn(
-                      "text-sm text-gray-500 uppercase tracking-wide mb-2",
-                      inter.className
-                    )}
-                  >
-                    Swell Direction
-                  </label>
-                  <div className="flex-1 flex flex-col items-center justify-center">
-                    {isLoading ? (
-                      "Updating..."
-                    ) : windData ? (
-                      <div className="space-y-2 text-center">
+                    {/* Swell Height */}
+                    <div className="bg-gray-50 p-4 rounded-lg border border-gray-100 aspect-square flex flex-col">
+                      <label
+                        className={cn(
+                          "text-sm text-gray-500 uppercase tracking-wide mb-2",
+                          inter.className
+                        )}
+                      >
+                        Swell Height
+                      </label>
+                      <div className="flex-1 flex flex-col items-center justify-center">
                         <span className="text-xl font-semibold text-gray-800">
-                          {windData.swell.direction}°
-                        </span>
-                        <span className="block text-sm text-gray-600">
-                          {windData.swell.cardinalDirection}
+                          {windData.swell.height}m
                         </span>
                       </div>
-                    ) : (
-                      "Loading..."
-                    )}
-                  </div>
-                </div>
+                    </div>
+
+                    {/* Swell Period */}
+                    <div className="bg-gray-50 p-4 rounded-lg border border-gray-100 aspect-square flex flex-col">
+                      <label
+                        className={cn(
+                          "text-sm text-gray-500 uppercase tracking-wide mb-2",
+                          inter.className
+                        )}
+                      >
+                        Swell Period
+                      </label>
+                      <div className="flex-1 flex flex-col items-center justify-center">
+                        <span className="text-xl font-semibold text-gray-800">
+                          {windData.swell.period}s
+                        </span>
+                      </div>
+                    </div>
+
+                    {/* Swell Direction */}
+                    <div className="bg-gray-50 p-4 rounded-lg border border-gray-100 aspect-square flex flex-col">
+                      <label
+                        className={cn(
+                          "text-sm text-gray-500 uppercase tracking-wide mb-2",
+                          inter.className
+                        )}
+                      >
+                        Swell Direction
+                      </label>
+                      <div className="flex-1 flex flex-col items-center justify-center">
+                        <div className="space-y-2 text-center">
+                          <span className="text-xl font-semibold text-gray-800">
+                            {windData.swell.direction}°
+                          </span>
+                          <span className="block text-sm text-gray-600">
+                            {windData.swell.cardinalDirection}
+                          </span>
+                        </div>
+                      </div>
+                    </div>
+                  </>
+                )}
               </div>
             </div>
             <div className="mt-4">

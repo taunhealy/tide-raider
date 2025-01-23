@@ -104,6 +104,8 @@ model Event {
   @@index([userId])
 }
 
+
+
 model LogEntry {
   id          String   @id @default(cuid())
   date        DateTime
@@ -406,6 +408,10 @@ model SurfCondition {
   timestamp     Float    // Regular timestamp, no need for BigInt
   createdAt     DateTime @default(now())
   updatedAt     DateTime @updatedAt
+  region        String   @default("Western Cape")
+
+  @@index([region])
+  @@index([date])
 }
 
 model Feedback {

@@ -18,16 +18,11 @@ export function getEmojiDescription(score: number) {
   }
 }
 
-export function isBeachSuitable(
-  beach: Beach | undefined,
-  windData: WindData | undefined
-) {
-  // Return default score if either parameter is undefined
-  if (!beach || !windData) {
+export function isBeachSuitable(beach: Beach, windData: WindData | null) {
+  if (!windData) {
     return {
-      score: 0,
-      maxScore: 4,
       suitable: false,
+      score: 0,
     };
   }
 
@@ -104,9 +99,8 @@ export function isBeachSuitable(
   }
 
   return {
-    score: Math.round(score),
-    maxScore: 5,
-    suitable: score > 0,
+    suitable: score > 2,
+    score: score,
   };
 }
 

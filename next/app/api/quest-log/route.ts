@@ -3,26 +3,16 @@ import { prisma } from "@/app/lib/prisma";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/app/lib/authOptions";
 
-export async function GET() {
-  try {
-    const session = await getServerSession(authOptions);
-    const entries = await prisma.logEntry.findMany({
-      where: {
-        surferEmail: session?.user?.email ?? "",
-      },
-      orderBy: {
-        date: "desc",
-      },
-    });
+function getTodayDate() {
+  const date = new Date();
+  return date.toISOString().split("T")[0];
+}
 
-    return NextResponse.json(entries);
-  } catch (error) {
-    console.error("Error fetching log entries:", error);
-    return NextResponse.json(
-      { error: "Failed to fetch log entries" },
-      { status: 500 }
-    );
-  }
+export async function GET() {
+  const entries = await prisma.logEntry.findMany({
+    orderBy: { date: "desc" },
+  });
+  return Response.json(entries);
 }
 
 export async function POST(request: Request) {
@@ -50,9 +40,9 @@ export async function POST(request: Request) {
 
     return NextResponse.json(entry);
   } catch (error) {
-    console.error("Error creating log entry:", error);
+    console.error("Error creating quest entry:", error);
     return NextResponse.json(
-      { error: "Failed to create log entry" },
+      { error: "Failed to create quest entry" },
       { status: 500 }
     );
   }

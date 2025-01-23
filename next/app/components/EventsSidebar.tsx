@@ -101,7 +101,7 @@ export default function EventsSidebar() {
       <div className="p-6 border-b border-gray-200 ">
         <div className="flex flex-col gap-4">
           <h2 className="text-lg font-semibold text-gray-900">
-            Upcoming Events
+            Upcoming Travel Video Premieres
           </h2>
           <button
             onClick={() => setShowForm(!showForm)}

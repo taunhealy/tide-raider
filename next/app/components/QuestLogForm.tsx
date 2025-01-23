@@ -5,24 +5,25 @@ import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { cn } from "@/app/lib/utils";
 import { beachData } from "@/app/types/beaches";
 import type { Beach } from "@/app/types/beaches";
-import type { CreateLogEntryInput } from "@/app/types/logbook";
+import type { CreateLogEntryInput } from "@/app/types/questlogs";
 import SurfForecastWidget from "./SurfForecastWidget";
 import confetti from "canvas-confetti";
 import { Button } from "@/app/components/ui/Button";
 import { validateFile, compressImageIfNeeded } from "@/app/lib/file";
 
-interface LogSessionFormProps {
+interface QuestLogFormProps {
   userEmail: string;
   isOpen: boolean;
   onClose: () => void;
-  beaches: any;
+  beaches: Beach[];
 }
 
-export function LogSessionForm({
+export function QuestLogForm({
   userEmail,
   isOpen,
   onClose,
-}: LogSessionFormProps) {
+  beaches,
+}: QuestLogFormProps) {
   const queryClient = useQueryClient();
   const [selectedDate, setSelectedDate] = useState<string>(
     new Date().toISOString().split("T")[0]
@@ -201,7 +202,7 @@ export function LogSessionForm({
               <X className="h-6 w-6" />
             </button>
 
-            <h2 className="text-xl font-semibold mb-4">Log a Session</h2>
+            <h2 className="text-xl font-semibold mb-4">Log a Side Quest</h2>
 
             <div className="flex flex-col lg:flex-row gap-3 sm:gap-4 lg:gap-6">
               {/* Left Column - Beach Selection */}

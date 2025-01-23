@@ -26,20 +26,27 @@ export default function SurfForecastWidget({
   const [forecast, setForecast] = useState<SurfCondition | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [isFallback, setIsFallback] = useState(false);
 
   useEffect(() => {
     const fetchForecast = async () => {
       setLoading(true);
       setError(null);
+      setIsFallback(false);
+      
       try {
         const response = await fetch(`/api/surf-conditions?date=${date}`);
         if (!response.ok) {
           throw new Error("Failed to fetch forecast");
         }
-        const { data } = await response.json();
+        const data = await response.json();
 
         if (data) {
           setForecast(data);
+          // Check if we're using fallback data
+          if (data.region === "Northern Cape") {
+            setIsFallback(true);
+          }
         } else {
           setForecast(null);
         }
@@ -59,7 +66,12 @@ export default function SurfForecastWidget({
 
   return (
     <div className="bg-white p-4 rounded-lg shadow-sm">
-      <h3 className="font-semibold">Surf Forecast for {date}</h3>
+      <h3 className="font-semibold">
+        Surf Forecast for {date}
+        {isFallback && (
+          <span className="text-sm text-gray-500 ml-2">(Using Northern Cape data)</span>
+        )}
+      </h3>
       {forecast ? (
         <div className="space-y-2 text-base">
           <div className="flex justify-between items-center">

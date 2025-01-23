@@ -3,11 +3,11 @@
 import { useQuery } from "@tanstack/react-query";
 import { cn } from "@/app/lib/utils";
 import { Inter } from "next/font/google";
-import type { LogEntry } from "@/app/types/logbook";
+import type { LogEntry } from "@/app/types/questlogs";
 
 const inter = Inter({ subsets: ["latin"] });
 
-export default function LoggedSessions() {
+export default function Quests() {
   const { data: logEntries, isLoading } = useQuery({
     queryKey: ["logEntries"],
     queryFn: async () => {
@@ -19,9 +19,7 @@ export default function LoggedSessions() {
 
   return (
     <div className="space-y-4">
-      <h2 className={cn("text-xl font-semibold", inter.className)}>
-        Previous Sessions
-      </h2>
+      <h2 className={cn("text-xl font-semibold", inter.className)}>Quests</h2>
       {isLoading ? (
         <div>Loading...</div>
       ) : (

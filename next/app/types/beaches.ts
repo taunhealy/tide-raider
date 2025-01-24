@@ -882,7 +882,7 @@ export const beachData: Beach[] = [
     region: "Western Cape",
     location: "Melkbosstrand",
     distanceFromCT: 35,
-    optimalWindDirections: ["SE", "SSE", "S"],
+    optimalWindDirections: ["SE", "SSE", "E"],
     optimalSwellDirections: {
       min: 225,
       max: 315,
@@ -5471,6 +5471,13 @@ export const beachData: Beach[] = [
       lat: -22.6792, // Approximate for Swakopmund
       lng: 14.5272,
     },
+    videos: [
+      {
+        url: "https://www.youtube.com/watch?v=q8q_A6r4dh0&ab_channel=SamBleakley",
+        title: "surfEXPLORE© Gabon - Sam Bleakley",
+        platform: "youtube",
+      },
+    ],
   },
   {
     id: "farmer-burgers",
@@ -5785,7 +5792,7 @@ export const beachData: Beach[] = [
     name: "Cabo Ledo",
     continent: "Africa",
     country: "Angola",
-    region: "Caboledo",
+    region: "Luanda Province",
     location: "Cabo Ledo",
     distanceFromCT: 3000, // Approximate distance from Cape Town
     optimalWindDirections: ["NE"],
@@ -5822,6 +5829,13 @@ export const beachData: Beach[] = [
       lat: 0.0, // Please update with actual coordinates
       lng: 0.0,
     },
+    videos: [
+      {
+        url: "https://www.youtube.com/watch?v=pRju2Vkss-o&ab_channel=TAAGAngolaAirlines",
+        title: "Surf Angola - Cabo Ledo",
+        platform: "youtube",
+      },
+    ],
   },
   {
     id: "praia-do-buraco",
@@ -6478,6 +6492,557 @@ export const beachData: Beach[] = [
       {
         url: "https://www.youtube.com/watch?v=7wTdB-5o1F4&t=1s",
         title: "The Wedge Surfing",
+        platform: "youtube",
+      },
+    ],
+  },
+  {
+    id: "ilha-do-cabo",
+    name: "Ilha do Cabo",
+    continent: "Africa",
+    country: "Angola",
+    region: "Luanda Province",
+    location: "Luanda",
+    distanceFromCT: 3200,
+    optimalWindDirections: ["W", "WNW"],
+    optimalSwellDirections: {
+      min: 210, // SSW
+      max: 240, // WSW
+      cardinal: "SW",
+    },
+    bestSeasons: ["winter", "summer"],
+    optimalTide: "All",
+    description:
+      "Popular beach break in Luanda offering consistent waves year-round. Protected location provides good conditions even when other spots are blown out. Best on SW swells with light westerly winds.",
+    difficulty: "Intermediate",
+    waveType: "Beach Break",
+    swellSize: {
+      min: 0.9,
+      max: 2.5,
+    },
+    idealSwellPeriod: {
+      min: 10,
+      max: 16,
+    },
+    waterTemp: {
+      summer: 28,
+      winter: 24,
+    },
+    hazards: ["Crowds", "Rip currents"],
+    crimeLevel: "Medium",
+    sharkAttack: {
+      hasAttack: false,
+    },
+    image: "",
+    coordinates: {
+      lat: -8.8147,
+      lng: 13.2302,
+    },
+  },
+  {
+    id: "palmeirinhas",
+    name: "Palmeirinhas",
+    continent: "Africa",
+    country: "Angola",
+    region: "Luanda Province",
+    location: "Luanda",
+    distanceFromCT: 3200,
+    optimalWindDirections: ["W", "NW"],
+    optimalSwellDirections: {
+      min: 210,
+      max: 250,
+      cardinal: "SW to WSW",
+    },
+    bestSeasons: ["winter"],
+    optimalTide: "Mid",
+    description:
+      "Long stretch of beach south of Luanda offering multiple peaks. Works best with SW-WSW swells and offshore morning winds. Less crowded than city beaches.",
+    difficulty: "All Levels",
+    waveType: "Beach Break",
+    swellSize: {
+      min: 1.0,
+      max: 3.0,
+    },
+    idealSwellPeriod: {
+      min: 11,
+      max: 16,
+    },
+    waterTemp: {
+      summer: 28,
+      winter: 24,
+    },
+    hazards: ["Rip currents", "Remote location"],
+    crimeLevel: "Medium",
+    sharkAttack: {
+      hasAttack: false,
+    },
+    image: "",
+    coordinates: {
+      lat: -9.0679,
+      lng: 13.1969,
+    },
+  },
+  {
+    id: "ngor-right",
+    name: "Ngor Right",
+    continent: "Africa",
+    country: "Senegal",
+    region: "Dakar",
+    location: "Ngor Island",
+    distanceFromCT: 6800, // Approximate distance from Cape Town
+    optimalWindDirections: ["NE"],
+    optimalSwellDirections: {
+      min: 315, // NW
+      max: 337.5, // NNW
+      cardinal: "NW",
+    },
+    bestSeasons: ["winter"], // Northern Hemisphere winter (Nov-Mar)
+    optimalTide: "Mid",
+    description:
+      "World-class right-hand reef break off Ngor Island. Offers long, perfect waves when conditions align. Best on NW swells with NE winds. Multiple sections providing both barrels and walls. Very consistent during winter months. Popular spot that can get crowded during peak season. Access via boat from Ngor village. Watch for strong currents around reef.",
+    difficulty: "Advanced",
+    waveType: "Reef Break",
+    swellSize: {
+      min: 1.2,
+      max: 4.0,
+    },
+    idealSwellPeriod: {
+      min: 12,
+      max: 18,
+    },
+    waterTemp: {
+      summer: 28,
+      winter: 22,
+    },
+    hazards: ["Rocks", "Strong currents", "Crowds", "Boat access only"],
+    crimeLevel: "Low",
+    sharkAttack: {
+      hasAttack: false,
+    },
+    image: "",
+    coordinates: {
+      lat: 14.7507,
+      lng: -17.5156,
+    },
+    videos: [
+      {
+        url: "https://www.youtube.com/watch?v=sBVFNw6_4UY",
+        title: "Surfing Ngor Rights, Dakar, Senegal",
+        platform: "youtube",
+      },
+    ],
+  },
+  {
+    id: "ngor-left",
+    name: "Ngor Left",
+    continent: "Africa",
+    country: "Senegal",
+    region: "Dakar",
+    location: "Ngor Island",
+    distanceFromCT: 6800,
+    optimalWindDirections: ["NE"],
+    optimalSwellDirections: {
+      min: 292.5, // WNW
+      max: 315, // NW
+      cardinal: "WNW",
+    },
+    bestSeasons: ["winter"],
+    optimalTide: "Mid",
+    description:
+      "Powerful left-hand reef break adjacent to Ngor Right. Works best with WNW swell and NE winds. Shorter but more intense than its right-hand neighbor. Handles size well while maintaining shape. Access requires boat ride from Ngor village. Popular with experienced surfers during winter swells.",
+    difficulty: "Advanced",
+    waveType: "Reef Break",
+    swellSize: {
+      min: 1.2,
+      max: 4.0,
+    },
+    idealSwellPeriod: {
+      min: 12,
+      max: 18,
+    },
+    waterTemp: {
+      summer: 28,
+      winter: 22,
+    },
+    hazards: ["Rocks", "Strong currents", "Boat access only"],
+    crimeLevel: "Low",
+    sharkAttack: {
+      hasAttack: false,
+    },
+    image: "",
+    coordinates: {
+      lat: 14.7507,
+      lng: -17.5156,
+    },
+  },
+  {
+    id: "ouakam",
+    name: "Ouakam",
+    continent: "Africa",
+    country: "Senegal",
+    region: "Dakar",
+    location: "Ouakam",
+    distanceFromCT: 6800,
+    optimalWindDirections: ["NE"],
+    optimalSwellDirections: {
+      min: 292.5, // WNW
+      max: 315, // NW
+      cardinal: "WNW",
+    },
+    bestSeasons: ["winter"],
+    optimalTide: "Mid to High",
+    description:
+      "Powerful reef break beneath the African Renaissance Monument. Long right-handers that can hold serious size. Best on WNW swell with NE winds. Multiple sections offering both barrels and walls. Very consistent during winter months. Local spot that demands respect both in and out of water.",
+    difficulty: "Advanced",
+    waveType: "Reef Break",
+    swellSize: {
+      min: 1.5,
+      max: 5.0,
+    },
+    idealSwellPeriod: {
+      min: 12,
+      max: 18,
+    },
+    waterTemp: {
+      summer: 28,
+      winter: 22,
+    },
+    hazards: ["Rocks", "Strong currents", "Localism"],
+    crimeLevel: "Medium",
+    sharkAttack: {
+      hasAttack: false,
+    },
+    image: "",
+    coordinates: {
+      lat: 14.7219,
+      lng: -17.4994,
+    },
+    videos: [
+      {
+        url: "https://www.youtube.com/watch?v=1kYWWxNwAYk",
+        title: "Ouakam | The Endless Winter II",
+        platform: "youtube",
+      },
+    ],
+  },
+  {
+    id: "club-med",
+    name: "Club Med",
+    continent: "Africa",
+    country: "Senegal",
+    region: "Dakar",
+    location: "Almadies",
+    distanceFromCT: 6800,
+    optimalWindDirections: ["NE"],
+    optimalSwellDirections: {
+      min: 292.5, // WNW
+      max: 315, // NW
+      cardinal: "WNW",
+    },
+    bestSeasons: ["winter"],
+    optimalTide: "All",
+    description:
+      "Consistent reef break offering both lefts and rights. Works best with WNW swell and NE winds. Multiple peaks provide options for different skill levels. Popular spot that can get crowded. Good access and facilities nearby. Watch for strong currents around reef sections.",
+    difficulty: "Intermediate",
+    waveType: "Reef Break",
+    swellSize: {
+      min: 1.0,
+      max: 3.5,
+    },
+    idealSwellPeriod: {
+      min: 10,
+      max: 16,
+    },
+    waterTemp: {
+      summer: 28,
+      winter: 22,
+    },
+    hazards: ["Rocks", "Crowds", "Strong currents"],
+    crimeLevel: "Low",
+    sharkAttack: {
+      hasAttack: false,
+    },
+    image: "",
+    coordinates: {
+      lat: 14.7438,
+      lng: -17.5131,
+    },
+  },
+  {
+    id: "virage",
+    name: "Virage",
+    continent: "Africa",
+    country: "Senegal",
+    region: "Dakar",
+    location: "Almadies",
+    distanceFromCT: 6800,
+    optimalWindDirections: ["NE"],
+    optimalSwellDirections: {
+      min: 292.5, // WNW
+      max: 315, // NW
+      cardinal: "WNW",
+    },
+    bestSeasons: ["winter"],
+    optimalTide: "Mid",
+    description:
+      "Beach break with occasional reef sections. Works best with WNW swell and NE winds. Multiple peaks offering both lefts and rights. Good spot for beginners when small. Gets more challenging as swell increases. Popular with local surf schools.",
+    difficulty: "All Levels",
+    waveType: "Beach Break",
+    swellSize: {
+      min: 0.8,
+      max: 3.0,
+    },
+    idealSwellPeriod: {
+      min: 10,
+      max: 16,
+    },
+    waterTemp: {
+      summer: 28,
+      winter: 22,
+    },
+    hazards: ["Rocks", "Crowds"],
+    crimeLevel: "Low",
+    sharkAttack: {
+      hasAttack: false,
+    },
+    image: "",
+    coordinates: {
+      lat: 14.7397,
+      lng: -17.5092,
+    },
+  },
+  {
+    id: "mtsanga-boueni",
+    name: "Mtsanga Bouéni",
+    continent: "Africa",
+    country: "Mayotte",
+    region: "Mayotte",
+    location: "Southwest Coast",
+    distanceFromCT: 3200,
+    optimalWindDirections: ["NNW", "N", "NW"],
+    optimalSwellDirections: {
+      min: 210, // SSW
+      max: 230, // SW
+      cardinal: "SW",
+    },
+    bestSeasons: ["winter"], // Southern Hemisphere winter (May-Sept)
+    optimalTide: "Mid",
+    description:
+      "Premier reef break on Mayotte's southwest coast. Works best with SW swells and NNW winds. Multiple sections offering both hollow and wall sections. Best during southern hemisphere winter when SW swells are most consistent. Remote location requires boat access from Bouéni village.",
+    difficulty: "Advanced",
+    waveType: "Reef Break",
+    swellSize: {
+      min: 1.2,
+      max: 3.5,
+    },
+    idealSwellPeriod: {
+      min: 12,
+      max: 18,
+    },
+    waterTemp: {
+      summer: 29,
+      winter: 25,
+    },
+    hazards: ["Reef", "Strong currents", "Remote location", "Boat access"],
+    crimeLevel: "Low",
+    sharkAttack: {
+      hasAttack: false,
+    },
+    image: "",
+    coordinates: {
+      lat: -12.9167,
+      lng: 45.0833,
+    },
+  },
+  {
+    id: "mtsanga-saziley",
+    name: "Mtsanga Saziley",
+    continent: "Africa",
+    country: "Mayotte",
+    region: "Mayotte",
+    location: "East Coast",
+    distanceFromCT: 3200,
+    optimalWindDirections: ["NW", "N"],
+    optimalSwellDirections: {
+      min: 90, // E
+      max: 112.5, // ESE
+      cardinal: "E",
+    },
+    bestSeasons: ["summer"], // Works better with summer easterly swells
+    optimalTide: "Mid to High",
+    description:
+      "Left-hand reef break on Mayotte's east coast. Best during summer months when easterly swells wrap around the island. Multiple sections with both hollow and wall opportunities. Remote location with beautiful setting. Watch for strong currents and shallow reef sections.",
+    difficulty: "Advanced",
+    waveType: "Reef Break",
+    swellSize: {
+      min: 1.0,
+      max: 3.0,
+    },
+    idealSwellPeriod: {
+      min: 10,
+      max: 16,
+    },
+    waterTemp: {
+      summer: 29,
+      winter: 25,
+    },
+    hazards: ["Reef", "Strong currents", "Remote location"],
+    crimeLevel: "Low",
+    sharkAttack: {
+      hasAttack: false,
+    },
+    image: "",
+    coordinates: {
+      lat: -12.9833,
+      lng: 45.2,
+    },
+    videos: [
+      {
+        url: "https://www.youtube.com/watch?v=ApsaRk8Bfhg&ab_channel=JulieB",
+        title: "MAYOTTE LA MAGNIFIQUE plongée surf choungui bivouac eps LOVE",
+        platform: "youtube",
+      },
+    ],
+  },
+  {
+    id: "mtsanga-mtsamoudou",
+    name: "Mtsanga Mtsamoudou",
+    continent: "Africa",
+    country: "Mayotte",
+    region: "Mayotte",
+    location: "South Coast",
+    distanceFromCT: 3200,
+    optimalWindDirections: ["N", "NE"],
+    optimalSwellDirections: {
+      min: 157.5, // SSE
+      max: 180, // S
+      cardinal: "SSE",
+    },
+    bestSeasons: ["winter", "summer"], // Works year-round
+    optimalTide: "All",
+    description:
+      "Versatile reef break offering multiple peaks. Works with both southern hemisphere winter swells and summer easterly swells. More accessible than other spots with good road access. Multiple take-off zones suitable for different skill levels. Watch for strong currents during bigger swells.",
+    difficulty: "Intermediate",
+    waveType: "Reef Break",
+    swellSize: {
+      min: 0.8,
+      max: 2.5,
+    },
+    idealSwellPeriod: {
+      min: 10,
+      max: 16,
+    },
+    waterTemp: {
+      summer: 29,
+      winter: 25,
+    },
+    hazards: ["Reef", "Currents"],
+    crimeLevel: "Low",
+    sharkAttack: {
+      hasAttack: false,
+    },
+    image: "",
+    coordinates: {
+      lat: -12.95,
+      lng: 45.15,
+    },
+    videos: [
+      {
+        url: "https://www.youtube.com/watch?v=6MfHfIFc3uI&ab_channel=JulieBrendl%C3%A9",
+        title: "SURF MAYOTTE",
+        platform: "youtube",
+      },
+    ],
+  },
+  {
+    id: "baia-azul",
+    name: "Baia Azul",
+    continent: "Africa",
+    country: "Angola",
+    region: "Benguela",
+    location: "Benguela Coast",
+    distanceFromCT: 2800,
+    optimalWindDirections: ["SSW", "S"],
+    optimalSwellDirections: {
+      min: 225, // SW
+      max: 247.5, // WSW
+      cardinal: "SW",
+    },
+    bestSeasons: ["winter"], // Southern Hemisphere winter
+    optimalTide: "Mid",
+    description:
+      "Consistent beach break in Benguela's Baia Azul (Blue Bay). Works best with SW swells and southerly winds. Multiple peaks offering both lefts and rights. Best during winter months when SW swells are most consistent. Popular spot with local surfers.",
+    difficulty: "Intermediate",
+    waveType: "Beach Break",
+    swellSize: {
+      min: 0.5,
+      max: 2.0,
+    },
+    idealSwellPeriod: {
+      min: 10,
+      max: 14,
+    },
+    waterTemp: {
+      summer: 26,
+      winter: 20,
+    },
+    hazards: ["Strong currents", "Crowds on weekends"],
+    crimeLevel: "Low",
+    sharkAttack: {
+      hasAttack: false,
+    },
+    image: "",
+    coordinates: {
+      lat: -12.5934,
+      lng: 13.4127,
+    },
+  },
+  {
+    id: "praia-morena",
+    name: "Praia Morena",
+    continent: "Africa",
+    country: "Angola",
+    region: "Benguela",
+    location: "Benguela City",
+    distanceFromCT: 2800,
+    optimalWindDirections: ["SSW", "S"],
+    optimalSwellDirections: {
+      min: 225, // SW
+      max: 247.5, // WSW
+      cardinal: "SW",
+    },
+    bestSeasons: ["winter"],
+    optimalTide: "All",
+    description:
+      "City beach break offering consistent waves throughout the year. Multiple peaks with both left and right options. Wave quality varies with swell direction and size. Popular with locals and good for beginners when small. Based on swell.co.za data, typically receives 0.5-0.7m waves with periods around 11-12 seconds.",
+    difficulty: "All Levels",
+    waveType: "Beach Break",
+    swellSize: {
+      min: 0.5,
+      max: 2.0,
+    },
+    idealSwellPeriod: {
+      min: 10,
+      max: 14,
+    },
+    waterTemp: {
+      summer: 26,
+      winter: 20,
+    },
+    hazards: ["Crowds", "Strong currents"],
+    crimeLevel: "Low",
+    sharkAttack: {
+      hasAttack: false,
+    },
+    image: "",
+    coordinates: {
+      lat: -12.5778,
+      lng: 13.4097,
+    },
+    videos: [
+      {
+        url: "https://www.youtube.com/watch?v=-k4ux8OsJ10&ab_channel=NomadSurfCamps",
+        title: "NOMAD SURFERS: ANGOLA",
         platform: "youtube",
       },
     ],

@@ -30,14 +30,30 @@ interface BeachCardProps {
   windData: WindData | null;
   isFirst?: boolean;
   isLocked?: boolean;
+  isLoading?: boolean;
 }
 
 const inter = Inter({ subsets: ["latin"] });
+
+const ConditionsSkeleton = () => (
+  <div className="text-sm flex flex-col gap-2 animate-pulse">
+    <div className="h-5 w-32 bg-gray-200 rounded mb-2"></div>
+    <ul className="space-y-3">
+      {[1, 2, 3, 4].map((i) => (
+        <li key={i} className="flex items-center gap-2">
+          <div className="w-4 h-4 bg-gray-200 rounded-full"></div>
+          <div className="h-4 bg-gray-200 rounded w-full"></div>
+        </li>
+      ))}
+    </ul>
+  </div>
+);
 
 export default function BeachCard({
   beach,
   windData,
   isFirst = false,
+  isLoading = false,
 }: BeachCardProps) {
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -245,8 +261,11 @@ export default function BeachCard({
           </div>
 
           {/* Suitability Rating and Conditions */}
-          <div className=" font-medium">
-            {suitability && (
+          <div className="font-medium">
+            {isLoading ? (
+              <ConditionsSkeleton />
+            ) : windData ? (
+              // Show actual conditions when windData is available
               <div className="flex flex-col gap-1">
                 <div className="flex items-center gap-2">
                   <div
@@ -254,9 +273,9 @@ export default function BeachCard({
                     onMouseEnter={() => setShowRatingHint(true)}
                     onMouseLeave={() => setShowRatingHint(false)}
                   >
-                    <div>{getScoreEmoji(suitability.score)}</div>
+                    <div>{getScoreEmoji(suitability?.score || 0)}</div>
                     <span className="text-sm">
-                      {"⭐".repeat(suitability.score)}
+                      {"⭐".repeat(suitability?.score || 0)}
                     </span>
                     <div
                       className={`
@@ -266,62 +285,85 @@ export default function BeachCard({
                       ${showRatingHint ? "opacity-100" : "opacity-0"}
                     `}
                     >
-                      {getEmojiDescription(suitability.score)}
+                      {getEmojiDescription(suitability?.score || 0)}
                     </div>
                   </div>
                 </div>
 
-                {/* Poor Conditions Explanation */}
-                {windData && (
-                  <div className="text-sm flex flex-col gap-2">
-                    <p className="text-main font-semibold">Conditions:</p>
-                    <ul className="space-y-1">
-                      {getConditionReasons(
-                        beach,
-                        windData,
-                        false
-                      ).optimalConditions.map((condition, index) => (
-                        <li
-                          key={index}
-                          className="flex items-center gap-2 text-gray-600 text-main mb-1"
-                        >
-                          <span className="inline-flex items-center justify-center w-4 h-4">
-                            {condition.isMet ? (
-                              <svg
-                                viewBox="0 0 24 24"
-                                className="w-4 h-4 text-[var(--color-brand-tertiary)]"
-                                fill="none"
-                                stroke="currentColor"
-                                strokeWidth="3"
-                              >
-                                <path
-                                  d="M20 6L9 17L4 12"
-                                  strokeLinecap="round"
-                                  strokeLinejoin="round"
-                                />
-                              </svg>
-                            ) : (
-                              <svg
-                                viewBox="0 0 24 24"
-                                className="w-4 h-4 text-red-500"
-                                fill="none"
-                                stroke="currentColor"
-                                strokeWidth="3"
-                              >
-                                <path
-                                  d="M18 6L6 18M6 6l12 12"
-                                  strokeLinecap="round"
-                                  strokeLinejoin="round"
-                                />
-                              </svg>
-                            )}
-                          </span>
-                          {condition.text}
-                        </li>
-                      ))}
-                    </ul>
-                  </div>
-                )}
+                {/* Current Conditions */}
+                <div className="text-sm flex flex-col gap-2">
+                  <p className="text-main font-semibold">Current Conditions:</p>
+                  <ul className="space-y-1">
+                    {getConditionReasons(
+                      beach,
+                      windData,
+                      false
+                    ).optimalConditions.map((condition, index) => (
+                      <li
+                        key={index}
+                        className="flex items-center gap-2 text-gray-600 text-main mb-1"
+                      >
+                        <span className="inline-flex items-center justify-center w-4 h-4">
+                          {condition.isMet ? (
+                            <svg
+                              viewBox="0 0 24 24"
+                              className="w-4 h-4 text-[var(--color-brand-tertiary)]"
+                              fill="none"
+                              stroke="currentColor"
+                              strokeWidth="3"
+                            >
+                              <path
+                                d="M20 6L9 17L4 12"
+                                strokeLinecap="round"
+                                strokeLinejoin="round"
+                              />
+                            </svg>
+                          ) : (
+                            <svg
+                              viewBox="0 0 24 24"
+                              className="w-4 h-4 text-red-500"
+                              fill="none"
+                              stroke="currentColor"
+                              strokeWidth="3"
+                            >
+                              <path
+                                d="M18 6L6 18M6 6l12 12"
+                                strokeLinecap="round"
+                                strokeLinejoin="round"
+                              />
+                            </svg>
+                          )}
+                        </span>
+                        {condition.text}
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              </div>
+            ) : (
+              // Show optimal conditions when no windData is available
+              <div className="text-sm flex flex-col gap-2">
+                <p className="text-main font-semibold">Optimal Conditions:</p>
+                <ul className="space-y-1">
+                  <li className="flex items-center gap-2 text-gray-600 text-main mb-1">
+                    <span className="font-medium">Wind Direction:</span>{" "}
+                    {beach.optimalWindDirections.join(", ")}
+                  </li>
+                  <li className="flex items-center gap-2 text-gray-600 text-main mb-1">
+                    <span className="font-medium">Swell Direction:</span>{" "}
+                    {beach.optimalSwellDirections.min}° -{" "}
+                    {beach.optimalSwellDirections.max}°
+                  </li>
+                  <li className="flex items-center gap-2 text-gray-600 text-main mb-1">
+                    <span className="font-medium">Wave Size:</span>{" "}
+                    {beach.swellSize.min}m - {beach.swellSize.max}m
+                  </li>
+                  <li className="flex items-center gap-2 text-gray-600 text-main mb-1">
+                    <span className="font-medium">Swell Period:</span>{" "}
+                    {beach.idealSwellPeriod.min}s - {beach.idealSwellPeriod.max}
+                    s
+                  </li>
+                </ul>
               </div>
             )}
           </div>

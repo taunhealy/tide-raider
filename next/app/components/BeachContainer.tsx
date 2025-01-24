@@ -72,8 +72,8 @@ export default function BeachContainer({
 
   // Initialize filters from URL params
   const initialFilters = {
-    continent: searchParams?.get("continent")?.split(",") || ["Africa"],
-    country: searchParams?.get("country")?.split(",") || ["South Africa"],
+    continent: searchParams?.get("continent")?.split(",")[0] || "Africa",
+    country: searchParams?.get("country")?.split(",")[0] || "South Africa",
     waveType: searchParams?.get("waveType")?.split(",") || [],
     difficulty: searchParams?.get("difficulty")?.split(",") || [],
     region: searchParams?.get("region")?.split(",") || [],
@@ -83,20 +83,58 @@ export default function BeachContainer({
     minDistance: parseInt(searchParams?.get("minDistance") || "0"),
     maxDistance: parseInt(searchParams?.get("maxDistance") || "10000"),
     maxWaveHeight: parseInt(searchParams?.get("maxWaveHeight") || "10"),
-    // Add any other filters you need
   };
 
-  const [filters, setFilters] = useState(initialFilters);
+  type FilterKeys = keyof typeof initialFilters;
 
-  // Update URL when filters change
+  const [filters, setFilters] = useState({
+    ...initialFilters,
+    minDistance: 0,
+    maxDistance: Infinity,
+  });
+
+  // Initialize with Western Cape as default
+  const [selectedRegion, setSelectedRegion] = useState<string>(
+    searchParams?.get("region") || "Western Cape"
+  );
+
+  // Move this function above updateFilters
+  const handleRegionChange = (newRegion: string) => {
+    console.log("Region changed to:", newRegion); // Debug log
+    setSelectedRegion(newRegion);
+    updateFilters("region", [newRegion]); // Update filters to match
+  };
+
+  // Update dependency array to remove handleRegionChange since it's defined above
   const updateFilters = useCallback(
-    (key: string, value: any) => {
-      const newFilters = { ...filters, [key]: value };
+    (key: FilterKeys, value: any) => {
+      const newFilters = { ...filters };
+
+      // Handle single-select for continent and country
+      if (key === "continent" || key === "country") {
+        newFilters[key] = value; // Single value, not array
+
+        // If country is being updated, automatically select first available region
+        if (key === "country") {
+          const availableRegions = initialBeaches
+            .filter((beach) => beach.country === value)
+            .map((beach) => beach.region);
+          const uniqueRegions = [...new Set(availableRegions)];
+
+          if (uniqueRegions.length > 0) {
+            const firstRegion = uniqueRegions[0];
+            newFilters.region = [firstRegion];
+            // Also update the selected region state
+            handleRegionChange(firstRegion);
+          }
+        }
+      } else {
+        newFilters[key] = value; // Keep array behavior for other filters
+      }
+
       setFilters(newFilters);
 
       if (typeof window !== "undefined") {
-        // Check if we're in the browser
-        // Update URL params
         const params = new URLSearchParams(window.location.search);
         Object.entries(newFilters).forEach(([key, value]) => {
           if (Array.isArray(value)) {
@@ -119,19 +157,8 @@ export default function BeachContainer({
         );
       }
     },
-    [filters]
+    [filters, initialBeaches] // removed handleRegionChange from dependencies
   );
-
-  // Initialize with Western Cape as default
-  const [selectedRegion, setSelectedRegion] = useState<string>(
-    searchParams?.get("region") || "Western Cape"
-  );
-
-  const handleRegionChange = (newRegion: string) => {
-    console.log("Region changed to:", newRegion); // Debug log
-    setSelectedRegion(newRegion);
-    updateFilters("region", [newRegion]); // Update filters to match
-  };
 
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const [currentPage, setCurrentPage] = useState(1);
@@ -181,8 +208,6 @@ export default function BeachContainer({
 
   // Compute filtered beaches based on windData
   const filteredBeaches = useMemo(() => {
-    if (!windData) return initialBeaches;
-
     let filtered = initialBeaches;
 
     // Apply search filter
@@ -206,18 +231,16 @@ export default function BeachContainer({
       });
     }
 
-    // Apply continent filter
-    if (filters.continent.length > 0) {
-      filtered = filtered.filter((beach) =>
-        filters.continent.includes(beach.continent)
+    // Apply continent filter (single select)
+    if (filters.continent) {
+      filtered = filtered.filter(
+        (beach) => beach.continent === filters.continent
       );
     }
 
-    // Apply country filter
-    if (filters.country.length > 0) {
-      filtered = filtered.filter((beach) =>
-        filters.country.includes(beach.country)
-      );
+    // Apply country filter (single select)
+    if (filters.country) {
+      filtered = filtered.filter((beach) => beach.country === filters.country);
     }
 
     // Apply region filter only if regions are specifically selected
@@ -252,7 +275,8 @@ export default function BeachContainer({
     filtered = filtered.filter(
       (beach) =>
         beach.distanceFromCT >= filters.minDistance &&
-        beach.distanceFromCT <= filters.maxDistance
+        (filters.maxDistance === Infinity ||
+          beach.distanceFromCT <= filters.maxDistance)
     );
 
     // Apply shark attack filter
@@ -260,14 +284,20 @@ export default function BeachContainer({
       filtered = filtered.filter((beach) => beach.sharkAttack.hasAttack);
     }
 
-    // Apply scoring and sort
+    // Apply scoring and sort - modified to handle missing windData
     return filtered
       .map((beach) => ({
         beach,
-        score: isBeachSuitable(beach, windData).score,
+        score: windData ? isBeachSuitable(beach, windData).score : 0,
       }))
       .filter(({ score }) => minPoints === 0 || score >= minPoints)
-      .sort((a, b) => b.score - a.score)
+      .sort((a, b) => {
+        // If no windData, sort alphabetically by name
+        if (!windData) {
+          return a.beach.name.localeCompare(b.beach.name);
+        }
+        return b.score - a.score;
+      })
       .map(({ beach }) => beach);
   }, [
     windData,
@@ -397,26 +427,16 @@ export default function BeachContainer({
                     continents={uniqueContinents}
                     countries={uniqueCountries}
                     regions={uniqueRegions}
-                    selectedContinents={filters.continent}
-                    selectedCountries={filters.country}
-                    selectedRegions={filters.region}
+                    selectedContinents={[filters.continent]}
+                    selectedCountries={[filters.country]}
+                    selectedRegions={[filters.region[0]]}
                     beaches={initialBeaches}
                     windData={windData}
                     onContinentClick={(continent) =>
-                      updateFilters(
-                        "continent",
-                        filters.continent.includes(continent)
-                          ? filters.continent.filter((c) => c !== continent)
-                          : [...filters.continent, continent]
-                      )
+                      updateFilters("continent", continent)
                     }
                     onCountryClick={(country) =>
-                      updateFilters(
-                        "country",
-                        filters.country.includes(country)
-                          ? filters.country.filter((c) => c !== country)
-                          : [...filters.country, country]
-                      )
+                      updateFilters("country", country)
                     }
                     onRegionClick={handleRegionChange}
                     selectedRegion={filters.region[0] || ""}
@@ -476,11 +496,22 @@ export default function BeachContainer({
                     </p>
                   </div>
                 ) : (
-                  <BeachGrid
-                    beaches={paginatedBeaches}
-                    windData={windData}
-                    isBeachSuitable={isBeachSuitable}
-                  />
+                  <>
+                    {!windData && (
+                      <div className="mb-6 p-4 bg-yellow-50 border border-yellow-200 rounded-lg">
+                        <p className="text-yellow-800">
+                          No forecast data available for {selectedRegion}.
+                          Showing beaches with their optimal conditions.
+                        </p>
+                      </div>
+                    )}
+                    <BeachGrid
+                      beaches={paginatedBeaches}
+                      windData={windData}
+                      isBeachSuitable={isBeachSuitable}
+                      isLoading={isLoading}
+                    />
+                  </>
                 )}
 
                 {/* Pagination */}

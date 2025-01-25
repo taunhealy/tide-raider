@@ -10,11 +10,7 @@ import { useSubscription } from "../context/SubscriptionContext";
 import { useHandleSubscription } from "../hooks/useHandleSubscription";
 import { Button } from "./ui/Button";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import {
-  isBeachSuitable,
-  getEmojiDescription,
-  getScoreEmoji,
-} from "@/app/lib/surfUtils";
+import { isBeachSuitable } from "@/app/lib/surfUtils";
 import FunFacts from "@/app/components/FunFacts";
 import { cn } from "@/app/lib/utils";
 import { Inter } from "next/font/google";
@@ -44,6 +40,7 @@ import EventsSidebar from "./EventsSidebar";
 import { beachData } from "@/app/types/beaches";
 import { format } from "date-fns";
 import QuestLogSidebar from "./QuestLogSidebar";
+import StickyForecastWidget from "./StickyForecastWidget";
 
 interface BeachContainerProps {
   initialBeaches: Beach[];
@@ -89,6 +86,8 @@ export default function BeachContainer({
 
   const [filters, setFilters] = useState({
     ...initialFilters,
+    continent: [initialFilters.continent],
+    country: [initialFilters.country],
     minDistance: 0,
     maxDistance: Infinity,
   });
@@ -234,13 +233,15 @@ export default function BeachContainer({
     // Apply continent filter (single select)
     if (filters.continent) {
       filtered = filtered.filter(
-        (beach) => beach.continent === filters.continent
+        (beach) => beach.continent === filters.continent[0]
       );
     }
 
     // Apply country filter (single select)
     if (filters.country) {
-      filtered = filtered.filter((beach) => beach.country === filters.country);
+      filtered = filtered.filter(
+        (beach) => beach.country === filters.country[0]
+      );
     }
 
     // Apply region filter only if regions are specifically selected
@@ -427,8 +428,8 @@ export default function BeachContainer({
                     continents={uniqueContinents}
                     countries={uniqueCountries}
                     regions={uniqueRegions}
-                    selectedContinents={[filters.continent]}
-                    selectedCountries={[filters.country]}
+                    selectedContinents={filters.continent}
+                    selectedCountries={filters.country}
                     selectedRegions={[filters.region[0]]}
                     beaches={initialBeaches}
                     windData={windData}
@@ -497,13 +498,19 @@ export default function BeachContainer({
                   </div>
                 ) : (
                   <>
-                    {!windData && (
-                      <div className="mb-6 p-4 bg-yellow-50 border border-yellow-200 rounded-lg">
-                        <p className="text-yellow-800">
-                          No forecast data available for {selectedRegion}.
-                          Showing beaches with their optimal conditions.
-                        </p>
+                    {isLoading ? (
+                      <div className="mb-6 p-4 bg-gray-50 border border-gray-200 rounded-lg animate-pulse">
+                        <div className="h-5 bg-gray-200 rounded w-3/4"></div>
                       </div>
+                    ) : (
+                      !windData && (
+                        <div className="mb-6 p-4 bg-yellow-50 border border-yellow-200 rounded-lg">
+                          <p className="text-yellow-800">
+                            No forecast data available for {selectedRegion}.
+                            Showing beaches with their optimal conditions.
+                          </p>
+                        </div>
+                      )
                     )}
                     <BeachGrid
                       beaches={paginatedBeaches}
@@ -584,7 +591,10 @@ export default function BeachContainer({
           {/* Right Sidebar */}
           <aside className="bg-[var(--color-bg-primary)] p-6 rounded-lg shadow-sm h-fit order-first lg:order-last mb-9 lg:mb-0">
             {/* Single Responsive Forecast Widget */}
-            <div className="bg-white p-6 rounded-lg shadow-sm">
+            <div
+              className="bg-white p-6 rounded-lg shadow-sm min-h-[300px]"
+              data-forecast-widget
+            >
               <div className="flex items-center justify-between mb-6">
                 <h3
                   className={`text-[21px] font-semibold text-gray-800 ${inter.className}`}
@@ -739,7 +749,14 @@ export default function BeachContainer({
             beaches={initialBeaches}
             minPoints={minPoints}
             onMinPointsChange={setMinPoints}
-            onFilterChange={setFilters}
+            onFilterChange={(newFilters) => {
+              const updatedFilters = {
+                ...newFilters,
+                continent: [newFilters.continent].flat(),
+                country: [newFilters.country].flat(),
+              };
+              setFilters(updatedFilters as typeof filters);
+            }}
             filters={filters}
           />
         </div>
@@ -751,6 +768,9 @@ export default function BeachContainer({
           onClick={() => setIsSidebarOpen(false)}
         />
       )}
+
+      {/* Sticky Forecast Widget */}
+      <StickyForecastWidget windData={windData} />
     </div>
   );
 }

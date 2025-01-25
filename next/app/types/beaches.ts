@@ -882,10 +882,10 @@ export const beachData: Beach[] = [
     region: "Western Cape",
     location: "Melkbosstrand",
     distanceFromCT: 35,
-    optimalWindDirections: ["SE", "SSE", "E"],
+    optimalWindDirections: ["NE", "E"],
     optimalSwellDirections: {
-      min: 225,
-      max: 315,
+      min: 195,
+      max: 225,
     },
     bestSeasons: ["winter"],
     optimalTide: "Low",
@@ -915,6 +915,23 @@ export const beachData: Beach[] = [
       lat: -34.1123,
       lng: 18.4876,
     },
+    videos: [
+      {
+        url: "https://www.youtube.com/watch?v=Vvra_KSQNQc&ab_channel=BirdsEyeViewZA",
+        title: "Melkbos Surfing May 2024",
+        platform: "youtube",
+      },
+      {
+        url: "https://www.youtube.com/watch?v=JfeDzDN1toM&ab_channel=SimonDowdles",
+        title: "Surfing Winter Swell At Melkbosstrand, Cape Town, South Africa",
+        platform: "youtube",
+      },
+      {
+        url: "https://www.youtube.com/watch?v=qaZ2xS8x1Xo&ab_channel=DylanKrause",
+        title: "Surfing POV / Cape Town Melkbos",
+        platform: "youtube",
+      },
+    ],
   },
   {
     id: "kogel-bay",
@@ -1229,6 +1246,12 @@ export const beachData: Beach[] = [
           details:
             "Mick Fanning attacked during J-Bay Open final, escaped unharmed",
         },
+        {
+          date: "2024-05-03",
+          outcome: "Non-fatal",
+          details:
+            "2024: A surfer was bitten but survived at Jeffrey's Bay, a popular surfing location in the Eastern Cape ",
+        },
       ],
     },
     image: "",
@@ -1348,7 +1371,7 @@ export const beachData: Beach[] = [
   },
   {
     id: "sandy-bay",
-    name: "Sandy Bay",
+    name: "Sandy Bay （ ͜.人 ͜.）",
     continent: "Africa",
     country: "South Africa",
     region: "Western Cape",
@@ -1367,8 +1390,8 @@ export const beachData: Beach[] = [
     difficulty: "All Levels",
     waveType: "Beach Break",
     swellSize: {
-      min: 1.2,
-      max: 4.6,
+      min: 2.2,
+      max: 6,
     },
     idealSwellPeriod: {
       min: 12,
@@ -5884,9 +5907,9 @@ export const beachData: Beach[] = [
     id: "bocock's-bay",
     name: "Bocock's Bay",
     continent: "Africa",
-    country: "South Africa",
-    region: "Western Cape",
-    location: "Swakopmund",
+    country: "Namibia",
+    region: "Swakopmund",
+    location: "Mile 108",
     distanceFromCT: 1800, // Approximate distance from Cape Town
     optimalWindDirections: ["SSE"],
     optimalSwellDirections: {
@@ -6067,10 +6090,10 @@ export const beachData: Beach[] = [
     region: "Western Cape",
     location: "West Coast",
     distanceFromCT: 180, // Approximate distance from Cape Town
-    optimalWindDirections: ["SSE"],
+    optimalWindDirections: ["SSE", "S"],
     optimalSwellDirections: {
-      min: 247.5, // WSW
-      max: 270, // W
+      min: 240, // WSW
+      max: 260, // W
       cardinal: "WSW",
     },
     bestSeasons: ["summer", "winter"], // "can work at any time of the year"

@@ -1,19 +1,34 @@
-import type { StructureBuilder } from 'sanity/structure'
-import { schemaTypes } from './schemaTypes'
+import type {StructureBuilder} from 'sanity/structure'
+import {schemaTypes} from './schemaTypes'
 
-export const structure = (S: StructureBuilder, context: any) => {
-  // Get all document types from schema
-  const documentTypes = schemaTypes
-    .filter(schema => schema.type === 'document')
-    .map(schema => schema.name)
-
-  return S.list()
+export const structure = (S: StructureBuilder) =>
+  S.list()
     .title('Content')
     .items([
-      // Automatically add all document types
-      ...documentTypes.map(typeName => 
-        S.documentTypeListItem(typeName)
-          .title(typeName.charAt(0).toUpperCase() + typeName.slice(1))
-      )
+      S.listItem()
+        .title('Blog Posts')
+        .child(
+          S.list()
+            .title('Posts by Category')
+            .items([
+              S.listItem()
+                .title('All Posts')
+                .child(S.documentList().title('All Posts').filter('_type == "post"')),
+              S.listItem()
+                .title('By Category')
+                .child(
+                  S.documentTypeList('postCategory')
+                    .title('Posts by Category')
+                    .child((categoryId) =>
+                      S.documentList()
+                        .title('Posts')
+                        .filter('_type == "post" && $categoryId in categories[]._ref')
+                        .params({categoryId}),
+                    ),
+                ),
+            ]),
+        ),
+      S.divider(),
+      S.documentTypeListItem('postTemplate').title('Post Templates'),
+      S.documentTypeListItem('postCategory').title('Categories'),
     ])
-}

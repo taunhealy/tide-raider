@@ -20,21 +20,17 @@ export const homePageQuery = groq`{
     about,
     blog {
       heading,
-      "posts": *[_type == "post"] {
+      "posts": *[_type == "post"][0...3] | order(publishedAt desc) {
         _id,
         title,
         slug,
         mainImage,
-        hoverImage,
+        publishedAt,
         description,
         "categories": categories[]-> {
           title,
           slug
         }
-      },
-      "allCategories": *[_type == "postCategory"] | order(order asc) {
-        title,
-        slug
       }
     },
     heroProduct {
@@ -50,22 +46,6 @@ export const homePageQuery = groq`{
     heroImage
   }
 }`;
-
-// Fetches all blog posts, sorted by publish date
-// Returns: post details including title, slug, image, date, description and categories
-export const postsQuery = `
-  *[_type == "post"] | order(publishedAt desc) {
-    title,
-    slug,
-    mainImage,
-    publishedAt,
-    description,
-    "categories": categories[]-> {
-      title,
-      slug
-    }
-  }
-`;
 
 // Fetches homepage content including hero and about sections
 // Returns: hero and about section content
@@ -88,3 +68,72 @@ export const pricingQuery = groq`
     features
   }
 `;
+
+// Single post query with template-specific fields
+export const postQuery = groq`
+  *[_type == "post" && slug.current == $slug][0] {
+    title,
+    "template": template->,
+    location {
+      beachName,
+      region,
+      country,
+      continent,
+      weatherCity
+    },
+    // Conditional includes based on template
+    ...select(template.sidebar == "travelExpenses" => {
+      travelCosts {
+        airports[] {
+          code,
+          name,
+          baseCost
+        },
+        accommodation {
+          costPerNight,
+          hotelName,
+          bookingLink
+        },
+        dailyExpenses
+      }
+    }),
+    ...select(template.sidebar == "surfConditions" => {
+      surfConditions {
+        // Add your surf conditions fields here
+      }
+    }),
+    content[] {
+      type,
+      text,
+      image
+    },
+    publishedAt,
+    mainImage,
+    description,
+    "categories": categories[]-> {
+      title,
+      slug
+    }
+  }
+`;
+
+// Main blog listing query - use this for all blog listings
+export const blogListingQuery = groq`{
+  "posts": *[_type == "post"] | order(publishedAt desc) {
+    _id,
+    title,
+    slug,
+    mainImage,
+    publishedAt,
+    description,
+    "template": template->,
+    "categories": categories[]-> {
+      title,
+      slug
+    }
+  },
+  "categories": *[_type == "postCategory"] | order(order asc) {
+    title,
+    slug
+  }
+}`;

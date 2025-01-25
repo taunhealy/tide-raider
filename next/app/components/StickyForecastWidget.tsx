@@ -19,13 +19,20 @@ export default function StickyForecastWidget({
 
   useEffect(() => {
     const handleScroll = () => {
-      // Get the main forecast widget element
+      // Get the main forecast widget element and footer
       const mainForecast = document.querySelector("[data-forecast-widget]");
-      if (!mainForecast) return;
+      const footer = document.querySelector("footer");
+      if (!mainForecast || !footer) return;
 
-      // Check if the main forecast is out of view
-      const rect = mainForecast.getBoundingClientRect();
-      setIsVisible(rect.bottom < 0);
+      // Get positions
+      const forecastRect = mainForecast.getBoundingClientRect();
+      const footerRect = footer.getBoundingClientRect();
+      const windowHeight = window.innerHeight;
+
+      // Show widget when forecast is out of view AND footer isn't too close
+      setIsVisible(
+        forecastRect.bottom < 0 && footerRect.top > windowHeight - 100
+      );
     };
 
     window.addEventListener("scroll", handleScroll);

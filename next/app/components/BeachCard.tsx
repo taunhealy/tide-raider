@@ -3,8 +3,7 @@ import type { WindData } from "@/app/types/wind";
 import { useSubscription } from "../context/SubscriptionContext";
 import {
   isBeachSuitable,
-  getEmojiDescription,
-  getScoreEmoji,
+  getScoreDisplay,
   getConditionReasons,
 } from "@/app/lib/surfUtils";
 import { useHandleSubscribe } from "@/app/hooks/useHandleSubscribe";
@@ -139,6 +138,8 @@ export default function BeachCard({
     },
   });
 
+  const scoreDisplay = getScoreDisplay(suitability?.score || 0);
+
   return (
     <>
       {/* Main Card Container */}
@@ -227,7 +228,16 @@ export default function BeachCard({
                         <span title="Strong winds">🌪️</span>
                       )}
                       {beach.sharkAttack.hasAttack && (
-                        <span title="At least 1 shark attack reported">🦈</span>
+                        <span title="At least 1 shark attack reported">
+                          {beach.sharkAttack.incidents?.some(
+                            (incident) =>
+                              new Date(incident.date).getTime() >
+                              new Date().getTime() -
+                                5 * 365 * 24 * 60 * 60 * 1000
+                          )
+                            ? "🦈 ⋆༺𓆩☠︎︎𓆪༻⋆🪦"
+                            : "🦈"}
+                        </span>
                       )}
                     </h4>
                     <h5 className="heading-6 text-[var(--color-text-secondary)]">
@@ -273,10 +283,7 @@ export default function BeachCard({
                     onMouseEnter={() => setShowRatingHint(true)}
                     onMouseLeave={() => setShowRatingHint(false)}
                   >
-                    <div>{getScoreEmoji(suitability?.score || 0)}</div>
-                    <span className="text-sm">
-                      {"⭐".repeat(suitability?.score || 0)}
-                    </span>
+                    <div>{scoreDisplay.emoji}</div>
                     <div
                       className={`
                       absolute z-10 bottom-full left-1/2 -translate-x-1/2 mb-2 
@@ -285,7 +292,7 @@ export default function BeachCard({
                       ${showRatingHint ? "opacity-100" : "opacity-0"}
                     `}
                     >
-                      {getEmojiDescription(suitability?.score || 0)}
+                      {scoreDisplay.description}
                     </div>
                   </div>
                 </div>

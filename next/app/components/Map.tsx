@@ -5,7 +5,7 @@ import { Beach, Region } from "@/app/types/beaches";
 import { WindData } from "@/app/types/wind";
 import {
   isBeachSuitable,
-  getScoreEmoji,
+  getScoreDisplay,
   getGatedBeaches,
 } from "@/app/lib/surfUtils";
 import { Map as OLMap, View } from "ol";
@@ -243,7 +243,9 @@ export default function Map({ beaches, windData }: MapProps) {
               <p className="text-sm text-gray-600">{selectedBeach.region}</p>
               <div className="mt-2">
                 <div className="flex items-center gap-2">
-                  <span>{getScoreEmoji(selectedBeach.score)}</span>
+                  {getScoreDisplay(selectedBeach.score)?.emoji && (
+                    <span>{getScoreDisplay(selectedBeach.score).emoji}</span>
+                  )}
                   <span>{"⭐".repeat(selectedBeach.score)}</span>
                 </div>
                 <p>

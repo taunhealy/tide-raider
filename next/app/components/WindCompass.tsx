@@ -1,5 +1,5 @@
-import React, { useState } from 'react';
-import { degreesToCardinal } from '@/app/lib/surfUtils';
+import React, { useState } from "react";
+import { degreesToCardinal } from "@/app/lib/surfUtils";
 
 interface WindCompassProps {
   windDirection: string;
@@ -11,31 +11,36 @@ interface WindCompassProps {
 // Helper function to get opposite direction
 function getOppositeDirection(direction: string): string {
   const opposites: { [key: string]: string } = {
-    'N': 'S',
-    'S': 'N',
-    'E': 'W',
-    'W': 'E',
-    'NE': 'SW',
-    'SE': 'NW',
-    'SW': 'NE',
-    'NW': 'SE',
-    'NNE': 'SSW',
-    'ENE': 'WSW',
-    'ESE': 'WNW',
-    'SSE': 'NNW',
-    'SSW': 'NNE',
-    'WSW': 'ENE',
-    'WNW': 'ESE',
-    'NNW': 'SSE'
+    N: "S",
+    S: "N",
+    E: "W",
+    W: "E",
+    NE: "SW",
+    SE: "NW",
+    SW: "NE",
+    NW: "SE",
+    NNE: "SSW",
+    ENE: "WSW",
+    ESE: "WNW",
+    SSE: "NNW",
+    SSW: "NNE",
+    WSW: "ENE",
+    WNW: "ESE",
+    NNW: "SSE",
   };
   return opposites[direction] || direction;
 }
 
-export default function WindCompass({ windDirection, windSpeed, swellDirection, swellHeight }: WindCompassProps) {
+export default function WindCompass({
+  windDirection,
+  windSpeed,
+  swellDirection,
+  swellHeight,
+}: WindCompassProps) {
   const [showTooltip, setShowTooltip] = useState(false);
 
   return (
-    <div 
+    <div
       className="absolute top-4 right-4 bg-white p-6 rounded-xl shadow-lg"
       onMouseEnter={() => setShowTooltip(true)}
       onMouseLeave={() => setShowTooltip(false)}
@@ -43,8 +48,15 @@ export default function WindCompass({ windDirection, windSpeed, swellDirection, 
       <div className="relative w-40 h-40 mb-4">
         <svg className="w-full h-full" viewBox="0 0 100 100">
           {/* Compass circle background */}
-          <circle cx="50" cy="50" r="48" fill="white" stroke="#e2e8f0" strokeWidth="2" />
-          
+          <circle
+            cx="50"
+            cy="50"
+            r="48"
+            fill="white"
+            stroke="#e2e8f0"
+            strokeWidth="2"
+          />
+
           {/* Compass degree marks */}
           {[...Array(72)].map((_, i) => {
             const rotation = i * 5;
@@ -62,13 +74,49 @@ export default function WindCompass({ windDirection, windSpeed, swellDirection, 
               />
             );
           })}
-          
+
           {/* Cardinal directions */}
-          <text x="50" y="20" textAnchor="middle" fontSize="12" fontWeight="bold" fill="#475569">N</text>
-          <text x="80" y="52" textAnchor="middle" fontSize="12" fontWeight="bold" fill="#475569">E</text>
-          <text x="50" y="84" textAnchor="middle" fontSize="12" fontWeight="bold" fill="#475569">S</text>
-          <text x="20" y="52" textAnchor="middle" fontSize="12" fontWeight="bold" fill="#475569">W</text>
-  
+          <text
+            x="50"
+            y="20"
+            textAnchor="middle"
+            fontSize="12"
+            fontWeight="bold"
+            fill="#475569"
+          >
+            N
+          </text>
+          <text
+            x="80"
+            y="52"
+            textAnchor="middle"
+            fontSize="12"
+            fontWeight="bold"
+            fill="#475569"
+          >
+            E
+          </text>
+          <text
+            x="50"
+            y="84"
+            textAnchor="middle"
+            fontSize="12"
+            fontWeight="bold"
+            fill="#475569"
+          >
+            S
+          </text>
+          <text
+            x="20"
+            y="52"
+            textAnchor="middle"
+            fontSize="12"
+            fontWeight="bold"
+            fill="#475569"
+          >
+            W
+          </text>
+
           {/* Wind arrow */}
           <g transform={`rotate(${Number(windDirection)} 50 50)`}>
             <path
@@ -77,7 +125,7 @@ export default function WindCompass({ windDirection, windSpeed, swellDirection, 
               stroke="#3b82f6"
             />
           </g>
-  
+
           {/* Swell arrow - rotated 180° and positioned on opposite side */}
           <g transform={`rotate(${Number(swellDirection) + 180} 50 50)`}>
             <path
@@ -89,20 +137,30 @@ export default function WindCompass({ windDirection, windSpeed, swellDirection, 
         </svg>
         {showTooltip && (
           <div className="absolute -bottom-16 right-0 bg-black bg-opacity-75 text-white text-sm p-3 rounded-lg whitespace-nowrap z-50">
-            <p>Wind is {windSpeed}kts from the {windDirection} (blowing toward {getOppositeDirection(windDirection)})</p>
-            <p>Swell is coming from the {degreesToCardinal(swellDirection)} ({swellDirection}°)</p>
+            <p>
+              Wind is {windSpeed}kts from the {windDirection} (blowing toward{" "}
+              {getOppositeDirection(windDirection)})
+            </p>
+            <p>
+              Swell is coming from the {degreesToCardinal(swellDirection)} (
+              {swellDirection}°)
+            </p>
           </div>
         )}
       </div>
-      
+
       <div className="space-y-2 text-sm font-medium text-gray-600">
         <div className="flex items-center gap-2">
           <div className="w-3 h-3 rounded-full bg-[#3b82f6]"></div>
-          <span>Wind: {windSpeed} kts @ {windDirection}°</span>
+          <span>
+            Wind: {windSpeed} kts @ {windDirection}°
+          </span>
         </div>
         <div className="flex items-center gap-2">
           <div className="w-3 h-3 rounded-full bg-[#22c55e]"></div>
-          <span>Swell: {swellHeight}m @ {swellDirection}°</span>
+          <span>
+            Swell: {swellHeight}m @ {swellDirection}°
+          </span>
         </div>
       </div>
     </div>

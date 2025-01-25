@@ -2,32 +2,21 @@ import BeachContainer from "@/app/components/BeachContainer";
 import { beachData } from "@/app/types/beaches";
 import { client } from "@/app/lib/sanity";
 import { prisma } from "@/app/lib/prisma";
+import { blogListingQuery } from "@/app/lib/queries";
 
 export default async function RaidPage() {
   try {
     const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || "http://localhost:3000";
 
     // Fetch wind data, blog posts, and active ads
-    const [windResponse, blogPosts, activeAds] = await Promise.all([
+    const [windResponse, blogData, activeAds] = await Promise.all([
       fetch(`${baseUrl}/api/surf-conditions`, {
         cache: "no-store",
         headers: {
           "Content-Type": "application/json",
         },
       }),
-      client.fetch(`
-        *[_type == "post"] | order(publishedAt desc) {
-          title,
-          slug,
-          mainImage,
-          publishedAt,
-          description,
-          categories[]-> {
-            title,
-            slug
-          }
-        }
-      `),
+      client.fetch(blogListingQuery),
       prisma.adRequest
         .findMany({
           where: {
@@ -69,7 +58,7 @@ export default async function RaidPage() {
               <BeachContainer
                 initialBeaches={beachData}
                 windData={windData}
-                blogPosts={blogPosts}
+                blogPosts={blogData.posts}
                 availableAds={activeAds}
               />
             </div>

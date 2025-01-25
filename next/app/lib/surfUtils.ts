@@ -1,20 +1,51 @@
 import type { Beach } from "@/app/types/beaches";
 import type { WindData } from "@/app/types/wind";
 
-export function getEmojiDescription(score: number) {
-  switch (score) {
+interface ScoreDisplay {
+  description: string;
+  emoji: string;
+}
+
+export function getScoreDisplay(score: number): ScoreDisplay {
+  // Convert score to nearest integer to handle floating point values
+  const roundedScore = Math.round(score);
+
+  switch (roundedScore) {
     case 5:
-      return "Yeeew!";
+      return {
+        description: "Yeeew!",
+        emoji: "🤩🔥",
+      };
     case 4:
-      return "Surfs up?!";
+      return {
+        description: "Surfs up?!",
+        emoji: "🏄‍♂️",
+      };
     case 3:
-      return "Hmmmmmm, maybe?";
+      return {
+        description: "Hmmmmmm, maybe?",
+        emoji: "🏄‍♂️",
+      };
     case 2:
-      return "Probably dog kak";
+      return {
+        description: "Probably dog kak",
+        emoji: "🐶💩",
+      };
     case 1:
-      return "Dog kak";
+      return {
+        description: "Dog kak",
+        emoji: "💩",
+      };
+    case 0:
+      return {
+        description: "Horse kak",
+        emoji: "🐎💩",
+      };
     default:
-      return "Horse kak";
+      return {
+        description: "?",
+        emoji: "🐎💩",
+      };
   }
 }
 
@@ -102,25 +133,6 @@ export function isBeachSuitable(beach: Beach, windData: WindData | null) {
     suitable: score > 2,
     score: score,
   };
-}
-
-export function getScoreEmoji(score: number) {
-  switch (score) {
-    case 5:
-      return "🤩🔥";
-    case 4:
-      return "🏄‍♂️";
-    case 3:
-      return "🏄‍♂️";
-    case 2:
-      return "🐶💩";
-    case 1:
-      return "💩";
-    case 0:
-      return "🐎💩";
-    default:
-      return "🐎💩";
-  }
 }
 
 export function degreesToCardinal(degrees: string | number): string {

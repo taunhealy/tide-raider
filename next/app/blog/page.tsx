@@ -6,6 +6,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
+import { blogListingQuery } from "@/app/lib/queries";
 
 interface Category {
   title: string;
@@ -22,28 +23,7 @@ interface Post {
 }
 
 async function fetchBlogData() {
-  const posts = await client.fetch(`
-    *[_type == "post"] | order(publishedAt desc) {
-      title,
-      slug,
-      mainImage,
-      publishedAt,
-      description,
-      categories[]-> {
-        title,
-        slug
-      }
-    }
-  `);
-
-  const categories = await client.fetch(`
-    *[_type == "postCategory"] | order(order asc) {
-      title,
-      slug
-    }
-  `);
-
-  return { posts, categories };
+  return client.fetch(blogListingQuery);
 }
 
 export default function BlogPage() {

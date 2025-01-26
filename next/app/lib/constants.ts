@@ -23,8 +23,6 @@ export const INITIAL_FILTERS = {
   crimeLevel: [],
   minPoints: 0,
   sharkAttack: [],
-  minDistance: 0,
-  maxDistance: 10000,
 };
 
 export const DEFAULT_PROFILE_IMAGE = "/images/profile/hero-cover.jpg";
@@ -56,6 +54,8 @@ export const STORY_CATEGORIES = [
   "Weather Phenomena",
   "Restricted Access Spots",
   "Crime",
+  "UFO Sightings 👽🛸",
+  "Lovely Surf Camps",
 ];
 
 export type StoryCategory = (typeof STORY_CATEGORIES)[number];

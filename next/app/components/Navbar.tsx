@@ -10,9 +10,9 @@ import { Menu, X } from "lucide-react";
 import { useState } from "react";
 
 const NAVIGATION_ITEMS = [
-  { href: "/quest", label: "Daily Side Quest" },
-  { href: "/sidequests", label: "Side Quest Logs" },
-  { href: "/chronicles", label: "Community Chronicles" },
+  { href: "/quest", label: "Quest" },
+  { href: "/questlogs", label: "Quest Logs" },
+  { href: "/chronicles", label: "Chronicles" },
   { href: "/blog", label: "Blog" },
   { href: "/pricing", label: "Pricing" },
 ];

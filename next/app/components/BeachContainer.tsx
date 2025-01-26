@@ -8,9 +8,8 @@ import BeachGrid from "./BeachGrid";
 import Map from "./Map";
 import { useSubscription } from "../context/SubscriptionContext";
 import { useHandleSubscription } from "../hooks/useHandleSubscription";
-import { Button } from "./ui/Button";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { isBeachSuitable } from "@/app/lib/surfUtils";
+import { isBeachSuitable, getGoodBeachCount } from "@/app/lib/surfUtils";
 import FunFacts from "@/app/components/FunFacts";
 import { cn } from "@/app/lib/utils";
 import { Inter } from "next/font/google";
@@ -56,6 +55,23 @@ const inter = Inter({
   fallback: ["system-ui", "arial"],
 });
 
+// Add the BeachCountBadge component at the top level of the file
+function BeachCountBadge({ count }: { count: number }) {
+  if (count === 0) return null;
+
+  return (
+    <div className="inline-flex items-center justify-center w-6 h-6 ml-2 text-sm text-white bg-blue-500 rounded-full">
+      {count}
+    </div>
+  );
+}
+
+interface RegionFilterProps {
+  // ... existing props ...
+  BeachCountBadge: React.ComponentType<{ count: number }>;
+  cachedBeachScores: Record<string, number>;
+}
+
 export default function BeachContainer({
   initialBeaches,
   windData: initialWindData,
@@ -77,9 +93,6 @@ export default function BeachContainer({
     crimeLevel: searchParams?.get("crimeLevel")?.split(",") || [],
     minPoints: parseInt(searchParams?.get("minPoints") || "0"),
     sharkAttack: searchParams?.get("sharkAttack")?.split(",") || [],
-    minDistance: parseInt(searchParams?.get("minDistance") || "0"),
-    maxDistance: parseInt(searchParams?.get("maxDistance") || "10000"),
-    maxWaveHeight: parseInt(searchParams?.get("maxWaveHeight") || "10"),
   };
 
   type FilterKeys = keyof typeof initialFilters;
@@ -89,7 +102,6 @@ export default function BeachContainer({
     continent: [initialFilters.continent],
     country: [initialFilters.country],
     minDistance: 0,
-    maxDistance: Infinity,
   });
 
   // Initialize with Western Cape as default
@@ -111,22 +123,9 @@ export default function BeachContainer({
 
       // Handle single-select for continent and country
       if (key === "continent" || key === "country") {
-        newFilters[key] = value; // Single value, not array
-
-        // If country is being updated, automatically select first available region
-        if (key === "country") {
-          const availableRegions = initialBeaches
-            .filter((beach) => beach.country === value)
-            .map((beach) => beach.region);
-          const uniqueRegions = [...new Set(availableRegions)];
-
-          if (uniqueRegions.length > 0) {
-            const firstRegion = uniqueRegions[0];
-            newFilters.region = [firstRegion];
-            // Also update the selected region state
-            handleRegionChange(firstRegion);
-          }
-        }
+        newFilters[key] = [value]; // Ensure it's an array with single value
+      } else if (key === "region") {
+        newFilters.region = Array.isArray(value) ? value : [value];
       } else {
         newFilters[key] = value; // Keep array behavior for other filters
       }
@@ -156,7 +155,7 @@ export default function BeachContainer({
         );
       }
     },
-    [filters, initialBeaches] // removed handleRegionChange from dependencies
+    [filters]
   );
 
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
@@ -272,14 +271,6 @@ export default function BeachContainer({
       );
     }
 
-    // Apply distance filter
-    filtered = filtered.filter(
-      (beach) =>
-        beach.distanceFromCT >= filters.minDistance &&
-        (filters.maxDistance === Infinity ||
-          beach.distanceFromCT <= filters.maxDistance)
-    );
-
     // Apply shark attack filter
     if (filters.sharkAttack?.includes("true")) {
       filtered = filtered.filter((beach) => beach.sharkAttack.hasAttack);
@@ -334,6 +325,72 @@ export default function BeachContainer({
 
   // Get unique wave types from beach data
   const waveTypes = [...new Set(initialBeaches.map((beach) => beach.waveType))];
+
+  // Add state for cached scores
+  const [cachedBeachScores, setCachedBeachScores] = useState<
+    Record<string, number>
+  >({});
+
+  // Calculate scores on mount or when wind data changes
+  useEffect(() => {
+    if (!initialWindData) return;
+
+    const scores: Record<string, number> = {};
+    console.log("Initial wind data:", initialWindData); // Debug log
+
+    // Group beaches by region first
+    const beachesByRegion = initialBeaches.reduce(
+      (acc, beach) => {
+        if (!acc[beach.region]) acc[beach.region] = [];
+        acc[beach.region].push(beach);
+        return acc;
+      },
+      {} as Record<string, Beach[]>
+    );
+
+    console.log("Beaches by region:", beachesByRegion); // Debug log
+
+    // Calculate scores for each region using its own forecast
+    Object.entries(beachesByRegion).forEach(([region, beaches]) => {
+      const regionForecast = initialWindData[region];
+      console.log(`Forecast for ${region}:`, regionForecast); // Debug log
+
+      if (!regionForecast) return;
+
+      beaches.forEach((beach) => {
+        const score = isBeachSuitable(beach, regionForecast).score;
+        if (score >= 4) {
+          scores[beach.continent] = (scores[beach.continent] || 0) + 1;
+          scores[beach.country] = (scores[beach.country] || 0) + 1;
+          scores[beach.region] = (scores[beach.region] || 0) + 1;
+        }
+      });
+    });
+
+    console.log("Calculated scores:", scores); // Debug log
+    setCachedBeachScores(scores);
+  }, [initialWindData, initialBeaches]);
+
+  const fetchRegionData = useCallback(async (region: string) => {
+    try {
+      const response = await fetch(`/api/wind-data?region=${region}`);
+      const data = await response.json();
+    } catch (error) {
+      console.error("Error fetching wind data:", error);
+    }
+  }, []);
+
+  // Add this function before the return statement
+  const getGoodBeachCount = useCallback(
+    (beaches: Beach[], windData: WindData | null) => {
+      if (!windData) return 0;
+      return beaches.filter((beach) => {
+        const { score } = isBeachSuitable(beach, windData);
+        return score >= 4;
+      }).length;
+    },
+    []
+  );
 
   return (
     <div className="bg-[var(--color-bg-secondary)] p-6 mx-auto relative min-h-[calc(100vh-72px)] flex flex-col">
@@ -442,6 +499,9 @@ export default function BeachContainer({
                     onRegionClick={handleRegionChange}
                     selectedRegion={filters.region[0] || ""}
                     onRegionChange={handleRegionChange}
+                    getGoodBeachCount={getGoodBeachCount}
+                    cachedBeachScores={cachedBeachScores}
+                    BeachCountBadge={BeachCountBadge}
                   />
                 </div>
 

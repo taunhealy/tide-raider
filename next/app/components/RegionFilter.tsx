@@ -36,6 +36,9 @@ interface RegionFilterProps {
   initialSavedFilters?: SavedFilters | null;
   selectedRegion: Region;
   onRegionChange: (region: Region) => void;
+  getGoodBeachCount: (beaches: Beach[], windData: WindData | null) => number;
+  cachedBeachScores: Record<string, number>;
+  BeachCountBadge: React.ComponentType<{ count: number }>;
 }
 
 function getPremiumBeachCount(
@@ -69,6 +72,16 @@ async function saveFiltersToDb(filters: SavedFilters) {
   }
 }
 
+function BeachCountBadge({ count }: { count: number }) {
+  if (count === 0) return null;
+
+  return (
+    <div className="inline-flex items-center justify-center w-6 h-6 ml-2 text-sm text-white bg-blue-500 rounded-full">
+      {count}
+    </div>
+  );
+}
+
 const RegionFilter = memo(function RegionFilter({
   continents,
   countries,
@@ -85,6 +98,9 @@ const RegionFilter = memo(function RegionFilter({
   initialSavedFilters,
   selectedRegion,
   onRegionChange,
+  getGoodBeachCount,
+  cachedBeachScores,
+  BeachCountBadge,
 }: RegionFilterProps) {
   const { data: session } = useSession();
   const [isOpen, setIsOpen] = useState(true);
@@ -177,21 +193,30 @@ const RegionFilter = memo(function RegionFilter({
 
           {/* Continents */}
           <div className="flex items-center gap-2 overflow-x-auto pb-2 flex-wrap">
-            {continents.map((continent) => (
-              <FilterButton
-                key={continent}
-                label={continent}
-                count={getPremiumBeachCount(
-                  beaches,
-                  windData,
-                  "continent",
-                  continent
-                )}
-                isSelected={selectedContinents.includes(continent)}
-                onClick={() => onContinentClick(continent)}
-                variant="continent"
-              />
-            ))}
+            {continents.map((continent) => {
+              return (
+                <FilterButton
+                  key={continent}
+                  label={
+                    <div className="flex items-center">
+                      <span>{continent}</span>
+                      <BeachCountBadge
+                        count={cachedBeachScores[continent] || 0}
+                      />
+                    </div>
+                  }
+                  count={getPremiumBeachCount(
+                    beaches,
+                    windData,
+                    "continent",
+                    continent
+                  )}
+                  isSelected={selectedContinents.includes(continent)}
+                  onClick={() => onContinentClick(continent)}
+                  variant="continent"
+                />
+              );
+            })}
           </div>
 
           {/* Divider */}
@@ -202,21 +227,30 @@ const RegionFilter = memo(function RegionFilter({
           {/* Countries */}
           {visibleCountries.length > 0 && (
             <div className="flex items-center gap-2 overflow-x-auto pb-2 flex-wrap">
-              {visibleCountries.map((country) => (
-                <FilterButton
-                  key={country}
-                  label={country}
-                  count={getPremiumBeachCount(
-                    beaches,
-                    windData,
-                    "country",
-                    country
-                  )}
-                  isSelected={selectedCountries.includes(country)}
-                  onClick={() => handleCountryClick(country)}
-                  variant="country"
-                />
-              ))}
+              {visibleCountries.map((country) => {
+                return (
+                  <FilterButton
+                    key={country}
+                    label={
+                      <div className="flex items-center">
+                        <span>{country}</span>
+                        <BeachCountBadge
+                          count={cachedBeachScores[country] || 0}
+                        />
+                      </div>
+                    }
+                    count={getPremiumBeachCount(
+                      beaches,
+                      windData,
+                      "country",
+                      country
+                    )}
+                    isSelected={selectedCountries.includes(country)}
+                    onClick={() => handleCountryClick(country)}
+                    variant="country"
+                  />
+                );
+              })}
             </div>
           )}
 
@@ -228,21 +262,30 @@ const RegionFilter = memo(function RegionFilter({
           {/* Regions */}
           {visibleRegions.length > 0 && (
             <div className="flex items-center gap-2 overflow-x-auto pb-2 flex-wrap">
-              {visibleRegions.map((region) => (
-                <FilterButton
-                  key={region}
-                  label={region}
-                  count={getPremiumBeachCount(
-                    beaches,
-                    windData,
-                    "region",
-                    region
-                  )}
-                  isSelected={selectedRegions.includes(region)}
-                  onClick={() => onRegionClick(region)}
-                  variant="region"
-                />
-              ))}
+              {visibleRegions.map((region) => {
+                return (
+                  <FilterButton
+                    key={region}
+                    label={
+                      <div className="flex items-center">
+                        <span>{region}</span>
+                        <BeachCountBadge
+                          count={cachedBeachScores[region] || 0}
+                        />
+                      </div>
+                    }
+                    count={getPremiumBeachCount(
+                      beaches,
+                      windData,
+                      "region",
+                      region
+                    )}
+                    isSelected={selectedRegions.includes(region)}
+                    onClick={() => onRegionClick(region)}
+                    variant="region"
+                  />
+                );
+              })}
             </div>
           )}
 

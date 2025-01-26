@@ -1,11 +1,5 @@
+import { StoryCategory } from "../lib/constants";
 import { Beach } from "./beaches";
-
-export type StoryCategory =
-  | "Travel"
-  | "Wipeouts"
-  | "Crime"
-  | "Favourite Sessions"
-  | "Wildlife Encounters";
 
 export type StoryBeach = {
   id: string;

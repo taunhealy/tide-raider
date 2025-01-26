@@ -1,39 +1,37 @@
 import { NextResponse } from "next/server";
 
-const AMADEUS_API_KEY = process.env.AMADEUS_API_KEY;
-const AMADEUS_API_SECRET = process.env.AMADEUS_API_SECRET;
+const TRAVEL_PAYOUTS_TOKEN = process.env.TRAVEL_PAYOUTS_TOKEN;
+const TRAVEL_PAYOUTS_MARKER = process.env.TRAVEL_PAYOUTS_MARKER;
+
+if (!TRAVEL_PAYOUTS_TOKEN || !TRAVEL_PAYOUTS_MARKER) {
+  throw new Error("TravelPayouts credentials not configured");
+}
 
 export async function POST(request: Request) {
   try {
     const { originCode, destinationCode, date } = await request.json();
 
-    // Get Amadeus access token
-    const tokenResponse = await fetch(
-      "https://test.api.amadeus.com/v1/security/oauth2/token",
+    // Use the simpler prices/cheap endpoint
+    const response = await fetch(
+      `https://api.travelpayouts.com/v1/prices/cheap?` +
+        `origin=${originCode}&destination=${destinationCode}&` +
+        `depart_date=${date}&token=${TRAVEL_PAYOUTS_TOKEN}`,
       {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/x-www-form-urlencoded",
-        },
-        body: `grant_type=client_credentials&client_id=${AMADEUS_API_KEY}&client_secret=${AMADEUS_API_SECRET}`,
+        headers: { Accept: "application/json" },
       }
     );
 
-    const { access_token } = await tokenResponse.json();
+    if (!response.ok) throw new Error("Failed to fetch flight data");
+    const data = await response.json();
 
-    // Search flights
-    const flightResponse = await fetch(
-      `https://test.api.amadeus.com/v2/shopping/flight-offers?originLocationCode=${originCode}&destinationLocationCode=${destinationCode}&departureDate=${date}&adults=1&max=5`,
-      {
-        headers: {
-          Authorization: `Bearer ${access_token}`,
-        },
-      }
-    );
+    // Get the cheapest flight option
+    const flights = data?.data?.[destinationCode];
+    const cheapestFlight = flights ? Object.values(flights)[0] : null;
 
-    const flightData = await flightResponse.json();
-
-    return NextResponse.json(flightData);
+    return NextResponse.json({
+      flights: cheapestFlight ? [cheapestFlight] : [],
+      searchUrl: `https://www.aviasales.com/${originCode}/${destinationCode}?marker=${TRAVEL_PAYOUTS_MARKER}&departure=${date}`,
+    });
   } catch (error) {
     console.error("Flight search error:", error);
     return NextResponse.json(

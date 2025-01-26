@@ -4,47 +4,57 @@ import type { WindData } from "@/app/types/wind";
 interface ScoreDisplay {
   description: string;
   emoji: string;
+  stars: string;
 }
 
 export function getScoreDisplay(score: number): ScoreDisplay {
   // Convert score to nearest integer to handle floating point values
   const roundedScore = Math.round(score);
 
+  const getStars = (count: number) => "⭐".repeat(count);
+
   switch (roundedScore) {
     case 5:
       return {
-        description: "Yeeew!",
+        description: "Good grief it actually might be good?!",
         emoji: "🤩🔥",
+        stars: getStars(5),
       };
     case 4:
       return {
         description: "Surfs up?!",
         emoji: "🏄‍♂️",
+        stars: getStars(4),
       };
     case 3:
       return {
-        description: "Hmmmmmm, maybe?",
-        emoji: "🏄‍♂️",
+        description: "Maybe, baby?",
+        emoji: "👻",
+        stars: getStars(3),
       };
     case 2:
       return {
         description: "Probably dog kak",
         emoji: "🐶💩",
+        stars: getStars(2),
       };
     case 1:
       return {
         description: "Dog kak",
         emoji: "💩",
+        stars: getStars(1),
       };
     case 0:
       return {
         description: "Horse kak",
         emoji: "🐎💩",
+        stars: "",
       };
     default:
       return {
         description: "?",
         emoji: "🐎💩",
+        stars: "",
       };
   }
 }
@@ -269,4 +279,13 @@ export function getGatedBeaches(
     visibleBeaches: beaches,
     lockedBeaches: [],
   };
+}
+
+export function getGoodBeachCount(beaches: Beach[], windData: WindData | null) {
+  if (!windData) return 0;
+  
+  return beaches.filter(beach => {
+    const suitability = isBeachSuitable(beach, windData);
+    return suitability.score >= 4;
+  }).length;
 }

@@ -54,34 +54,56 @@ export default defineType({
       name: 'travelCosts',
       title: 'Travel Costs',
       type: 'object',
-      hidden: ({document}) => {
-        const doc = document as any
-        return !doc?.template?.sidebar || doc.template.sidebar !== 'travelExpenses'
-      },
       fields: [
         {
-          name: 'airports',
-          title: 'Available Airports',
-          type: 'array',
-          of: [
+          name: 'destinations',
+          title: 'Travel Destinations',
+          type: 'object',
+          fields: [
             {
-              type: 'object',
-              fields: [
-                {name: 'code', type: 'string', title: 'Airport Code'},
-                {name: 'name', type: 'string', title: 'Airport Name'},
-                {name: 'baseCost', type: 'number', title: 'Base Flight Cost (USD)'},
+              name: 'airports',
+              title: 'Nearby Airports',
+              type: 'array',
+              of: [
+                {
+                  type: 'object',
+                  fields: [
+                    {name: 'iata', type: 'string', title: 'IATA Code'},
+                    {name: 'name', type: 'string', title: 'Airport Name'},
+                    {name: 'city', type: 'string', title: 'City'},
+                  ],
+                },
               ],
             },
           ],
         },
         {
-          name: 'accommodation',
-          title: 'Accommodation',
-          type: 'object',
-          fields: [
-            {name: 'costPerNight', type: 'number', title: 'Cost per Night (USD)'},
-            {name: 'hotelName', type: 'string', title: 'Recommended Hotel/Stay'},
-            {name: 'bookingLink', type: 'url', title: 'Booking Link'},
+          name: 'recommendedStays',
+          type: 'array',
+          title: 'Recommended Hotels',
+          of: [
+            {
+              type: 'object',
+              fields: [
+                {
+                  name: 'bookingUrl',
+                  type: 'url',
+                  title: 'Booking.com Hotel URL',
+                  description: 'Paste the hotel URL from Booking.com',
+                  validation: (Rule) => Rule.required(),
+                },
+                {
+                  name: 'name',
+                  type: 'string',
+                  title: 'Hotel Name',
+                },
+                {
+                  name: 'averagePrice',
+                  type: 'number',
+                  title: 'Average Price per Night (USD)',
+                },
+              ],
+            },
           ],
         },
         {

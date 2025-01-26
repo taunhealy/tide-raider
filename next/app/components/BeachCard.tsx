@@ -284,6 +284,7 @@ export default function BeachCard({
                     onMouseLeave={() => setShowRatingHint(false)}
                   >
                     <div>{scoreDisplay.emoji}</div>
+                    <div className="text-amber-400">{scoreDisplay.stars}</div>
                     <div
                       className={`
                       absolute z-10 bottom-full left-1/2 -translate-x-1/2 mb-2 

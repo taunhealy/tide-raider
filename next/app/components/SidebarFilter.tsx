@@ -20,9 +20,6 @@ type FilterType = {
   crimeLevel: string[];
   minPoints: number;
   sharkAttack: string[];
-  minDistance: number;
-  maxDistance: number;
-  maxWaveHeight: number;
 };
 
 interface SidebarFilterProps {
@@ -80,24 +77,12 @@ export default function SidebarFilter({
       );
     }
 
-    // Apply distance filter
-    filteredBeaches = filteredBeaches.filter(
-      (beach) =>
-        beach.distanceFromCT >= newFilters.minDistance &&
-        beach.distanceFromCT <= newFilters.maxDistance
-    );
-
     // Apply wave type filter
     if (newFilters.waveType.length > 0) {
       filteredBeaches = filteredBeaches.filter((beach) =>
         newFilters.waveType.includes(beach.waveType)
       );
     }
-
-    // Apply wave height filter
-    filteredBeaches = filteredBeaches.filter(
-      (beach) => beach.swellSize.max <= newFilters.maxWaveHeight
-    );
 
     // Apply shark attack filter
     if (newFilters.sharkAttack.length > 0) {
@@ -216,49 +201,6 @@ export default function SidebarFilter({
           />
           Reported Attacks
         </label>
-      </div>
-
-      {/* Distance Range Filter */}
-      <div className="filter-section">
-        <h5 className="filter-heading">Distance from CT</h5>
-        <div className="relative w-full py-2.5">
-          <div className="flex justify-between mb-1.5 text-[var(--color-text-secondary)] text-sm">
-            <span>{filters.minDistance}km</span>
-            <span>{filters.maxDistance}km</span>
-          </div>
-          <input
-            type="range"
-            className="w-full absolute left-0 pointer-events-none appearance-none opacity-50 hover:opacity-100 bg-[var(--color-bg-secondary)]
-                     [&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:w-4 [&::-webkit-slider-thumb]:h-4 
-                     [&::-webkit-slider-thumb]:rounded-full [&::-webkit-slider-thumb]:bg-[var(--color-bg-tertiary)] 
-                     [&::-webkit-slider-thumb]:cursor-pointer [&::-webkit-slider-thumb]:pointer-events-auto
-                     [&::-moz-range-thumb]:w-4 [&::-moz-range-thumb]:h-4 [&::-moz-range-thumb]:rounded-full 
-                     [&::-moz-range-thumb]:bg-[var(--color-bg-tertiary)] [&::-moz-range-thumb]:cursor-pointer 
-                     [&::-moz-range-thumb]:border-none [&::-moz-range-thumb]:pointer-events-auto"
-            min="0"
-            max={MAX_DISTANCE}
-            value={filters.minDistance}
-            onChange={(e) =>
-              updateFilters("minDistance", parseInt(e.target.value))
-            }
-          />
-          <input
-            type="range"
-            className="w-full absolute left-0 pointer-events-none appearance-none opacity-50 hover:opacity-100 bg-[var(--color-bg-secondary)]
-                     [&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:w-4 [&::-webkit-slider-thumb]:h-4 
-                     [&::-webkit-slider-thumb]:rounded-full [&::-webkit-slider-thumb]:bg-[var(--color-bg-tertiary)] 
-                     [&::-webkit-slider-thumb]:cursor-pointer [&::-webkit-slider-thumb]:pointer-events-auto
-                     [&::-moz-range-thumb]:w-4 [&::-moz-range-thumb]:h-4 [&::-moz-range-thumb]:rounded-full 
-                     [&::-moz-range-thumb]:bg-[var(--color-bg-tertiary)] [&::-moz-range-thumb]:cursor-pointer 
-                     [&::-moz-range-thumb]:border-none [&::-moz-range-thumb]:pointer-events-auto"
-            min="0"
-            max={MAX_DISTANCE}
-            value={filters.maxDistance}
-            onChange={(e) =>
-              updateFilters("maxDistance", parseInt(e.target.value))
-            }
-          />
-        </div>
       </div>
 
       {/* Wave Type Filter */}

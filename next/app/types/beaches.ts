@@ -1653,7 +1653,7 @@ export const beachData: Beach[] = [
     difficulty: "Advanced",
     waveType: "Beach Break",
     swellSize: {
-      min: 1.6,
+      min: 1.1,
       max: 3.0, // Was 0.6
     },
     idealSwellPeriod: {
@@ -1832,49 +1832,6 @@ export const beachData: Beach[] = [
         platform: "youtube",
       },
     ],
-  },
-  {
-    id: "off-the-wall",
-    name: "Off The Wall",
-    continent: "Africa",
-    country: "South Africa",
-    region: "Western Cape",
-    location: "Kommetjie",
-    distanceFromCT: 30,
-    optimalWindDirections: ["S", "SE"],
-    optimalSwellDirections: {
-      min: 225, // SW
-      max: 270, // W
-      cardinal: "SW to W",
-    },
-    bestSeasons: ["winter"],
-    optimalTide: "Low to Mid",
-    description:
-      "Powerful left-hand reef break situated along the rocky coastline of Kommetjie. Wave offers multiple sections over a 150m ride, starting with a steep takeoff into a fast-running wall with barrel opportunities on bigger swells. Best performance comes from SW to W swells with SE winds grooming the face. Despite being accessible from the rocks, entry and exit points require careful timing and local knowledge. Wave holds size well and can handle overhead conditions while maintaining shape. Inside section becomes particularly shallow on low tide, creating more critical waves but increasing risk. Popular among local chargers but less crowded than neighboring spots due to its demanding nature.",
-    difficulty: "Intermediate",
-    waveType: "Reef Break",
-    swellSize: {
-      min: 0.6,
-      max: 3.5, // Was 2.0
-    },
-    idealSwellPeriod: {
-      min: 12,
-      max: 18,
-    },
-    waterTemp: {
-      summer: 16,
-      winter: 12,
-    },
-    hazards: ["Rocks", "Strong currents", "Shallow reef"],
-    crimeLevel: "Low",
-    sharkAttack: {
-      hasAttack: false,
-    },
-    image: "",
-    coordinates: {
-      lat: -34.1012,
-      lng: 18.4987,
-    },
   },
   {
     id: "horse-trails",
@@ -4862,8 +4819,8 @@ export const beachData: Beach[] = [
     distanceFromCT: 5,
     optimalWindDirections: ["SE", "ESE"],
     optimalSwellDirections: {
-      min: 225, // SW
-      max: 247.5, // WSW
+      min: 245, // SW
+      max: 270, // W
       cardinal: "SW",
     },
     bestSeasons: ["winter"],

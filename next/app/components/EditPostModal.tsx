@@ -5,9 +5,10 @@ import { useQueryClient, useMutation } from "@tanstack/react-query";
 import { X, Loader2, Link as LinkIcon } from "lucide-react";
 import { Inter } from "next/font/google";
 import { cn } from "@/app/lib/utils";
-import type { Story, StoryCategory } from "@/app/types/stories";
+import type { Story } from "@/app/types/stories";
 import { beachData } from "@/app/types/beaches";
-import { Button } from "@/app/components/ui/Button"
+import { Button } from "@/app/components/ui/Button";
+import { STORY_CATEGORIES, StoryCategory } from "@/app/lib/constants";
 
 const inter = Inter({ subsets: ["latin"] });
 
@@ -16,14 +17,6 @@ interface EditPostModalProps {
   onClose: () => void;
   story: Story;
 }
-
-const CATEGORIES: StoryCategory[] = [
-  "Travel",
-  "Wipeouts",
-  "Crime",
-  "Favourite Sessions",
-  "Wildlife Encounters",
-];
 
 export function EditPostModal({ isOpen, onClose, story }: EditPostModalProps) {
   const queryClient = useQueryClient();
@@ -63,7 +56,11 @@ export function EditPostModal({ isOpen, onClose, story }: EditPostModalProps) {
         value={formData.beach}
         onChange={(e) => {
           setFormData({ ...formData, beach: e.target.value });
-          setSearchTerm(e.target.value === "other" ? "Other" : beachData.find(b => b.id === e.target.value)?.name || "");
+          setSearchTerm(
+            e.target.value === "other"
+              ? "Other"
+              : beachData.find((b) => b.id === e.target.value)?.name || ""
+          );
         }}
         className="w-full px-3 py-2 bg-[var(--color-bg-secondary)] border border-[var(--color-border-light)] rounded-md focus:outline-none focus:ring-2 focus:ring-[var(--color-tertiary)]"
       >
@@ -151,7 +148,9 @@ export function EditPostModal({ isOpen, onClose, story }: EditPostModalProps) {
                 type="text"
                 required
                 value={formData.title}
-                onChange={(e) => setFormData({ ...formData, title: e.target.value })}
+                onChange={(e) =>
+                  setFormData({ ...formData, title: e.target.value })
+                }
                 className="modal-input"
               />
             </div>
@@ -175,7 +174,7 @@ export function EditPostModal({ isOpen, onClose, story }: EditPostModalProps) {
                 }
                 className="w-full px-3 py-2 bg-[var(--color-bg-secondary)] border border-[var(--color-border-light)] rounded-md focus:outline-none focus:ring-2 focus:ring-[var(--color-tertiary)]"
               >
-                {CATEGORIES.map((category) => (
+                {STORY_CATEGORIES.map((category) => (
                   <option key={category} value={category}>
                     {category}
                   </option>
@@ -238,11 +237,7 @@ export function EditPostModal({ isOpen, onClose, story }: EditPostModalProps) {
 
             {/* Submit Button */}
             <div className="flex justify-end gap-3">
-              <Button
-                variant="outline"
-                onClick={onClose}
-                size="sm"
-              >
+              <Button variant="outline" onClick={onClose} size="sm">
                 Cancel
               </Button>
               <Button

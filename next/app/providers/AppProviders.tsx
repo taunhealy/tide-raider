@@ -16,17 +16,7 @@ function ErrorFallback({ error }: { error: Error }) {
 }
 
 export function AppProviders({ children }: { children: React.ReactNode }) {
-  const [queryClient] = useState(
-    () =>
-      new QueryClient({
-        defaultOptions: {
-          queries: {
-            retry: 1,
-            refetchOnWindowFocus: false,
-          },
-        },
-      })
-  );
+  const [queryClient] = useState(() => new QueryClient());
 
   return (
     <ErrorBoundary FallbackComponent={ErrorFallback}>

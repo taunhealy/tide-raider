@@ -8,19 +8,6 @@ import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { blogListingQuery } from "@/app/lib/queries";
 
-interface Category {
-  title: string;
-  slug: { current: string };
-}
-
-interface Post {
-  title: string;
-  slug: { current: string };
-  mainImage: { asset: { url: string } } | null; // Ensure mainImage is nullable
-  publishedAt: string;
-  description: string;
-  categories: Category[];
-}
 
 async function fetchBlogData() {
   return client.fetch(blogListingQuery);

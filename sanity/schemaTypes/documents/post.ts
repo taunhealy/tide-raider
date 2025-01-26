@@ -30,11 +30,64 @@ export default defineType({
     }),
     defineField({
       name: 'template',
-      title: 'Post Template',
-      type: 'reference',
-      to: [{type: 'postTemplate'}],
-      validation: (Rule) => Rule.required(),
-    }),
+      title: 'Template',
+      type: 'object',
+      fields: [
+        {
+          name: 'name',
+          title: 'Template Name',
+          type: 'string',
+          options: {
+            list: [
+              { title: 'Default', value: 'default' },
+              { title: 'Travel Guide', value: 'travel' },
+            ]
+          }
+        },
+        {
+          name: 'sidebarWidgets',
+          title: 'Sidebar Widgets',
+          type: 'array',
+          of: [{
+            type: 'object',
+            name: 'widget',
+            fields: [
+              {
+                name: 'type',
+                title: 'Widget Type',
+                type: 'string',
+                options: {
+                  list: [
+                    { title: 'Flight Search', value: 'FlightWidget' },
+                    { title: 'Weather', value: 'WeatherWidget' },
+                    { title: 'Related Posts', value: 'RelatedPostsWidget' },
+                    { title: 'Quest Log', value: 'QuestLogWidget' },
+                    { title: 'Events', value: 'EventsWidget' }
+                  ]
+                }
+              },
+              {
+                name: 'order',
+                title: 'Display Order',
+                type: 'number'
+              },
+              {
+                name: 'config',
+                title: 'Widget Configuration',
+                type: 'object',
+                fields: [
+                  // Add widget-specific configuration fields here
+                  // These will be shown/hidden based on the widget type
+                ]
+              }
+            ]
+          }],
+          options: {
+            sortable: true
+          }
+        }
+      ]
+    },
     // Location Fields
     defineField({
       name: 'location',
@@ -49,112 +102,7 @@ export default defineType({
       ],
       validation: (Rule) => Rule.required(),
     }),
-    // Travel Costs
-    defineField({
-      name: 'travelCosts',
-      title: 'Travel Costs',
-      type: 'object',
-      fields: [
-        {
-          name: 'destinations',
-          title: 'Travel Destinations',
-          type: 'object',
-          fields: [
-            {
-              name: 'airports',
-              title: 'Nearby Airports',
-              type: 'array',
-              of: [
-                {
-                  type: 'object',
-                  fields: [
-                    {name: 'iata', type: 'string', title: 'IATA Code'},
-                    {name: 'name', type: 'string', title: 'Airport Name'},
-                    {name: 'city', type: 'string', title: 'City'},
-                  ],
-                },
-              ],
-            },
-          ],
-        },
-        {
-          name: 'recommendedStays',
-          type: 'array',
-          title: 'Recommended Hotels',
-          of: [
-            {
-              type: 'object',
-              fields: [
-                {
-                  name: 'bookingUrl',
-                  type: 'url',
-                  title: 'Booking.com Hotel URL',
-                  description: 'Paste the hotel URL from Booking.com',
-                  validation: (Rule) => Rule.required(),
-                },
-                {
-                  name: 'name',
-                  type: 'string',
-                  title: 'Hotel Name',
-                },
-                {
-                  name: 'averagePrice',
-                  type: 'number',
-                  title: 'Average Price per Night (USD)',
-                },
-              ],
-            },
-          ],
-        },
-        {
-          name: 'dailyExpenses',
-          title: 'Daily Expenses',
-          type: 'object',
-          fields: [
-            {name: 'food', type: 'number', title: 'Food Cost per Day (USD)'},
-            {name: 'transport', type: 'number', title: 'Local Transport per Day (USD)'},
-            {name: 'activities', type: 'number', title: 'Activities per Day (USD)'},
-            {name: 'medical', type: 'number', title: 'Medical Insurance per Day (USD)'},
-          ],
-        },
-      ],
-    }),
-    // Content Sections
-    defineField({
-      name: 'content',
-      title: 'Blog Content',
-      type: 'array',
-      of: [
-        {
-          type: 'object',
-          fields: [
-            {
-              name: 'type',
-              title: 'Section Type',
-              type: 'string',
-              options: {
-                list: [
-                  {title: 'Introduction', value: 'intro'},
-                  {title: 'Main Content', value: 'content'},
-                  {title: 'Conclusion', value: 'conclusion'},
-                ],
-              },
-            },
-            {name: 'text', type: 'blockContent', title: 'Text Content'},
-            {
-              name: 'image',
-              title: 'Section Image',
-              type: 'image',
-              options: {
-                hotspot: true,
-              },
-            },
-          ],
-        },
-      ],
-      validation: (Rule) => Rule.required().min(1),
-    }),
-  ],
+    
   preview: {
     select: {
       title: 'title',

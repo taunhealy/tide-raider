@@ -4,63 +4,22 @@ import { urlForImage } from "@/app/lib/urlForImage";
 import { notFound } from "next/navigation";
 import Image from "next/image";
 import { postQuery } from "@/app/lib/queries";
-import TripExpensesSidebar from "@/app/components/sidebars/TripExpensesSidebar";
+import BlogSidebar from "@/app/components/sidebars/BlogSidebar";
+import { Post, Airport } from "@/app/types";
 
-interface Post {
-  title: string;
-  template: {
-    name: string;
-    sidebar: string;
-  };
-  location: {
-    beachName: string;
-    region: string;
-    country: string;
-    continent: string;
-    weatherCity: string;
-  };
-  travelCosts?: {
-    airports: Array<{
-      code: string;
-      name: string;
-      baseCost: number;
-    }>;
-    accommodation: {
-      costPerNight: number;
-      hotelName: string;
-      bookingLink: string;
-    };
-    dailyExpenses: {
-      food: number;
-      transport: number;
-      activities: number;
-      medical: number;
-    };
-  };
-  surfConditions?: {
-    // Add your surf conditions type here
-  };
-  content: Array<{
-    type: "intro" | "content" | "conclusion";
-    text: any;
-    image: any;
-  }>;
-  publishedAt: string;
-  categories: Array<{
-    title: string;
-    slug: { current: string };
-  }>;
-}
-
-export default async function Post({ params }: { params: { slug: string } }) {
-  const post: Post = await client.fetch(postQuery, { slug: params.slug });
+export default async function BlogPost({
+  params,
+}: {
+  params: { slug: string };
+}) {
+  const post = await client.fetch(postQuery, { slug: params.slug });
 
   if (!post) return notFound();
 
   const transformedTravelCosts = post.travelCosts
     ? {
         ...post.travelCosts,
-        airports: post.travelCosts.airports.map((airport) => ({
+        airports: post.travelCosts.airports.map((airport: Airport) => ({
           iata: airport.code,
           name: airport.name,
           city: post.location.region,
@@ -69,7 +28,8 @@ export default async function Post({ params }: { params: { slug: string } }) {
       }
     : undefined;
 
-  const shouldRenderSidebar = post.template?.sidebar === "travelExpenses";
+  // Check if there are any sidebar widgets configured
+  const shouldRenderSidebar = post.template?.sidebarWidgets?.length > 0;
 
   return (
     <div className="container mx-auto px-4 py-8">
@@ -78,29 +38,35 @@ export default async function Post({ params }: { params: { slug: string } }) {
         <main>
           <h1 className="text-3xl font-bold mb-4">{post.title}</h1>
           <div className="prose max-w-none">
-            {post.content.map((section, index) => (
-              <div key={index} className="mb-8">
-                {section.image && (
-                  <Image
-                    src={urlForImage(section.image)?.url() || ""}
-                    alt={`Section ${index + 1}`}
-                    width={800}
-                    height={400}
-                    className="rounded-lg mb-4"
-                  />
-                )}
-                <PortableText value={section.text} />
-              </div>
-            ))}
+            {post.content.map(
+              (
+                section: { type: string; text: any; image: any },
+                index: number
+              ) => (
+                <div key={index} className="mb-8">
+                  {section.image && (
+                    <Image
+                      src={urlForImage(section.image)?.url() || ""}
+                      alt={`Section ${index + 1}`}
+                      width={800}
+                      height={400}
+                      className="rounded-lg mb-4"
+                    />
+                  )}
+                  <PortableText value={section.text} />
+                </div>
+              )
+            )}
           </div>
         </main>
 
         {/* Sidebar */}
         {shouldRenderSidebar && (
           <aside className="space-y-8">
-            <TripExpensesSidebar
-              travelCosts={transformedTravelCosts}
+            <BlogSidebar
               location={post.location}
+              posts={post.relatedPosts}
+              widgets={post.template.sidebarWidgets}
             />
           </aside>
         )}

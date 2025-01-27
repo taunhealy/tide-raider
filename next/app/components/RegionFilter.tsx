@@ -47,13 +47,7 @@ function getPremiumBeachCount(
   filterType: "continent" | "country" | "region",
   value: string
 ): number {
-  if (!windData) return 0;
-
-  return beaches.filter(
-    (beach) =>
-      beach[filterType] === value &&
-      isBeachSuitable(beach, windData).score === 4
-  ).length;
+  return 0; // Always return 0 to remove the blue badge
 }
 
 async function saveFiltersToDb(filters: SavedFilters) {

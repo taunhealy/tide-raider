@@ -55,23 +55,6 @@ const inter = Inter({
   fallback: ["system-ui", "arial"],
 });
 
-// Add the BeachCountBadge component at the top level of the file
-function BeachCountBadge({ count }: { count: number }) {
-  if (count === 0) return null;
-
-  return (
-    <div className="inline-flex items-center justify-center w-6 h-6 ml-2 text-sm text-white bg-blue-500 rounded-full">
-      {count}
-    </div>
-  );
-}
-
-interface RegionFilterProps {
-  // ... existing props ...
-  BeachCountBadge: React.ComponentType<{ count: number }>;
-  cachedBeachScores: Record<string, number>;
-}
-
 export default function BeachContainer({
   initialBeaches,
   windData: initialWindData,
@@ -164,31 +147,16 @@ export default function BeachContainer({
   const [viewMode, setViewMode] = useState<"list" | "map">("list");
   const [searchQuery, setSearchQuery] = useState("");
 
-  // Use a single query for all beaches' log entries
-  const { data: questEntries } = useQuery({
-    queryKey: ["questEntries"],
-    queryFn: async () => {
-      console.log("Fetching all quest entries"); // Debug log
-      const response = await fetch("/api/quest-log");
-      if (!response.ok) throw new Error("Failed to fetch quest entries");
-      return response.json();
-    },
-    staleTime: 1000 * 60 * 5,
-    gcTime: 1000 * 60 * 30,
-  });
-
   // And for surf conditions, ensure we're not making duplicate requests
   const { data: windData, isLoading } = useQuery({
     queryKey: ["surfConditions", selectedRegion],
     queryFn: async () => {
-      console.log("Fetching data for region:", selectedRegion); // Debug log
       if (!selectedRegion) return null;
       const response = await fetch(
         `/api/surf-conditions?region=${selectedRegion}`
       );
       if (!response.ok) throw new Error("Failed to fetch conditions");
       const data = await response.json();
-      console.log("Received wind data:", data); // Debug log
       return data;
     },
     enabled: !!selectedRegion,
@@ -501,7 +469,10 @@ export default function BeachContainer({
                     onRegionChange={handleRegionChange}
                     getGoodBeachCount={getGoodBeachCount}
                     cachedBeachScores={cachedBeachScores}
-                    BeachCountBadge={BeachCountBadge}
+                    BeachCountBadge={({ count }) => {
+                      // Always show the count, even if it's 0
+                      return <span className="ml-2 text-sm">({count})</span>;
+                    }}
                   />
                 </div>
 

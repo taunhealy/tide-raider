@@ -1,12 +1,9 @@
 "use client";
 
 import { useQuery } from "@tanstack/react-query";
-import { Inter } from "next/font/google";
 import Link from "next/link";
 import { cn } from "@/app/lib/utils";
 import type { Story } from "@/app/types/stories";
-
-const inter = Inter({ subsets: ["latin"] });
 
 export default function RecentChronicles() {
   const { data: stories = [], isLoading } = useQuery({
@@ -22,11 +19,9 @@ export default function RecentChronicles() {
   });
 
   return (
-    <div className="bg-[var(--color-bg-primary)] p-6 rounded-lg shadow-sm border border-gray-200">
+    <div className="font-primary bg-[var(--color-bg-primary)] p-6 rounded-lg shadow-sm border border-gray-200">
       <div className="flex items-center justify-between mb-6">
-        <h3
-          className={`text-lg font-semibold text-gray-800 ${inter.className}`}
-        >
+        <h3 className={`text-lg font-semibold text-gray-800`}>
           Recent Chronicles
         </h3>
         <Link

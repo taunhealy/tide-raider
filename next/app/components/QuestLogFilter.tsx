@@ -53,16 +53,32 @@ export function QuestLogFilter({
 
   // Get unique values from entries
   const uniqueBeaches = [
-    ...new Set(entries.map((entry) => entry.beachName).filter(Boolean)),
+    ...new Set(
+      (Array.isArray(entries) ? entries : [])
+        .map((entry) => entry.beachName)
+        .filter(Boolean)
+    ),
   ].sort();
   const uniqueSurfers = [
-    ...new Set(entries.map((entry) => entry.surferName).filter(Boolean)),
+    ...new Set(
+      (Array.isArray(entries) ? entries : [])
+        .map((entry) => entry.surferName)
+        .filter(Boolean)
+    ),
   ].sort();
   const uniqueCountries = [
-    ...new Set(entries.map((entry) => entry.beach?.country).filter(Boolean)),
+    ...new Set(
+      (Array.isArray(entries) ? entries : [])
+        .map((entry) => entry.beach?.country)
+        .filter(Boolean)
+    ),
   ].sort();
   const uniqueRegions = [
-    ...new Set(entries.map((entry) => entry.beach?.region).filter(Boolean)),
+    ...new Set(
+      (Array.isArray(entries) ? entries : [])
+        .map((entry) => entry.beach?.region)
+        .filter(Boolean)
+    ),
   ].sort();
 
   // Update parent component when filters change

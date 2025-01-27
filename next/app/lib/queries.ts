@@ -70,52 +70,24 @@ export const pricingQuery = groq`
 `;
 
 // Single post query with template-specific fields
-export const postQuery = groq`
-  *[_type == "post" && slug.current == $slug][0] {
+export const postQuery = groq`*[_type == "post" && slug.current == $slug][0]{
+  title,
+  mainImage,
+  content,
+  location,
+  "relatedPosts": *[_type == "post" && references(^.categories[0]._ref) && _id != ^._id][0...3]{
     title,
-    "template": template->,
-    location {
-      beachName,
-      region,
-      country,
-      continent,
-      weatherCity
-    },
-    // Conditional includes based on template
-    ...select(template.sidebar == "travelExpenses" => {
-      travelCosts {
-        airports[] {
-          code,
-          name,
-          baseCost
-        },
-        accommodation {
-          costPerNight,
-          hotelName,
-          bookingLink
-        },
-        dailyExpenses
-      }
-    }),
-    ...select(template.sidebar == "surfConditions" => {
-      surfConditions {
-        // Add your surf conditions fields here
-      }
-    }),
-    content[] {
-      type,
-      text,
-      image
-    },
-    publishedAt,
-    mainImage,
-    description,
-    "categories": categories[]-> {
-      title,
-      slug
+    slug,
+    mainImage
+  },
+  sidebarWidgets[] {
+    type,
+    order,
+    config {
+      title
     }
   }
-`;
+}`;
 
 // Main blog listing query - use this for all blog listings
 export const blogListingQuery = groq`{
@@ -133,6 +105,52 @@ export const blogListingQuery = groq`{
     }
   },
   "categories": *[_type == "postCategory"] | order(order asc) {
+    title,
+    slug
+  }
+}`;
+
+// Query for sidebar widgets data
+export const sidebarWidgetsQuery = groq`
+{
+  "relatedPosts": *[_type == "post" && references(*[_type == "postCategory" && references(^.categories[]._ref)]._id)] | order(publishedAt desc)[0...5] {
+    title,
+    slug,
+    mainImage,
+    publishedAt,
+    description,
+    categories[]-> {
+      title,
+      slug
+    }
+  },
+  "categories": *[_type == "postCategory"] | order(order asc) {
+    title,
+    slug,
+    "postCount": count(*[_type == "post" && references(^._id)])
+  },
+  "tags": *[_type == "postTag"] {
+    title,
+    slug,
+    "postCount": count(*[_type == "post" && references(^._id)]),
+    "lastUsed": *[_type == "post" && references(^._id)] | order(publishedAt desc)[0].publishedAt
+  }
+}`;
+
+// Query for related posts by specific criteria
+export const relatedPostsQuery = groq`
+*[_type == "post" && 
+  // Match by category
+  count((categories[]->_id)[@ in ^.categories[]->_id]) > 0 &&
+  // Exclude current post
+  _id != $postId
+] | order(publishedAt desc)[0...3] {
+  title,
+  slug,
+  mainImage,
+  publishedAt,
+  description,
+  categories[]-> {
     title,
     slug
   }

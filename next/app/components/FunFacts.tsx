@@ -1,11 +1,11 @@
-'use client';
+"use client";
 
-import { useState, useEffect } from 'react';
-import { funFacts, type FunFact } from '@/data/funfacts';
-import { cn } from '@/app/lib/utils';
-import { Inter } from 'next/font/google';
+import { useState, useEffect } from "react";
+import { funFacts, type FunFact } from "@/data/funfacts";
+import { cn } from "@/app/lib/utils";
+import { Inter } from "next/font/google";
 
-const inter = Inter({ subsets: ['latin'] });
+const inter = Inter({ subsets: ["latin"] });
 
 export default function FunFacts() {
   const [currentFact, setCurrentFact] = useState<FunFact | null>(null);
@@ -35,22 +35,29 @@ export default function FunFacts() {
   if (!currentFact) return null;
 
   return (
-    <div className={cn(
-      "bg-white rounded-lg shadow-sm p-6",
-      "min-h-[240px]",
-      "flex flex-col"
-    )}>
-      <h3 className={cn(
-        "text-[18px] font-semibold text-[var(--color-text-primary)]",
-        "mb-6",
-        inter.className
-      )}>
+    <div
+      className={cn(
+        "bg-white rounded-lg shadow-sm p-6",
+        "min-h-[240px]",
+        "flex flex-col",
+        "font-primary"
+      )}
+    >
+      <h3
+        className={cn(
+          "text-[18px] font-semibold text-[var(--color-text-primary)]",
+          "mb-6",
+          inter.className
+        )}
+      >
         Did You Know?
       </h3>
-      <div 
+      <div
         className={cn(
           "transition-all duration-300 ease-in-out",
-          isLoading ? 'opacity-0 transform translate-y-2' : 'opacity-100 transform translate-y-0'
+          isLoading
+            ? "opacity-0 transform translate-y-2"
+            : "opacity-100 transform translate-y-0"
         )}
       >
         <div className="flex items-start gap-3">
@@ -61,8 +68,9 @@ export default function FunFacts() {
             <p className="text-sm text-gray-700">{currentFact.fact}</p>
             {currentFact.source && (
               <p className="text-xs text-gray-500 mt-1">
-                Source: {currentFact.sourceUrl ? (
-                  <a 
+                Source:{" "}
+                {currentFact.sourceUrl ? (
+                  <a
                     href={currentFact.sourceUrl}
                     target="_blank"
                     rel="noopener noreferrer"
@@ -82,17 +90,17 @@ export default function FunFacts() {
   );
 }
 
-function getCategoryIcon(category: FunFact['category']) {
+function getCategoryIcon(category: FunFact["category"]) {
   switch (category) {
-    case 'marine-life':
-      return '🐋';
-    case 'surf-history':
-      return '🏄‍♂️';
-    case 'environment':
-      return '🌊';
-    case 'culture':
-      return '🏆';
+    case "marine-life":
+      return "🐋";
+    case "surf-history":
+      return "🏄‍♂️";
+    case "environment":
+      return "🌊";
+    case "culture":
+      return "🏆";
     default:
-      return '🏄‍♂️';
+      return "🏄‍♂️";
   }
 }

@@ -4,8 +4,15 @@ import { urlForImage } from "@/app/lib/urlForImage";
 import { notFound } from "next/navigation";
 import Image from "next/image";
 import { postQuery } from "@/app/lib/queries";
-import BlogSidebar from "@/app/components/sidebars/BlogSidebar";
-import { Post, Airport } from "@/app/types";
+import BlogSidebar from "@/app/components/postsSidebars/BlogSidebar";
+
+interface SidebarWidget {
+  type: string;
+  order: number;
+  config: {
+    widgetConfig: any;
+  };
+}
 
 export default async function BlogPost({
   params,
@@ -13,23 +20,13 @@ export default async function BlogPost({
   params: { slug: string };
 }) {
   const post = await client.fetch(postQuery, { slug: params.slug });
+  console.log("Post data from Sanity:", {
+    title: post?.title,
+    widgets: post?.sidebarWidgets,
+    location: post?.location
+  });
 
   if (!post) return notFound();
-
-  const transformedTravelCosts = post.travelCosts
-    ? {
-        ...post.travelCosts,
-        airports: post.travelCosts.airports.map((airport: Airport) => ({
-          iata: airport.code,
-          name: airport.name,
-          city: post.location.region,
-          country: post.location.country,
-        })),
-      }
-    : undefined;
-
-  // Check if there are any sidebar widgets configured
-  const shouldRenderSidebar = post.template?.sidebarWidgets?.length > 0;
 
   return (
     <div className="container mx-auto px-4 py-8">
@@ -37,39 +34,41 @@ export default async function BlogPost({
         {/* Main Content */}
         <main>
           <h1 className="text-3xl font-bold mb-4">{post.title}</h1>
+
+          {/* Main Image */}
+          {post.mainImage?.asset && (
+            <div className="relative aspect-[16/9] mb-6">
+              <Image
+                src={urlForImage(post.mainImage).url()}
+                alt={post.title}
+                fill
+                className="object-cover rounded-lg"
+              />
+            </div>
+          )}
+
+          {/* Content */}
           <div className="prose max-w-none">
-            {post.content.map(
-              (
-                section: { type: string; text: any; image: any },
-                index: number
-              ) => (
-                <div key={index} className="mb-8">
-                  {section.image && (
-                    <Image
-                      src={urlForImage(section.image)?.url() || ""}
-                      alt={`Section ${index + 1}`}
-                      width={800}
-                      height={400}
-                      className="rounded-lg mb-4"
-                    />
-                  )}
-                  <PortableText value={section.text} />
-                </div>
-              )
+            {Array.isArray(post.content) && post.content.length > 0 ? (
+              <PortableText value={post.content} />
+            ) : (
+              <div className="bg-yellow-50 p-4 rounded">
+                <p className="text-yellow-700">
+                  Content is missing. Please add content in Sanity Studio.
+                </p>
+              </div>
             )}
           </div>
         </main>
 
         {/* Sidebar */}
-        {shouldRenderSidebar && (
-          <aside className="space-y-8">
-            <BlogSidebar
-              location={post.location}
-              posts={post.relatedPosts}
-              widgets={post.template.sidebarWidgets}
-            />
-          </aside>
-        )}
+        <aside className="space-y-8">
+          <BlogSidebar
+            location={post.location}
+            posts={post.relatedPosts}
+            widgets={post.sidebarWidgets}
+          />
+        </aside>
       </div>
     </div>
   );

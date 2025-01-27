@@ -39,5 +39,41 @@ export default defineType({
         ],
       },
     }),
+    defineField({
+      name: 'sidebarWidgets',
+      title: 'Sidebar Widgets',
+      type: 'array',
+      of: [
+        {
+          type: 'object',
+          fields: [
+            {
+              name: 'type',
+              type: 'string',
+              options: {
+                list: [
+                  {title: 'Related Posts', value: 'relatedPosts'},
+                  {title: 'Location Map', value: 'locationMap'},
+                  {title: 'Category List', value: 'categoryList'},
+                  {title: 'Tag Cloud', value: 'tagCloud'},
+                ],
+              },
+            },
+            {name: 'order', type: 'number'},
+            {
+              name: 'config',
+              type: 'object',
+              fields: [
+                {
+                  name: 'widgetConfig',
+                  type: 'reference',
+                  to: [{type: 'relatedPostsWidget'}, {type: 'locationMapWidget'}],
+                },
+              ],
+            },
+          ],
+        },
+      ],
+    }),
   ],
 })

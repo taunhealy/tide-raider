@@ -4969,6 +4969,11 @@ export const beachData: Beach[] = [
           "Anchor Point - Morocco - RAWFILES - Anchor Point is located in Central Morocco, the north side of the small surf town, Taghazout. Its probably the best wave in Morocco and one of the best in Africa!",
         platform: "youtube",
       },
+      {
+        url: "https://www.youtube.com/watch?v=CucTAx7eRro&ab_channel=TheAdventureLocker",
+        title: "Surfing in Africa 🏄🗺️ #surf #surffilm",
+        platform: "youtube",
+      },
     ],
   },
   {
@@ -7023,6 +7028,56 @@ export const beachData: Beach[] = [
       {
         url: "https://www.youtube.com/watch?v=-k4ux8OsJ10&ab_channel=NomadSurfCamps",
         title: "NOMAD SURFERS: ANGOLA",
+        platform: "youtube",
+      },
+    ],
+  },
+  {
+    id: "anza",
+    name: "Anza",
+    continent: "Africa",
+    country: "Morocco",
+    region: "Central Morocco",
+    location: "Central Morocco",
+    distanceFromCT: 7500, // Approximate distance from Cape Town
+    optimalWindDirections: ["NE"],
+    optimalSwellDirections: {
+      min: 292.5, // NW
+      max: 315, // NW
+      cardinal: "NW",
+    },
+    bestSeasons: ["winter"],
+    optimalTide: "All", // No specific tide information provided
+    description:
+      "Fairly exposed beach break offering consistent surf conditions. Works best with Northwest groundswell and Northeast offshore winds. Beach offers predominantly right-hand waves. Despite reliable conditions, spot remains uncrowded. Water quality can be questionable. Location provides good access to waves throughout winter season.",
+    difficulty: "Intermediate",
+    waveType: "Beach Break",
+    swellSize: {
+      min: 1.2,
+      max: 6.0,
+    },
+    idealSwellPeriod: {
+      min: 12,
+      max: 18,
+    },
+    waterTemp: {
+      summer: 21,
+      winter: 18,
+    },
+    hazards: ["Water quality", "Strong currents"],
+    crimeLevel: "Low",
+    sharkAttack: {
+      hasAttack: false,
+    },
+    image: "",
+    coordinates: {
+      lat: 30.4467, // Please verify coordinates
+      lng: -9.6431,
+    },
+    videos: [
+      {
+        url: "https://www.youtube.com/watch?v=z5P_LA1NYSs",
+        title: "Surfing Anza - Kale Brock",
         platform: "youtube",
       },
     ],

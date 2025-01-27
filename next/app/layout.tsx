@@ -30,7 +30,7 @@ export default function RootLayout({
 }) {
   return (
     <html lang="en" className={`${inter.variable} ${montserrat.variable}`}>
-      <body className={inter.className}>
+      <body>
         <AppProviders>
           <Navbar />
           <main>{children}</main>

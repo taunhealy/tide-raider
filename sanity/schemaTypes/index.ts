@@ -7,6 +7,15 @@ import pricing from './documents/pricing'
 // Object schemas
 import heroSection from './objects/heroSection'
 import blogSection from './objects/blogSection'
+import postTag from './documents/postTag'
+import {
+  relatedPostsWidget,
+  locationMapWidget,
+  categoryListWidget,
+  tagCloudWidget,
+  weatherWidget,
+  flightSearchWidget,
+} from './objects/sidebarWidgets'
 
 export const schemaTypes = [
   // Documents
@@ -14,9 +23,16 @@ export const schemaTypes = [
   post,
   postTemplate,
   postCategory,
+  postTag,
   // Objects
   blockContent,
   heroSection,
   blogSection,
   pricing,
+  relatedPostsWidget,
+  locationMapWidget,
+  categoryListWidget,
+  tagCloudWidget,
+  weatherWidget,
+  flightSearchWidget,
 ]

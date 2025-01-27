@@ -4,18 +4,21 @@ import { client } from "@/app/lib/sanity";
 import { prisma } from "@/app/lib/prisma";
 import { blogListingQuery } from "@/app/lib/queries";
 
-export default async function RaidPage() {
+export default async function QuestPage() {
   try {
     const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || "http://localhost:3000";
 
     // Fetch wind data, blog posts, and active ads
     const [windResponse, blogData, activeAds] = await Promise.all([
-      fetch(`${baseUrl}/api/surf-conditions`, {
-        cache: "no-store",
-        headers: {
-          "Content-Type": "application/json",
-        },
-      }),
+      fetch(
+        `${baseUrl}/api/surf-conditions?date=${new Date().toISOString().split("T")[0]}`,
+        {
+          cache: "no-store",
+          headers: {
+            "Content-Type": "application/json",
+          },
+        }
+      ),
       client.fetch(blogListingQuery),
       prisma.adRequest
         .findMany({

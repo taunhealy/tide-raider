@@ -87,11 +87,14 @@ export default function QuestLogs({ beaches }: QuestLogsProps) {
   useEffect(() => {
     if (questEntries && Array.isArray(questEntries)) {
       setFilteredEntries(questEntries);
+    } else {
+      setFilteredEntries([]);
     }
   }, [questEntries]);
 
   const handleFilterChange = (newFilters: any) => {
-    let filtered = [...questEntries];
+    // Ensure questEntries is an array before spreading
+    let filtered = Array.isArray(questEntries) ? [...questEntries] : [];
 
     // Filter by beaches
     if (newFilters.beaches.length > 0) {

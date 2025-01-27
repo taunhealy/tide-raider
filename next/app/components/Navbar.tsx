@@ -11,7 +11,7 @@ import { useState } from "react";
 
 const NAVIGATION_ITEMS = [
   { href: "/quest", label: "Quest" },
-  { href: "/questlogs", label: "Quest Logs" },
+  { href: "/sidequests", label: "Quest Logs" },
   { href: "/chronicles", label: "Chronicles" },
   { href: "/blog", label: "Blog" },
   { href: "/pricing", label: "Pricing" },

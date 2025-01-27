@@ -1,41 +1,33 @@
-'use client'
+"use client";
 
-import { createContext, useContext, ReactNode } from 'react';
-import { useQuery } from '@tanstack/react-query';
+import { createContext, useContext } from "react";
+import { useAuth } from "../hooks/useAuth";
 
-interface SubscriptionContextType {
+const SubscriptionContext = createContext<{
   isSubscribed: boolean;
   isLoading: boolean;
-}
-
-const SubscriptionContext = createContext<SubscriptionContextType>({
+}>({
   isSubscribed: false,
-  isLoading: false,
+  isLoading: true,
 });
 
-export function SubscriptionProvider({ children }: { children: ReactNode }) {
-  const { data, isLoading } = useQuery({
-    queryKey: ['subscription-status'],
-    queryFn: async () => {
-      const response = await fetch('/api/subscription-status');
-      if (!response.ok) throw new Error('Failed to fetch subscription status');
-      return response.json();
-    },
-    staleTime: Infinity,
-    gcTime: Infinity,
-    refetchOnWindowFocus: false,
-    refetchOnReconnect: false,
-    refetchInterval: false
-  });
+export function SubscriptionProvider({
+  children,
+}: {
+  children: React.ReactNode;
+}) {
+  const { session, isLoading } = useAuth();
 
   return (
-    <SubscriptionContext.Provider value={{ 
-      isSubscribed: data?.isSubscribed ?? false,
-      isLoading 
-    }}>
+    <SubscriptionContext.Provider
+      value={{
+        isSubscribed: session?.user?.isSubscribed ?? false,
+        isLoading,
+      }}
+    >
       {children}
     </SubscriptionContext.Provider>
   );
 }
 
-export const useSubscription = () => useContext(SubscriptionContext); 
+export const useSubscription = () => useContext(SubscriptionContext);

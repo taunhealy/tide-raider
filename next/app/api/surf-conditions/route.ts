@@ -5,6 +5,7 @@ import { prisma } from "@/app/lib/prisma";
 import { randomUUID } from "crypto";
 import { degreesToCardinal } from "@/app/lib/surfUtils";
 import { Region } from "@/app/types/beaches";
+import { getCachedSurfConditions, cacheSurfConditions } from "@/app/lib/redis";
 
 interface RegionScrapeConfig {
   url: string;
@@ -328,17 +329,37 @@ async function backgroundFetchOtherRegions(today: string) {
 }
 
 export async function GET(request: Request) {
-  const { searchParams } = new URL(request.url);
-  const region = searchParams.get("region") || "Western Cape"; // Default to Western Cape
-
   try {
-    const conditions = await getLatestConditions(false, region);
+    const { searchParams } = new URL(request.url);
+    const date = searchParams.get("date");
+    const region = searchParams.get("region");
+
+    // If neither parameter is provided, return error
+    if (!date && !region) {
+      return Response.json(
+        { error: "Either date or region parameter is required" },
+        { status: 400 }
+      );
+    }
+
+    // Try to get cached data first
+    const cacheKey = date ? date : `region:${region}`;
+    const cached = await getCachedSurfConditions(cacheKey);
+    if (cached) {
+      console.log("Cache hit - returning cached data");
+      return Response.json(cached);
+    }
+
+    console.log("Cache miss - fetching fresh data");
+    // Pass the region (convert null to undefined)
+    const conditions = await getLatestConditions(false, region || undefined);
+
+    // Cache the results
+    await cacheSurfConditions(cacheKey, conditions);
+
     return Response.json(conditions);
   } catch (error) {
-    console.error("Error fetching conditions:", error);
-    return Response.json(
-      { error: "Failed to fetch conditions" },
-      { status: 500 }
-    );
+    console.error("Error in surf conditions route:", error);
+    return Response.json({ error: "Internal server error" }, { status: 500 });
   }
 }

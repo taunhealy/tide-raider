@@ -21,7 +21,7 @@ import {
   WaveType,
 } from "@/app/lib/constants";
 import { MediaGrid } from "./MediaGrid";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import type { LogEntry } from "@/app/types/questlogs";
 
 interface BeachCardProps {
@@ -61,6 +61,7 @@ export default function BeachCard({
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [showWaveTypeHint, setShowWaveTypeHint] = useState(false);
   const [showRatingHint, setShowRatingHint] = useState(false);
+  const queryClient = useQueryClient();
 
   const suitability = windData ? isBeachSuitable(beach, windData) : null;
   const shouldBeLocked = !isSubscribed && suitability?.score === 4;
@@ -122,21 +123,14 @@ export default function BeachCard({
     handleOpenModal();
   };
 
-  const { data: sessions } = useQuery({
-    queryKey: ["sessions", beach.name],
-    queryFn: async () => {
-      const response = await fetch(
-        `/api/logbook?beach=${encodeURIComponent(beach.name)}`
-      );
-      if (!response.ok) throw new Error("Failed to fetch sessions");
-      const allSessions = await response.json();
-      // Filter sessions for this specific beach
-      return allSessions.filter(
-        (session: LogEntry) =>
-          session.beachName.toLowerCase() === beach.name.toLowerCase()
-      );
-    },
-  });
+  // Get sessions from existing cache
+  const recentEntries = queryClient.getQueryData<LogEntry[]>([
+    "recentQuestEntries",
+  ]);
+  const beachSessions =
+    recentEntries?.filter(
+      (entry) => entry.beachName.toLowerCase() === beach.name.toLowerCase()
+    ) || [];
 
   const scoreDisplay = getScoreDisplay(suitability?.score || 0);
 
@@ -412,7 +406,7 @@ export default function BeachCard({
         <MediaGrid
           beach={beach}
           videos={beach.videos || []}
-          sessions={sessions || []}
+          sessions={beachSessions}
         />
       )}
     </>

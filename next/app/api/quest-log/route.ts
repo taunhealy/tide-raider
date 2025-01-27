@@ -8,11 +8,40 @@ function getTodayDate() {
   return date.toISOString().split("T")[0];
 }
 
-export async function GET() {
+export async function GET(request: Request) {
+  const { searchParams } = new URL(request.url);
+  const limit = parseInt(searchParams.get("limit") || "10");
+  const page = parseInt(searchParams.get("page") || "1");
+  const beach = searchParams.get("beach");
+
+  const where = beach ? { beachName: beach } : {};
+
   const entries = await prisma.logEntry.findMany({
+    where,
     orderBy: { date: "desc" },
+    take: limit,
+    skip: (page - 1) * limit,
+    select: {
+      id: true,
+      date: true,
+      surferName: true,
+      beachName: true,
+      surferRating: true,
+      comments: true,
+      forecast: true,
+    },
   });
-  return Response.json(entries);
+
+  const total = await prisma.logEntry.count({ where });
+
+  return Response.json({
+    entries,
+    pagination: {
+      total,
+      pages: Math.ceil(total / limit),
+      currentPage: page,
+    },
+  });
 }
 
 export async function POST(request: Request) {

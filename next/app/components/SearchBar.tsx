@@ -1,8 +1,5 @@
-import { Search } from 'lucide-react';
-import { Inter } from 'next/font/google';
-import { cn } from '@/app/lib/utils';
-
-const inter = Inter({ subsets: ["latin"] });
+import { Search } from "lucide-react";
+import { cn } from "@/app/lib/utils";
 
 interface SearchBarProps {
   value: string;
@@ -10,12 +7,13 @@ interface SearchBarProps {
   placeholder?: string;
 }
 
-export default function SearchBar({ value, onChange, placeholder = "Search breaks..." }: SearchBarProps) {
+export default function SearchBar({
+  value,
+  onChange,
+  placeholder = "Search breaks...",
+}: SearchBarProps) {
   return (
-    <div className={cn(
-      "relative w-full max-w-md",
-      inter.className
-    )}>
+    <div className={cn("relative w-full max-w-md font-primary")}>
       <div className="absolute inset-y-0 left-3 flex items-center pointer-events-none">
         <Search className="h-5 w-5 text-gray-400" />
       </div>
@@ -30,4 +28,4 @@ export default function SearchBar({ value, onChange, placeholder = "Search break
       />
     </div>
   );
-} 
+}

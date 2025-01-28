@@ -6,24 +6,33 @@ import { Suspense } from "react";
 
 function SignInContent() {
   const searchParams = useSearchParams();
-  const callbackUrl = searchParams.get("callbackUrl") || "/";
+  const error = searchParams.get("error");
 
   return (
-    <button
-      onClick={() => signIn("google", { callbackUrl })}
-      className="rounded-md bg-black px-4 py-2 text-white"
-    >
-      Sign in with Google
-    </button>
+    <div className="min-h-screen flex items-center justify-center bg-[var(--color-bg-secondary)]">
+      <div className="text-center p-8">
+        {error === "OAuthAccountNotLinked" && (
+          <p className="text-red-500 mb-4">
+            This email is already associated with another account. Please sign
+            in with the same method you used previously.
+          </p>
+        )}
+        <button
+          onClick={() => signIn("google", { callbackUrl: "/" })}
+          className="flex items-center gap-3 px-6 py-3 bg-white text-gray-800 rounded-lg 
+                   shadow-sm hover:shadow-md transition-all mx-auto"
+        >
+          <span>Sign in with Google</span>
+        </button>
+      </div>
+    </div>
   );
 }
 
-export default function SignIn() {
+export default function SignInPage() {
   return (
-    <div className="flex min-h-screen items-center justify-center">
-      <Suspense fallback={<div>Loading...</div>}>
-        <SignInContent />
-      </Suspense>
-    </div>
+    <Suspense fallback={<div>Loading...</div>}>
+      <SignInContent />
+    </Suspense>
   );
 }

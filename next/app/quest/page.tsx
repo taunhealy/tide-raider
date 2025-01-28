@@ -9,19 +9,26 @@ export default async function QuestPage() {
     const baseUrl =
       process.env.NEXT_PUBLIC_BASE_URL?.replace(/\/$/, "") ||
       "https://www.tideraider.com";
+    const date = new Date().toISOString().split("T")[0];
 
-    // Fetch wind data, blog posts, and active ads
+    // Add error handling for each Promise
     const [windResponse, blogData, activeAds] = await Promise.all([
-      fetch(
-        `${baseUrl}/api/surf-conditions?region=Western Cape&date=${new Date().toISOString().split("T")[0]}`,
-        {
-          next: { revalidate: 300 },
-          headers: {
-            "Content-Type": "application/json",
-          },
+      fetch(`${baseUrl}/api/surf-conditions?region=Western Cape&date=${date}`, {
+        next: { revalidate: 300 },
+        headers: {
+          "Content-Type": "application/json",
+        },
+      }).then(async (res) => {
+        if (!res.ok) {
+          console.error(`Wind API error: ${res.status} ${res.statusText}`);
+          return { data: [] }; // Fallback data
         }
-      ),
-      client.fetch(blogListingQuery),
+        return res.json();
+      }),
+      client.fetch(blogListingQuery).catch((error) => {
+        console.error("Blog fetch error:", error);
+        return []; // Fallback data
+      }),
       prisma.adRequest
         .findMany({
           where: {
@@ -46,14 +53,19 @@ export default async function QuestPage() {
             googleAdsContribution: true,
           },
         })
-        .then((ads) => ads.map((ad) => ({ ...ad, isAd: true as const }))),
+        .then((ads) => ads.map((ad) => ({ ...ad, isAd: true as const })))
+        .catch((error) => {
+          console.error("Ads fetch error:", error);
+          return [];
+        }),
     ]);
 
-    if (!windResponse.ok) {
-      throw new Error("Failed to fetch wind data");
+    // Add response validation
+    if (!windResponse || !blogData || !activeAds) {
+      throw new Error("Failed to fetch required data");
     }
 
-    const { data: windData } = await windResponse.json();
+    const { data: windData } = windResponse;
 
     return (
       <div className="min-h-screen bg-[var(--color-bg-secondary)]">

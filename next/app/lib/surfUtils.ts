@@ -60,7 +60,7 @@ export function getScoreDisplay(score: number): ScoreDisplay {
 }
 
 export function isBeachSuitable(beach: Beach, windData: WindData | null) {
-  if (!windData) {
+  if (!windData?.wind?.direction || !windData?.swell?.direction) {
     return {
       suitable: false,
       score: 0,
@@ -283,8 +283,8 @@ export function getGatedBeaches(
 
 export function getGoodBeachCount(beaches: Beach[], windData: WindData | null) {
   if (!windData) return 0;
-  
-  return beaches.filter(beach => {
+
+  return beaches.filter((beach) => {
     const suitability = isBeachSuitable(beach, windData);
     return suitability.score >= 4;
   }).length;

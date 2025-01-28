@@ -173,9 +173,38 @@ export function degreesToCardinal(degrees: string | number): string {
 
 export function getConditionReasons(
   beach: Beach,
-  windData: WindData,
+  windData: WindData | null,
   isGoodConditions: boolean = false
 ) {
+  // Add early return if windData or its required properties are missing
+  if (!windData?.wind?.direction || !windData?.swell?.direction) {
+    return {
+      reasons: [],
+      optimalConditions: [
+        {
+          text: `Optimal Wind: ${beach.optimalWindDirections.join(", ")}`,
+          isMet: false,
+        },
+        {
+          text: `Wind Speed: 0-25km/h`,
+          isMet: false,
+        },
+        {
+          text: `Optimal Swell Direction: ${beach.optimalSwellDirections.min}° - ${beach.optimalSwellDirections.max}°`,
+          isMet: false,
+        },
+        {
+          text: `Optimal Wave Size: ${beach.swellSize.min}m - ${beach.swellSize.max}m`,
+          isMet: false,
+        },
+        {
+          text: `Optimal Swell Period: ${beach.idealSwellPeriod.min}s - ${beach.idealSwellPeriod.max}s`,
+          isMet: false,
+        },
+      ],
+    };
+  }
+
   const reasons = [];
 
   // Check wind direction

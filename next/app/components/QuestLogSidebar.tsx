@@ -8,50 +8,16 @@ import { cn } from "@/app/lib/utils";
 import type { LogEntry } from "@/app/types/questlogs";
 
 const inter = Inter({ subsets: ["latin"] });
-const WEEK_IN_MS = 1000 * 60 * 60 * 24; // 7 days in milliseconds
 
 export default function QuestLogSidebar() {
   const { data, isLoading } = useQuery({
     queryKey: ["recentQuestEntries"],
     queryFn: async () => {
-      // Try to get cached data first
-      const cachedData = localStorage.getItem("recentQuestEntries");
-      if (cachedData) {
-        const { data, timestamp } = JSON.parse(cachedData);
-        // Check if cache is less than a week old
-        if (Date.now() - timestamp < WEEK_IN_MS) {
-          return data;
-        }
-      }
-
-      // If no cache or expired, fetch fresh data
       const response = await fetch("/api/quest-log?limit=3");
       if (!response.ok) throw new Error("Failed to fetch recent entries");
-      const data = await response.json();
-
-      // Cache the new data
-      localStorage.setItem(
-        "recentQuestEntries",
-        JSON.stringify({
-          data: data.entries,
-          timestamp: Date.now(),
-        })
-      );
-
-      return data.entries;
+      return response.json();
     },
-    staleTime: WEEK_IN_MS, // Cache in memory for a week
-    gcTime: WEEK_IN_MS, // Keep in cache for a week
-    refetchOnMount: true, // Refetch on mount to validate cache
-    // Use cached data while revalidating
-    placeholderData: () => {
-      const cachedData = localStorage.getItem("recentQuestEntries");
-      if (cachedData) {
-        const { data } = JSON.parse(cachedData);
-        return data;
-      }
-      return undefined;
-    },
+    staleTime: 1000 * 60 * 5, // 5 minutes
   });
 
   if (isLoading) return <div>Loading...</div>;
@@ -73,8 +39,8 @@ export default function QuestLogSidebar() {
       </div>
 
       <div className="space-y-6">
-        {data && data.length > 0 ? (
-          data.map((entry: LogEntry) => (
+        {data && data.entries.length > 0 ? (
+          data.entries.map((entry: LogEntry) => (
             <div key={entry.id} className="group">
               <article className="flex gap-4">
                 <div className="flex-1 min-w-0">

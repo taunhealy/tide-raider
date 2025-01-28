@@ -19,17 +19,14 @@ export default function StickyForecastWidget({
 
   useEffect(() => {
     const handleScroll = () => {
-      // Get the main forecast widget element and footer
       const mainForecast = document.querySelector("[data-forecast-widget]");
       const footer = document.querySelector("footer");
       if (!mainForecast || !footer) return;
 
-      // Get positions
       const forecastRect = mainForecast.getBoundingClientRect();
       const footerRect = footer.getBoundingClientRect();
       const windowHeight = window.innerHeight;
 
-      // Show widget when forecast is out of view AND footer isn't too close
       setIsVisible(
         forecastRect.bottom < 0 && footerRect.top > windowHeight - 100
       );
@@ -39,7 +36,15 @@ export default function StickyForecastWidget({
     return () => window.removeEventListener("scroll", handleScroll);
   }, []);
 
-  if (!windData) return null;
+  // Enhanced null check for all required properties
+  if (
+    !windData?.wind?.speed ||
+    !windData?.wind?.direction ||
+    !windData?.swell?.height ||
+    !windData?.swell?.period ||
+    !windData?.swell?.direction
+  )
+    return null;
 
   return (
     <div

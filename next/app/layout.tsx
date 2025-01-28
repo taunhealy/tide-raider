@@ -32,8 +32,10 @@ export default function RootLayout({
     <html lang="en" className={`${inter.variable} ${montserrat.variable}`}>
       <body>
         <AppProviders>
-          <Navbar />
-          <main>{children}</main>
+          <main>
+            <Navbar />
+            {children}
+          </main>
           <Footer />
           <NewsBannerWrapper />
         </AppProviders>

@@ -32,32 +32,8 @@ export default function Navbar() {
     router.refresh();
   };
 
-  if (status === "loading") {
-    return (
-      <header className="sticky top-0 z-50 flex justify-between items-center px-8 py-4 bg-white min-h-[72px]">
-        <div className="opacity-40">
-          <Link href="/" className="text-[var(--color-text-primary)]">
-            <h6>Tide Raider</h6>
-          </Link>
-        </div>
-        <div className="flex items-center gap-8">
-          <nav>
-            <ul className="flex gap-6">
-              {[1, 2, 3].map((i) => (
-                <li key={i}>
-                  <div className="h-4 w-20 bg-gray-200 rounded animate-pulse" />
-                </li>
-              ))}
-            </ul>
-          </nav>
-          <div className="h-9 w-20 bg-gray-200 rounded animate-pulse" />
-        </div>
-      </header>
-    );
-  }
-
   return (
-    <header className="sticky top-0 z-50 bg-white ">
+    <header className="sticky top-0 z-50 bg-white">
       <div
         className={cn(
           "flex justify-between items-center px-4 md:px-8 py-4 bg-white",
@@ -82,11 +58,6 @@ export default function Navbar() {
                 <li key={link.href}>
                   <Link
                     href={link.href}
-                    prefetch={true}
-                    onClick={(e) => {
-                      e.preventDefault();
-                      window.location.href = link.href;
-                    }}
                     className={cn(
                       "relative text-gray-600 hover:text-gray-900 transition-colors",
                       pathname === link.href && "text-gray-900 font-medium"
@@ -94,7 +65,6 @@ export default function Navbar() {
                   >
                     {link.label}
                   </Link>
-                  {index < NAVIGATION_ITEMS.length - 1 && <div className="" />}
                 </li>
               ))}
             </ul>
@@ -111,9 +81,7 @@ export default function Navbar() {
             ) : (
               <Button
                 variant="outline"
-                onClick={() =>
-                  signIn("google", { callbackUrl: window.location.href })
-                }
+                onClick={() => signIn("google")}
                 className="transition-all duration-300"
               >
                 Sign In
@@ -135,9 +103,7 @@ export default function Navbar() {
           ) : (
             <Button
               variant="outline"
-              onClick={() =>
-                signIn("google", { callbackUrl: window.location.href })
-              }
+              onClick={() => signIn("google")}
               className="transition-all duration-300"
             >
               Sign In

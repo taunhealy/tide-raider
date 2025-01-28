@@ -655,10 +655,10 @@ export default function BeachContainer({
                       <div className="flex-1 flex flex-col items-center justify-center">
                         <div className="space-y-2 text-center">
                           <span className="text-xl font-semibold text-gray-800">
-                            {windData.wind.direction}
+                            {windData?.wind?.direction || "N/A"}
                           </span>
                           <span className="block text-sm text-gray-600">
-                            {windData.wind.speed} km/h
+                            {windData?.wind?.speed || "N/A"} km/h
                           </span>
                         </div>
                       </div>
@@ -676,7 +676,7 @@ export default function BeachContainer({
                       </label>
                       <div className="flex-1 flex flex-col items-center justify-center">
                         <span className="text-xl font-semibold text-gray-800">
-                          {windData.swell.height}m
+                          {windData?.swell?.height || "N/A"}m
                         </span>
                       </div>
                     </div>
@@ -693,7 +693,7 @@ export default function BeachContainer({
                       </label>
                       <div className="flex-1 flex flex-col items-center justify-center">
                         <span className="text-xl font-semibold text-gray-800">
-                          {windData.swell.period}s
+                          {windData?.swell?.period || "N/A"}s
                         </span>
                       </div>
                     </div>
@@ -711,10 +711,10 @@ export default function BeachContainer({
                       <div className="flex-1 flex flex-col items-center justify-center">
                         <div className="space-y-2 text-center">
                           <span className="text-xl font-semibold text-gray-800">
-                            {windData.swell.direction}°
+                            {windData?.swell?.direction || "N/A"}°
                           </span>
                           <span className="block text-sm text-gray-600">
-                            {windData.swell.cardinalDirection}
+                            {windData?.swell?.cardinalDirection || "N/A"}
                           </span>
                         </div>
                       </div>

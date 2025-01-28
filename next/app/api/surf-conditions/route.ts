@@ -358,64 +358,105 @@ export async function GET(request: Request) {
   console.log(`Fetching conditions for region: ${region}, date: ${today}`);
 
   if (!region) {
-    console.log("No region provided");
-    return new Response(JSON.stringify({ error: "Region is required" }), {
-      status: 400,
-    });
+    return NextResponse.json({ error: "Region is required" }, { status: 400 });
   }
 
   const cacheKey = `surf-conditions:${region}:${today}`;
 
   try {
     // 1. Try Redis cache first
-    const cachedData = await redis.get(cacheKey);
-    if (cachedData) {
-      console.log(`Cache hit for ${region} on ${today}`);
-      return new Response(JSON.stringify(JSON.parse(cachedData as string)), {
-        status: 200,
-        headers: { "Content-Type": "application/json" },
+    let data;
+    try {
+      const cachedData = await redis.get(cacheKey);
+      if (cachedData) {
+        console.log(`Cache hit for ${region} on ${today}`);
+        data =
+          typeof cachedData === "string" ? JSON.parse(cachedData) : cachedData;
+      }
+    } catch (redisError) {
+      console.log("Redis unavailable, falling back to database:", redisError);
+    }
+
+    // 2. If no cache, check database
+    if (!data) {
+      const dbData = await prisma.surfCondition.findFirst({
+        where: {
+          date: today,
+          region: region,
+        },
+        orderBy: { timestamp: "desc" },
       });
-    }
 
-    console.log(`Cache miss for ${region}, attempting to scrape...`);
-
-    // 4. Scrape new data for today
-    const scrapedData = await scrapeAllRegions();
-    console.log("Scraped data:", scrapedData);
-
-    const regionData = scrapedData.find((data) => data.region === region);
-    if (!regionData) {
-      console.log(`No data found for region: ${region}`);
-      return new Response(
-        JSON.stringify({ error: "No forecast data available" }),
-        {
-          status: 404,
+      if (dbData) {
+        data = formatConditionsResponse(dbData);
+        // Try to cache the data
+        try {
+          await redis.setex(
+            cacheKey,
+            CACHE_TIMES.getRedisExpiry(),
+            JSON.stringify(data)
+          );
+        } catch (redisCacheError) {
+          console.log("Failed to cache in Redis (non-fatal):", redisCacheError);
         }
-      );
+      }
     }
 
-    console.log(`Found data for ${region}:`, regionData);
+    // 3. If no data in cache or DB, scrape new data
+    if (!data) {
+      console.log(`No cached data for ${region}, attempting to scrape...`);
+      const scrapedData = await scrapeAllRegions();
 
-    // Store in DB
-    await prisma.surfCondition.create({
-      data: {
-        ...regionData,
-        date: today, // Store the date explicitly
-      },
-    });
+      // Store all scraped data in DB
+      await prisma.surfCondition.createMany({
+        data: scrapedData.map((regionData) => ({
+          id: randomUUID(),
+          date: today,
+          ...regionData,
+        })),
+      });
 
-    // Store in cache until end of day
-    await redis.setex(
-      cacheKey,
-      CACHE_TIMES.getRedisExpiry(),
-      JSON.stringify(regionData)
-    );
+      const regionData = scrapedData.find((d) => d.region === region);
+      if (!regionData) {
+        throw new Error(`No data available for region: ${region}`);
+      }
 
-    return new Response(JSON.stringify(regionData), { status: 200 });
+      data = formatConditionsResponse(regionData);
+
+      // Try to cache the new data
+      try {
+        await redis.setex(
+          cacheKey,
+          CACHE_TIMES.getRedisExpiry(),
+          JSON.stringify(data)
+        );
+      } catch (redisCacheError) {
+        console.log("Failed to cache in Redis (non-fatal):", redisCacheError);
+      }
+    }
+
+    // 4. Return the data with proper formatting
+    return NextResponse.json(data);
   } catch (error) {
     console.error("Error fetching surf conditions:", error);
-    return new Response(JSON.stringify({ error: "Internal server error" }), {
-      status: 500,
-    });
+
+    // Return a properly formatted error response
+    return NextResponse.json(
+      {
+        error: "Failed to fetch surf conditions",
+        wind: {
+          direction: "N/A",
+          speed: 0,
+        },
+        swell: {
+          height: 0,
+          period: 0,
+          direction: "N/A",
+          cardinalDirection: "N/A",
+        },
+        timestamp: Date.now(),
+      },
+      { status: 500 }
+    );
   }
 }

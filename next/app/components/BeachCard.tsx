@@ -127,10 +127,11 @@ export default function BeachCard({
   const recentEntries = queryClient.getQueryData<LogEntry[]>([
     "recentQuestEntries",
   ]);
-  const beachSessions =
-    recentEntries?.filter(
-      (entry) => entry.beachName.toLowerCase() === beach.name.toLowerCase()
-    ) || [];
+  const beachSessions = Array.isArray(recentEntries)
+    ? recentEntries.filter(
+        (entry) => entry.beachName.toLowerCase() === beach.name.toLowerCase()
+      )
+    : [];
 
   const scoreDisplay = getScoreDisplay(suitability?.score || 0);
 
@@ -218,7 +219,7 @@ export default function BeachCard({
                   <div>
                     <h4 className="heading-5 text-[var(--color-text-primary)] flex items-center gap-2">
                       {beach.name}
-                      {windData && windData.wind.speed > 25 && (
+                      {windData?.wind?.speed && windData.wind.speed > 25 && (
                         <span title="Strong winds">🌪️</span>
                       )}
                       {beach.sharkAttack.hasAttack && (

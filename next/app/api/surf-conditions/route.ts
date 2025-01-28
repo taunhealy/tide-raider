@@ -5,7 +5,11 @@ import { prisma } from "@/app/lib/prisma";
 import { randomUUID } from "crypto";
 import { degreesToCardinal } from "@/app/lib/surfUtils";
 import { Region } from "@/app/types/beaches";
-import { getCachedSurfConditions, cacheSurfConditions } from "@/app/lib/redis";
+import {
+  getCachedSurfConditions,
+  cacheSurfConditions,
+  redis,
+} from "@/app/lib/redis";
 
 interface RegionScrapeConfig {
   url: string;
@@ -328,38 +332,90 @@ async function backgroundFetchOtherRegions(today: string) {
   }
 }
 
-export async function GET(request: Request) {
-  try {
-    const { searchParams } = new URL(request.url);
-    const date = searchParams.get("date");
-    const region = searchParams.get("region");
+// Constants for time intervals
+const CACHE_TIMES = {
+  // Cache until end of current day (23:59:59)
+  getRedisExpiry: () => {
+    const now = new Date();
+    const endOfDay = new Date(
+      now.getFullYear(),
+      now.getMonth(),
+      now.getDate(),
+      23,
+      59,
+      59
+    );
+    return Math.floor((endOfDay.getTime() - now.getTime()) / 1000);
+  },
+  SCRAPE_LOCK: 60 * 10, // 10 minute lock to prevent multiple scrapes
+};
 
-    // If neither parameter is provided, return error
-    if (!date && !region) {
-      return Response.json(
-        { error: "Either date or region parameter is required" },
-        { status: 400 }
+export async function GET(request: Request) {
+  const { searchParams } = new URL(request.url);
+  const region = searchParams.get("region");
+  const today = new Date().toISOString().split("T")[0];
+
+  console.log(`Fetching conditions for region: ${region}, date: ${today}`);
+
+  if (!region) {
+    console.log("No region provided");
+    return new Response(JSON.stringify({ error: "Region is required" }), {
+      status: 400,
+    });
+  }
+
+  const cacheKey = `surf-conditions:${region}:${today}`;
+
+  try {
+    // 1. Try Redis cache first
+    const cachedData = await redis.get(cacheKey);
+    if (cachedData) {
+      console.log(`Cache hit for ${region} on ${today}`);
+      return new Response(JSON.stringify(JSON.parse(cachedData as string)), {
+        status: 200,
+        headers: { "Content-Type": "application/json" },
+      });
+    }
+
+    console.log(`Cache miss for ${region}, attempting to scrape...`);
+
+    // 4. Scrape new data for today
+    const scrapedData = await scrapeAllRegions();
+    console.log("Scraped data:", scrapedData);
+
+    const regionData = scrapedData.find((data) => data.region === region);
+    if (!regionData) {
+      console.log(`No data found for region: ${region}`);
+      return new Response(
+        JSON.stringify({ error: "No forecast data available" }),
+        {
+          status: 404,
+        }
       );
     }
 
-    // Try to get cached data first
-    const cacheKey = date ? date : `region:${region}`;
-    const cached = await getCachedSurfConditions(cacheKey);
-    if (cached) {
-      console.log("Cache hit - returning cached data");
-      return Response.json(cached);
-    }
+    console.log(`Found data for ${region}:`, regionData);
 
-    console.log("Cache miss - fetching fresh data");
-    // Pass the region (convert null to undefined)
-    const conditions = await getLatestConditions(false, region || undefined);
+    // Store in DB
+    await prisma.surfCondition.create({
+      data: {
+        ...regionData,
+        date: today, // Store the date explicitly
+      },
+    });
 
-    // Cache the results
-    await cacheSurfConditions(cacheKey, conditions);
+    // Store in cache until end of day
+    await redis.setex(
+      cacheKey,
+      CACHE_TIMES.getRedisExpiry(),
+      JSON.stringify(regionData)
+    );
 
-    return Response.json(conditions);
+    return new Response(JSON.stringify(regionData), { status: 200 });
   } catch (error) {
-    console.error("Error in surf conditions route:", error);
-    return Response.json({ error: "Internal server error" }, { status: 500 });
+    console.error("Error fetching surf conditions:", error);
+    return new Response(JSON.stringify({ error: "Internal server error" }), {
+      status: 500,
+    });
   }
 }

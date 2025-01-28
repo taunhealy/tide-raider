@@ -147,7 +147,7 @@ export default function BeachContainer({
   const [viewMode, setViewMode] = useState<"list" | "map">("list");
   const [searchQuery, setSearchQuery] = useState("");
 
-  // And for surf conditions, ensure we're not making duplicate requests
+  // Modify the useQuery to include the score calculation
   const { data: windData, isLoading } = useQuery({
     queryKey: ["surfConditions", selectedRegion],
     queryFn: async () => {
@@ -157,6 +157,24 @@ export default function BeachContainer({
       );
       if (!response.ok) throw new Error("Failed to fetch conditions");
       const data = await response.json();
+
+      // Calculate scores after we have the fresh wind data
+      const scores: Record<string, number> = {};
+
+      initialBeaches.forEach((beach) => {
+        if (beach.region === selectedRegion) {
+          const { score } = isBeachSuitable(beach, data);
+          if (score >= 4) {
+            scores[beach.region] = (scores[beach.region] || 0) + 1;
+            scores[beach.country] = (scores[beach.country] || 0) + 1;
+            scores[beach.continent] = (scores[beach.continent] || 0) + 1;
+          }
+        }
+      });
+
+      console.log("Calculated scores with fresh data:", scores);
+      setCachedBeachScores((prev) => ({ ...prev, ...scores }));
+
       return data;
     },
     enabled: !!selectedRegion,
@@ -298,46 +316,6 @@ export default function BeachContainer({
   const [cachedBeachScores, setCachedBeachScores] = useState<
     Record<string, number>
   >({});
-
-  // Calculate scores on mount or when wind data changes
-  useEffect(() => {
-    if (!initialWindData) return;
-
-    const scores: Record<string, number> = {};
-    console.log("Initial wind data:", initialWindData); // Debug log
-
-    // Group beaches by region first
-    const beachesByRegion = initialBeaches.reduce(
-      (acc, beach) => {
-        if (!acc[beach.region]) acc[beach.region] = [];
-        acc[beach.region].push(beach);
-        return acc;
-      },
-      {} as Record<string, Beach[]>
-    );
-
-    console.log("Beaches by region:", beachesByRegion); // Debug log
-
-    // Calculate scores for each region using its own forecast
-    Object.entries(beachesByRegion).forEach(([region, beaches]) => {
-      const regionForecast = initialWindData[region];
-      console.log(`Forecast for ${region}:`, regionForecast); // Debug log
-
-      if (!regionForecast) return;
-
-      beaches.forEach((beach) => {
-        const score = isBeachSuitable(beach, regionForecast).score;
-        if (score >= 4) {
-          scores[beach.continent] = (scores[beach.continent] || 0) + 1;
-          scores[beach.country] = (scores[beach.country] || 0) + 1;
-          scores[beach.region] = (scores[beach.region] || 0) + 1;
-        }
-      });
-    });
-
-    console.log("Calculated scores:", scores); // Debug log
-    setCachedBeachScores(scores);
-  }, [initialWindData, initialBeaches]);
 
   const fetchRegionData = useCallback(async (region: string) => {
     try {

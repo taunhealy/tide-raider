@@ -11,7 +11,7 @@ export default async function QuestPage() {
     // Fetch wind data, blog posts, and active ads
     const [windResponse, blogData, activeAds] = await Promise.all([
       fetch(
-        `${baseUrl}/api/surf-conditions?date=${new Date().toISOString().split("T")[0]}`,
+        `${baseUrl}/api/surf-conditions?region=Western Cape&date=${new Date().toISOString().split("T")[0]}`,
         {
           cache: "no-store",
           headers: {

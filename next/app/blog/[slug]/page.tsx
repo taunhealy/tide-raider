@@ -23,7 +23,7 @@ export default async function BlogPost({
   console.log("Post data from Sanity:", {
     title: post?.title,
     widgets: post?.sidebarWidgets,
-    location: post?.location
+    location: post?.location,
   });
 
   if (!post) return notFound();
@@ -39,7 +39,7 @@ export default async function BlogPost({
           {post.mainImage?.asset && (
             <div className="relative aspect-[16/9] mb-6">
               <Image
-                src={urlForImage(post.mainImage).url()}
+                src={urlForImage(post.mainImage)?.url() || "/placeholder.jpg"}
                 alt={post.title}
                 fill
                 className="object-cover rounded-lg"

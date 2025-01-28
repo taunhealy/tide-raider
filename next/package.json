@@ -42,6 +42,7 @@
     "date-fns": "^4.1.0",
     "google-ads-api": "^17.1.0-rest-beta",
     "gsap": "^3.12.5",
+    "ioredis": "^5.4.2",
     "lucide-react": "^0.469.0",
     "next": "^14.2.23",
     "next-auth": "^4.24.11",

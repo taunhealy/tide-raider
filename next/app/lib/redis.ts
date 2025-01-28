@@ -12,6 +12,10 @@ const createRedisClient = () => {
         console.log(`[Redis no-op] SET ${key}`);
         return null;
       },
+      setex: async (key: string, seconds: number, value: string) => {
+        console.log(`[Redis no-op] SETEX ${key} ${seconds}`);
+        return null;
+      },
       del: async (key: string) => {
         console.log(`[Redis no-op] DEL ${key}`);
         return null;

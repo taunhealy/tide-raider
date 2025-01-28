@@ -10,6 +10,7 @@ interface WidgetConfig {
   type: string;
   order: number;
   config: any;
+  title?: string;
 }
 
 interface SidebarWidgetFactoryProps {
@@ -29,11 +30,9 @@ export default function SidebarWidgetFactory({
 }: SidebarWidgetFactoryProps): ReactNode {
   // Add detailed widget logging
   console.log("🎯 SidebarWidgetFactory: Widget details:", {
-    _type: widget._type, // Sanity's internal type
-    type: widget.type, // The type we use in the switch
+    type: widget.type, // Just use type, not _type
     title: widget.title,
     order: widget.order,
-    raw: widget, // Full widget object
   });
 
   // Debug log to check widget configuration

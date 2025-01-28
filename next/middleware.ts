@@ -3,17 +3,12 @@ import { NextResponse } from "next/server";
 
 export default withAuth(
   function middleware(req) {
-    console.log("Middleware token:", req.nextauth.token);
     return NextResponse.next();
   },
   {
     callbacks: {
       authorized: ({ token, req }) => {
-        console.log("Authorization check:", {
-          token,
-          path: req.nextUrl.pathname,
-        });
-        return !!token;
+        return true;
       },
     },
     pages: {

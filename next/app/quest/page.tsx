@@ -6,7 +6,8 @@ import { blogListingQuery } from "@/app/lib/queries";
 
 export default async function QuestPage() {
   try {
-    const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || "http://localhost:3000";
+    const baseUrl =
+      process.env.NEXT_PUBLIC_BASE_URL || "https://www.tideraider.com/";
 
     // Fetch wind data, blog posts, and active ads
     const [windResponse, blogData, activeAds] = await Promise.all([

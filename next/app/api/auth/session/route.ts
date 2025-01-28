@@ -1,7 +1,10 @@
 import { getServerSession } from "next-auth";
+import { NextResponse } from "next/server";
 import { authOptions } from "@/app/lib/authOptions";
 import { getCachedSession, cacheUserSession } from "@/app/lib/auth-cache";
 import { headers } from "next/headers";
+
+export const dynamic = "force-dynamic";
 
 export async function GET() {
   try {

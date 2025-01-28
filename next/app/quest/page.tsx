@@ -7,14 +7,15 @@ import { blogListingQuery } from "@/app/lib/queries";
 export default async function QuestPage() {
   try {
     const baseUrl =
-      process.env.NEXT_PUBLIC_BASE_URL || "https://www.tideraider.com/";
+      process.env.NEXT_PUBLIC_BASE_URL?.replace(/\/$/, "") ||
+      "https://www.tideraider.com";
 
     // Fetch wind data, blog posts, and active ads
     const [windResponse, blogData, activeAds] = await Promise.all([
       fetch(
         `${baseUrl}/api/surf-conditions?region=Western Cape&date=${new Date().toISOString().split("T")[0]}`,
         {
-          cache: "no-store",
+          next: { revalidate: 300 },
           headers: {
             "Content-Type": "application/json",
           },

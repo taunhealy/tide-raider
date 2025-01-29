@@ -14,6 +14,7 @@ const nextConfig = {
       path: false,
       worker_threads: false,
     };
+    config.ignoreWarnings = [{ module: /node_modules\/web-worker/ }];
     return config;
   },
 };

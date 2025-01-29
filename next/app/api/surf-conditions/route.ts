@@ -5,12 +5,9 @@ import { prisma } from "@/app/lib/prisma";
 import { randomUUID } from "crypto";
 import { degreesToCardinal, isBeachSuitable } from "@/app/lib/surfUtils";
 import { Region } from "@/app/types/beaches";
-import {
-  getCachedSurfConditions,
-  cacheSurfConditions,
-  redis,
-} from "@/app/lib/redis";
+import { redis } from "@/app/lib/redis";
 import { beachData } from "@/app/types/beaches";
+import { BeachGoodRating } from "@prisma/client";
 
 interface RegionScrapeConfig {
   url: string;
@@ -45,6 +42,10 @@ const REGION_CONFIGS: RegionScrapeConfig[] = [
   {
     url: "https://swell.co.za/ben/simple",
     region: "Benguela",
+  },
+  {
+    url: "https://swell.co.za/swakop/simple",
+    region: "Swakopmund",
   },
 ];
 
@@ -217,6 +218,11 @@ async function getLatestConditions(
     })),
   });
 
+  // Store good beach ratings for each region's conditions
+  for (const conditions of scrapedData) {
+    await storeGoodBeachRatings(conditions, today);
+  }
+
   const requestedRegionData = scrapedData.find(
     (data) => data.region === region
   );
@@ -352,114 +358,33 @@ const CACHE_TIMES = {
 };
 
 export async function GET(request: Request) {
-  const { searchParams } = new URL(request.url);
-  const region = searchParams.get("region");
-  const today = new Date().toISOString().split("T")[0];
-
-  if (!region) {
-    return NextResponse.json({ error: "Region is required" }, { status: 400 });
-  }
-
   try {
-    // 1. Check Redis cache first with detailed logging
-    const cacheKey = `surf-conditions:${region}:${today}`;
-    console.log(`🔍 Checking Redis cache for key: ${cacheKey}`);
+    const { searchParams } = new URL(request.url);
+    const region = searchParams.get("region") || "Western Cape";
+    const fetchAll = searchParams.get("fetchAll") === "true";
+    const today = new Date().toISOString().split("T")[0];
+
+    console.log("🎯 Request:", { region, fetchAll, today });
+
+    // 1. First check Redis cache
+    const cacheKey = `surf_conditions:${region}:${today}`;
     const cachedData = await redis.get(cacheKey);
 
     if (cachedData) {
-      console.log(`✅ Cache hit for ${cacheKey}`);
-      return NextResponse.json(
-        typeof cachedData === "string" ? JSON.parse(cachedData) : cachedData
-      );
-    }
-    console.log(`❌ Cache miss for ${cacheKey}`);
-
-    // 2. Check database with better error handling
-    console.log(`🔍 Checking database for ${today}'s data`);
-    const existingData = await prisma.surfCondition
-      .findFirst({
-        where: { date: today },
-      })
-      .catch((error) => {
-        console.error("Database query error:", error);
-        return null;
-      });
-
-    // 3. If no data exists, scrape with better error handling
-    if (!existingData) {
-      console.log("🌊 No data for today - initiating scrape...");
+      console.log("📦 Cache hit for:", { region, today });
       try {
-        const scrapedData = await scrapeAllRegions();
-
-        if (!scrapedData.length) {
-          console.error("❌ Scraping returned no data");
-          throw new Error("Scraping failed to return any data");
-        }
-
-        // Store scraped data with error handling
-        await prisma.surfCondition
-          .createMany({
-            data: scrapedData.map((data) => ({
-              id: randomUUID(),
-              date: today,
-              ...data,
-            })),
-          })
-          .catch((error) => {
-            console.error("Failed to store scraped data:", error);
-            throw error;
-          });
-
-        // Calculate and cache beach counts
-        const beachCounts: Record<string, number> = {};
-        for (const data of scrapedData) {
-          const formattedData = formatConditionsResponse(data);
-          // Cache each region's conditions
-          await redis
-            .setex(
-              `surf-conditions:${data.region}:${today}`,
-              CACHE_TIMES.getRedisExpiry(),
-              JSON.stringify(formattedData)
-            )
-            .catch((error) =>
-              console.error(`Failed to cache ${data.region}:`, error)
-            );
-
-          // Calculate good beach count
-          const regionBeaches = beachData.filter(
-            (b) => b.region === data.region
-          );
-          const goodBeachCount = regionBeaches.filter((beach) => {
-            const { score } = isBeachSuitable(beach, formattedData);
-            return score >= 4;
-          }).length;
-
-          beachCounts[data.region] = goodBeachCount;
-        }
-
-        // Cache beach counts
-        await redis
-          .setex(
-            `beach:counts:all`,
-            CACHE_TIMES.getRedisExpiry(),
-            JSON.stringify(beachCounts)
-          )
-          .catch((error) =>
-            console.error("Failed to cache beach counts:", error)
-          );
-
-        const requestedData = scrapedData.find((d) => d.region === region);
-        if (requestedData) {
-          return NextResponse.json(formatConditionsResponse(requestedData));
-        }
-      } catch (scrapeError) {
-        console.error("🚨 Scraping failed:", scrapeError);
-        throw scrapeError;
+        // Check if the data is already an object
+        const parsedData =
+          typeof cachedData === "string" ? JSON.parse(cachedData) : cachedData;
+        return Response.json(parsedData);
+      } catch (error) {
+        console.log("⚠️ Cache parse error, falling back to database");
+        // If there's an error with the cache, continue to database check
       }
     }
 
-    // 4. Return existing data for requested region
-    const regionData = await prisma.surfCondition.findFirst({
+    // 2. If no cache, check database
+    const conditions = await prisma.surfCondition.findFirst({
       where: {
         date: today,
         region: region,
@@ -467,42 +392,126 @@ export async function GET(request: Request) {
       orderBy: { timestamp: "desc" },
     });
 
-    if (regionData) {
-      const formattedData = formatConditionsResponse(regionData);
-      // Cache it while we have it
-      await redis
-        .setex(
+    if (conditions) {
+      const formattedData = formatConditionsResponse(conditions);
+      // Store in cache
+      await redis.setex(
+        cacheKey,
+        CACHE_TIMES.getRedisExpiry(),
+        JSON.stringify(formattedData)
+      );
+      return Response.json(formattedData);
+    }
+
+    // 3. If no data in database, check if we're already scraping
+    const scrapeLockKey = `scrape_lock:${today}`;
+    const isLocked = await redis.get(scrapeLockKey);
+
+    if (isLocked) {
+      console.log("🔒 Scrape already in progress, waiting for data...");
+      // Wait a moment and check database again
+      await new Promise((resolve) => setTimeout(resolve, 5000));
+      const recentConditions = await prisma.surfCondition.findFirst({
+        where: {
+          date: today,
+          region: region,
+        },
+        orderBy: { timestamp: "desc" },
+      });
+
+      if (recentConditions) {
+        const formattedData = formatConditionsResponse(recentConditions);
+        await redis.setex(
           cacheKey,
           CACHE_TIMES.getRedisExpiry(),
           JSON.stringify(formattedData)
-        )
-        .catch((error) => console.error("Failed to cache region data:", error));
-
-      return NextResponse.json(formattedData);
+        );
+        return Response.json(formattedData);
+      }
     }
 
-    // 5. Return fallback data with warning log
-    console.warn(`⚠️ No data available for ${region}, returning fallback data`);
-    return NextResponse.json({
-      wind: { direction: "N/A", speed: 0 },
-      swell: {
-        height: 0,
-        period: 0,
-        direction: "N/A",
-        cardinalDirection: "N/A",
-      },
-      timestamp: Date.now(),
-      region: region,
-    });
-  } catch (error: any) {
-    console.error("🚨 Critical error in surf conditions API:", error);
-    return NextResponse.json(
-      {
-        error: "Internal Server Error",
-        details:
-          process.env.NODE_ENV === "development" ? error.message : undefined,
-      },
+    // 4. Set scrape lock and fetch fresh data
+    await redis.setex(scrapeLockKey, CACHE_TIMES.SCRAPE_LOCK, "1");
+    console.log("🌊 Scraping fresh data for all regions");
+
+    const scrapedData = await scrapeAllRegions();
+
+    if (scrapedData && scrapedData.length > 0) {
+      // Store in database
+      const formattedScrapedData = scrapedData.map((d) => ({
+        ...d,
+        id: randomUUID(),
+        date: today,
+        createdAt: new Date(),
+        updatedAt: new Date(),
+      }));
+
+      await prisma.surfCondition.createMany({
+        data: formattedScrapedData,
+      });
+
+      // Store good beach ratings for each region's conditions
+      console.log("Scraped conditions:", formattedScrapedData);
+      for (const conditions of formattedScrapedData) {
+        console.log("Storing ratings for region:", conditions.region);
+        await storeGoodBeachRatings(conditions, today);
+      }
+
+      // Find and format requested region's data
+      const regionData = scrapedData.find((d) => d.region === region);
+      if (regionData) {
+        const formattedData = formatConditionsResponse(regionData);
+        // Store in cache
+        await redis.setex(
+          cacheKey,
+          CACHE_TIMES.getRedisExpiry(),
+          JSON.stringify(formattedData)
+        );
+        return Response.json(formattedData);
+      }
+    }
+
+    return Response.json(
+      { error: `No forecast data available for ${region}` },
+      { status: 404 }
+    );
+  } catch (error) {
+    console.error("❌ Error in surf-conditions route:", error);
+    return Response.json(
+      { error: "Failed to fetch surf conditions" },
       { status: 500 }
     );
+  }
+}
+
+async function storeGoodBeachRatings(conditions: any, date: string) {
+  // Get beaches for this region
+  const regionBeaches = beachData.filter(
+    (beach) => beach.region === conditions.region
+  );
+
+  // Calculate scores and store good ones
+  const goodBeaches = regionBeaches
+    .map((beach) => {
+      const { score } = isBeachSuitable(
+        beach,
+        formatConditionsResponse(conditions)
+      );
+      return { beach, score };
+    })
+    .filter(({ score }) => score >= 4);
+
+  // Store in database
+  if (goodBeaches.length > 0) {
+    await prisma.beachGoodRating.createMany({
+      data: goodBeaches.map(({ beach, score }) => ({
+        date,
+        beachId: beach.id,
+        region: beach.region,
+        score,
+        conditions: conditions, // Store conditions that made it good
+      })),
+      skipDuplicates: true,
+    });
   }
 }

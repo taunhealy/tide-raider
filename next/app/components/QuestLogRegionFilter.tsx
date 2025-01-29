@@ -49,7 +49,6 @@ export function LogbookRegionFilter({
               <FilterButton
                 key={region}
                 label={region}
-                count={0}
                 variant="region"
                 isSelected={selectedFilters.regions.includes(region)}
                 onClick={() => handleRegionChange(region)}

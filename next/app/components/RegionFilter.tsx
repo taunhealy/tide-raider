@@ -1,18 +1,13 @@
 "use client";
 
-import { cn } from "@/app/lib/utils";
-import { Inter } from "next/font/google";
 import { Beach } from "@/app/types/beaches";
 import { WindData } from "@/app/types/wind";
-import { isBeachSuitable } from "@/app/lib/surfUtils";
 import { FilterButton } from "@/app/components/ui/FilterButton";
 import { useEffect, useState, memo } from "react";
 import { useSession } from "next-auth/react";
 import { toast } from "sonner";
 import { ChevronDown } from "lucide-react";
 import { Region } from "@/app/types/beaches";
-
-const inter = Inter({ subsets: ["latin"] });
 
 interface SavedFilters {
   continents: string[];
@@ -35,19 +30,19 @@ interface RegionFilterProps {
   isPro?: boolean;
   initialSavedFilters?: SavedFilters | null;
   selectedRegion: Region;
-  onRegionChange: (region: Region) => void;
-  getGoodBeachCount: (beaches: Beach[], windData: WindData | null) => number;
-  cachedBeachScores: Record<string, number>;
-  BeachCountBadge: React.ComponentType<{ count: number }>;
-}
-
-function getPremiumBeachCount(
-  beaches: Beach[],
-  windData: WindData | null,
-  filterType: "continent" | "country" | "region",
-  value: string
-): number {
-  return 0; // Always return 0 to remove the blue badge
+  onRegionChange: (region: string) => void;
+  getGoodBeachCount: (region: string) => Promise<number>;
+  BeachCountBadge: ({
+    region,
+    allWindData,
+    beaches,
+  }: {
+    region: string;
+    allWindData: any;
+    beaches: Beach[];
+  }) => JSX.Element | null;
+  allWindData?: any;
+  isLoading?: boolean;
 }
 
 async function saveFiltersToDb(filters: SavedFilters) {
@@ -66,16 +61,6 @@ async function saveFiltersToDb(filters: SavedFilters) {
   }
 }
 
-function BeachCountBadge({ count }: { count: number }) {
-  if (count === 0) return null;
-
-  return (
-    <div className="inline-flex items-center justify-center w-6 h-6 ml-2 text-sm text-white bg-blue-500 rounded-full">
-      {count}
-    </div>
-  );
-}
-
 const RegionFilter = memo(function RegionFilter({
   continents,
   countries,
@@ -91,13 +76,14 @@ const RegionFilter = memo(function RegionFilter({
   isPro = false,
   initialSavedFilters,
   selectedRegion,
-  onRegionChange,
   getGoodBeachCount,
-  cachedBeachScores,
   BeachCountBadge,
+  allWindData,
+  onRegionChange,
 }: RegionFilterProps) {
   const { data: session } = useSession();
   const [isOpen, setIsOpen] = useState(true);
+  const [count, setCount] = useState<number>(0);
 
   useEffect(() => {
     if (isPro && initialSavedFilters) {
@@ -106,6 +92,10 @@ const RegionFilter = memo(function RegionFilter({
       initialSavedFilters.regions.forEach(onRegionClick);
     }
   }, [isPro, initialSavedFilters]);
+
+  useEffect(() => {
+    getGoodBeachCount(selectedRegion).then(setCount);
+  }, [selectedRegion, getGoodBeachCount]);
 
   const handleSaveFilters = async () => {
     if (!session?.user) return;
@@ -168,6 +158,11 @@ const RegionFilter = memo(function RegionFilter({
     onCountryClick(country);
   };
 
+  const handleRegionClick = (region: string) => {
+    onRegionClick(region);
+    onRegionChange(region);
+  };
+
   return (
     <div className="space-y-4">
       <div
@@ -191,20 +186,7 @@ const RegionFilter = memo(function RegionFilter({
               return (
                 <FilterButton
                   key={continent}
-                  label={
-                    <div className="flex items-center">
-                      <span>{continent}</span>
-                      <BeachCountBadge
-                        count={cachedBeachScores[continent] || 0}
-                      />
-                    </div>
-                  }
-                  count={getPremiumBeachCount(
-                    beaches,
-                    windData,
-                    "continent",
-                    continent
-                  )}
+                  label={continent}
                   isSelected={selectedContinents.includes(continent)}
                   onClick={() => onContinentClick(continent)}
                   variant="continent"
@@ -225,20 +207,7 @@ const RegionFilter = memo(function RegionFilter({
                 return (
                   <FilterButton
                     key={country}
-                    label={
-                      <div className="flex items-center">
-                        <span>{country}</span>
-                        <BeachCountBadge
-                          count={cachedBeachScores[country] || 0}
-                        />
-                      </div>
-                    }
-                    count={getPremiumBeachCount(
-                      beaches,
-                      windData,
-                      "country",
-                      country
-                    )}
+                    label={country}
                     isSelected={selectedCountries.includes(country)}
                     onClick={() => handleCountryClick(country)}
                     variant="country"
@@ -260,22 +229,9 @@ const RegionFilter = memo(function RegionFilter({
                 return (
                   <FilterButton
                     key={region}
-                    label={
-                      <div className="flex items-center">
-                        <span>{region}</span>
-                        <BeachCountBadge
-                          count={cachedBeachScores[region] || 0}
-                        />
-                      </div>
-                    }
-                    count={getPremiumBeachCount(
-                      beaches,
-                      windData,
-                      "region",
-                      region
-                    )}
+                    label={region}
                     isSelected={selectedRegions.includes(region)}
-                    onClick={() => onRegionClick(region)}
+                    onClick={() => handleRegionClick(region)}
                     variant="region"
                   />
                 );

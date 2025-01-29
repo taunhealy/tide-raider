@@ -12,6 +12,20 @@ datasource db {
   // directUrl = env("DATABASE_URL_UNPOOLED")
 }
 
+model BeachGoodRating {
+  id          String   @id @default(uuid())
+  date        String   // YYYY-MM-DD format
+  beachId     String
+  region      String
+  score       Int      // 4 or 5
+  conditions  Json     // Store the conditions that made it good
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  
+  @@index([date, region])
+  @@index([beachId, date])
+}
+
 model AdRequest {
   id                   String    @id
   category             String    // Store the ad category

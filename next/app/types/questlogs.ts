@@ -3,7 +3,7 @@ import {
   getWindEmoji,
   getSwellEmoji,
   getDirectionEmoji,
-} from "@/app/lib/forecastUtils";
+} from "../lib/forecastUtils";
 
 export interface Beach {
   id: string;
@@ -58,18 +58,16 @@ export interface LogEntry {
 export interface CreateLogEntryInput {
   beachName: string;
   date: string;
-  surferEmail: string;
   surferName: string;
   surferRating: number;
-  comments: string;
+  comments?: string;
   imageUrl?: string;
-  beach: {
+  beach?: {
     continent: string;
     country: string;
     region: string;
     waveType: string;
   };
-  forecast?: LogEntry["forecast"];
 }
 
 export interface SortConfig {

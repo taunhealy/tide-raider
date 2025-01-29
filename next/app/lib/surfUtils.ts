@@ -1,6 +1,7 @@
 import type { Beach } from "@/app/types/beaches";
 import type { WindData } from "@/app/types/wind";
-
+import { prisma } from "@/app/lib/prisma";
+import { beachData } from "@/app/types/beaches";
 interface ScoreDisplay {
   description: string;
   emoji: string;
@@ -310,13 +311,23 @@ export function getGatedBeaches(
   };
 }
 
-export function getGoodBeachCount(beaches: Beach[], windData: WindData | null) {
-  if (!windData) return 0;
+export interface BeachCount {
+  count: number;
+  shouldDisplay: boolean;
+}
 
-  return beaches.filter((beach) => {
-    const suitability = isBeachSuitable(beach, windData);
-    return suitability.score >= 4;
+export function getGoodBeachCount(
+  beaches: Beach[],
+  windData: WindData | null
+): BeachCount {
+  if (!windData) return { count: 0, shouldDisplay: false };
+
+  const count = beaches.filter((beach) => {
+    const { score } = isBeachSuitable(beach, windData);
+    return score >= 4;
   }).length;
+
+  return { count, shouldDisplay: count > 0 };
 }
 
 export function formatConditionsResponse(conditions: any) {
@@ -334,4 +345,101 @@ export function formatConditionsResponse(conditions: any) {
     timestamp: conditions.timestamp,
     region: conditions.region,
   };
+}
+
+export function calculateInitialScores(
+  beaches: Beach[],
+  windData: WindData | null,
+  selectedRegion: string
+) {
+  const scores: Record<string, number> = {};
+
+  if (!windData) return scores;
+
+  beaches.forEach((beach) => {
+    if (beach.region === selectedRegion) {
+      const { score } = isBeachSuitable(beach, windData);
+      if (score >= 4) {
+        scores[beach.region] = (scores[beach.region] || 0) + 1;
+        scores[beach.country] = (scores[beach.country] || 0) + 1;
+        scores[beach.continent] = (scores[beach.continent] || 0) + 1;
+      }
+    }
+  });
+
+  return scores;
+}
+
+export function calculateBeachScores(
+  beaches: Beach[],
+  windData: WindData | null
+) {
+  if (!windData) return {};
+
+  const counts: Record<string, number> = {};
+
+  // Group beaches by their region and calculate scores
+  beaches.forEach((beach) => {
+    const { score } = isBeachSuitable(beach, windData);
+    if (score >= 4) {
+      // Only increment counters for the beach's specific region/country/continent
+      counts[beach.region] = (counts[beach.region] || 0) + 1;
+
+      // Only count for parent regions if the beach is actually in that region
+      if (beach.country === beach.region) {
+        counts[beach.country] = (counts[beach.country] || 0) + 1;
+      }
+      if (beach.continent === beach.region) {
+        counts[beach.continent] = (counts[beach.continent] || 0) + 1;
+      }
+    }
+  });
+
+  return counts;
+}
+
+export async function storeGoodBeachRatings(conditions: any, date: string) {
+  console.log("Starting storeGoodBeachRatings:", { conditions, date });
+
+  // Log all regions we have conditions for
+  console.log("Processing region:", conditions.region);
+
+  const regionBeaches = beachData.filter(
+    (beach) => beach.region === conditions.region
+  );
+
+  // Log beach scores for debugging
+  const beachScores = regionBeaches.map((beach) => {
+    const { score } = isBeachSuitable(
+      beach,
+      formatConditionsResponse(conditions)
+    );
+    return { name: beach.name, score };
+  });
+  console.log("Beach scores:", beachScores);
+
+  const goodBeaches = regionBeaches
+    .map((beach) => {
+      const { score } = isBeachSuitable(
+        beach,
+        formatConditionsResponse(conditions)
+      );
+      return { beach, score };
+    })
+    .filter(({ score }) => score >= 4);
+  console.log("Good beaches found:", goodBeaches.length);
+
+  if (goodBeaches.length > 0) {
+    const result = await prisma.beachGoodRating.createMany({
+      data: goodBeaches.map(({ beach, score }) => ({
+        date,
+        beachId: beach.id,
+        region: beach.region,
+        score,
+        conditions: conditions,
+      })),
+      skipDuplicates: true,
+    });
+    console.log("Storage result:", result);
+  }
 }

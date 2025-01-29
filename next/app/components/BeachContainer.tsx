@@ -9,7 +9,7 @@ import Map from "./Map";
 import { useSubscription } from "../context/SubscriptionContext";
 import { useHandleSubscription } from "../hooks/useHandleSubscription";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { isBeachSuitable, getGoodBeachCount } from "@/app/lib/surfUtils";
+import { isBeachSuitable, calculateBeachScores } from "@/app/lib/surfUtils";
 import FunFacts from "@/app/components/FunFacts";
 import { cn } from "@/app/lib/utils";
 import { Inter } from "next/font/google";
@@ -41,6 +41,8 @@ import { format } from "date-fns";
 import QuestLogSidebar from "./QuestLogSidebar";
 import StickyForecastWidget from "./StickyForecastWidget";
 import { getCachedBeachCounts, cacheBeachCounts } from "@/app/lib/redis";
+import { prisma } from "@/app/lib/prisma";
+import { storeGoodBeachRatings } from "@/app/lib/surfUtils";
 
 interface BeachContainerProps {
   initialBeaches: Beach[];
@@ -148,48 +150,96 @@ export default function BeachContainer({
   const [viewMode, setViewMode] = useState<"list" | "map">("list");
   const [searchQuery, setSearchQuery] = useState("");
 
-  // Modify the useQuery to include the score calculation
+  // Store counts in state
+  const [regionScoreCounts, setRegionScoreCounts] = useState<
+    Record<string, number>
+  >({});
+
+  // Add the allWindData query with proper structure
+  const { data: allWindData, isLoading: isAllDataLoading } = useQuery({
+    queryKey: ["surfConditions", "all"],
+    queryFn: async () => {
+      console.log("🔄 Fetching all regions data");
+      const response = await fetch(`/api/surf-conditions`);
+      if (!response.ok) throw new Error("Failed to fetch conditions");
+      const data = await response.json();
+      console.log("📦 Received all regions data:", data);
+      return data; // Remove the { data } wrapper
+    },
+    enabled: true,
+    staleTime: 1000 * 60 * 5,
+  });
+
+  // Calculate scores and counts using allWindData
+  const beachScores = useMemo(() => {
+    if (!allWindData) {
+      console.log("No wind data available yet");
+      return {};
+    }
+
+    console.log("🎯 Calculating scores with data:", allWindData);
+    const scores: Record<string, number> = {};
+    const counts: Record<string, number> = {};
+
+    initialBeaches.forEach((beach) => {
+      try {
+        const { score } = isBeachSuitable(beach, allWindData);
+        scores[beach.id] = score;
+
+        // Debug each beach's score
+        console.log(`Beach ${beach.name}: score ${score}`);
+
+        if (score >= 4) {
+          counts[beach.region] = (counts[beach.region] || 0) + 1;
+          console.log(
+            `✅ Good beach found: ${beach.name} (${score}) in ${beach.region}`
+          );
+        } else {
+          // Debug why beach didn't score well
+          console.log(`ℹ️ ${beach.name} scored ${score} because:`, {
+            wind: allWindData.wind,
+            swell: allWindData.swell,
+            optimalWind: beach.optimalWindDirections,
+            optimalSwell: beach.optimalSwellDirections,
+          });
+        }
+      } catch (error) {
+        console.error(`Error calculating score for ${beach.name}:`, error);
+      }
+    });
+
+    console.log("📊 Final counts:", counts);
+    setRegionScoreCounts(counts);
+    return scores;
+  }, [allWindData, initialBeaches]);
+
+  // Debug effect to monitor data flow
+  useEffect(() => {
+    console.log("💫 Data state:", {
+      allWindData: !!allWindData,
+      beachScores: Object.keys(beachScores).length,
+    });
+  }, [allWindData, beachScores]);
+
+  // Fetch specific region data using the same optimized flow
   const { data: windData, isLoading } = useQuery({
     queryKey: ["surfConditions", selectedRegion],
     queryFn: async () => {
       if (!selectedRegion) return null;
+      console.log(
+        `🔄 Fetching data for ${selectedRegion} using optimized flow`
+      );
       const response = await fetch(
         `/api/surf-conditions?region=${selectedRegion}`
       );
       if (!response.ok) throw new Error("Failed to fetch conditions");
       const data = await response.json();
-
-      // Calculate scores after we have the fresh wind data
-      const scores: Record<string, number> = {};
-
-      initialBeaches.forEach((beach) => {
-        if (beach.region === selectedRegion) {
-          const { score } = isBeachSuitable(beach, data);
-          if (score >= 4) {
-            scores[beach.region] = (scores[beach.region] || 0) + 1;
-            scores[beach.country] = (scores[beach.country] || 0) + 1;
-            scores[beach.continent] = (scores[beach.continent] || 0) + 1;
-          }
-        }
-      });
-
-      console.log("Calculated scores with fresh data:", scores);
-      setCachedBeachScores((prev) => ({ ...prev, ...scores }));
-
+      console.log("📦 Received region data:", data);
       return data;
     },
     enabled: !!selectedRegion,
     staleTime: 1000 * 60 * 5,
-    gcTime: 1000 * 60 * 30,
   });
-
-  // Add debug effect
-  useEffect(() => {
-    console.log("Current windData:", windData);
-    console.log("Current region:", selectedRegion);
-  }, [windData, selectedRegion]);
-
-  const queryClient = useQueryClient();
 
   // Compute filtered beaches based on windData
   const filteredBeaches = useMemo(() => {
@@ -313,11 +363,6 @@ export default function BeachContainer({
   // Get unique wave types from beach data
   const waveTypes = [...new Set(initialBeaches.map((beach) => beach.waveType))];
 
-  // Add state for cached scores
-  const [cachedBeachScores, setCachedBeachScores] = useState<
-    Record<string, number>
-  >({});
-
   const fetchRegionData = useCallback(async (region: string) => {
     try {
       const response = await fetch(`/api/wind-data?region=${region}`);
@@ -326,18 +371,6 @@ export default function BeachContainer({
       console.error("Error fetching wind data:", error);
     }
   }, []);
-
-  // Add this function before the return statement
-  const getGoodBeachCount = useCallback(
-    (beaches: Beach[], windData: WindData | null) => {
-      if (!windData) return 0;
-      return beaches.filter((beach) => {
-        const { score } = isBeachSuitable(beach, windData);
-        return score >= 4;
-      }).length;
-    },
-    []
-  );
 
   // Modify the calculateInitialScores function to use windData directly
   const calculateInitialScores = useCallback(() => {
@@ -363,51 +396,95 @@ export default function BeachContainer({
   useEffect(() => {
     if (windData) {
       const initialScores = calculateInitialScores();
-      setCachedBeachScores(initialScores);
     }
   }, [windData, calculateInitialScores]);
 
-  // Add this function to calculate counts for all regions
-  const calculateAllBeachCounts = useCallback(
-    (windData: WindData | null) => {
-      if (!windData) return {};
-
-      const counts: Record<string, number> = {};
-      initialBeaches.forEach((beach) => {
-        const { score } = isBeachSuitable(beach, windData);
-        if (score >= 4) {
-          // Count by region
-          counts[beach.region] = (counts[beach.region] || 0) + 1;
-          // Count by country
-          counts[beach.country] = (counts[beach.country] || 0) + 1;
-          // Count by continent
-          counts[beach.continent] = (counts[beach.continent] || 0) + 1;
-        }
-      });
-      return counts;
-    },
-    [initialBeaches]
-  );
-
-  // Use this effect to handle initial counts
+  // Update the useEffect to only use Redis cache:
   useEffect(() => {
-    async function initializeBeachCounts() {
-      // Try to get cached counts first
-      const cachedCounts = await getCachedBeachCounts();
+    async function initializeBeachData() {
+      if (windData) {
+        const today = new Date().toISOString().split("T")[0];
 
-      if (cachedCounts) {
-        setCachedBeachScores(cachedCounts);
-      } else if (initialWindData) {
-        // Calculate new counts if no cache exists
-        const newCounts = calculateAllBeachCounts(initialWindData);
-        setCachedBeachScores(newCounts);
-        // Cache the new counts
-        await cacheBeachCounts(newCounts);
+        // Call API endpoint instead of using Prisma directly
+        const res = await fetch(
+          `/api/beach-counts?region=${selectedRegion}&date=${today}`
+        );
+        const data = await res.json();
+
+        // The API endpoint will handle checking/storing ratings
+        if (data.count) {
+          // Update UI with counts
+        }
       }
     }
 
-    initializeBeachCounts();
-  }, [initialWindData, calculateAllBeachCounts]);
+    initializeBeachData();
+  }, [windData, selectedRegion]);
+
+  // Update regionCounts calculation
+  const regionCounts = useMemo(() => {
+    if (!beachScores || Object.keys(beachScores).length === 0) {
+      console.log("No beach scores available for counting");
+      return {};
+    }
+
+    const counts: Record<string, number> = {};
+
+    beachData.forEach((beach) => {
+      const score = beachScores[beach.id];
+      if (score && score >= 4) {
+        // Increment counts for region, country, and continent
+        counts[beach.region] = (counts[beach.region] || 0) + 1;
+        counts[beach.country] = (counts[beach.country] || 0) + 1;
+        counts[beach.continent] = (counts[beach.continent] || 0) + 1;
+        console.log(
+          `✅ Good beach found: ${beach.name} (${score}) in ${beach.region}`
+        );
+      }
+    });
+
+    console.log("📊 Final region counts:", JSON.stringify(counts, null, 2));
+    return counts;
+  }, [beachScores, beachData]);
+
+  // Show counts for all regions
+  const getBadgeCount = (location: string) => {
+    return regionScoreCounts[location] || 0;
+  };
+
+  // Instead of setRegionCounts, store the data in a new state
+  const [goodBeachCounts, setGoodBeachCounts] = useState<
+    Record<string, number>
+  >({});
+
+  // Update the fetch to use the new state
+
+  const { data: beachCounts } = useQuery({
+    queryKey: ["beachCounts", selectedRegion],
+    queryFn: async () => {
+      const today = new Date().toISOString().split("T")[0];
+      const response = await fetch(
+        `/api/beach-counts?region=${selectedRegion}&date=${today}`
+      );
+      const data = await response.json();
+
+      // Structure the response to include region, country, and continent
+      if (data.count > 0) {
+        const regionBeach = initialBeaches.find(
+          (b) => b.region === selectedRegion
+        );
+        if (regionBeach) {
+          return {
+            [regionBeach.region]: data.count,
+            [regionBeach.country]: data.count,
+            [regionBeach.continent]: data.count,
+          };
+        }
+      }
+      return {};
+    },
+    enabled: !!selectedRegion,
+  });
 
   return (
     <div className="bg-[var(--color-bg-secondary)] p-6 mx-auto relative min-h-[calc(100vh-72px)] flex flex-col">
@@ -504,7 +581,7 @@ export default function BeachContainer({
                     regions={uniqueRegions}
                     selectedContinents={filters.continent}
                     selectedCountries={filters.country}
-                    selectedRegions={[filters.region[0]]}
+                    selectedRegions={filters.region}
                     beaches={initialBeaches}
                     windData={windData}
                     onContinentClick={(continent) =>
@@ -513,15 +590,38 @@ export default function BeachContainer({
                     onCountryClick={(country) =>
                       updateFilters("country", country)
                     }
-                    onRegionClick={handleRegionChange}
-                    selectedRegion={filters.region[0] || ""}
+                    onRegionClick={(region) => updateFilters("region", region)}
+                    isPro={isSubscribed}
+                    selectedRegion={selectedRegion}
                     onRegionChange={handleRegionChange}
-                    getGoodBeachCount={getGoodBeachCount}
-                    cachedBeachScores={cachedBeachScores}
-                    BeachCountBadge={({ count }) => {
-                      // Always show the count, even if it's 0
-                      return <span className="ml-2 text-sm">({count})</span>;
+                    getGoodBeachCount={async (region: string) => {
+                      const today = new Date().toISOString().split("T")[0];
+                      const res = await fetch(
+                        `/api/beach-counts?region=${region}&date=${today}`
+                      );
+                      const data = await res.json();
+                      return data.count;
                     }}
+                    BeachCountBadge={({ region }) => {
+                      const count = regionScoreCounts[region] || 0;
+
+                      if (isAllDataLoading) {
+                        return (
+                          <div className="inline-flex items-center justify-center w-6 h-6 ml-2">
+                            <div className="animate-pulse w-4 h-4 bg-gray-200 rounded-full" />
+                          </div>
+                        );
+                      }
+
+                      if (!count) return null;
+
+                      return (
+                        <div className="inline-flex items-center justify-center w-6 h-6 ml-2 text-sm text-white bg-[var(--color-bg-tertiary)] rounded-full">
+                          {count}
+                        </div>
+                      );
+                    }}
+                    isLoading={isAllDataLoading}
                   />
                 </div>
 

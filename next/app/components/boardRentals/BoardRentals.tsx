@@ -9,6 +9,7 @@ import { BoardFilter } from "./BoardFilter";
 import { BoardForm } from "./BoardForm";
 import type { Board } from "@prisma/client";
 import Image from "next/image";
+import Link from "next/link";
 
 interface BoardWithUser extends Board {
   user: {
@@ -68,17 +69,17 @@ export default function BoardRentals({ initialBoards }: BoardRentalsProps) {
 
   if (!session) {
     return (
-      <div className="max-h-full min-h-[60vh] bg-[var(--color-bg-secondary)] p-9 flex flex-col items-center justify-center">
+      <div className="min-h-screen bg-[var(--color-bg-secondary)] flex flex-col items-center justify-center p-9">
         <h2 className="text-center text-lg font-semibold mb-4">
           Sign in to view and list board rentals
         </h2>
-        <button
-          onClick={() => signIn("google")}
+        <Link
+          href="/auth/signin"
           className="flex items-center gap-3 px-6 py-3 bg-white text-gray-800 rounded-lg 
                    shadow-sm hover:shadow-md transition-all"
         >
-          <span>Sign in</span>
-        </button>
+          Sign in
+        </Link>
       </div>
     );
   }

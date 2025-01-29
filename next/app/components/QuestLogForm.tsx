@@ -37,10 +37,11 @@ export function QuestLogForm({
   const [imagePreview, setImagePreview] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isSubmitted, setIsSubmitted] = useState(false);
+  const [forecast, setForecast] = useState<any>(null);
 
   const createLogEntry = useMutation({
     mutationFn: async (newEntry: CreateLogEntryInput) => {
-      const response = await fetch("/api/logbook", {
+      const response = await fetch("/api/quest-log", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -99,10 +100,8 @@ export function QuestLogForm({
     try {
       let imageUrl;
       if (selectedImage) {
-        console.log("Starting image upload process...");
         try {
           imageUrl = await handleImageUpload(selectedImage);
-          console.log("Image upload successful:", imageUrl);
         } catch (uploadError) {
           console.error("Image upload failed:", uploadError);
           alert("Failed to upload image");
@@ -111,7 +110,7 @@ export function QuestLogForm({
         }
       }
 
-      console.log("Creating log entry with image:", imageUrl);
+      // Use the forecast data we already have in state
       const newEntry = {
         beachName: selectedBeach.name,
         date: selectedDate,
@@ -120,6 +119,7 @@ export function QuestLogForm({
         surferRating: surferRating,
         comments,
         imageUrl,
+        forecast: forecast, // Use the forecast data from state
         beach: {
           continent: selectedBeach.continent,
           country: selectedBeach.country,
@@ -162,9 +162,42 @@ export function QuestLogForm({
     beach.name.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
-  const handleBeachSelect = (beach: Beach) => {
+  const handleBeachSelect = async (beach: Beach) => {
     setSelectedBeach(beach);
-    setSearchTerm(beach.name);
+    try {
+      // Ensure we're using today's date if the selected date is in the future
+      const today = new Date().toISOString().split("T")[0];
+      const formattedDate =
+        new Date(selectedDate) > new Date() ? today : selectedDate;
+
+      console.log("Form - Attempting to fetch forecast for:", {
+        date: formattedDate,
+        beach: beach.name,
+        region: beach.region,
+      });
+
+      const response = await fetch(
+        `/api/quest-log?date=${formattedDate}&beach=${encodeURIComponent(beach.name)}`
+      );
+
+      console.log("Form - Response status:", response.status);
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        console.log("Form - Error data:", errorData);
+        throw new Error(errorData.message || "Failed to fetch forecast data");
+      }
+
+      const forecastData = await response.json();
+      console.log("Form - Received forecast data:", forecastData);
+      setForecast(forecastData);
+    } catch (error) {
+      console.error("Form - Error fetching forecast:", error);
+      setForecast(null);
+      alert(
+        error instanceof Error ? error.message : "Unable to load forecast data"
+      );
+    }
   };
 
   const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -250,7 +283,15 @@ export function QuestLogForm({
                     <input
                       type="date"
                       value={selectedDate}
-                      onChange={(e) => setSelectedDate(e.target.value)}
+                      onChange={(e) => {
+                        const newDate = e.target.value;
+                        // Prevent selecting future dates
+                        if (new Date(newDate) > new Date()) {
+                          alert("Cannot select future dates");
+                          return;
+                        }
+                        setSelectedDate(newDate);
+                      }}
                       className="w-full p-2 border rounded-lg"
                       max={new Date().toISOString().split("T")[0]}
                       required

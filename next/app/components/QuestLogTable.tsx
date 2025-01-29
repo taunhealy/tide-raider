@@ -17,6 +17,7 @@ interface QuestTableProps {
   entries: LogEntry[];
   columns?: QuestLogTableColumn[];
   isSubscribed?: boolean;
+  isLoading?: boolean;
 }
 
 interface LogEntryDisplayProps {
@@ -31,6 +32,8 @@ function LogEntryDisplay({ entry, isAnonymous }: LogEntryDisplayProps) {
 
 function ForecastInfo({ forecast }: { forecast: LogEntry["forecast"] }) {
   if (!forecast) return <span className="text-gray-500">No forecast data</span>;
+  if (!forecast.wind || !forecast.swell)
+    return <span className="text-gray-500">Incomplete forecast data</span>;
 
   return (
     <div className="space-y-1 text-sm">
@@ -76,11 +79,86 @@ function StarRating({ rating }: { rating: number }) {
   );
 }
 
+function TableSkeleton() {
+  return (
+    <div className="w-full">
+      {/* Mobile View Skeleton */}
+      <div className="md:hidden space-y-4">
+        {[1, 2, 3].map((i) => (
+          <div
+            key={i}
+            className="bg-white rounded-lg border border-gray-200 shadow p-4 space-y-3"
+          >
+            <div className="flex justify-between items-start">
+              <div className="space-y-2">
+                <div className="h-5 w-32 bg-gray-200 rounded animate-pulse"></div>
+                <div className="h-4 w-24 bg-gray-200 rounded animate-pulse"></div>
+              </div>
+              <div className="flex gap-1">
+                {[1, 2, 3, 4, 5].map((star) => (
+                  <div
+                    key={star}
+                    className="w-4 h-4 bg-gray-200 rounded animate-pulse"
+                  ></div>
+                ))}
+              </div>
+            </div>
+            <div className="space-y-2">
+              <div className="h-4 w-40 bg-gray-200 rounded animate-pulse"></div>
+              <div className="h-4 w-36 bg-gray-200 rounded animate-pulse"></div>
+              <div className="h-4 w-32 bg-gray-200 rounded animate-pulse"></div>
+            </div>
+          </div>
+        ))}
+      </div>
+
+      {/* Desktop View Skeleton */}
+      <div className="hidden md:block overflow-x-auto rounded-lg border border-gray-200 shadow">
+        <div className="min-h-[500px]">
+          <table className="w-full divide-y divide-gray-200">
+            <thead className="bg-gray-50">
+              <tr>
+                {DEFAULT_COLUMNS.map((column) => (
+                  <th
+                    key={column.key}
+                    className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider whitespace-nowrap"
+                  >
+                    {column.label}
+                  </th>
+                ))}
+              </tr>
+            </thead>
+            <tbody className="bg-white divide-y divide-gray-200">
+              {[1, 2, 3, 4, 5].map((i) => (
+                <tr key={i}>
+                  {DEFAULT_COLUMNS.map((column) => (
+                    <td
+                      key={column.key}
+                      className="px-6 py-4 whitespace-nowrap"
+                    >
+                      <div className="h-4 bg-gray-200 rounded animate-pulse w-24"></div>
+                    </td>
+                  ))}
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 export function QuestLogTable({
   entries,
   columns = DEFAULT_COLUMNS,
   isSubscribed = false,
+  isLoading = false,
 }: QuestTableProps) {
+  if (isLoading) {
+    return <TableSkeleton />;
+  }
+
   return (
     <div className="w-full">
       {/* Mobile View - Cards */}

@@ -4,6 +4,7 @@ import { client } from "@/app/lib/sanity";
 import { prisma } from "@/app/lib/prisma";
 import { blogListingQuery } from "@/app/lib/queries";
 import { Suspense } from "react";
+import RaidSkeleton from "@/app/components/skeletons/RaidSkeleton";
 
 async function QuestContent() {
   try {
@@ -98,8 +99,16 @@ async function QuestContent() {
 
 export default function QuestPage() {
   return (
-    <Suspense fallback={<div>Loading...</div>}>
-      <QuestContent />
-    </Suspense>
+    <div className="min-h-screen bg-[var(--color-bg-secondary)]">
+      <div className="container mx-auto px-4 py-8">
+        <div className="flex gap-8">
+          <div className="flex-1">
+            <Suspense fallback={<RaidSkeleton />}>
+              <QuestContent />
+            </Suspense>
+          </div>
+        </div>
+      </div>
+    </div>
   );
 }

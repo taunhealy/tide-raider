@@ -1,19 +1,19 @@
 import { cn } from "@/app/lib/utils";
 
 interface FilterButtonProps {
-  label: React.ReactNode;
-  count: number;
+  label: string;
+  count?: number;
+  variant: "region" | "category" | "continent" | "country";
   isSelected: boolean;
   onClick: () => void;
-  variant: "continent" | "country" | "region";
 }
 
 export function FilterButton({
   label,
   count,
+  variant,
   isSelected,
   onClick,
-  variant,
 }: FilterButtonProps) {
   const getVariantStyles = () => {
     switch (variant) {
@@ -32,10 +32,6 @@ export function FilterButton({
     }
   };
 
-  const getCountStyles = () => {
-    return "bg-[var(--color-bg-tertiary)] text-white";
-  };
-
   const handleClick = (e: React.MouseEvent) => {
     e.preventDefault();
     onClick();
@@ -51,11 +47,11 @@ export function FilterButton({
         getVariantStyles()
       )}
     >
-      {label}
-      {count > 0 && (
-        <div className={cn("px-3 py-1 rounded-full", getCountStyles())}>
+      <span>{label}</span>
+      {count !== undefined && (
+        <span className="ml-2 bg-gray-200 px-2 py-0.5 rounded-full text-xs">
           {count}
-        </div>
+        </span>
       )}
     </button>
   );

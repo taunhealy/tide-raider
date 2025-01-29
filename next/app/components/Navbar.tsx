@@ -8,10 +8,11 @@ import { usePathname, useRouter } from "next/navigation";
 import { cn } from "../lib/utils";
 import { Menu, X } from "lucide-react";
 import { useState } from "react";
+import { handleSignIn } from "../lib/auth-utils";
 
 const NAVIGATION_ITEMS = [
-  { href: "/quest", label: "Quest" },
-  { href: "/sidequests", label: "Quest Logs" },
+  { href: "/raid", label: "Raid" },
+  { href: "/raidlogs", label: "Raid Logs" },
   { href: "/chronicles", label: "Chronicles" },
   { href: "/blog", label: "Blog" },
   { href: "/pricing", label: "Pricing" },
@@ -81,7 +82,7 @@ export default function Navbar() {
             ) : (
               <Button
                 variant="outline"
-                onClick={() => signIn("google")}
+                onClick={() => handleSignIn()}
                 className="transition-all duration-300"
               >
                 Sign In
@@ -103,7 +104,7 @@ export default function Navbar() {
           ) : (
             <Button
               variant="outline"
-              onClick={() => signIn("google")}
+              onClick={() => handleSignIn()}
               className="transition-all duration-300"
             >
               Sign In

@@ -3,8 +3,9 @@ import { beachData } from "@/app/types/beaches";
 import { client } from "@/app/lib/sanity";
 import { prisma } from "@/app/lib/prisma";
 import { blogListingQuery } from "@/app/lib/queries";
+import { Suspense } from "react";
 
-export default async function QuestPage() {
+async function QuestContent() {
   try {
     const baseUrl =
       process.env.NEXT_PUBLIC_BASE_URL?.replace(/\/$/, "") ||
@@ -14,7 +15,6 @@ export default async function QuestPage() {
     // Add error handling for each Promise
     const [windResponse, blogData, activeAds] = await Promise.all([
       fetch(`${baseUrl}/api/surf-conditions?region=Western Cape&date=${date}`, {
-        next: { revalidate: 300 },
         headers: {
           "Content-Type": "application/json",
         },
@@ -94,4 +94,12 @@ export default async function QuestPage() {
       </div>
     );
   }
+}
+
+export default function QuestPage() {
+  return (
+    <Suspense fallback={<div>Loading...</div>}>
+      <QuestContent />
+    </Suspense>
+  );
 }

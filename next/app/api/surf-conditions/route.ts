@@ -361,66 +361,100 @@ export async function GET(request: Request) {
   }
 
   try {
-    // 1. Check Redis cache first
+    // 1. Check Redis cache first with detailed logging
     const cacheKey = `surf-conditions:${region}:${today}`;
+    console.log(`🔍 Checking Redis cache for key: ${cacheKey}`);
     const cachedData = await redis.get(cacheKey);
+
     if (cachedData) {
+      console.log(`✅ Cache hit for ${cacheKey}`);
       return NextResponse.json(
         typeof cachedData === "string" ? JSON.parse(cachedData) : cachedData
       );
     }
+    console.log(`❌ Cache miss for ${cacheKey}`);
 
-    // 2. Check database for any region's data today
-    const existingData = await prisma.surfCondition.findFirst({
-      where: { date: today },
-    });
+    // 2. Check database with better error handling
+    console.log(`🔍 Checking database for ${today}'s data`);
+    const existingData = await prisma.surfCondition
+      .findFirst({
+        where: { date: today },
+      })
+      .catch((error) => {
+        console.error("Database query error:", error);
+        return null;
+      });
 
-    // 3. If no data exists for today, scrape all regions
+    // 3. If no data exists, scrape with better error handling
     if (!existingData) {
-      console.log("🌊 No data for today - scraping all regions...");
-      const scrapedData = await scrapeAllRegions();
+      console.log("🌊 No data for today - initiating scrape...");
+      try {
+        const scrapedData = await scrapeAllRegions();
 
-      // Store all scraped data
-      await prisma.surfCondition.createMany({
-        data: scrapedData.map((data) => ({
-          id: randomUUID(),
-          date: today,
-          ...data,
-        })),
-      });
+        if (!scrapedData.length) {
+          console.error("❌ Scraping returned no data");
+          throw new Error("Scraping failed to return any data");
+        }
 
-      // Calculate and cache beach counts for all regions
-      const beachCounts: Record<string, number> = {};
-      scrapedData.forEach((data) => {
-        const formattedData = formatConditionsResponse(data);
-        // Cache each region's conditions
-        redis.setex(
-          `surf-conditions:${data.region}:${today}`,
-          CACHE_TIMES.getRedisExpiry(),
-          JSON.stringify(formattedData)
-        );
+        // Store scraped data with error handling
+        await prisma.surfCondition
+          .createMany({
+            data: scrapedData.map((data) => ({
+              id: randomUUID(),
+              date: today,
+              ...data,
+            })),
+          })
+          .catch((error) => {
+            console.error("Failed to store scraped data:", error);
+            throw error;
+          });
 
-        // Calculate good beach count for this region
-        const regionBeaches = beachData.filter((b) => b.region === data.region);
-        const goodBeachCount = regionBeaches.filter((beach) => {
-          const { score } = isBeachSuitable(beach, formattedData);
-          return score >= 4;
-        }).length;
+        // Calculate and cache beach counts
+        const beachCounts: Record<string, number> = {};
+        for (const data of scrapedData) {
+          const formattedData = formatConditionsResponse(data);
+          // Cache each region's conditions
+          await redis
+            .setex(
+              `surf-conditions:${data.region}:${today}`,
+              CACHE_TIMES.getRedisExpiry(),
+              JSON.stringify(formattedData)
+            )
+            .catch((error) =>
+              console.error(`Failed to cache ${data.region}:`, error)
+            );
 
-        beachCounts[data.region] = goodBeachCount;
-      });
+          // Calculate good beach count
+          const regionBeaches = beachData.filter(
+            (b) => b.region === data.region
+          );
+          const goodBeachCount = regionBeaches.filter((beach) => {
+            const { score } = isBeachSuitable(beach, formattedData);
+            return score >= 4;
+          }).length;
 
-      // Cache the beach counts
-      await redis.setex(
-        `beach:counts:all`,
-        CACHE_TIMES.getRedisExpiry(),
-        JSON.stringify(beachCounts)
-      );
+          beachCounts[data.region] = goodBeachCount;
+        }
 
-      // Return requested region's data
-      const requestedData = scrapedData.find((d) => d.region === region);
-      if (requestedData) {
-        return NextResponse.json(formatConditionsResponse(requestedData));
+        // Cache beach counts
+        await redis
+          .setex(
+            `beach:counts:all`,
+            CACHE_TIMES.getRedisExpiry(),
+            JSON.stringify(beachCounts)
+          )
+          .catch((error) =>
+            console.error("Failed to cache beach counts:", error)
+          );
+
+        const requestedData = scrapedData.find((d) => d.region === region);
+        if (requestedData) {
+          return NextResponse.json(formatConditionsResponse(requestedData));
+        }
+      } catch (scrapeError) {
+        console.error("🚨 Scraping failed:", scrapeError);
+        throw scrapeError;
       }
     }
 
@@ -436,15 +470,19 @@ export async function GET(request: Request) {
     if (regionData) {
       const formattedData = formatConditionsResponse(regionData);
       // Cache it while we have it
-      await redis.setex(
-        cacheKey,
-        CACHE_TIMES.getRedisExpiry(),
-        JSON.stringify(formattedData)
-      );
+      await redis
+        .setex(
+          cacheKey,
+          CACHE_TIMES.getRedisExpiry(),
+          JSON.stringify(formattedData)
+        )
+        .catch((error) => console.error("Failed to cache region data:", error));
+
       return NextResponse.json(formattedData);
     }
 
-    // 5. Fallback response
+    // 5. Return fallback data with warning log
+    console.warn(`⚠️ No data available for ${region}, returning fallback data`);
     return NextResponse.json({
       wind: { direction: "N/A", speed: 0 },
       swell: {
@@ -456,18 +494,15 @@ export async function GET(request: Request) {
       timestamp: Date.now(),
       region: region,
     });
-  } catch (error) {
-    console.error("Error fetching surf conditions:", error);
-    return NextResponse.json({
-      wind: { direction: "N/A", speed: 0 },
-      swell: {
-        height: 0,
-        period: 0,
-        direction: "N/A",
-        cardinalDirection: "N/A",
+  } catch (error: any) {
+    console.error("🚨 Critical error in surf conditions API:", error);
+    return NextResponse.json(
+      {
+        error: "Internal Server Error",
+        details:
+          process.env.NODE_ENV === "development" ? error.message : undefined,
       },
-      timestamp: Date.now(),
-      region: region,
-    });
+      { status: 500 }
+    );
   }
 }

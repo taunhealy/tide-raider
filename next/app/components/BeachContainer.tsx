@@ -339,28 +339,15 @@ export default function BeachContainer({
     []
   );
 
-  // Add this query to your existing queries
-  const { data: allRegionsData } = useQuery({
-    queryKey: ["allRegionsConditions"],
-    queryFn: async () => {
-      const response = await fetch("/api/surf-conditions/all");
-      if (!response.ok) throw new Error("Failed to fetch all conditions");
-      return response.json();
-    },
-    staleTime: 1000 * 60 * 5, // 5 minutes
-    gcTime: 1000 * 60 * 30, // 30 minutes
-  });
-
-  // Modify the existing calculateScores function
+  // Modify the calculateInitialScores function to use windData directly
   const calculateInitialScores = useCallback(() => {
     const scores: Record<string, number> = {};
 
-    if (!allRegionsData) return scores;
+    if (!windData) return scores;
 
     initialBeaches.forEach((beach) => {
-      const regionData = allRegionsData[beach.region];
-      if (regionData) {
-        const { score } = isBeachSuitable(beach, regionData);
+      if (beach.region === selectedRegion) {
+        const { score } = isBeachSuitable(beach, windData);
         if (score >= 4) {
           scores[beach.region] = (scores[beach.region] || 0) + 1;
           scores[beach.country] = (scores[beach.country] || 0) + 1;
@@ -370,15 +357,15 @@ export default function BeachContainer({
     });
 
     return scores;
-  }, [allRegionsData, initialBeaches]);
+  }, [windData, selectedRegion, initialBeaches]);
 
   // Set initial scores when allRegionsData is loaded
   useEffect(() => {
-    if (allRegionsData) {
+    if (windData) {
       const initialScores = calculateInitialScores();
       setCachedBeachScores(initialScores);
     }
-  }, [allRegionsData, calculateInitialScores]);
+  }, [windData, calculateInitialScores]);
 
   // Add this function to calculate counts for all regions
   const calculateAllBeachCounts = useCallback(

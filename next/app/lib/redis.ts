@@ -63,7 +63,18 @@ const createRedisClient = () => {
 export const redis = createRedisClient();
 
 // Cache constants
-const CACHE_TTL = 60 * 60; // 1 hour
+const CACHE_TTL = () => {
+  const now = new Date();
+  const endOfDay = new Date(
+    now.getFullYear(),
+    now.getMonth(),
+    now.getDate(),
+    23,
+    59,
+    59
+  );
+  return Math.floor((endOfDay.getTime() - now.getTime()) / 1000);
+};
 const SURF_CONDITIONS_PREFIX = "surf:conditions:";
 const USER_SESSION_PREFIX = "user:session:";
 const BEACH_COUNTS_PREFIX = "beach:counts:";
@@ -92,7 +103,7 @@ export async function cacheSurfConditions(date: string, data: any) {
     const key = `${SURF_CONDITIONS_PREFIX}${date}`;
     console.log(`Caching surf conditions for date: ${date}`);
     await redis.set(key, JSON.stringify(data), {
-      ex: CACHE_TTL,
+      ex: CACHE_TTL(), // Now using dynamic TTL that lasts until end of day
     });
     console.log(`Successfully cached data for ${key}`);
   } catch (error) {
@@ -124,7 +135,7 @@ export async function cacheBeachCounts(counts: Record<string, number>) {
     const key = `${BEACH_COUNTS_PREFIX}all`;
     console.log("Caching beach counts");
     await redis.set(key, JSON.stringify(counts), {
-      ex: CACHE_TTL, // Using same TTL as surf conditions
+      ex: CACHE_TTL(), // Using same end-of-day TTL
     });
     console.log(`Successfully cached beach counts`);
   } catch (error) {

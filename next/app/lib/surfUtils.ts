@@ -318,3 +318,20 @@ export function getGoodBeachCount(beaches: Beach[], windData: WindData | null) {
     return suitability.score >= 4;
   }).length;
 }
+
+export function formatConditionsResponse(conditions: any) {
+  return {
+    wind: {
+      direction: conditions.windDirection,
+      speed: conditions.windSpeed,
+    },
+    swell: {
+      height: conditions.swellHeight,
+      direction: conditions.swellDirection,
+      period: conditions.swellPeriod,
+      cardinalDirection: degreesToCardinal(Number(conditions.swellDirection)),
+    },
+    timestamp: conditions.timestamp,
+    region: conditions.region,
+  };
+}

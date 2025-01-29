@@ -40,6 +40,7 @@ import { beachData } from "@/app/types/beaches";
 import { format } from "date-fns";
 import QuestLogSidebar from "./QuestLogSidebar";
 import StickyForecastWidget from "./StickyForecastWidget";
+import { getCachedBeachCounts, cacheBeachCounts } from "@/app/lib/redis";
 
 interface BeachContainerProps {
   initialBeaches: Beach[];
@@ -337,6 +338,89 @@ export default function BeachContainer({
     },
     []
   );
+
+  // Add this query to your existing queries
+  const { data: allRegionsData } = useQuery({
+    queryKey: ["allRegionsConditions"],
+    queryFn: async () => {
+      const response = await fetch("/api/surf-conditions/all");
+      if (!response.ok) throw new Error("Failed to fetch all conditions");
+      return response.json();
+    },
+    staleTime: 1000 * 60 * 5, // 5 minutes
+    gcTime: 1000 * 60 * 30, // 30 minutes
+  });
+
+  // Modify the existing calculateScores function
+  const calculateInitialScores = useCallback(() => {
+    const scores: Record<string, number> = {};
+
+    if (!allRegionsData) return scores;
+
+    initialBeaches.forEach((beach) => {
+      const regionData = allRegionsData[beach.region];
+      if (regionData) {
+        const { score } = isBeachSuitable(beach, regionData);
+        if (score >= 4) {
+          scores[beach.region] = (scores[beach.region] || 0) + 1;
+          scores[beach.country] = (scores[beach.country] || 0) + 1;
+          scores[beach.continent] = (scores[beach.continent] || 0) + 1;
+        }
+      }
+    });
+
+    return scores;
+  }, [allRegionsData, initialBeaches]);
+
+  // Set initial scores when allRegionsData is loaded
+  useEffect(() => {
+    if (allRegionsData) {
+      const initialScores = calculateInitialScores();
+      setCachedBeachScores(initialScores);
+    }
+  }, [allRegionsData, calculateInitialScores]);
+
+  // Add this function to calculate counts for all regions
+  const calculateAllBeachCounts = useCallback(
+    (windData: WindData | null) => {
+      if (!windData) return {};
+
+      const counts: Record<string, number> = {};
+      initialBeaches.forEach((beach) => {
+        const { score } = isBeachSuitable(beach, windData);
+        if (score >= 4) {
+          // Count by region
+          counts[beach.region] = (counts[beach.region] || 0) + 1;
+          // Count by country
+          counts[beach.country] = (counts[beach.country] || 0) + 1;
+          // Count by continent
+          counts[beach.continent] = (counts[beach.continent] || 0) + 1;
+        }
+      });
+      return counts;
+    },
+    [initialBeaches]
+  );
+
+  // Use this effect to handle initial counts
+  useEffect(() => {
+    async function initializeBeachCounts() {
+      // Try to get cached counts first
+      const cachedCounts = await getCachedBeachCounts();
+
+      if (cachedCounts) {
+        setCachedBeachScores(cachedCounts);
+      } else if (initialWindData) {
+        // Calculate new counts if no cache exists
+        const newCounts = calculateAllBeachCounts(initialWindData);
+        setCachedBeachScores(newCounts);
+        // Cache the new counts
+        await cacheBeachCounts(newCounts);
+      }
+    }
+
+    initializeBeachCounts();
+  }, [initialWindData, calculateAllBeachCounts]);
 
   return (
     <div className="bg-[var(--color-bg-secondary)] p-6 mx-auto relative min-h-[calc(100vh-72px)] flex flex-col">

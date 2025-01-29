@@ -282,7 +282,7 @@ export default function BeachCard({
                     <div className="text-amber-400">{scoreDisplay.stars}</div>
                     <div
                       className={`
-                      absolute z-10 bottom-full left-1/2 -translate-x-1/2 mb-2 
+                      absolute z-50 bottom-full left-1/2 -translate-x-1/2 mb-2 
                       px-3 py-1 bg-gray-900 text-white text-sm rounded-md 
                       transition-opacity whitespace-nowrap
                       ${showRatingHint ? "opacity-100" : "opacity-0"}

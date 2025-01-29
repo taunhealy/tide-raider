@@ -66,6 +66,7 @@ export const redis = createRedisClient();
 const CACHE_TTL = 60 * 60; // 1 hour
 const SURF_CONDITIONS_PREFIX = "surf:conditions:";
 const USER_SESSION_PREFIX = "user:session:";
+const BEACH_COUNTS_PREFIX = "beach:counts:";
 
 // Helper functions with better error handling
 export async function getCachedSurfConditions(date: string) {
@@ -97,5 +98,36 @@ export async function cacheSurfConditions(date: string, data: any) {
   } catch (error) {
     console.error("Error caching surf conditions:", error);
     // Don't throw the error, just log it
+  }
+}
+
+export async function getCachedBeachCounts() {
+  try {
+    const key = `${BEACH_COUNTS_PREFIX}all`;
+    console.log("Attempting to get cached beach counts");
+    const cached = await redis.get(key);
+
+    if (cached) {
+      console.log(`Cache hit for beach counts`);
+      return JSON.parse(cached as string);
+    }
+    console.log(`Cache miss for beach counts`);
+    return null;
+  } catch (error) {
+    console.error("Error getting cached beach counts:", error);
+    return null;
+  }
+}
+
+export async function cacheBeachCounts(counts: Record<string, number>) {
+  try {
+    const key = `${BEACH_COUNTS_PREFIX}all`;
+    console.log("Caching beach counts");
+    await redis.set(key, JSON.stringify(counts), {
+      ex: CACHE_TTL, // Using same TTL as surf conditions
+    });
+    console.log(`Successfully cached beach counts`);
+  } catch (error) {
+    console.error("Error caching beach counts:", error);
   }
 }

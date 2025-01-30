@@ -7,7 +7,7 @@ import { NodeHttpHandler } from "@aws-sdk/node-http-handler";
 
 const s3 = new S3Client({
   region: "auto",
-  endpoint: process.env.NEXT_PUBLIC_R2_URL,
+  endpoint: "https://e0916b639e6769b291e0f513d85545da.r2.cloudflarestorage.com",
   credentials: {
     accessKeyId: process.env.R2_ACCESS_TOKEN!,
     secretAccessKey: process.env.R2_SECRET_ACCESS_KEY!,

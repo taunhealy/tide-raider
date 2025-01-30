@@ -4,10 +4,10 @@ import * as cheerio from "cheerio";
 import { prisma } from "@/app/lib/prisma";
 import { randomUUID } from "crypto";
 import { degreesToCardinal, isBeachSuitable } from "@/app/lib/surfUtils";
-import { Region } from "@/app/types/beaches";
+
 import { redis } from "@/app/lib/redis";
 import { beachData } from "@/app/types/beaches";
-import { BeachGoodRating } from "@prisma/client";
+
 
 interface RegionScrapeConfig {
   url: string;
@@ -361,32 +361,24 @@ export async function GET(request: Request) {
   try {
     const { searchParams } = new URL(request.url);
     const region = searchParams.get("region") || "Western Cape";
+    const date = searchParams.get("date") || getTodayDate();
     const fetchAll = searchParams.get("fetchAll") === "true";
-    const today = new Date().toISOString().split("T")[0];
 
-    console.log("🎯 Request:", { region, fetchAll, today });
+    console.log("🎯 Request:", { region, fetchAll, date });
 
-    // 1. First check Redis cache
-    const cacheKey = `surf_conditions:${region}:${today}`;
+    // Use date in cache key
+    const cacheKey = `surf_conditions:${region}:${date}`;
     const cachedData = await redis.get(cacheKey);
 
     if (cachedData) {
-      console.log("📦 Cache hit for:", { region, today });
-      try {
-        // Check if the data is already an object
-        const parsedData =
-          typeof cachedData === "string" ? JSON.parse(cachedData) : cachedData;
-        return Response.json(parsedData);
-      } catch (error) {
-        console.log("⚠️ Cache parse error, falling back to database");
-        // If there's an error with the cache, continue to database check
-      }
+      console.log("📦 Cache hit for:", { region, date });
+      return NextResponse.json(cachedData);
     }
 
     // 2. If no cache, check database
     const conditions = await prisma.surfCondition.findFirst({
       where: {
-        date: today,
+        date: date,
         region: region,
       },
       orderBy: { timestamp: "desc" },
@@ -400,11 +392,11 @@ export async function GET(request: Request) {
         CACHE_TIMES.getRedisExpiry(),
         JSON.stringify(formattedData)
       );
-      return Response.json(formattedData);
+      return NextResponse.json(formattedData);
     }
 
     // 3. If no data in database, check if we're already scraping
-    const scrapeLockKey = `scrape_lock:${today}`;
+    const scrapeLockKey = `scrape_lock:${date}`;
     const isLocked = await redis.get(scrapeLockKey);
 
     if (isLocked) {
@@ -413,7 +405,7 @@ export async function GET(request: Request) {
       await new Promise((resolve) => setTimeout(resolve, 5000));
       const recentConditions = await prisma.surfCondition.findFirst({
         where: {
-          date: today,
+          date: date,
           region: region,
         },
         orderBy: { timestamp: "desc" },
@@ -426,7 +418,7 @@ export async function GET(request: Request) {
           CACHE_TIMES.getRedisExpiry(),
           JSON.stringify(formattedData)
         );
-        return Response.json(formattedData);
+        return NextResponse.json(formattedData);
       }
     }
 
@@ -441,7 +433,7 @@ export async function GET(request: Request) {
       const formattedScrapedData = scrapedData.map((d) => ({
         ...d,
         id: randomUUID(),
-        date: today,
+        date: date,
         createdAt: new Date(),
         updatedAt: new Date(),
       }));
@@ -454,7 +446,7 @@ export async function GET(request: Request) {
       console.log("Scraped conditions:", formattedScrapedData);
       for (const conditions of formattedScrapedData) {
         console.log("Storing ratings for region:", conditions.region);
-        await storeGoodBeachRatings(conditions, today);
+        await storeGoodBeachRatings(conditions, date);
       }
 
       // Find and format requested region's data
@@ -467,17 +459,17 @@ export async function GET(request: Request) {
           CACHE_TIMES.getRedisExpiry(),
           JSON.stringify(formattedData)
         );
-        return Response.json(formattedData);
+        return NextResponse.json(formattedData);
       }
     }
 
-    return Response.json(
+    return NextResponse.json(
       { error: `No forecast data available for ${region}` },
       { status: 404 }
     );
   } catch (error) {
     console.error("❌ Error in surf-conditions route:", error);
-    return Response.json(
+    return NextResponse.json(
       { error: "Failed to fetch surf conditions" },
       { status: 500 }
     );

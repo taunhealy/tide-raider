@@ -11,24 +11,26 @@ function getTodayDate() {
 
 export async function GET(request: Request) {
   try {
-    const session = await getServerSession(authOptions);
     const { searchParams } = new URL(request.url);
     const date = searchParams.get("date");
     const beachName = searchParams.get("beach");
 
-    if (!session?.user?.email) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-    }
-
-    // If date and beach are provided, return forecast data
+    // If date and beach are provided, return forecast data without auth check
     if (date && beachName) {
       const beach = beachData.find((b) => b.name === beachName);
       if (!beach) {
-        return NextResponse.json({ error: "Beach not found" }, { status: 404 });
+        return NextResponse.json({
+          wind: { speed: 0, direction: "N/A" },
+          swell: {
+            height: 0,
+            period: 0,
+            direction: "0",
+            cardinalDirection: "N/A",
+          },
+        });
       }
 
-      // First try to get conditions for the specific date
-      let conditions = await prisma.surfCondition.findFirst({
+      const conditions = await prisma.surfCondition.findFirst({
         where: {
           date: date,
           region: beach.region,
@@ -38,52 +40,40 @@ export async function GET(request: Request) {
         },
       });
 
-      // If no conditions found, get the most recent conditions
-      if (!conditions) {
-        conditions = await prisma.surfCondition.findFirst({
-          where: {
-            region: beach.region,
-          },
-          orderBy: {
-            timestamp: "desc",
-          },
-        });
-      }
+      const forecast = conditions
+        ? {
+            wind: {
+              speed: conditions.windSpeed,
+              direction: conditions.windDirection,
+            },
+            swell: {
+              height: conditions.swellHeight,
+              period: conditions.swellPeriod,
+              direction: conditions.swellDirection,
+              cardinalDirection: conditions.swellDirection,
+            },
+            timestamp: conditions.timestamp,
+          }
+        : {
+            wind: { speed: 0, direction: "N/A" },
+            swell: {
+              height: 0,
+              period: 0,
+              direction: "0",
+              cardinalDirection: "N/A",
+            },
+            timestamp: Date.now(),
+          };
 
-      // If still no conditions, return a default structure
-      if (!conditions) {
-        return NextResponse.json({
-          wind: {
-            direction: "N/A",
-            speed: 0,
-          },
-          swell: {
-            height: 0,
-            direction: "N/A",
-            period: 0,
-          },
-          timestamp: Date.now(),
-          region: beach.region,
-          note: "No forecast data available - using default values",
-        });
-      }
-
-      return NextResponse.json({
-        wind: {
-          direction: conditions.windDirection,
-          speed: conditions.windSpeed,
-        },
-        swell: {
-          height: conditions.swellHeight,
-          direction: conditions.swellDirection,
-          period: conditions.swellPeriod,
-        },
-        timestamp: conditions.timestamp,
-        region: conditions.region,
-      });
+      return NextResponse.json(forecast);
     }
 
-    // Return quest log entries if no date/beach params
+    // For entry listing, require authentication
+    const session = await getServerSession(authOptions);
+    if (!session?.user?.email) {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    }
+
     const entries = await prisma.logEntry.findMany({
       where: {
         surferEmail: session.user.email,
@@ -106,24 +96,28 @@ export async function GET(request: Request) {
 export async function POST(request: Request) {
   try {
     const session = await getServerSession(authOptions);
+    if (!session?.user?.email) {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    }
+
     const data = await request.json();
 
-    // Get forecast data from our own endpoint
+    // Get forecast data from surf-conditions endpoint instead
     const forecastResponse = await fetch(
-      `${process.env.NEXT_PUBLIC_BASE_URL}/api/quest-log?date=${data.date}&beach=${encodeURIComponent(data.beachName)}`
+      `${process.env.NEXT_PUBLIC_BASE_URL}/api/surf-conditions?date=${data.date}&region=${encodeURIComponent(data.beach.region)}`
     );
 
-    const forecast = await forecastResponse.json();
+    const forecastData = await forecastResponse.json();
 
     const entry = await prisma.logEntry.create({
       data: {
         date: new Date(data.date),
         surferName: data.surferName,
-        surferEmail: session?.user?.email ?? "",
+        surferEmail: session.user.email,
         beachName: data.beachName,
-        forecast: forecast,
+        forecast: forecastData,
         surferRating: data.surferRating,
-        comments: data.comments,
+        comments: data.comments || "",
         imageUrl: data.imageUrl,
       },
     });

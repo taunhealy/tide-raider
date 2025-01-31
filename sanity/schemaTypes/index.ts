@@ -1,4 +1,4 @@
-import blockContent from './blockContent'
+ import blockContent from './blockContent'
 import post from './documents/post'
 import postTemplate from './documents/postTemplate'
 import postCategory from './documents/postCategory'
@@ -24,11 +24,11 @@ export const schemaTypes = [
   postTemplate,
   postCategory,
   postTag,
+  pricing,
   // Objects
   blockContent,
   heroSection,
   blogSection,
-  pricing,
   relatedPostsWidget,
   locationMapWidget,
   categoryListWidget,

@@ -45,31 +45,45 @@
     /* Play Icon Colors */
     --color-play-icon-bg: #ffffff;
     --color-play-icon-border: var(--color-tertiary);
+
+    /* Heading Font Weight */
+    --heading-font-weight: 600;
   }
 
   /* Base Typography */
   .heading-1 {
-    @apply text-white font-secondary !font-black uppercase text-[197px] leading-tight tracking-tight;
+    @apply text-white font-secondary uppercase text-[197px] leading-tight tracking-tight;
+    font-weight: var(--heading-font-weight);
   }
 
   .heading-2 {
-    @apply font-primary text-[81px] font-semibold leading-tight;
+    @apply font-primary text-[81px] leading-tight;
+    font-weight: var(--heading-font-weight);
   }
 
   .heading-3 {
-    @apply font-primary text-[54px] font-semibold leading-snug;
+    @apply font-primary text-[54px] leading-snug;
+    font-weight: var(--heading-font-weight);
   }
 
   .heading-4 {
-    @apply font-primary text-[32px] font-normal leading-snug;
+    @apply font-primary text-[32px] leading-snug;
+    font-weight: var(--heading-font-weight);
   }
 
   .heading-5 {
-    @apply font-primary text-[21px] font-semibold leading-snug;
+    @apply font-primary text-[21px] leading-snug;
+    font-weight: var(--heading-font-weight);
   }
 
   .heading-6 {
-    @apply font-primary text-[16px] font-normal leading-snug;
+    @apply font-primary text-[16px] leading-snug;
+    font-weight: var(--heading-font-weight);
+  }
+
+  .heading-7 {
+    @apply font-primary text-[12px] leading-snug;
+    font-weight: var(--heading-font-weight);
   }
 }
 
@@ -80,6 +94,10 @@
 
   .text-large {
     @apply font-primary text-[21px] font-normal leading-snug max-w-[54ch];
+  }
+
+  .text-small {
+    @apply font-primary text-[14px] font-normal leading-snug max-w-[54ch];
   }
 
   .section-padding {
@@ -119,6 +137,19 @@
     background: var(--color-tertiary);
     cursor: pointer;
     border: none;
+  }
+
+  .link-nav {
+    @apply font-primary text-[16px] leading-6
+    transition-colors duration-200
+    text-[var(--color-text-secondary)]
+    hover:text-[var(--color-text-primary)];
+  }
+
+  .link-nav-active {
+    @apply font-primary text-[16px] leading-6
+    transition-colors duration-200
+    text-[var(--color-text-primary)];
   }
 }
 

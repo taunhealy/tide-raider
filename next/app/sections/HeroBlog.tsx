@@ -161,24 +161,23 @@ export default function Blog({ data }: BlogProps) {
           className="md:flex md:overflow-x-auto gap-4 md:gap-8 scroll-smooth no-scrollbar md:min-h-[540px] flex-col md:flex-row"
           style={{ scrollSnapType: "x mandatory" }}
         >
-          {filteredPosts.slice(0, 5).map((post: Post, index: number) => (
+          {data?.posts?.slice(0, 5).map((post: Post, index: number) => (
             <article
               key={`${post._id}-${index}`}
               className="flex-none w-full md:w-[calc(33.333%-1.33rem)] min-w-[280px] md:min-w-[300px] bg-white rounded-lg overflow-hidden transition-all duration-300 group mb-4 md:mb-0"
               style={{ scrollSnapAlign: "start" }}
             >
               <a
-                href={`/blog/${post.slug.current}/`}
+                href={`/blog/${post.slug}/`}
                 className="flex flex-row md:flex-col"
               >
                 <div className="relative w-[140px] md:w-full h-[140px] md:h-[410px] overflow-hidden">
-                  {/* @ts-ignore */}
                   {post.mainImage?.asset && (
                     <>
                       <div className="w-full h-full absolute inset-0 bg-[var(--color-bg-tertiary)] opacity-0 group-hover:opacity-30 transition-all duration-300 z-10" />
                       <img
                         src={
-                          urlForImage(post.mainImage?.asset)
+                          urlForImage(post.mainImage)
                             ?.width(600)
                             ?.height(400)
                             ?.url() ?? ""

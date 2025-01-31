@@ -116,7 +116,7 @@ export const beachData: Beach[] = [
     difficulty: "Beginner",
     waveType: "Beach Break",
     swellSize: {
-      min: 1.3,
+      min: 1.7,
       max: 4.0,
     },
     idealSwellPeriod: {
@@ -660,8 +660,8 @@ export const beachData: Beach[] = [
     difficulty: "Intermediate",
     waveType: "Point Break",
     swellSize: {
-      min: 0.3,
-      max: 0.6,
+      min: 2.3,
+      max: 8.6,
     },
     idealSwellPeriod: {
       min: 12,
@@ -1298,8 +1298,8 @@ export const beachData: Beach[] = [
     difficulty: "Intermediate",
     waveType: "Beach Break",
     swellSize: {
-      min: 0.3,
-      max: 3.5,
+      min: 1.4,
+      max: 4.5,
     },
     idealSwellPeriod: {
       min: 12,
@@ -1371,7 +1371,7 @@ export const beachData: Beach[] = [
   },
   {
     id: "sandy-bay",
-    name: "Sandy Bay （ ͜.人 ͜.）",
+    name: "Sandy Bay （人 人）",
     continent: "Africa",
     country: "South Africa",
     region: "Western Cape",
@@ -5508,69 +5508,12 @@ export const beachData: Beach[] = [
     },
   },
   {
-    id: "praia-tofo",
-    name: "Praia Tofo",
-    continent: "Africa",
-    country: "Mozambique",
-    region: "Mozambique",
-    location: "Inhambane Province",
-    distanceFromCT: 2800, // Approximate distance from Cape Town
-    optimalWindDirections: ["SSW"],
-    optimalSwellDirections: {
-      min: 112.5, // SE
-      max: 157.5, // SSE
-      cardinal: "SE",
-    },
-    bestSeasons: ["winter"],
-    optimalTide: "All", // No specific tide information provided
-    description:
-      "Fairly exposed beach break rated 4/5 but known for inconsistent conditions. Works best with Southeast groundswell and South-southwest offshore winds. Beach predominantly offers left-breaking waves. Despite good rating, rarely crowded even during optimal conditions. Remote location and shark presence require consideration. Sure finding surf in Mozambique isn't the easiest thing - it's a total mission to get around, long drive times and you'll certainly need a 4x4 - but the reward is well worth it.   ",
-    difficulty: "Intermediate",
-    waveType: "Beach Break",
-    swellSize: {
-      min: 1.2,
-      max: 6.0,
-    },
-    idealSwellPeriod: {
-      min: 12,
-      max: 18,
-    },
-    waterTemp: {
-      summer: 29, // Based on current reading of 29.1°C
-      winter: 24,
-    },
-    hazards: ["Sharks", "Rocks", "Remote location", "Inconsistent waves"],
-    crimeLevel: "Medium",
-    sharkAttack: {
-      hasAttack: false, // While sharks are present, no specific attacks mentioned
-    },
-    image: "",
-    coordinates: {
-      lat: -23.8516, // Please verify coordinates
-      lng: 35.5472,
-    },
-    videos: [
-      {
-        url: "https://www.youtube.com/watch?v=SaTShvF8_Kk&ab_channel=StokedForTravel",
-        title:
-          "Surfing Mozambique - Epic Rights in Tofo (and Whalesharks!) 🇲🇿 | Stoked For Travel",
-        platform: "youtube",
-      },
-      {
-        url: "https://www.youtube.com/watch?v=iJ0rOsgBgyA&ab_channel=Pollywogsurf",
-        title:
-          "Dreamy Mozambique surf trip - surfing & diving in beautiful Tofo & Tofino - Africa Travel - Pollywog  ",
-        platform: "youtube",
-      },
-    ],
-  },
-  {
     id: "tofinho",
     name: "Tofinho",
     continent: "Africa",
     country: "Mozambique",
-    region: "Mozambique",
-    location: "Inhambane Province",
+    region: "Inhambane Province",
+    location: "Tofo Beach",
     distanceFromCT: 2800, // Approximate distance from Cape Town
     optimalWindDirections: ["SSW"],
     optimalSwellDirections: {
@@ -5579,9 +5522,9 @@ export const beachData: Beach[] = [
       cardinal: "SE",
     },
     bestSeasons: ["winter"],
-    optimalTide: "All", // No specific tide information provided
+    optimalTide: "All",
     description:
-      "Fairly exposed reef and point break combination rated 4/5 with reliable conditions. Works best with Southeast swell (both wind and groundswells) and South-southwest offshore winds. Offers predominantly right-hand waves over reef. Despite quality waves, rarely gets crowded. Location provides consistent waves but requires careful navigation of reef sections.",
+      "Fairly exposed reef and point break combination rated 4/5 with reliable conditions. Works best with Southeast swell and South-southwest offshore winds. Offers predominantly right-hand waves over reef. Despite quality waves, rarely gets crowded. Location provides consistent waves but requires careful navigation of reef sections. Watch out for sharks and rocks.",
     difficulty: "Advanced",
     waveType: "Reef Break",
     swellSize: {
@@ -5593,19 +5536,26 @@ export const beachData: Beach[] = [
       max: 18,
     },
     waterTemp: {
-      summer: 29, // Based on current reading of 29.1°C
+      summer: 29, // Based on current reading
       winter: 24,
     },
     hazards: ["Sharks", "Rocks", "Strong currents", "Remote location"],
     crimeLevel: "Medium",
     sharkAttack: {
-      hasAttack: false, // While sharks are present, no specific attacks mentioned
+      hasAttack: false,
     },
     image: "",
     coordinates: {
-      lat: -23.8516, // Please verify coordinates
+      lat: -23.8516,
       lng: 35.5472,
     },
+    videos: [
+      {
+        url: "https://www.youtube.com/watch?v=f93I2SR9YVI&ab_channel=TheSardineNewsbySeanLange",
+        title: "013 Tofinho Diaries 2",
+        platform: "youtube",
+      },
+    ],
   },
   {
     id: "shipwreck",
@@ -7078,6 +7028,332 @@ export const beachData: Beach[] = [
       {
         url: "https://www.youtube.com/watch?v=z5P_LA1NYSs",
         title: "Surfing Anza - Kale Brock",
+        platform: "youtube",
+      },
+    ],
+  },
+  {
+    id: "back-beach",
+    name: "Back Beach",
+    continent: "Africa",
+    country: "Mozambique",
+    region: "Inhambane Province",
+    location: "Tofo",
+    distanceFromCT: 2800, // Similar to Tofinho as they're in the same region
+    optimalWindDirections: ["NW"],
+    optimalSwellDirections: {
+      min: 112.5, // SE
+      max: 157.5, // SSE
+      cardinal: "SE",
+    },
+    bestSeasons: ["winter"],
+    optimalTide: "All",
+    description:
+      "Exposed beach and reef break combination rated 4/5 with fairly consistent surf. Works best with Southeast swell and Northwest offshore winds. Features right-hand beach breaks and a left-hand reef break. Receives a mix of groundswells and windswells. Despite quality waves, spot remains relatively uncrowded even on good days. Watch out for sharks and rocks.",
+    difficulty: "Intermediate",
+    waveType: "Beach Break", // Primary characteristic, though it has reef sections
+    swellSize: {
+      min: 1.2,
+      max: 6.0,
+    },
+    idealSwellPeriod: {
+      min: 12,
+      max: 18,
+    },
+    waterTemp: {
+      summer: 29, // Based on current reading
+      winter: 24,
+    },
+    hazards: ["Sharks", "Rocks", "Strong currents"],
+    crimeLevel: "Medium",
+    sharkAttack: {
+      hasAttack: false,
+    },
+    image: "",
+    coordinates: {
+      lat: -23.8516, // Approximate, near Tofo Beach
+      lng: 35.5472,
+    },
+  },
+  {
+    id: "dinos-left",
+    name: "Dinos Left",
+    continent: "Africa",
+    country: "Mozambique",
+    region: "Inhambane Province",
+    location: "Tofo Beach",
+    distanceFromCT: 2800, // Similar to other Inhambane spots
+    optimalWindDirections: ["SW"],
+    optimalSwellDirections: {
+      min: 67.5, // ENE
+      max: 112.5, // ESE
+      cardinal: "E",
+    },
+    bestSeasons: ["winter"],
+    optimalTide: "All",
+    description:
+      "Quite exposed reef break rated 4/5 that works inconsistently. Works best with East swell and Southwest offshore winds. Left-hand reef break that receives both groundswells and windswells. Despite quality waves when working, spot remains very uncrowded. Watch out for sharks and rocks.",
+    difficulty: "Advanced",
+    waveType: "Reef Break",
+    swellSize: {
+      min: 1.5,
+      max: 5.0,
+    },
+    idealSwellPeriod: {
+      min: 12,
+      max: 18,
+    },
+    waterTemp: {
+      summer: 29, // Based on current reading
+      winter: 24,
+    },
+    hazards: ["Sharks", "Rocks", "Remote location"],
+    crimeLevel: "Medium",
+    sharkAttack: {
+      hasAttack: false,
+    },
+    image: "",
+    coordinates: {
+      lat: -23.8516, // Approximate, near Tofo Beach
+      lng: 35.5472,
+    },
+  },
+  {
+    id: "ponta-do-ouro",
+    name: "Ponta do Ouro",
+    continent: "Africa",
+    country: "Mozambique",
+    region: "Ponta do Ouro", // Corrected from Inhambane to Maputo Province
+    location: "Ponta do Ouro",
+    distanceFromCT: 2600, // Approximate distance from Cape Town
+    optimalWindDirections: ["NW"],
+    optimalSwellDirections: {
+      min: 112.5, // SE
+      max: 157.5, // SSE
+      cardinal: "SE",
+    },
+    bestSeasons: ["summer"],
+    optimalTide: "All",
+    description:
+      "Exposed point break rated 4/5 with fairly consistent surf. Works best with Southeast groundswell and Northwest offshore winds. Predominantly groundswell-driven spot that offers quality waves. Despite good conditions, rarely gets crowded. Watch out for submerged rocks.",
+    difficulty: "Intermediate",
+    waveType: "Point Break",
+    swellSize: {
+      min: 1.2,
+      max: 4.0,
+    },
+    idealSwellPeriod: {
+      min: 12,
+      max: 18,
+    },
+    waterTemp: {
+      summer: 28, // Based on current reading
+      winter: 23,
+    },
+    hazards: ["Rocks", "Strong currents"],
+    crimeLevel: "Medium",
+    sharkAttack: {
+      hasAttack: false,
+    },
+    image: "",
+    coordinates: {
+      lat: -26.8496, // Actual coordinates for Ponta do Ouro
+      lng: 32.8989,
+    },
+    videos: [
+      {
+        url: "https://www.youtube.com/watch?v=vaF4GROKAno&ab_channel=BaronMedia",
+        title:
+          "Surfing Mozambique Ponta do Ouro Skhanyiso ( Enlighten ) Short Film",
+        platform: "youtube",
+      },
+    ],
+  },
+  {
+    id: "cape-vidal",
+    name: "Cape Vidal",
+    continent: "Africa",
+    country: "South Africa",
+    region: "KwaZulu-Natal",
+    location: "KwaZulu-Natal North Coast",
+    distanceFromCT: 1800, // Approximate distance from Cape Town
+    optimalWindDirections: ["W"],
+    optimalSwellDirections: {
+      min: 67.5, // ENE
+      max: 112.5, // ESE
+      cardinal: "E",
+    },
+    bestSeasons: ["summer"],
+    optimalTide: "All",
+    description:
+      "Exposed reef break rated 3/5 with very consistent waves. Works best with East swell and Westerly offshore winds. Receives both local windswells and distant groundswells. No shelter from cross-shore breezes. Despite consistent conditions, rarely gets crowded. Notable shark presence in the area.",
+    difficulty: "Intermediate",
+    waveType: "Reef Break",
+    swellSize: {
+      min: 1.0,
+      max: 3.5,
+    },
+    idealSwellPeriod: {
+      min: 10,
+      max: 16,
+    },
+    waterTemp: {
+      summer: 28, // Based on current reading of 27.7°C
+      winter: 22,
+    },
+    hazards: ["Sharks", "Cross-shore winds", "Remote location"],
+    crimeLevel: "Low",
+    sharkAttack: {
+      hasAttack: true,
+    },
+    image: "",
+    coordinates: {
+      lat: -28.1269,
+      lng: 32.5522,
+    },
+  },
+  {
+    id: "oyster-bay-beach",
+    name: "Oyster Bay Beach - Coco Beach",
+    continent: "Africa",
+    country: "Tanzania",
+    region: "Dar es Salaam",
+    location: "Tanzania (Mainland)",
+    distanceFromCT: 3800, // Approximate distance from Cape Town
+    optimalWindDirections: ["W"],
+    optimalSwellDirections: {
+      min: 67.5, // ENE
+      max: 112.5, // ESE
+      cardinal: "E",
+    },
+    bestSeasons: ["winter"], // Summer noted as mostly flat
+    optimalTide: "High",
+    description:
+      "Exposed beach and reef break rated 3/5 with fairly consistent surf, though summer tends to be flat. Works best with East swell and Westerly offshore winds. Receives both windswells and groundswells equally. Features a left-hand reef break that's better than the right. Best conditions during rising high tide. Despite good waves when working, crowds are unknown. Watch out for sea urchins and sharks.",
+    difficulty: "Intermediate",
+    waveType: "Beach and Reef Break",
+    swellSize: {
+      min: 1.0,
+      max: 3.0,
+    },
+    idealSwellPeriod: {
+      min: 10,
+      max: 16,
+    },
+    waterTemp: {
+      summer: 29, // Based on current reading of 28.7°C
+      winter: 25,
+    },
+    hazards: [
+      "Sharks",
+      "Sea urchins",
+      "Poor conditions in light onshore winds",
+    ],
+    crimeLevel: "Medium",
+    sharkAttack: {
+      hasAttack: false,
+    },
+    image: "",
+    coordinates: {
+      lat: -6.7924,
+      lng: 39.2083,
+    },
+  },
+  {
+    id: "ambinanibe",
+    name: "Ambinanibe",
+    continent: "Africa",
+    country: "Madagascar",
+    region: "Madagascar East",
+    location: "Antanosy",
+    distanceFromCT: 2800, // Approximate distance from Cape Town
+    optimalWindDirections: ["NNW"],
+    optimalSwellDirections: {
+      min: 202.5, // SSW
+      max: 247.5, // WSW
+      cardinal: "SW",
+    },
+    bestSeasons: ["winter"],
+    optimalTide: "All",
+    description:
+      "Exposed beach break rated 2/5 with consistent surf conditions. Works best with Southwest groundswell and North-northwest offshore winds. Predominantly right-hand waves. Despite lower rating, spot can get crowded. Winter offers the best conditions. Watch out for rips, rocks, and sharks.",
+    difficulty: "All Levels",
+    waveType: "Beach Break",
+    swellSize: {
+      min: 1.0,
+      max: 3.0,
+    },
+    idealSwellPeriod: {
+      min: 10,
+      max: 14,
+    },
+    waterTemp: {
+      summer: 28, // Based on current reading
+      winter: 24,
+    },
+    hazards: ["Rip currents", "Rocks", "Sharks"],
+    crimeLevel: "Medium",
+    sharkAttack: {
+      hasAttack: false,
+    },
+    image: "",
+    coordinates: {
+      lat: -25.0419, // Approximate coordinates for Antanosy region
+      lng: 46.9953,
+    },
+  },
+  {
+    id: "flame-bowls",
+    name: "Flame Bowls",
+    continent: "Africa",
+    country: "Madagascar",
+    region: "Madagascar West",
+    location: "Vezo Reefs",
+    distanceFromCT: 2900, // Approximate distance from Cape Town
+    optimalWindDirections: ["SE"],
+    optimalSwellDirections: {
+      min: 157.5, // SSE
+      max: 202.5, // SSW
+      cardinal: "S",
+    },
+    bestSeasons: ["winter"],
+    optimalTide: "All",
+    description:
+      "Fairly exposed reef break rated 2/5 with fairly consistent surf. Works best with South groundswell and Southeast offshore winds. Predominantly groundswell-driven spot offering a left-hand reef break. Despite consistent conditions, rarely gets crowded. Watch out for coral, sharks, and rocks.",
+    difficulty: "Advanced",
+    waveType: "Reef Break",
+    swellSize: {
+      min: 1.0,
+      max: 3.0,
+    },
+    idealSwellPeriod: {
+      min: 12,
+      max: 16,
+    },
+    waterTemp: {
+      summer: 30, // Based on current reading of 29.6°C
+      winter: 25,
+    },
+    hazards: ["Coral reef", "Sharks", "Rocks"],
+    crimeLevel: "Medium",
+    sharkAttack: {
+      hasAttack: false,
+    },
+    image: "",
+    coordinates: {
+      lat: -20.2833, // Approximate coordinates for Vezo region
+      lng: 43.6667,
+    },
+    videos: [
+      {
+        url: "https://www.youtube.com/watch?v=UvXFDy5fNX0&ab_channel=TheSurfer%27sJournal",
+        title:
+          "Notes from the Channel | Finding Waves in Madagascar - Flame Bowls",
+        platform: "youtube",
+      },
+      {
+        url: "https://www.youtube.com/watch?v=ZppVg6OlcoA&ab_channel=madagascarsurf",
+        title: "perfect set @flameballs ~ Surf Madagascar 2012",
         platform: "youtube",
       },
     ],

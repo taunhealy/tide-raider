@@ -13,12 +13,12 @@ module.exports = {
         foreground: "var(--foreground)",
       },
       fontFamily: {
-        primary: ['var(--font-inter)', 'sans-serif'],
-        secondary: ['var(--font-montserrat)', 'sans-serif'],
+        primary: ["Inter", "sans-serif"],
+        secondary: ["var(--font-montserrat)", "sans-serif"],
       },
       fontWeight: {
-        black: '900',
-      }
+        black: "900",
+      },
     },
   },
   plugins: [],

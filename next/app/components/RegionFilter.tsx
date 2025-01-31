@@ -118,7 +118,7 @@ const RegionFilter = memo(function RegionFilter({
     return (
       <button
         onClick={handleSaveFilters}
-        className="ml-auto text-sm text-blue-600 hover:text-blue-800"
+        className="ml-auto text-sm text-[var(--color-tertiary)] hover:text-[var(--color-tertiary)]"
       >
         Save as Default
       </button>
@@ -169,7 +169,7 @@ const RegionFilter = memo(function RegionFilter({
         className="flex items-center justify-between cursor-pointer"
         onClick={() => setIsOpen(!isOpen)}
       >
-        <h3 className="text-lg font-semibold">Regions</h3>
+        <h6 className="heading-6">Regions</h6>
         <ChevronDown
           className={`w-5 h-5 transition-transform ${isOpen ? "transform rotate-180" : ""}`}
         />
@@ -219,7 +219,7 @@ const RegionFilter = memo(function RegionFilter({
 
           {/* Divider */}
           {visibleRegions.length > 0 && visibleCountries.length > 0 && (
-            <div className="h-px bg-gray-200 my-4" />
+            <div className="h-px bg-gray-200 my-4 heading-6" />
           )}
 
           {/* Regions */}

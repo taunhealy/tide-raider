@@ -6,6 +6,11 @@ export const structure = (S: StructureBuilder) =>
     .title('Content')
     .items([
       S.listItem()
+        .title('Homepage')
+        .child(S.document().schemaType('homepage').documentId('homepage')),
+      S.listItem().title('Pricing').child(S.document().schemaType('pricing').documentId('pricing')),
+      S.divider(),
+      S.listItem()
         .title('Blog Posts')
         .child(
           S.list()

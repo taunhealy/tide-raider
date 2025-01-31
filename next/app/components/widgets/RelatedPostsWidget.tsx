@@ -2,10 +2,7 @@
 
 import { urlForImage } from "@/app/lib/urlForImage";
 import { FormattedDate } from "../FormattedDate";
-import { Inter } from "next/font/google";
 import Link from "next/link";
-
-const inter = Inter({ subsets: ["latin"] });
 
 interface Post {
   title: string;
@@ -30,11 +27,7 @@ export default function RelatedPostsWidget({
   return (
     <div className="bg-white p-6 rounded-lg shadow-sm">
       <div className="flex items-center justify-between mb-6">
-        <h3
-          className={`text-lg font-semibold text-gray-800 ${inter.className}`}
-        >
-          {title}
-        </h3>
+        <h3 className={`text-lg font-semibold text-gray-800`}>{title}</h3>
       </div>
       <div className="space-y-6">
         {posts.slice(0, maxPosts).map((post) => (

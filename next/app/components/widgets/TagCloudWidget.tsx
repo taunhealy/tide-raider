@@ -73,7 +73,7 @@ export default function TagCloudWidget({
             className={`
               ${getTagSize(tag.postCount)}
               inline-flex items-center
-              hover:text-blue-600
+              hover:text-[var(--color-tertiary)]
               transition-colors
               ${tag.postCount > 0 ? "text-gray-700" : "text-gray-400"}
             `}

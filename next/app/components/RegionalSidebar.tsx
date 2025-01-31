@@ -63,13 +63,13 @@ export default function RegionalSidebar({
             <a
               key={ad.id}
               href="/advertising"
-              className="block bg-gray-50 rounded-lg p-4 text-center hover:bg-gray-100 transition-colors"
+              className="block bg-[var(--color-bg-primary)] rounded-lg p-6 text-center hover:bg-gray-50 transition-colors border border-gray-200"
             >
-              <p className="text-gray-600 text-sm">
+              <p className="text-small mb-2">
                 {AD_CATEGORIES[ad.category as keyof typeof AD_CATEGORIES].label}{" "}
                 in {selectedRegion}?
               </p>
-              <p className="text-gray-800 font-medium mt-1">
+              <p className="heading-7 text-[var(--color-text-secondary)]">
                 Sponsor this space
               </p>
             </a>
@@ -82,7 +82,7 @@ export default function RegionalSidebar({
             href={ad.linkUrl}
             target="_blank"
             rel="noopener noreferrer"
-            className="block bg-white rounded-lg p-4 hover:shadow-md transition-shadow"
+            className="block bg-[var(--color-bg-primary)] rounded-lg p-6 hover:shadow-md transition-shadow border border-gray-200"
             onClick={() => {
               fetch("/api/ads/click", {
                 method: "POST",
@@ -91,10 +91,8 @@ export default function RegionalSidebar({
               }).catch(console.error);
             }}
           >
-            <h3 className="font-semibold text-gray-900">
-              {ad.title || ad.companyName}
-            </h3>
-            <p className="text-sm text-gray-600 mt-1">
+            <h3 className="heading-7 mb-2">{ad.title || ad.companyName}</h3>
+            <p className="text-main">
               {AD_CATEGORIES[ad.category as keyof typeof AD_CATEGORIES].label}
             </p>
           </a>

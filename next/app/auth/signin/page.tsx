@@ -72,7 +72,7 @@ function SignInContent() {
                     />
                   </svg>
                 )}
-                <span className="text-gray-700 font-medium">
+                <span className="text-gray-700 font-primary">
                   Continue with {provider.name}
                 </span>
               </button>

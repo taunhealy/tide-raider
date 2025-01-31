@@ -66,16 +66,14 @@ export function BoardTable({ boards }: BoardTableProps) {
               <p className="text-gray-600">
                 Owner: {board.user.name || board.user.email}
               </p>
-              <p className="text-gray-600">
-                Fin Setup: {board.finSetup}
-              </p>
+              <p className="text-gray-600">Fin Setup: {board.finSetup}</p>
             </div>
 
             {session?.user?.email === board.user.email && (
               <div className="flex gap-2">
                 <button
                   onClick={() => setEditingBoard(board)}
-                  className="text-blue-600 hover:text-blue-700"
+                  className="text-[var(--color-tertiary)] hover:text-[var(--color-tertiary)]"
                 >
                   <Edit className="h-4 w-4" />
                 </button>
@@ -125,7 +123,9 @@ export function BoardTable({ boards }: BoardTableProps) {
                 <td className="px-6 py-4 whitespace-nowrap">{board.name}</td>
                 <td className="px-6 py-4 whitespace-nowrap">{board.type}</td>
                 <td className="px-6 py-4 whitespace-nowrap">{board.length}</td>
-                <td className="px-6 py-4 whitespace-nowrap">{board.finSetup}</td>
+                <td className="px-6 py-4 whitespace-nowrap">
+                  {board.finSetup}
+                </td>
                 <td className="px-6 py-4 whitespace-nowrap">
                   ${board.rentPrice}/day
                 </td>
@@ -137,7 +137,7 @@ export function BoardTable({ boards }: BoardTableProps) {
                     <div className="flex gap-2">
                       <button
                         onClick={() => setEditingBoard(board)}
-                        className="text-blue-600 hover:text-blue-700"
+                        className="text-[var(--color-tertiary)] hover:text-[var(--color-tertiary)]"
                       >
                         <Edit className="h-4 w-4" />
                       </button>

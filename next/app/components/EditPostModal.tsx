@@ -3,14 +3,11 @@
 import { useState } from "react";
 import { useQueryClient, useMutation } from "@tanstack/react-query";
 import { X, Loader2, Link as LinkIcon } from "lucide-react";
-import { Inter } from "next/font/google";
 import { cn } from "@/app/lib/utils";
 import type { Story } from "@/app/types/stories";
 import { beachData } from "@/app/types/beaches";
 import { Button } from "@/app/components/ui/Button";
 import { STORY_CATEGORIES, StoryCategory } from "@/app/lib/constants";
-
-const inter = Inter({ subsets: ["latin"] });
 
 interface EditPostModalProps {
   isOpen: boolean;
@@ -124,8 +121,7 @@ export function EditPostModal({ isOpen, onClose, story }: EditPostModalProps) {
           <div className="flex items-center justify-between p-6 border-b border-[var(--color-border-light)]">
             <h3
               className={cn(
-                "text-lg font-semibold text-[var(--color-text-primary)]",
-                inter.className
+                "text-lg font-semibold text-[var(--color-text-primary)]"
               )}
             >
               Edit Story

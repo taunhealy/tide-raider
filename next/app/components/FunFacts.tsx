@@ -3,9 +3,6 @@
 import { useState, useEffect } from "react";
 import { funFacts, type FunFact } from "@/data/funfacts";
 import { cn } from "@/app/lib/utils";
-import { Inter } from "next/font/google";
-
-const inter = Inter({ subsets: ["latin"] });
 
 export default function FunFacts() {
   const [currentFact, setCurrentFact] = useState<FunFact | null>(null);
@@ -45,9 +42,9 @@ export default function FunFacts() {
     >
       <h3
         className={cn(
-          "text-[18px] font-semibold text-[var(--color-text-primary)]",
-          "mb-6",
-          inter.className
+          "heading-6",
+          " text-[var(--color-text-primary)]",
+          "mb-6 font-primary"
         )}
       >
         Did You Know?

@@ -45,7 +45,7 @@ export default function CategoryListWidget({
           <Link
             key={category.slug.current}
             href={`/blog?category=${category.slug.current}`}
-            className="flex items-center justify-between hover:text-blue-600 transition-colors"
+            className="flex items-center justify-between hover:text-[var(--color-tertiary)] transition-colors"
           >
             <span>{category.title}</span>
             {showPostCount && (

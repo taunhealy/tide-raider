@@ -242,7 +242,7 @@ export default function WildStoriesContainer({ beaches }: WildStoriesProps) {
                       setFilters({ ...filters, regions: newRegions });
                     }}
                     className={cn(
-                      "px-3 md:px-4 py-1.5 md:py-2 rounded-full text-xs md:text-sm font-medium whitespace-nowrap transition-colors",
+                      "px-3 md:px-4 py-1.5 md:py-2 rounded-full text-xs md:text-sm whitespace-nowrap transition-colors font-primary",
                       filters.regions.includes(region)
                         ? "bg-white text-[var(--color-bg-tertiary)] border-2 border-[var(--color-bg-tertiary)]"
                         : "bg-gray-100 text-gray-600 border-2 border-[var(--color-bg-primary)] hover:bg-gray-100"

@@ -1,11 +1,8 @@
-import { Inter } from "next/font/google";
 import { cn } from "@/app/lib/utils";
 
 interface Props {
   region: string;
 }
-
-const inter = Inter({ subsets: ["latin"] });
 
 const swellInsights = {
   atlantic: {
@@ -34,14 +31,7 @@ const swellInsights = {
 export default function Insights({ region }: Props) {
   return (
     <div className="bg-white p-6 rounded-lg shadow-sm mb-4">
-      <h3
-        className={cn(
-          "text-lg font-semibold text-gray-800 mb-4",
-          inter.className
-        )}
-      >
-        Regional Insights
-      </h3>
+      <h3 className={cn("heading-6 text-gray-800 mb-4")}>Regional Insights</h3>
 
       <div className="space-y-4">
         {Object.values(swellInsights).map((insight) => (
@@ -49,21 +39,16 @@ export default function Insights({ region }: Props) {
             key={insight.name}
             className="bg-gray-50 p-4 rounded-lg border border-gray-100"
           >
-            <h4
-              className={cn(
-                "text-sm font-medium text-gray-900 mb-2",
-                inter.className
-              )}
-            >
+            <h6 className={cn("heading-6 text-gray-900 mb-2")}>
               {insight.name}
-            </h4>
-            <p className="text-xs text-gray-500 mb-2">
+            </h6>
+            <p className="text-small text-gray-500 mb-2">
               Notable spots: {insight.examples}
             </p>
-            <p className="text-xs font-medium text-[var(--color-tertiary)] mb-1">
+            <p className="text-small text-[var(--color-tertiary)] mb-1">
               Optimal swell: {insight.swellRange}
             </p>
-            <p className="text-xs text-gray-600 leading-relaxed">
+            <p className="text-small text-gray-600 leading-relaxed">
               {insight.description}
             </p>
           </div>

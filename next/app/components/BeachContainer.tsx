@@ -12,7 +12,6 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { isBeachSuitable, calculateBeachScores } from "@/app/lib/surfUtils";
 import FunFacts from "@/app/components/FunFacts";
 import { cn } from "@/app/lib/utils";
-import { Inter } from "next/font/google";
 import {
   ChevronLeft,
   ChevronRight,
@@ -43,6 +42,7 @@ import StickyForecastWidget from "./StickyForecastWidget";
 import { getCachedBeachCounts, cacheBeachCounts } from "@/app/lib/redis";
 import { prisma } from "@/app/lib/prisma";
 import { storeGoodBeachRatings } from "@/app/lib/surfUtils";
+import StickyRegionFilter from "./StickyRegionFilter";
 
 interface BeachContainerProps {
   initialBeaches: Beach[];
@@ -50,13 +50,6 @@ interface BeachContainerProps {
   blogPosts: any;
   availableAds: Ad[];
 }
-
-const inter = Inter({
-  subsets: ["latin"],
-  display: "swap",
-  preload: true,
-  fallback: ["system-ui", "arial"],
-});
 
 export default function BeachContainer({
   initialBeaches,
@@ -97,7 +90,6 @@ export default function BeachContainer({
 
   // Move this function above updateFilters
   const handleRegionChange = (newRegion: string) => {
-    console.log("Region changed to:", newRegion); // Debug log
     setSelectedRegion(newRegion);
     updateFilters("region", [newRegion]); // Update filters to match
   };
@@ -159,11 +151,10 @@ export default function BeachContainer({
   const { data: allWindData, isLoading: isAllDataLoading } = useQuery({
     queryKey: ["surfConditions", "all"],
     queryFn: async () => {
-      console.log("🔄 Fetching all regions data");
       const response = await fetch(`/api/surf-conditions`);
       if (!response.ok) throw new Error("Failed to fetch conditions");
       const data = await response.json();
-      console.log("📦 Received all regions data:", data);
+
       return data; // Remove the { data } wrapper
     },
     enabled: true,
@@ -187,28 +178,17 @@ export default function BeachContainer({
         scores[beach.id] = score;
 
         // Debug each beach's score
-        console.log(`Beach ${beach.name}: score ${score}`);
 
         if (score >= 4) {
           counts[beach.region] = (counts[beach.region] || 0) + 1;
-          console.log(
-            `✅ Good beach found: ${beach.name} (${score}) in ${beach.region}`
-          );
         } else {
           // Debug why beach didn't score well
-          console.log(`ℹ️ ${beach.name} scored ${score} because:`, {
-            wind: allWindData.wind,
-            swell: allWindData.swell,
-            optimalWind: beach.optimalWindDirections,
-            optimalSwell: beach.optimalSwellDirections,
-          });
         }
       } catch (error) {
         console.error(`Error calculating score for ${beach.name}:`, error);
       }
     });
 
-    console.log("📊 Final counts:", counts);
     setRegionScoreCounts(counts);
     return scores;
   }, [allWindData, initialBeaches]);
@@ -337,18 +317,14 @@ export default function BeachContainer({
     searchQuery,
   ]);
 
-  const paginatedBeaches = useMemo(() => {
-    const startIndex = (currentPage - 1) * itemsPerPage;
-    const endIndex = startIndex + itemsPerPage;
-    return filteredBeaches.slice(startIndex, endIndex);
-  }, [filteredBeaches, currentPage]);
+  // Modify the pagination to respect subscription status
+  const totalBeaches = isSubscribed ? filteredBeaches.length : 3;
+  const totalPages = Math.ceil(totalBeaches / itemsPerPage);
 
-  const totalPages = Math.ceil(filteredBeaches.length / itemsPerPage);
-
-  const handlePageChange = (page: number) => {
-    setCurrentPage(page);
-    window.scrollTo({ top: 0, behavior: "smooth" });
-  };
+  const currentItems = filteredBeaches.slice(
+    (currentPage - 1) * itemsPerPage,
+    currentPage * itemsPerPage
+  );
 
   const uniqueRegions = Array.from(
     new Set(initialBeaches.map((beach) => beach.region))
@@ -513,7 +489,7 @@ export default function BeachContainer({
             <div className="flex flex-col gap-6 mb-9">
               <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
                 <h3
-                  className={`text-xl sm:text-2xl font-semibold text-[var(--color-text-primary)] ${inter.className}`}
+                  className={` sm:text-2xl font-semi-bold text-[var(--color-text-primary)] font-primary`}
                 >
                   This Morning's Recommendations
                 </h3>
@@ -523,7 +499,7 @@ export default function BeachContainer({
                 <button
                   onClick={() => setIsSidebarOpen(!isSidebarOpen)}
                   className={cn(
-                    inter.className,
+                    "font-primary",
                     "text-black font-semibold",
                     "bg-white border border-gray-200",
                     "px-4 py-1",
@@ -693,7 +669,7 @@ export default function BeachContainer({
                       )
                     )}
                     <BeachGrid
-                      beaches={paginatedBeaches}
+                      beaches={currentItems}
                       windData={windData}
                       isBeachSuitable={isBeachSuitable}
                       isLoading={isLoading}
@@ -702,26 +678,33 @@ export default function BeachContainer({
                 )}
 
                 {/* Pagination */}
-                <div className="mt-12 flex justify-center items-center gap-3">
-                  <button
-                    onClick={() => handlePageChange(currentPage - 1)}
-                    disabled={currentPage === 1}
-                    className={cn(
-                      "p-2 rounded-md border",
-                      currentPage === 1
-                        ? "text-gray-400 border-gray-200 cursor-not-allowed"
-                        : "text-gray-700 border-gray-300 hover:bg-gray-50"
-                    )}
-                  >
-                    <ChevronLeft className="h-5 w-5" />
-                  </button>
+                {(isSubscribed ? totalPages > 1 : false) && (
+                  <div className="mt-12 flex justify-center items-center gap-3">
+                    <button
+                      onClick={() => setCurrentPage(currentPage - 1)}
+                      disabled={currentPage === 1}
+                      className={cn(
+                        "p-2 rounded-md border",
+                        currentPage === 1
+                          ? "text-gray-400 border-gray-200 cursor-not-allowed"
+                          : "text-gray-700 border-gray-300 hover:bg-gray-50"
+                      )}
+                    >
+                      <ChevronLeft className="h-5 w-5" />
+                    </button>
 
-                  <div className="flex items-center gap-1">
-                    {Array.from({ length: totalPages }, (_, i) => i + 1).map(
-                      (page) => (
+                    <div className="flex items-center gap-1">
+                      {Array.from(
+                        {
+                          length: Math.ceil(
+                            filteredBeaches.length / itemsPerPage
+                          ),
+                        },
+                        (_, i) => i + 1
+                      ).map((page) => (
                         <button
                           key={page}
-                          onClick={() => handlePageChange(page)}
+                          onClick={() => setCurrentPage(page)}
                           className={cn(
                             "px-3 py-1 rounded-md",
                             currentPage === page
@@ -731,23 +714,27 @@ export default function BeachContainer({
                         >
                           {page}
                         </button>
-                      )
-                    )}
-                  </div>
+                      ))}
+                    </div>
 
-                  <button
-                    onClick={() => handlePageChange(currentPage + 1)}
-                    disabled={currentPage === totalPages}
-                    className={cn(
-                      "p-2 rounded-md border",
-                      currentPage === totalPages
-                        ? "text-gray-400 border-gray-200 cursor-not-allowed"
-                        : "text-gray-700 border-gray-300 hover:bg-gray-50"
-                    )}
-                  >
-                    <ChevronRight className="h-5 w-5" />
-                  </button>
-                </div>
+                    <button
+                      onClick={() => setCurrentPage(currentPage + 1)}
+                      disabled={
+                        currentPage ===
+                        Math.ceil(filteredBeaches.length / itemsPerPage)
+                      }
+                      className={cn(
+                        "p-2 rounded-md border",
+                        currentPage ===
+                          Math.ceil(filteredBeaches.length / itemsPerPage)
+                          ? "text-gray-400 border-gray-200 cursor-not-allowed"
+                          : "text-gray-700 border-gray-300 hover:bg-gray-50"
+                      )}
+                    >
+                      <ChevronRight className="h-5 w-5" />
+                    </button>
+                  </div>
+                )}
 
                 {/* Move Fun Facts below beach cards */}
                 <div className="lg:hidden mt-6">
@@ -776,21 +763,18 @@ export default function BeachContainer({
               data-forecast-widget
             >
               <div className="flex items-center justify-between mb-6">
-                <h3
-                  className={`text-[21px] font-semibold text-gray-800 ${inter.className}`}
-                >
+                <h3 className={`text-[21px] heading-6 text-gray-800`}>
                   Today's Forecast
                 </h3>
                 <div
                   className={`
-                  ${inter.className}
+                  font-primary
                   text-black
                   bg-gray-100
                   px-3
                   py-1
                   rounded-[21px]
                   text-sm
-                  font-medium
                 `}
                 >
                   8AM
@@ -817,8 +801,7 @@ export default function BeachContainer({
                     <div className="bg-gray-50 p-4 rounded-lg border border-gray-100 aspect-square flex flex-col">
                       <label
                         className={cn(
-                          "text-sm text-gray-500 uppercase tracking-wide mb-2",
-                          inter.className
+                          "text-sm text-gray-500 uppercase tracking-wide mb-2"
                         )}
                       >
                         Wind
@@ -839,8 +822,7 @@ export default function BeachContainer({
                     <div className="bg-gray-50 p-4 rounded-lg border border-gray-100 aspect-square flex flex-col">
                       <label
                         className={cn(
-                          "text-sm text-gray-500 uppercase tracking-wide mb-2",
-                          inter.className
+                          "text-sm text-gray-500 uppercase tracking-wide mb-2 font-primary"
                         )}
                       >
                         Swell Height
@@ -856,8 +838,7 @@ export default function BeachContainer({
                     <div className="bg-gray-50 p-4 rounded-lg border border-gray-100 aspect-square flex flex-col">
                       <label
                         className={cn(
-                          "text-sm text-gray-500 uppercase tracking-wide mb-2",
-                          inter.className
+                          "text-sm text-gray-500 font-primary uppercase tracking-wide mb-2"
                         )}
                       >
                         Swell Period
@@ -873,8 +854,7 @@ export default function BeachContainer({
                     <div className="bg-gray-50 p-4 rounded-lg border border-gray-100 aspect-square flex flex-col">
                       <label
                         className={cn(
-                          "text-sm text-gray-500 uppercase tracking-wide mb-2",
-                          inter.className
+                          "text-sm text-gray-500 uppercase tracking-wide mb-2 font-primary"
                         )}
                       >
                         Swell Direction
@@ -951,6 +931,15 @@ export default function BeachContainer({
 
       {/* Sticky Forecast Widget */}
       <StickyForecastWidget windData={windData} />
+
+      {/* Sticky Region Filter */}
+      <StickyRegionFilter
+        regions={uniqueRegions}
+        selectedRegion={selectedRegion}
+        onRegionChange={handleRegionChange}
+        regionCounts={regionScoreCounts}
+        isLoading={isAllDataLoading}
+      />
     </div>
   );
 }

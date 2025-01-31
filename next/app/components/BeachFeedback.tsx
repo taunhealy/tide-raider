@@ -83,9 +83,9 @@ export default function Feedback({ beaches }: FeedbackProps) {
         onClick={() => setIsOpen(!isOpen)}
         className={cn("w-full px-9 py-6", "flex items-start justify-start")}
       >
-        <h3 className="text-lg font-semibold text-gray-800 text-start">
+        <h6 className="heading-6 text-gray-800 text-start">
           Surf Conditions Feedback
-        </h3>
+        </h6>
         <ChevronDown
           className={cn(
             "w-5 h-5 transition-transform duration-200",

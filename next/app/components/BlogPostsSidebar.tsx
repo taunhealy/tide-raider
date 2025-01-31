@@ -1,10 +1,7 @@
 import { urlForImage } from "@/app/lib/urlForImage";
 import { client } from "@/app/lib/sanity";
 import { FormattedDate } from "./FormattedDate";
-import { Inter } from "next/font/google";
 import Link from "next/link";
-
-const inter = Inter({ subsets: ["latin"] });
 
 interface Post {
   title: string;
@@ -36,14 +33,10 @@ export default function BlogPostsSidebar({ posts }: BlogPostsSidebarProps) {
   return (
     <div className="bg-[var(--color-bg-primary)] p-6 rounded-lg shadow-sm">
       <div className="flex items-center justify-between mb-6">
-        <h3
-          className={`text-lg font-semibold text-gray-800 ${inter.className}`}
-        >
-          Travel Posts
-        </h3>
+        <h3 className="heading-6">Travel Posts</h3>
         <Link
           href="/blog?category=Travel"
-          className="text-sm text-[var(--color-text-secondary)] hover:underline"
+          className="text-main hover:text-[var(--color-text-secondary)] hover:underline transition-colors"
         >
           View All
         </Link>
@@ -74,13 +67,13 @@ export default function BlogPostsSidebar({ posts }: BlogPostsSidebarProps) {
                 </div>
               )}
               <div className="flex-1 min-w-0">
-                <h4 className="text-sm font-medium text-gray-900 mb-1 truncate group-hover:text-[var(--color-text-secondary)] transition-colors">
+                <h4 className="heading-7 mb-1 truncate group-hover:text-[var(--color-text-secondary)] transition-colors">
                   {post.title}
                 </h4>
-                <p className="text-xs text-gray-500 line-clamp-2">
+                <p className="text-main text-[12px] line-clamp-2">
                   {post.description}
                 </p>
-                <div className="mt-1 text-xs text-gray-400">
+                <div className="mt-1 text-main text-[12px] text-[var(--color-text-tertiary)]">
                   <FormattedDate date={new Date(post.publishedAt)} />
                 </div>
               </div>

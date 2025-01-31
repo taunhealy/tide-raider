@@ -59,10 +59,9 @@ export default function Navbar() {
                 <li key={link.href}>
                   <Link
                     href={link.href}
-                    className={cn(
-                      "relative text-gray-600 hover:text-gray-900 transition-colors",
-                      pathname === link.href && "text-gray-900 font-medium"
-                    )}
+                    className={
+                      pathname === link.href ? "link-nav-active" : "link-nav"
+                    }
                   >
                     {link.label}
                   </Link>
@@ -128,19 +127,9 @@ export default function Navbar() {
                 <li key={link.href}>
                   <Link
                     href={link.href}
-                    prefetch={true}
-                    onClick={(e) => {
-                      console.log("Link clicked:", link.href);
-                      console.log("Current pathname:", pathname);
-                      e.preventDefault();
-                      console.log("Attempting navigation to:", link.href);
-                      window.location.href = link.href;
-                      console.log("Navigation completed");
-                    }}
-                    className={cn(
-                      "block text-[var(--color-text-primary)] text-lg py-[16px]",
-                      pathname === link.href && "font-medium"
-                    )}
+                    className={
+                      pathname === link.href ? "link-nav-active" : "link-nav"
+                    }
                   >
                     {link.label}
                   </Link>

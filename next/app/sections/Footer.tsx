@@ -32,7 +32,7 @@ export default function Footer() {
           {/* Brand Column */}
           <div className="col-span-1">
             <Link href="/" className="block mb-[16px]">
-              <h6 className="font-semibold">Side Quest</h6>
+              <h6 className="heading-6">Tide Raider</h6>
             </Link>
             <p className="text-main text-[var(--color-text-secondary)] max-w-[36ch]">
               Get daily surf spot recommendations and wave insights, based on
@@ -43,7 +43,7 @@ export default function Footer() {
           {/* Links Columns */}
           {footerLinks.map((section) => (
             <div key={section.title} className="col-span-1">
-              <h6 className="font-semibold mb-[16px]">{section.title}</h6>
+              <h6 className="heading-6 mb-[16px]">{section.title}</h6>
               <ul className="space-y-[8px]">
                 {section.links.map((link) => (
                   <li key={link.href}>
@@ -61,7 +61,7 @@ export default function Footer() {
 
           {/* Newsletter Column */}
           <div className="col-span-1 sm:col-span-2 md:col-span-1">
-            <h6 className="font-semibold mb-[16px]">Stay Updated</h6>
+            <h6 className="heading-6 mb-[16px]">Stay Updated</h6>
             <p className="text-main text-[var(--color-text-secondary)] max-w-[36ch] mb-[16px]">
               Subscribe to our newsletter for surf insights and updates.
             </p>

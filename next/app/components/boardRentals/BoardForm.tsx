@@ -162,7 +162,7 @@ export function BoardForm({ userEmail, isOpen, onClose, editBoard }: BoardFormPr
 
           <button
             type="submit"
-            className="w-full py-2 px-4 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
+            className="w-full py-2 px-4 bg-[var(--color-tertiary)] text-white rounded-lg hover:bg-[var(--color-tertiary)]"
             disabled={createBoard.isPending}
           >
             {createBoard.isPending

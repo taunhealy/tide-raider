@@ -99,13 +99,11 @@ export default function EventsSidebar() {
   return (
     <div className="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden">
       <div className="p-6 border-b border-gray-200 ">
-        <div className="flex flex-col gap-4">
-          <h2 className="text-lg font-semibold text-gray-900">
-            Upcoming Travel Video Premieres
-          </h2>
+        <div className="flex flex-col items-center gap-4">
+          <h6 className="heading-6 text-gray-900">Travel Video Premieres</h6>
           <button
             onClick={() => setShowForm(!showForm)}
-            className="text-sm bg-[var(--color-bg-tertiary)] text-white px-4 py-2 rounded-md hover:opacity-90"
+            className="text-small bg-[var(--color-bg-tertiary)] text-white px-4 py-2 rounded-md hover:opacity-90"
           >
             {showForm ? "Cancel" : "Add Event"}
           </button>
@@ -126,12 +124,12 @@ export default function EventsSidebar() {
                 onChange={(e) =>
                   setFormData({ ...formData, title: e.target.value })
                 }
-                className="mt-2 block w-full px-4 py-2 text-sm rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
+                className="mt-2 block w-full px-4 py-2 text-sm rounded-md border-gray-300 shadow-sm focus:border-[var(--color-tertiary)] focus:ring-[var(--color-tertiary)]"
               />
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
+              <label className="block text-small text-gray-700 mb-2">
                 Description
               </label>
               <textarea
@@ -140,7 +138,7 @@ export default function EventsSidebar() {
                 onChange={(e) =>
                   setFormData({ ...formData, description: e.target.value })
                 }
-                className="mt-2 block w-full px-4 py-2 text-sm rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
+                className="mt-2 block w-full px-4 py-2 text-sm rounded-md border-gray-300 shadow-sm focus:border-[var(--color-tertiary)] focus:ring-[var(--color-tertiary)]"
                 rows={3}
               />
             </div>
@@ -160,7 +158,7 @@ export default function EventsSidebar() {
                       region: "", // Reset region when country changes
                     });
                   }}
-                  className="mt-2 block w-full px-4 py-2 text-sm rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
+                  className="mt-2 block w-full px-4 py-2 text-sm rounded-md border-gray-300 shadow-sm focus:border-[var(--color-tertiary)] focus:ring-[var(--color-tertiary)]"
                 >
                   <option value="">Select Country</option>
                   {countries.map((country) => (
@@ -181,7 +179,7 @@ export default function EventsSidebar() {
                   onChange={(e) =>
                     setFormData({ ...formData, region: e.target.value })
                   }
-                  className="mt-2 block w-full px-4 py-2 text-sm rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
+                  className="mt-2 block w-full px-4 py-2 text-sm rounded-md border-gray-300 shadow-sm focus:border-[var(--color-tertiary)] focus:ring-[var(--color-tertiary)]"
                   disabled={!formData.country}
                 >
                   <option value="">Select Region</option>
@@ -206,7 +204,7 @@ export default function EventsSidebar() {
                 onChange={(e) =>
                   setFormData({ ...formData, startTime: e.target.value })
                 }
-                className="mt-2 block w-full px-4 py-2 text-sm rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
+                className="mt-2 block w-full px-4 py-2 text-sm rounded-md border-gray-300 shadow-sm focus:border-[var(--color-tertiary)] focus:ring-[var(--color-tertiary)]"
               />
             </div>
 
@@ -220,7 +218,7 @@ export default function EventsSidebar() {
                 onChange={(e) =>
                   setFormData({ ...formData, link: e.target.value })
                 }
-                className="mt-2 block w-full px-4 py-2 text-sm rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
+                className="mt-2 block w-full px-4 py-2 text-sm rounded-md border-gray-300 shadow-sm focus:border-[var(--color-tertiary)] focus:ring-[var(--color-tertiary)]"
                 placeholder="https://..."
               />
             </div>
@@ -236,7 +234,7 @@ export default function EventsSidebar() {
       )}
 
       <div className="divide-y divide-gray-200">
-        {Array.isArray(events) &&
+        {Array.isArray(events) && events.length > 0 ? (
           events.map((event) => (
             <div key={event.id} className="p-6">
               <h3 className="font-medium text-gray-900">{event.title}</h3>
@@ -256,7 +254,15 @@ export default function EventsSidebar() {
                 </a>
               )}
             </div>
-          ))}
+          ))
+        ) : (
+          <div className="text-center p-6">
+            <p className="text-small text-gray-800 mb-4">No Events Yet 🎥</p>
+            <p className="text-small text-gray-600">
+              Check back later for upcoming video premieres
+            </p>
+          </div>
+        )}
       </div>
     </div>
   );

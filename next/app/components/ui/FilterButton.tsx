@@ -44,6 +44,7 @@ export function FilterButton({
         "relative rounded-[32px] flex items-center",
         "px-[16px] py-1 gap-2",
         "border whitespace-nowrap",
+        "text-main font-primary",
         getVariantStyles()
       )}
     >

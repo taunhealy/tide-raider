@@ -4,13 +4,10 @@ import { useState } from "react";
 import { useSession } from "next-auth/react";
 import { useQueryClient, useMutation } from "@tanstack/react-query";
 import { X, Loader2, Link as LinkIcon } from "lucide-react";
-import { Inter } from "next/font/google";
 import { cn } from "@/app/lib/utils";
 import type { Beach } from "@/app/types/beaches";
 import { STORY_CATEGORIES, type StoryCategory } from "@/app/lib/constants";
 import { StoryBeach } from "../types/stories";
-
-const inter = Inter({ subsets: ["latin"] });
 
 interface CreatePostModalProps {
   isOpen: boolean;
@@ -106,8 +103,7 @@ export function CreatePostModal({
           <div className="flex items-center justify-between p-6 border-b border-[var(--color-border-light)]">
             <h3
               className={cn(
-                "text-lg font-semibold text-[var(--color-text-primary)]",
-                inter.className
+                "text-lg font-semibold text-[var(--color-text-primary)]"
               )}
             >
               Share Your Story

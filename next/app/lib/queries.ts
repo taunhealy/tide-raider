@@ -1,61 +1,59 @@
 import { groq } from "next-sanity";
 
 // Simple query to test connection and see all documents
-export const homePageQuery = groq`{
-  "homepage": *[_type == "homepage"][0] {
-    _id,
-    _type,
-    _updatedAt,
-    hero {
-      heroImageTitle,
-      description,
-      "image": image.asset->url,
-      imagePhotographer,
-      aboutHeading,
-      aboutDescription,
-      viewAppHeading,
-      "viewAppImage": viewAppImage.asset->url,
-      "heroAboutImage": heroAboutImage.asset->url
-    },
-    about,
-    blog {
-      heading,
-      "posts": *[_type == "post"][0...3] | order(publishedAt desc) {
-        _id,
-        title,
-        slug,
-        mainImage,
-        publishedAt,
-        description,
-        "categories": categories[]-> {
-          title,
-          slug
-        }
-      }
-    },
-    heroProduct {
+export const homePageQuery = groq`*[_type == "homepage"] | order(_createdAt desc)[0] {
+  _id,
+  _type,
+  hero {
+    heroImageTitle,
+    description,
+    image,
+    imagePhotographer,
+    heroAboutImage,
+    aboutHeading,
+    aboutDescription,
+    viewAppHeading,
+    viewAppImage,
+    aboutImage
+  },
+  about {
+    aboutHeading,
+    aboutDescription1,
+    aboutDescription1Image,
+    aboutDescription2,
+    aboutDescription2Image
+  },
+  blog {
+    heading,
+    "posts": *[_type == "post"] | order(publishedAt desc) [0...3] {
+      _id,
       title,
-      leftDescription,
-      rightDescription,
-      "leftImage": leftImage.asset->url,
-      "filterItems": filterItems[] {
-        type,
-        "icon": icon.asset->url
+      "slug": slug.current,
+      mainImage,
+      publishedAt,
+      description,
+      categories[]-> {
+        _id,
+        title
       }
-    },
-    heroImage
+    }
+  },
+  heroImage {
+    image,
+    title,
+    imagePhotographer
+  },
+  heroProduct {
+    title,
+    leftDescription,
+    rightDescription,
+    leftImage,
+    filterItems[] {
+      type,
+      icon
+    }
   }
 }`;
-
-// Fetches homepage content including hero and about sections
-// Returns: hero and about section content
-export const homepageQuery = groq`
-  *[_type == "homepage"][0] {
-    hero,
-    about,
-    // other sections
-  }
-`;
 
 // Add this with the other query exports
 export const pricingQuery = groq`

@@ -47,9 +47,9 @@ export default function Hero({ data }: HeroProps) {
     <>
       <section className="relative w-full h-[60vh] md:h-[90vh] md:px-[121.51px]">
         {/* Full-width hero image */}
-        {data?.image && (
+        {data?.image ? (
           <Image
-            src={data.image}
+            src={urlForImage(data.image)?.url() || ""}
             alt={data.heroImageTitle || "Hero background"}
             fill
             priority
@@ -57,7 +57,7 @@ export default function Hero({ data }: HeroProps) {
             className="object-cover"
             onLoadingComplete={() => setHeroImageLoaded(true)}
           />
-        )}
+        ) : null}
 
         {/* Overlay */}
         <div className="absolute inset-0 bg-[var(--color-tertiary)] opacity-45" />
@@ -70,7 +70,7 @@ export default function Hero({ data }: HeroProps) {
         </div>
       </section>
 
-      {/* About section with side-by-side layout */}
+      {/* About section */}
       <section className="hero-about-section bg-white px-4 pb-[121px] md:pb-[54px] pt-[54px] md:pt-[121.5px] md:px-[121.51px]">
         <div className="gap-[16px] flex flex-col md:flex-row md:gap-[54px] w-full">
           {/* Left content */}

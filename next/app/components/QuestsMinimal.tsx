@@ -2,10 +2,7 @@
 
 import { useQuery } from "@tanstack/react-query";
 import { cn } from "@/app/lib/utils";
-import { Inter } from "next/font/google";
 import type { LogEntry } from "@/app/types/questlogs";
-
-const inter = Inter({ subsets: ["latin"] });
 
 export default function Quests() {
   const { data: logEntries, isLoading } = useQuery({
@@ -19,7 +16,7 @@ export default function Quests() {
 
   return (
     <div className="space-y-4">
-      <h2 className={cn("text-xl font-semibold", inter.className)}>Quests</h2>
+      <h2 className={cn("text-xl font-semibold font-primary")}>Quests</h2>
       {isLoading ? (
         <div>Loading...</div>
       ) : (

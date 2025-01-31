@@ -13,14 +13,13 @@ export default async function Home() {
       homePageQuery,
       {},
       {
-        cache: "no-store",
         next: { revalidate: 0 },
       }
     );
-    console.log("Hero data:", data?.homepage?.hero);
-    console.log("Hero Product data:", data?.homepage?.heroProduct);
 
-    if (!data?.homepage) {
+    console.log("Raw data:", data); // Let's see the full data structure
+
+    if (!data) {
       return (
         <div className="p-8 text-center">
           <h1 className="text-2xl font-bold">Welcome</h1>
@@ -31,10 +30,10 @@ export default async function Home() {
 
     return (
       <>
-        <Hero data={data.homepage.hero} />
-        <HeroProduct data={data.homepage.heroProduct} />
-        <HeroBlog data={data.homepage.blog} />
-        <HeroImage data={data.homepage.heroImage} />
+        <Hero data={data.hero} />
+        {data.heroProduct && <HeroProduct data={data.heroProduct} />}
+        {data.blog && <HeroBlog data={data.blog} />}
+        {data.heroImage && <HeroImage data={data.heroImage} />}
       </>
     );
   } catch (error) {

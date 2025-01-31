@@ -3,14 +3,11 @@
 import { Button } from "../components/ui/Button";
 import { useHandleSubscribe } from "../hooks/useHandleSubscribe";
 import { Check } from "lucide-react";
-import { Inter } from "next/font/google";
 import { cn } from "@/app/lib/utils";
 import Image from "next/image";
 import { client } from "@/app/lib/sanity";
 import { pricingQuery } from "@/app/lib/queries";
 import { useEffect, useState } from "react";
-
-const inter = Inter({ subsets: ["latin"] });
 
 function ImageSkeleton() {
   return (
@@ -66,23 +63,21 @@ export default function PricingPage() {
               <div className="px-[32px] py-[32px] bg-[var(--color-bg-secondary)] border-b border-[var(--color-border-light)]">
                 <h5
                   className={cn(
-                    "text-[var(--color-text-primary)] mb-[8px]",
-                    inter.className
+                    "text-[var(--color-text-primary)] mb-[8px] font-primary"
                   )}
                 >
-                  Tide Raider Pro
+                  Tide Raider Membership
                 </h5>
                 <div className="flex items-baseline gap-[8px]">
                   <span
                     className={cn(
-                      "text-[32px] font-semibold text-[var(--color-text-primary)]",
-                      inter.className
+                      "text-[32px] font-semibold text-[var(--color-text-primary)] font-primary"
                     )}
                   >
                     R{data?.price || ""}
                   </span>
                   <span className="text-main text-[var(--color-text-secondary)]">
-                    {data?.priceSubtext || "one-time payment"}
+                    {data?.priceSubtext || "Yearly Payment"}
                   </span>
                 </div>
               </div>
@@ -94,10 +89,7 @@ export default function PricingPage() {
                   ).map((feature) => (
                     <li
                       key={feature}
-                      className={cn(
-                        "flex items-start gap-[8px]",
-                        inter.className
-                      )}
+                      className={cn("flex items-start gap-[8px]")}
                     >
                       <Check className="h-5 w-5 text-[var(--color-text-primary)] mt-[2px]" />
                       <span className="text-main text-[var(--color-text-secondary)]">
@@ -109,7 +101,7 @@ export default function PricingPage() {
 
                 <Button
                   variant="outline"
-                  className={cn("max-w-[210px]", inter.className)}
+                  className={cn("max-w-[210px] font-primary")}
                   onClick={() => handleSubscribe()}
                 >
                   Purchase

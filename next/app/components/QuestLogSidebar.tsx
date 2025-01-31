@@ -1,15 +1,15 @@
 "use client";
 
 import { useQuery } from "@tanstack/react-query";
-import { Inter } from "next/font/google";
 import Link from "next/link";
 import { Star } from "lucide-react";
 import { cn } from "@/app/lib/utils";
 import type { LogEntry } from "@/app/types/questlogs";
-
-const inter = Inter({ subsets: ["latin"] });
+import { useSubscription } from "../context/SubscriptionContext";
+import Image from "next/image";
 
 export default function QuestLogSidebar() {
+  const { isSubscribed } = useSubscription();
   const { data, isLoading } = useQuery({
     queryKey: ["recentQuestEntries"],
     queryFn: async () => {
@@ -22,13 +22,34 @@ export default function QuestLogSidebar() {
 
   if (isLoading) return <div>Loading...</div>;
 
+  if (!isSubscribed) {
+    return (
+      <div className="bg-[var(--color-bg-primary)] p-6 rounded-lg shadow-sm border border-gray-200">
+        <div className="text-center">
+          <h3 className={`heading-6 text-gray-800 mb-4`}>Cooking 🍳🔥😎</h3>
+          <p className="text-small text-gray-600 mb-4">
+            Subscribe to view top-rated surf sessions
+          </p>
+          <Link
+            href="/pricing"
+            className="text-small inline-block px-4 py-2 bg-[var(--color-tertiary)] text-white rounded-lg hover:bg-[var(--color-tertiary)]"
+          >
+            View Pricing
+          </Link>
+        </div>
+      </div>
+    );
+  }
+
+  const highRatedEntries = data?.entries
+    .filter((entry: LogEntry) => entry.surferRating >= 4 && entry.imageUrl)
+    .slice(0, 3);
+
   return (
     <div className="bg-[var(--color-bg-primary)] p-6 rounded-lg shadow-sm border border-gray-200">
       <div className="flex items-center justify-between mb-6">
-        <h3
-          className={`text-lg font-semibold text-gray-800 ${inter.className}`}
-        >
-          Recent Quests
+        <h3 className={`text-lg font-semibold text-gray-800 font-primary`}>
+          Top Rated Sessions
         </h3>
         <Link
           href="/quest-log"
@@ -39,10 +60,20 @@ export default function QuestLogSidebar() {
       </div>
 
       <div className="space-y-6">
-        {data && data.entries.length > 0 ? (
-          data.entries.map((entry: LogEntry) => (
+        {highRatedEntries && highRatedEntries.length > 0 ? (
+          highRatedEntries.map((entry: LogEntry) => (
             <div key={entry.id} className="group">
-              <article className="flex gap-4">
+              <article className="space-y-3">
+                {entry.imageUrl && (
+                  <div className="relative aspect-video rounded-lg overflow-hidden">
+                    <Image
+                      src={entry.imageUrl}
+                      alt={`Session at ${entry.beachName}`}
+                      fill
+                      className="object-cover"
+                    />
+                  </div>
+                )}
                 <div className="flex-1 min-w-0">
                   <h4 className="text-sm font-medium text-gray-900 mb-1 truncate group-hover:text-[var(--color-text-secondary)] transition-colors">
                     {entry.beachName}
@@ -71,7 +102,7 @@ export default function QuestLogSidebar() {
             </div>
           ))
         ) : (
-          <div>No entries available</div>
+          <div>No top-rated entries available</div>
         )}
       </div>
     </div>

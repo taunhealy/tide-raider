@@ -8,7 +8,6 @@ import { degreesToCardinal, isBeachSuitable } from "@/app/lib/surfUtils";
 import { redis } from "@/app/lib/redis";
 import { beachData } from "@/app/types/beaches";
 
-
 interface RegionScrapeConfig {
   url: string;
   region: string;
@@ -46,6 +45,26 @@ const REGION_CONFIGS: RegionScrapeConfig[] = [
   {
     url: "https://swell.co.za/swakop/simple",
     region: "Swakopmund",
+  },
+  {
+    url: "https://swell.co.za/tofo/simple",
+    region: "Inhambane Province",
+  },
+  {
+    url: "https://swell.co.za/ponta/simple",
+    region: "Ponta do Ouro",
+  },
+  {
+    url: "https://swell.co.za/androka/simple",
+    region: "Madagascar South",
+  },
+  {
+    url: "https://swell.co.za/antalaha/simple",
+    region: "Madagascar East",
+  },
+  {
+    url: "https://swell.co.za/morombe/simple",
+    region: "Madagascar West",
   },
 ];
 

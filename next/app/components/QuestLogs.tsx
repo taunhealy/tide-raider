@@ -65,12 +65,14 @@ export default function QuestLogs({ beaches }: QuestLogsProps) {
   if (status === "unauthenticated") {
     return (
       <div className="flex flex-col items-center justify-center min-h-screen bg-[var(--color-bg-secondary)] p-4">
-        <div className="bg-white rounded-lg shadow-sm p-8 text-center">
-          <h2 className="text-xl font-semibold mb-4">Sign in Required</h2>
-          <p className="mb-6">Please sign in to view and create quest logs.</p>
+        <div className="bg-white rounded-lg shadow-sm p-8 text-center font-primary">
+          <h2 className="heading-5 mb-4">Sign in Required</h2>
+          <p className="text-main text-[var(--color-text-secondary)] mb-6">
+            Please sign in to view and create quest logs.
+          </p>
           <button
             onClick={() => signIn()}
-            className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
+            className="px-4 py-2 bg-[var(--color-tertiary)] text-white rounded-lg hover:bg-[var(--color-tertiary)] font-primary"
           >
             Sign In
           </button>
@@ -172,27 +174,27 @@ export default function QuestLogs({ beaches }: QuestLogsProps) {
   const handleCloseModal = () => setIsModalOpen(false);
 
   return (
-    <div className="min-h-screen bg-[var(--color-bg-secondary)] p-9">
+    <div className="min-h-screen bg-[var(--color-bg-secondary)] p-9 font-primary">
       <div className="max-w-[1600px] mx-auto">
         {/* Tabs */}
         <div className="mb-12">
           <div className="flex items-center justify-start overflow-x-auto no-scrollbar border-b border-gray-200">
             <button
               onClick={() => setActiveTab("logs")}
-              className={`px-6 py-4 font-medium text-sm transition-colors duration-200 ${
+              className={`px-6 py-4 text-small font-primary transition-colors duration-200 ${
                 activeTab === "logs"
-                  ? "text-gray-900"
-                  : "text-gray-500 hover:text-gray-700 hover:bg-gray-50"
+                  ? "text-[var(--color-text-primary)]"
+                  : "text-[var(--color-text-secondary)] hover:text-[var(--color-text-primary)] hover:bg-gray-50"
               }`}
             >
               <span className="whitespace-nowrap">Logged Side Quests</span>
             </button>
             <button
               onClick={handleOpenModal}
-              className={`px-6 py-4 font-medium text-sm transition-colors duration-200 ${
+              className={`px-6 py-4 text-small font-primary transition-colors duration-200 ${
                 activeTab === "new"
-                  ? "text-gray-900"
-                  : "text-gray-500 hover:text-gray-700 hover:bg-gray-50"
+                  ? "text-[var(--color-text-primary)]"
+                  : "text-[var(--color-text-secondary)] hover:text-[var(--color-text-primary)] hover:bg-gray-50"
               }`}
             >
               <span className="whitespace-nowrap">Log A Session</span>
@@ -205,18 +207,18 @@ export default function QuestLogs({ beaches }: QuestLogsProps) {
           {activeTab === "logs" ? (
             <div className="w-full">
               <div className="flex justify-between items-center mb-6">
-                <h2 className={cn("text-[21px] font-semibold")}>
-                  Logged Side Quests
-                </h2>
+                <h2 className="heading-5">Logged Side Quests</h2>
                 <button
                   onClick={() => setIsFilterOpen(true)}
-                  className="px-4 py-2 text-sm font-medium bg-gray-100 rounded-lg hover:bg-gray-200"
+                  className="px-4 py-2 text-small font-primary text-[var(--color-text-primary)] bg-gray-100 rounded-lg hover:bg-gray-200"
                 >
                   Filter Logs
                 </button>
               </div>
               {isLoading ? (
-                <div>Loading...</div>
+                <div className="text-main text-[var(--color-text-secondary)]">
+                  Loading...
+                </div>
               ) : filteredEntries.length > 0 ? (
                 <QuestLogTable
                   entries={filteredEntries.map((entry) => ({
@@ -231,7 +233,9 @@ export default function QuestLogs({ beaches }: QuestLogsProps) {
                   }))}
                 />
               ) : (
-                <div>No entries available</div>
+                <div className="text-main text-[var(--color-text-secondary)]">
+                  No entries available
+                </div>
               )}
             </div>
           ) : null}

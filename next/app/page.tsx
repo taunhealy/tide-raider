@@ -1,48 +1,61 @@
 import { client } from "./lib/sanity";
-import { homePageQuery } from "./lib/queries";
-import Hero from "./sections/Hero";
-import HeroProduct from "./sections/HeroProduct";
-import HeroBlog from "./sections/HeroBlog";
+
+import { groq } from "next-sanity";
+import HeroBlogSection from "@/app/sections/HeroBlog";
+import HeroSection from "./sections/Hero";
 import HeroImage from "./sections/HeroImage";
 
 export const revalidate = 0;
 
-export default async function Home() {
-  try {
-    const data = await client.fetch(
-      homePageQuery,
-      {},
-      {
-        next: { revalidate: 0 },
+// Only fetch content, not structure
+async function getHomeContent() {
+  const content = await client.fetch(groq`
+    *[_type == "landingPage"][0] {
+      heroHeading,
+      heroSubheading,
+      heroImage,
+      "blog": {
+        "posts": *[_type == "post"] | order(publishedAt desc) [0...3] {
+          _id,
+          title,
+          slug,
+          mainImage,
+          publishedAt,
+          description,
+          categories[]-> {
+            title,
+            slug
+          }
+        }
       }
-    );
-
-    console.log("Raw data:", data); // Let's see the full data structure
-
-    if (!data) {
-      return (
-        <div className="p-8 text-center">
-          <h1 className="text-2xl font-bold">Welcome</h1>
-          <p>Content is being prepared...</p>
-        </div>
-      );
     }
+  `);
 
-    return (
-      <>
-        <Hero data={data.hero} />
-        {data.heroProduct && <HeroProduct data={data.heroProduct} />}
-        {data.blog && <HeroBlog data={data.blog} />}
-        {data.heroImage && <HeroImage data={data.heroImage} />}
-      </>
-    );
-  } catch (error) {
-    console.error("Error fetching data:", error);
-    return (
-      <div className="p-[32px] text-center">
-        <h1 className="text-2xl font-bold">Error</h1>
-        <p>Failed to load content</p>
-      </div>
-    );
+  console.log("Home content:", content);
+  return content
+    ? {
+        hero: {
+          heroHeading: content.heroHeading,
+          heroSubheading: content.heroSubheading,
+          heroImage: content.heroImage,
+        },
+        blog: content.blog,
+      }
+    : null;
+}
+
+export default async function HomePage() {
+  const content = await getHomeContent();
+
+  if (!content) {
+    return <div>Loading...</div>;
   }
+
+  return (
+    <main>
+      <HeroSection data={content.hero} />
+      <HeroBlogSection data={content.blog} />
+      <HeroImage data={content.image} />
+    </main>
+  );
 }

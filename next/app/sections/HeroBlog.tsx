@@ -1,8 +1,7 @@
 "use client";
 
-import { FormattedDate } from "@/app/components/FormattedDate";
 import { urlForImage } from "@/app/lib/urlForImage";
-import { Button } from "@/app/components/ui/Button";
+
 import { useState, useMemo, useEffect, useRef, useCallback } from "react";
 import { ChevronRight, ChevronLeft } from "lucide-react";
 import Link from "next/link";
@@ -25,13 +24,16 @@ interface Post {
 
 interface BlogProps {
   data: {
-    heading: string;
     posts: Post[];
     allCategories: Category[];
-  };
+  } | null;
 }
 
 export default function Blog({ data }: BlogProps) {
+  if (!data) {
+    return null;
+  }
+
   const [activeCategory, setActiveCategory] = useState("All");
   const [currentPage, setCurrentPage] = useState(1);
   const postsPerPage = 5;
@@ -116,19 +118,19 @@ export default function Blog({ data }: BlogProps) {
   return (
     <section className="blog-section pt-[54px] pb-[81px] md:pt-[54px] md:pb-[121.51px] px-4 md:px-[121.51px] bg-[var(--color-bg-primary)]">
       <div className="text-left mb-8 md:mb-12">
-        <h3 className="heading-3 text-3xl md:text-5xl font-bold text-gray-900">
-          {data.heading || "It's worth every nugget."}
+        <h3 className="heading-3 font-primary text-3xl md:text-5xl font-bold text-gray-900">
+          Latest Blog Posts
         </h3>
       </div>
       <div className="blog-nav-container flex flex-col md:flex-row justify-between gap-[32px] mb-8">
-        <div className="flex justify-between items-end w-full min-w-[700px]  ">
-          <div className="blog-nav-titles flex flex-row gap-[16px] items-end overflow-x-hidden overflow-y-hidden min-h-[32px] ">
+        <div className="flex justify-between items-end w-full min-w-[700px]">
+          <div className="blog-nav-titles flex flex-row gap-[16px] items-end overflow-x-hidden overflow-y-hidden min-h-[32px]">
             {["All", ...allCategories.map((cat) => cat.title)].map(
               (category) => (
                 <h6
                   key={category}
                   onClick={() => setActiveCategory(category)}
-                  className={`cursor-pointer whitespace-nowrap transition-all ease-in-out duration-300 ${
+                  className={`font-primary cursor-pointer whitespace-nowrap transition-all ease-in-out duration-300 ${
                     activeCategory === category
                       ? "text-gray-900"
                       : "text-gray-500 hover:text-gray-700"
@@ -147,7 +149,7 @@ export default function Blog({ data }: BlogProps) {
           </div>
           <div className="blog-nav-item">
             <Link href="/blog">
-              <span className="text-[16px] underline text-[var(--color-text-primary)] hover:text-[var(--color-text-secondary)] transition-colors duration-300">
+              <span className="font-primary text-[16px] underline text-[var(--color-text-primary)] hover:text-[var(--color-text-secondary)] transition-colors duration-300">
                 View All
               </span>
             </Link>
@@ -212,7 +214,7 @@ export default function Blog({ data }: BlogProps) {
                       {post.categories.map((category: Category) => (
                         <span
                           key={category.title}
-                          className="text-xs bg-[var(--color-bg-secondary)] text-[var(--color-text-secondary)] px-2 py-1 rounded font-secondary font-semibold uppercase"
+                          className="font-primary text-xs bg-[var(--color-bg-secondary)] text-[var(--color-text-secondary)] px-2 py-1 rounded font-semibold uppercase"
                         >
                           {category.title}
                         </span>
@@ -220,11 +222,11 @@ export default function Blog({ data }: BlogProps) {
                     </div>
                   )}
 
-                  <h3 className="text-lg md:text-xl mb-2 md:mb-[16px] font-semibold text-gray-900 group-hover:text-primary transition-colors duration-300">
+                  <h3 className="font-primary text-lg md:text-xl mb-2 md:mb-[16px] font-semibold text-gray-900 group-hover:text-primary transition-colors duration-300">
                     {post.title}
                   </h3>
 
-                  <div className="hidden md:flex items-center text-[var(--color-text-secondary)] font-medium mt-4">
+                  <div className="hidden md:flex items-center text-[var(--color-text-secondary)] font-primary font-medium mt-4">
                     Read More
                     <svg
                       xmlns="http://www.w3.org/2000/svg"

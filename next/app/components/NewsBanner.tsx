@@ -23,16 +23,7 @@ export default function NewsBanner({
     <div className="fixed bottom-0 left-0 right-0 bg-[var(--color-bg-tertiary)] z-50 flex h-10">
       {/* Left - Credit section - Hidden on mobile */}
       <div className="hidden md:flex flex-shrink-0 bg-[var(--brand-tertiary)] px-3 sm:px-6 items-center border-r border-[var(--color-bg-tertiary)] rounded-md w-full md:w-auto justify-center md:justify-start">
-        <a
-          href="https://kealogic.com"
-          target="_blank"
-          rel="noopener noreferrer"
-          className="text-white hover:text-gray-800 transition-colors text-xs sm:text-sm whitespace-nowrap text-center md:text-left"
-        >
-          <span className="hidden md:inline">
-            Designed & Developed by <span className="font-bold">Kea Logic</span>
-          </span>
-        </a>
+        <span className="font-primary text-white text-sm">Latest Updates</span>
       </div>
 
       {/* Middle - Scrolling news section */}
@@ -42,7 +33,7 @@ export default function NewsBanner({
             <a
               key={`${post.slug.current}-${index}`}
               href={`/blog/${post.slug.current}`}
-              className="inline-block mx-4 sm:mx-8 text-sm sm:text-base text-white hover:text-gray-800 transition-colors pointer-events-auto"
+              className="inline-block mx-4 sm:mx-8 text-sm sm:text-base text-white hover:text-gray-800 transition-colors pointer-events-auto font-primary"
             >
               {post.title}
               <span className="mx-2 sm:mx-4"></span>

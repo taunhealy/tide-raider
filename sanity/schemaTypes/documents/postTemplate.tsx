@@ -10,15 +10,14 @@ export default defineType({
       title: 'Template Name',
       type: 'string',
       validation: (Rule) => Rule.required(),
-    }),
-    defineField({
-      name: 'slug',
-      title: 'Slug',
-      type: 'slug',
       options: {
-        source: 'name',
+        list: [
+          // Hardcoded template types
+          {title: 'Travel Guide', value: 'travelGuide'},
+          {title: 'Surf Spot Review', value: 'surfSpotReview'},
+          {title: 'News Article', value: 'newsArticle'},
+        ],
       },
-      validation: (Rule) => Rule.required(),
     }),
     defineField({
       name: 'category',
@@ -26,54 +25,6 @@ export default defineType({
       type: 'reference',
       to: [{type: 'postCategory'}],
       validation: (Rule) => Rule.required(),
-    }),
-    defineField({
-      name: 'sidebar',
-      title: 'Sidebar Schema',
-      type: 'string',
-      options: {
-        list: [
-          {title: 'Travel Expenses', value: 'travelExpenses'},
-          {title: 'Surf Conditions', value: 'surfConditions'},
-          {title: 'Beach Info', value: 'beachInfo'},
-        ],
-      },
-    }),
-    defineField({
-      name: 'sidebarWidgets',
-      title: 'Sidebar Widgets',
-      type: 'array',
-      of: [
-        {
-          type: 'object',
-          fields: [
-            {
-              name: 'type',
-              type: 'string',
-              options: {
-                list: [
-                  {title: 'Related Posts', value: 'relatedPosts'},
-                  {title: 'Location Map', value: 'locationMap'},
-                  {title: 'Category List', value: 'categoryList'},
-                  {title: 'Tag Cloud', value: 'tagCloud'},
-                ],
-              },
-            },
-            {name: 'order', type: 'number'},
-            {
-              name: 'config',
-              type: 'object',
-              fields: [
-                {
-                  name: 'widgetConfig',
-                  type: 'reference',
-                  to: [{type: 'relatedPostsWidget'}, {type: 'locationMapWidget'}],
-                },
-              ],
-            },
-          ],
-        },
-      ],
     }),
   ],
 })

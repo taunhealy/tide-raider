@@ -68,3 +68,13 @@ export interface TravelCosts {
     medical: number;
   };
 }
+
+export interface SanityImage {
+  _type: "image";
+  _id: string;
+  alt?: string;
+  asset: {
+    _ref: string;
+    _type: "reference";
+  };
+}

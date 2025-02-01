@@ -33,7 +33,7 @@ export default async function BlogPost({
       <div className="grid grid-cols-1 lg:grid-cols-[1fr_400px] gap-8">
         {/* Main Content */}
         <main>
-          <h1 className="text-3xl font-bold mb-4">{post.title}</h1>
+          <h1 className="font-primary text-3xl font-bold mb-4">{post.title}</h1>
 
           {/* Main Image */}
           {post.mainImage?.asset && (
@@ -48,12 +48,12 @@ export default async function BlogPost({
           )}
 
           {/* Content */}
-          <div className="prose max-w-none">
+          <div className="prose max-w-none font-primary">
             {Array.isArray(post.content) && post.content.length > 0 ? (
               <PortableText value={post.content} />
             ) : (
               <div className="bg-yellow-50 p-4 rounded">
-                <p className="text-yellow-700">
+                <p className="font-primary text-yellow-700">
                   Content is missing. Please add content in Sanity Studio.
                 </p>
               </div>

@@ -1,66 +1,37 @@
-"use client";
-
-import React, { useState } from "react";
-import Image from "next/image";
 import { urlForImage } from "@/app/lib/urlForImage";
-
+import { SanityImage } from "@/types";
+import Image from "next/image";
 interface HeroImageProps {
-  data?: {
-    image?: any;
-    title?: string;
-    imagePhotographer?: string;
-  };
+  image: SanityImage;
+  text?: string;
 }
 
-const HeroImage: React.FC<HeroImageProps> = ({ data }) => {
-  const [showPhotographerCredit, setShowPhotographerCredit] = useState(false);
-
+export default function HeroImage({ image, text }: HeroImageProps) {
   return (
-    <section className="py-[32px] md:py-[54px] px-4 md:px-[81px]">
-      <div className="md:pl-[54px]">
-        <div className="relative w-full max-w-full min-h-[300px] md:min-h-[508px]">
-          <div
-            className="relative w-full h-[300px] md:h-[508px]"
-            onMouseEnter={() => setShowPhotographerCredit(true)}
-            onMouseLeave={() => setShowPhotographerCredit(false)}
-          >
-            {data?.image && (
-              <Image
-                src={
-                  data?.image?.asset
-                    ? urlForImage(data.image)?.url() || "/placeholder.jpg"
-                    : "/placeholder.jpg"
-                }
-                alt="Hero background"
-                fill
-                priority
-                quality={100}
-                sizes="(max-width: 768px) 100vw, (max-width: 1200px) 80vw, 70vw"
-                className="object-cover sm:object-[center_15%_top] object-[center_left_top] rounded-lg"
-              />
-            )}
-            {data?.imagePhotographer && (
-              <div
-                className={`
-                  absolute bottom-4 right-4 
-                  bg-black bg-opacity-50 
-                  px-3 py-1 rounded-md 
-                  text-white text-sm 
-                  transition-all duration-300 ease-in-out
-                  ${showPhotographerCredit ? "opacity-100 translate-y-0" : "opacity-0 translate-y-2"}
-                `}
-              >
-                Photo by {data.imagePhotographer}
-              </div>
-            )}
+    <div className="relative w-full h-screen p-6 md:p-12">
+      {/* Image container with padding */}
+      <div className="relative w-full h-full">
+        The issue is that urlForImage(image.asset._ref) is passing a string, but
+        urlForImage() expects an ImageSource (which is typically a full asset
+        object, not just a _ref). ✅ Best Fix: Pass the Whole Image Object
+        Instead of passing image.asset._ref, pass the full image object to
+        urlForImage(). Modify HeroImage.tsx tsx Copy Edit
+        <Image
+          src={urlForImage(image)?.url() || ""}
+          alt={image.alt || "Hero image"}
+          fill
+          className="object-cover"
+          priority
+        />
+        {/* Text overlay */}
+        {text && (
+          <div className="absolute inset-0 flex items-center justify-center">
+            <h1 className="font-secondary text-white text-[81px] md:text-[156px] leading-tight uppercase">
+              {text}
+            </h1>
           </div>
-          <h1 className="heading-1 absolute top-[32px] pb-[32px] md:pb-[54px] left-0 md:left-[54px] text-[72px] sm:text-[96px] md:text-[156px] text-white leading-[0.9] sm:leading-[0.95] whitespace-normal">
-            {data?.title || "REAP THE GOLD"}
-          </h1>
-        </div>
+        )}
       </div>
-    </section>
+    </div>
   );
-};
-
-export default HeroImage;
+}

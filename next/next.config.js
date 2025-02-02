@@ -5,6 +5,7 @@ const nextConfig = {
       "images.unsplash.com",
       "cdn.sanity.io",
       `${process.env.R2_ACCOUNT_ID}.r2.cloudflarestorage.com`,
+      "images.unsplash.com",
     ],
   },
   webpack: (config) => {

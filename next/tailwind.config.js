@@ -13,8 +13,8 @@ module.exports = {
         foreground: "var(--foreground)",
       },
       fontFamily: {
-        primary: ["Inter", "sans-serif"],
-        secondary: ["var(--font-montserrat)", "sans-serif"],
+        primary: ["var(--font-inter)", "system-ui", "sans-serif"],
+        secondary: ["var(--font-montserrat)", "system-ui", "sans-serif"],
       },
       fontWeight: {
         black: "900",

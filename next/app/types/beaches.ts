@@ -262,8 +262,7 @@ export const beachData: Beach[] = [
     sharkAttack: {
       hasAttack: false,
     },
-    image:
-      "https://images.unsplash.com/photo-1520343393725-a3b5c52b7374?w=600&auto=format&fit=crop&q=60&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxzZWFyY2h8Mnx8bGxhbmR1ZG5vJTIwYmVhY2h8ZW58MHx8MHx8fDA%3D",
+    image: "/images/beaches/td-llands.jpg",
     coordinates: {
       lat: -34.0058,
       lng: 18.3397,
@@ -1254,7 +1253,7 @@ export const beachData: Beach[] = [
         },
       ],
     },
-    image: "",
+    image: "/images/beaches/td-jbay.webp",
     coordinates: {
       lat: -34.0507,
       lng: 24.9281,
@@ -4775,7 +4774,7 @@ export const beachData: Beach[] = [
     sharkAttack: {
       hasAttack: false,
     },
-    image: "",
+    image: "/images/beaches/td-skeleton.jpg",
     coordinates: {
       lat: -22.6847,
       lng: 14.5267,
@@ -7155,8 +7154,7 @@ export const beachData: Beach[] = [
     sharkAttack: {
       hasAttack: false,
     },
-    image:
-      "blob:https://dash.cloudflare.com/82ea4962-eadf-4efc-8859-c8ee4df26027",
+    image: "/images/beaches/td-ponta.jpg",
     coordinates: {
       lat: -26.8496, // Actual coordinates for Ponta do Ouro
       lng: 32.8989,
@@ -7340,7 +7338,7 @@ export const beachData: Beach[] = [
     sharkAttack: {
       hasAttack: false,
     },
-    image: "",
+    image: "/images/beaches/td-flame.jpg",
     coordinates: {
       lat: -20.2833, // Approximate coordinates for Vezo region
       lng: 43.6667,

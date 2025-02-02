@@ -52,7 +52,7 @@
 
   /* Base Typography */
   .heading-1 {
-    @apply text-white font-secondary uppercase text-[197px] leading-tight tracking-tight;
+    @apply text-white font-secondary uppercase text-[320px] leading-tight tracking-tight font-black;
     font-weight: var(--heading-font-weight);
   }
 
@@ -62,7 +62,7 @@
   }
 
   .heading-3 {
-    @apply font-primary text-[54px] leading-snug;
+    @apply font-primary text-[54px] leading-snug font-bold;
     font-weight: var(--heading-font-weight);
   }
 

@@ -101,7 +101,7 @@
   }
 
   .section-padding {
-    @apply py-20;
+    @apply py-20 px-[81px];
   }
 
   input[type="range"] {

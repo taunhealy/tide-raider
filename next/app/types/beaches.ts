@@ -7155,7 +7155,8 @@ export const beachData: Beach[] = [
     sharkAttack: {
       hasAttack: false,
     },
-    image: "",
+    image:
+      "blob:https://dash.cloudflare.com/82ea4962-eadf-4efc-8859-c8ee4df26027",
     coordinates: {
       lat: -26.8496, // Actual coordinates for Ponta do Ouro
       lng: 32.8989,

@@ -1,137 +1,286 @@
 "use client";
 
 import Image from "next/image";
-import { useState, useEffect, useRef } from "react";
-import { urlForImage } from "@/app/lib/urlForImage";
-import gsap from "gsap";
-import ScrollTrigger from "gsap/ScrollTrigger";
+import { useState, useEffect } from "react";
+import { beachData } from "../types/beaches";
+import {
+  formatConditionsResponse,
+  isBeachSuitable,
+  getScoreDisplay,
+} from "../lib/surfUtils";
+import type { WindData } from "../types/wind";
+import {
+  getWindEmoji,
+  getSwellEmoji,
+  getDirectionEmoji,
+} from "@/app/lib/forecastUtils";
 
-interface HeroProductContent {
-  title?: string;
-  leftDescription?: string;
-  rightDescription?: string;
-  leftImage?: {
-    _type: "image";
-    asset: {
-      _ref: string;
-      _type: "reference";
-    };
-  };
-  filterItems?: Array<{
-    _key?: string;
-    type: string;
-    icon: {
-      _type: "image";
-      asset: {
-        _ref: string;
-        _type: "reference";
-      };
-    };
-  }>;
-}
+const FEATURED_BEACHES = [
+  "jeffreys-bay",
+  "llandudno",
+  "ponta-do-ouro",
+  "skeleton-bay",
+  "cabo-ledo",
+  "flame-bowls",
+  "elands-bay",
+];
 
-export default function HeroProduct({ data }: { data?: HeroProductContent }) {
-  const [currentImageIndex, setCurrentImageIndex] = useState(0);
-  const [showPhotographerCredit, setShowPhotographerCredit] = useState(false);
-  const imageRef = useRef(null);
+export default function HeroProduct() {
+  const [selectedBeach, setSelectedBeach] = useState(FEATURED_BEACHES[0]);
+  const [surfData, setSurfData] = useState<{ [key: string]: WindData }>({});
+  const [sliderIndex, setSliderIndex] = useState(0);
 
-  const image = data?.leftImage;
+  const beaches = beachData.filter((beach) =>
+    FEATURED_BEACHES.includes(beach.id)
+  );
+  const currentBeach = beachData.find((beach) => beach.id === selectedBeach);
 
   useEffect(() => {
-    if (typeof window !== "undefined") {
-      gsap.registerPlugin(ScrollTrigger);
+    async function fetchSurfData() {
+      try {
+        // Get unique regions from featured beaches
+        const regions = [...new Set(beaches.map((beach) => beach.region))];
 
-      if (imageRef.current && image) {
-        gsap.to(imageRef.current, {
-          opacity: 1,
-          scale: 1.05,
-          ease: "power3.out",
-          scrollTrigger: {
-            trigger: imageRef.current,
-            start: "top bottom",
-            end: "bottom bottom",
-            scrub: 1,
-          },
+        // Fetch conditions for each region using existing API
+        const regionData = await Promise.all(
+          regions.map(async (region) => {
+            const response = await fetch(
+              `/api/surf-conditions?region=${region}`
+            );
+            if (!response.ok) throw new Error(`Failed to fetch ${region} data`);
+            const data = await response.json();
+            return { region, data };
+          })
+        );
+
+        // Create a map of beach ID to its regional conditions
+        const beachConditions: { [key: string]: WindData } = {};
+        beaches.forEach((beach) => {
+          const regionCondition = regionData.find(
+            (r) => r.region === beach.region
+          );
+          if (regionCondition) {
+            beachConditions[beach.id] = regionCondition.data;
+          }
         });
+
+        setSurfData(beachConditions);
+      } catch (error) {
+        console.error("Error fetching surf data:", error);
       }
     }
 
-    return () => {
-      if (typeof window !== "undefined") {
-        ScrollTrigger.getAll().forEach((trigger) => trigger.kill());
-      }
-    };
-  }, [image]);
+    fetchSurfData();
+  }, []); // Fetch once when component mounts
 
-  if (!data || !image) {
-    return null;
-  }
+  const getBeachScore = (beach: typeof currentBeach) => {
+    if (!beach || !surfData[beach.id]) return null;
+    return isBeachSuitable(beach, surfData[beach.id]);
+  };
+
+  const cardsPerView = 3;
+  const maxIndex = Math.max(0, beaches.length - cardsPerView);
+
+  const handlePrevious = () => {
+    setSliderIndex((prev) => Math.max(0, prev - 1));
+  };
+
+  const handleNext = () => {
+    setSliderIndex((prev) => Math.min(maxIndex, prev + 1));
+  };
 
   return (
-    <section className="hero-product-section bg-[var(--color-bg-secondary)]">
-      <div className="hero-product-container flex flex-col md:flex-row w-full">
-        {/* Left image */}
-        <div className="hero-product-carousel w-full md:w-1/2 relative h-[240px] md:h-screen overflow-hidden">
-          <div className="hero-product-overlay absolute inset-0 bg-[var(--color-tertiary)]" />
-          <div
-            className="hero-product-image-wrapper relative w-full h-full"
-            onMouseEnter={() => setShowPhotographerCredit(true)}
-            onMouseLeave={() => setShowPhotographerCredit(false)}
-          >
-            <div className="hero-product-slide absolute inset-0">
-              <Image
-                ref={imageRef}
-                src={urlForImage(image)?.url() || ""}
-                alt="Hero product image"
-                fill
-                priority
-                className="hero-product-image object-cover transition-opacity duration-300 opacity-50 hover:opacity-70"
-              />
+    <section className="bg-[var(--color-bg-secondary)] section-padding mb-6">
+      <div className="heading-3 mb-24">
+        <h3>Daily Spot Ratings</h3>
+        <h5 className="text-large">Explore & raid effectively.</h5>
+      </div>
+
+      <div className="slider-section container mx-auto px-4">
+        <div className="flex flex-col md:flex-row gap-8">
+          {/* Slider Section */}
+          <div className="md:w-1/3">
+            <div className="relative">
+              <div className="flex items-center">
+                {/* Previous Button */}
+                <button
+                  onClick={handlePrevious}
+                  disabled={sliderIndex === 0}
+                  className="p-1 rounded-full bg-white/10 hover:bg-white/20 disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  <svg
+                    className="w-4 h-4"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M15 19l-7-7 7-7"
+                    />
+                  </svg>
+                </button>
+
+                {/* Cards Container */}
+                <div className="flex-1 overflow-hidden mx-2">
+                  <div
+                    className="flex gap-2 transition-transform duration-300"
+                    style={{
+                      transform: `translateX(-${sliderIndex * (100 / cardsPerView)}%)`,
+                    }}
+                  >
+                    {beaches.map((beach) => (
+                      <div
+                        key={beach.id}
+                        className="flex-shrink-0"
+                        style={{ width: `${100 / cardsPerView}%` }}
+                      >
+                        <button
+                          onClick={() => setSelectedBeach(beach.id)}
+                          className={`w-full rounded-lg overflow-hidden transition-all duration-300
+                            ${
+                              selectedBeach === beach.id
+                                ? "ring-1 ring-[var(--color-tertiary)]"
+                                : "hover:opacity-80"
+                            }`}
+                        >
+                          <div className="relative aspect-video max-w-[340px] rounded-md">
+                            <Image
+                              src={beach.image}
+                              alt={beach.name}
+                              fill
+                              className="object-cover"
+                            />
+                          </div>
+                          <div className="text-left p-1.5">
+                            <h3 className="font-primary text-xs font-medium mb-0.5">
+                              {beach.name}
+                            </h3>
+                            <p className="font-primary text-[10px] text-[var(--color-text-secondary)]">
+                              {beach.country}
+                            </p>
+                          </div>
+                        </button>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+
+                {/* Next Button */}
+                <button
+                  onClick={handleNext}
+                  disabled={sliderIndex === maxIndex}
+                  className="p-1 rounded-full bg-white/10 hover:bg-white/20 disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  <svg
+                    className="w-4 h-4"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M9 5l7 7-7 7"
+                    />
+                  </svg>
+                </button>
+              </div>
             </div>
           </div>
-        </div>
 
-        {/* Right content */}
-        <div className="hero-product-content px-4 md:px-[121.51px] flex flex-col justify-center md:w-1/2">
-          <div className="hero-product-content-inner flex flex-col gap-[16px] md:gap-[32px]">
-            <h3 className="hero-product-title font-primary text-[32px] font-semibold md:heading-3 md:text-[54px]">
-              {data?.title}
-            </h3>
-            <div className="hero-product-description-wrapper flex flex-col gap-4 md:gap-6">
-              <p className="hero-product-description font-primary text-base md:text-lg max-w-[36ch]">
-                {data?.leftDescription}
-              </p>
-              {data?.rightDescription && (
-                <p className="hero-product-description font-primary text-base md:text-lg max-w-[36ch]">
-                  {data.rightDescription}
-                </p>
+          {/* Right side - Image and content */}
+          <div className="md:w-2/3 relative">
+            {/* Image */}
+            <div className="h-[400px] mb-6 overflow-hidden rounded-xl">
+              {currentBeach?.image && (
+                <Image
+                  src={currentBeach.image}
+                  alt={currentBeach.name}
+                  fill
+                  sizes="(max-width: 768px) 100vw, 66vw"
+                  className="max-w-[540px] object-cover transition-transform duration-700 hover:scale-105"
+                  priority
+                />
               )}
+            </div>
 
-              {/* Filter items grid */}
-              {data?.filterItems && data.filterItems.length > 0 && (
-                <div className="filter-items-grid grid grid-cols-2 gap-4">
-                  {data.filterItems.map((item, index) => (
-                    <div
-                      key={item._key || index}
-                      className="filter-item group relative flex flex-col items-center gap-2 transform transition-all duration-300 hover:-translate-y-2"
-                    >
-                      <div className="filter-item-image-wrapper relative w-[108px] h-[108px] rounded-full overflow-hidden border-4 border-white/20 shadow-lg hover:shadow-[var(--color-tertiary)]/50">
-                        {item.icon && (
-                          <Image
-                            src={urlForImage(item.icon)?.url() || ""}
-                            alt={`${item.type} icon`}
-                            fill
-                            className="filter-item-image object-cover transition-transform duration-300 group-hover:scale-110"
-                          />
-                        )}
-                      </div>
-                      <span className="filter-item-label absolute -bottom-2 z-10 opacity-100 bottom-[-24px] md:opacity-0 md:bottom-[-2px] group-hover:opacity-100 group-hover:bottom-[-24px] transition-all duration-300 text-sm font-medium bg-[var(--color-tertiary)] text-white px-3 py-1 rounded-full shadow-lg">
-                        {item.type}
-                      </span>
+            {/* Surf conditions - Positioned over the beach image */}
+            <div className="absolute bottom-6 left-6 right-6 max-w-[360px] rounded-md">
+              <div className="flex flex-col md:flex-row gap-6">
+                {/* Surf Score */}
+                <div className="md:w-1/2">
+                  {currentBeach && surfData[currentBeach.id] && (
+                    <div className="bg-white/5 backdrop-blur-sm p-4 rounded-xl">
+                      {(() => {
+                        const score = getBeachScore(currentBeach);
+                        const display = score
+                          ? getScoreDisplay(score.score)
+                          : null;
+                        const conditions = surfData[currentBeach.id];
+
+                        return (
+                          <>
+                            <div className="flex items-center gap-3 mb-6 max-w-[240px]">
+                              <span className="font-primary text-lg font-medium text-white">
+                                Today's Rating
+                              </span>
+                              <span className="text-xl bg-[var(--color-tertiary)] px-3 py-1.5 rounded-lg shadow-sm">
+                                {display?.emoji}
+                              </span>
+                            </div>
+                            <p className="font-primary text-sm mb-6 text-white/80">
+                              {display?.description}
+                            </p>
+                            <div className="space-y-3 font-primary text-xs bg-black/20 rounded-md p-4">
+                              <p className="flex items-center gap-2 text-white/90">
+                                <span
+                                  className="inline-flex"
+                                  title={`Wind Speed: ${conditions.wind.speed < 5 ? "Light" : conditions.wind.speed < 12 ? "Moderate" : conditions.wind.speed < 20 ? "Strong" : "Very Strong"}`}
+                                >
+                                  {getWindEmoji(conditions.wind.speed)}
+                                </span>
+                                <span className="font-medium">
+                                  {conditions.wind.direction} @{" "}
+                                  {conditions.wind.speed}km/h
+                                </span>
+                              </p>
+                              <p className="flex items-center gap-2 text-white/90">
+                                <span
+                                  className="inline-flex"
+                                  title={`Swell Height: ${conditions.swell.height < 0.5 ? "Flat" : conditions.swell.height < 1 ? "Small" : conditions.swell.height < 2 ? "Medium" : "Large"}`}
+                                >
+                                  {getSwellEmoji(conditions.swell.height)}
+                                </span>
+                                <span className="font-medium">
+                                  {conditions.swell.height}m @{" "}
+                                  {conditions.swell.period}s
+                                </span>
+                              </p>
+                              <p className="flex items-center gap-2 text-white/90">
+                                <span
+                                  className="inline-flex"
+                                  title={`Swell Direction: ${conditions.swell.direction}`}
+                                >
+                                  {getDirectionEmoji(
+                                    parseInt(conditions.swell.direction)
+                                  )}
+                                </span>
+                                <span className="font-medium">
+                                  {conditions.swell.direction}
+                                </span>
+                              </p>
+                            </div>
+                          </>
+                        );
+                      })()}
                     </div>
-                  ))}
+                  )}
                 </div>
-              )}
+              </div>
             </div>
           </div>
         </div>

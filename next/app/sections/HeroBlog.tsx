@@ -169,8 +169,8 @@ export default function Blog({ data }: BlogProps) {
               className="flex-none w-full md:w-[calc(33.333%-1.33rem)] min-w-[280px] md:min-w-[300px] bg-white rounded-lg overflow-hidden transition-all duration-300 group mb-4 md:mb-0"
               style={{ scrollSnapAlign: "start" }}
             >
-              <a
-                href={`/blog/${post.slug}/`}
+              <Link
+                href={`/blog/${post.slug.current}`}
                 className="flex flex-row md:flex-col"
               >
                 <div className="relative w-[140px] md:w-full h-[140px] md:h-[410px] overflow-hidden">
@@ -242,7 +242,7 @@ export default function Blog({ data }: BlogProps) {
                     </svg>
                   </div>
                 </div>
-              </a>
+              </Link>
             </article>
           ))}
         </div>

@@ -4,6 +4,7 @@ import { groq } from "next-sanity";
 import HeroBlogSection from "@/app/sections/HeroBlog";
 import HeroSection from "./sections/Hero";
 import HeroImage from "./sections/HeroImage";
+import HeroProduct from "./sections/HeroProduct";
 
 export const revalidate = 0;
 
@@ -13,7 +14,12 @@ async function getHomeContent() {
     *[_type == "landingPage"][0] {
       heroHeading,
       heroSubheading,
-      heroImage,
+      heroImage {
+        asset->,
+        alt,
+        "dimensions": asset->metadata.dimensions,
+        overlayText
+      },
       "blog": {
         "posts": *[_type == "post"] | order(publishedAt desc) [0...3] {
           _id,
@@ -40,6 +46,7 @@ async function getHomeContent() {
           heroImage: content.heroImage,
         },
         blog: content.blog,
+        image: content.heroImage,
       }
     : null;
 }
@@ -54,8 +61,9 @@ export default async function HomePage() {
   return (
     <main>
       <HeroSection data={content.hero} />
+      <HeroProduct />
       <HeroBlogSection data={content.blog} />
-      <HeroImage data={content.image} />
+      <HeroImage data={content.hero} />
     </main>
   );
 }

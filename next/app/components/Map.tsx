@@ -190,33 +190,44 @@ export default function Map({ beaches, windData, hasActiveTrial }: MapProps) {
             Worth a look 🏄‍♂️
           </h3>
           <div className="space-y-2">
-            {topBeaches.map((beach) => (
-              <button
-                key={beach.name}
-                onClick={() =>
-                  isSubscribed ? navigateToBeach(beach) : undefined
-                }
-                className={cn(
-                  "w-full text-left p-3 rounded-lg",
-                  "flex items-center gap-2",
-                  isSubscribed
-                    ? "hover:bg-gray-50 transition-colors"
-                    : "cursor-not-allowed opacity-75",
-                  "border border-gray-200",
-                  selectedBeach?.name === beach.name ? "bg-gray-50" : "",
-                  inter.className
-                )}
-              >
-                <div className="flex-1">
-                  <div className="font-medium">
-                    {isSubscribed ? beach.name : "🔒 Premium Spot"}
-                  </div>
-                  <div className="text-sm text-gray-500">{beach.region}</div>
-                </div>
-                <MapPin className="w-4 h-4 text-gray-400" />
-              </button>
-            ))}
-            {topBeaches.length === 0 && (
+            {topBeaches.length > 0 ? (
+              <>
+                {topBeaches.map((beach) => (
+                  <button
+                    key={beach.name}
+                    onClick={() => navigateToBeach(beach)}
+                    className={cn(
+                      "w-full text-left p-3 rounded-lg",
+                      "flex items-center gap-2",
+                      "border border-gray-200",
+                      selectedBeach?.name === beach.name ? "bg-gray-50" : "",
+                      !isSubscribed
+                        ? "opacity-75"
+                        : "hover:bg-gray-50 transition-colors",
+                      inter.className
+                    )}
+                  >
+                    <div className="flex-1">
+                      <div className="font-medium flex items-center gap-1">
+                        {!isSubscribed && <span>🔒</span>}
+                        {beach.name}
+                      </div>
+                      <div className="text-sm text-gray-500">
+                        {beach.region}
+                      </div>
+                      {!isSubscribed && (
+                        <div className="text-sm text-blue-600 mt-1">
+                          {hasActiveTrial
+                            ? "Subscribe to unlock"
+                            : "Sign in to unlock"}
+                        </div>
+                      )}
+                    </div>
+                    <MapPin className="w-4 h-4 text-gray-400" />
+                  </button>
+                ))}
+              </>
+            ) : (
               <p className="text-sm text-gray-500 p-3">
                 Got nothing, adjust your filters.
               </p>

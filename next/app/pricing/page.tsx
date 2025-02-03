@@ -8,6 +8,7 @@ import Image from "next/image";
 import { client } from "@/app/lib/sanity";
 import { pricingQuery } from "@/app/lib/queries";
 import { useEffect, useState } from "react";
+import { useSubscription } from "../context/SubscriptionContext";
 
 function ImageSkeleton() {
   return (
@@ -35,6 +36,7 @@ export default function PricingPage() {
   const handleSubscribe = useHandleSubscribe();
   const [data, setData] = useState<PricingData | null>(null);
   const [imageLoading, setImageLoading] = useState(true);
+  const { isSubscribed } = useSubscription();
 
   useEffect(() => {
     const fetchData = async () => {
@@ -43,6 +45,38 @@ export default function PricingPage() {
     };
     fetchData();
   }, []);
+
+  const handleUnsubscribe = async () => {
+    try {
+      const response = await fetch("/api/auth/session");
+      const session = await response.json();
+
+      if (!session?.user?.id) {
+        alert("Please sign in first");
+        return;
+      }
+
+      const unsubResponse = await fetch("/api/test-webhook/route", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          userId: session.user.id,
+          action: "unsubscribe",
+        }),
+      });
+
+      if (!unsubResponse.ok) {
+        throw new Error("Failed to unsubscribe");
+      }
+
+      window.location.reload();
+    } catch (error) {
+      console.error("Error unsubscribing:", error);
+      alert("Failed to unsubscribe. Please try again.");
+    }
+  };
 
   return (
     <div className="bg-[var(--color-bg-primary)]">
@@ -77,7 +111,7 @@ export default function PricingPage() {
                     R{data?.price || ""}
                   </span>
                   <span className="text-main text-[var(--color-text-secondary)]">
-                    {data?.priceSubtext || "Yearly Payment"}
+                    {data?.priceSubtext || "Monthly Payment"}
                   </span>
                 </div>
               </div>
@@ -89,8 +123,6 @@ export default function PricingPage() {
                       "Access to all surf spots with 3+ star ratings",
                       "14-day free trial",
                       "Cancel anytime",
-                      "Premium surf forecasts",
-                      "Detailed spot insights",
                     ]
                   ).map((feature) => (
                     <li
@@ -109,9 +141,11 @@ export default function PricingPage() {
                   <Button
                     variant="outline"
                     className={cn("w-full font-primary")}
-                    onClick={() => handleSubscribe()}
+                    onClick={
+                      isSubscribed ? handleUnsubscribe : () => handleSubscribe()
+                    }
                   >
-                    Subscribe Now
+                    {isSubscribed ? "Unsubscribe" : "Subscribe Now"}
                   </Button>
                 </div>
               </div>

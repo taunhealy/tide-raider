@@ -774,6 +774,7 @@ export default function BeachContainer({
                   </div>
                 ) : (
                   <>
+                    {/* Loading/No Data States */}
                     {isLoading ? (
                       <div className="mb-6 p-4 bg-gray-50 border border-gray-200 rounded-lg animate-pulse">
                         <div className="h-5 bg-gray-200 rounded w-3/4"></div>
@@ -788,72 +789,97 @@ export default function BeachContainer({
                         </div>
                       )
                     )}
+
+                    {/* Beach Grid */}
                     <BeachGrid
                       beaches={currentItems}
                       windData={windData}
                       isBeachSuitable={isBeachSuitable}
                       isLoading={isLoading}
                     />
-                  </>
-                )}
 
-                {/* Pagination */}
-                {(isSubscribed ? totalPages > 1 : false) && (
-                  <div className="mt-12 flex justify-center items-center gap-3">
-                    <button
-                      onClick={() => setCurrentPage(currentPage - 1)}
-                      disabled={currentPage === 1}
-                      className={cn(
-                        "p-2 rounded-md border",
-                        currentPage === 1
-                          ? "text-gray-400 border-gray-200 cursor-not-allowed"
-                          : "text-gray-700 border-gray-300 hover:bg-gray-50"
-                      )}
-                    >
-                      <ChevronLeft className="h-5 w-5" />
-                    </button>
+                    {/* Subscription Banner - Moved here */}
+                    {!isSubscribed && filteredBeaches.length > 3 && (
+                      <div className="mt-8 p-6 bg-gradient-to-r from-[var(--color-bg-tertiary)] to-[var(--color-bg-secondary)] rounded-lg text-white shadow-lg">
+                        <div className="flex flex-col items-center text-center space-y-4">
+                          <h3 className="text-xl font-semibold">
+                            Unlock {filteredBeaches.length - 3} More Beaches
+                          </h3>
+                          <p className="text-white/90 max-w-md">
+                            Subscribe to access all beaches, detailed forecasts,
+                            and premium features to find your perfect wave.
+                          </p>
+                          <a
+                            href="/pricing"
+                            className="mt-4 px-6 py-2 bg-white text-[var(--color-bg-tertiary)] rounded-full font-semibold hover:bg-gray-100 transition-colors"
+                          >
+                            {hasActiveTrial
+                              ? "Subscribe Now"
+                              : "Start Free Trial"}
+                          </a>
+                        </div>
+                      </div>
+                    )}
 
-                    <div className="flex items-center gap-1">
-                      {Array.from(
-                        {
-                          length: Math.ceil(
-                            filteredBeaches.length / itemsPerPage
-                          ),
-                        },
-                        (_, i) => i + 1
-                      ).map((page) => (
+                    {/* Pagination */}
+                    {(isSubscribed ? totalPages > 1 : false) && (
+                      <div className="mt-12 flex justify-center items-center gap-3">
                         <button
-                          key={page}
-                          onClick={() => setCurrentPage(page)}
+                          onClick={() => setCurrentPage(currentPage - 1)}
+                          disabled={currentPage === 1}
                           className={cn(
-                            "px-3 py-1 rounded-md",
-                            currentPage === page
-                              ? "bg-[var(--color-bg-tertiary)] text-white"
-                              : "text-gray-700 hover:bg-gray-50"
+                            "p-2 rounded-md border",
+                            currentPage === 1
+                              ? "text-gray-400 border-gray-200 cursor-not-allowed"
+                              : "text-gray-700 border-gray-300 hover:bg-gray-50"
                           )}
                         >
-                          {page}
+                          <ChevronLeft className="h-5 w-5" />
                         </button>
-                      ))}
-                    </div>
 
-                    <button
-                      onClick={() => setCurrentPage(currentPage + 1)}
-                      disabled={
-                        currentPage ===
-                        Math.ceil(filteredBeaches.length / itemsPerPage)
-                      }
-                      className={cn(
-                        "p-2 rounded-md border",
-                        currentPage ===
-                          Math.ceil(filteredBeaches.length / itemsPerPage)
-                          ? "text-gray-400 border-gray-200 cursor-not-allowed"
-                          : "text-gray-700 border-gray-300 hover:bg-gray-50"
-                      )}
-                    >
-                      <ChevronRight className="h-5 w-5" />
-                    </button>
-                  </div>
+                        <div className="flex items-center gap-1">
+                          {Array.from(
+                            {
+                              length: Math.ceil(
+                                filteredBeaches.length / itemsPerPage
+                              ),
+                            },
+                            (_, i) => i + 1
+                          ).map((page) => (
+                            <button
+                              key={page}
+                              onClick={() => setCurrentPage(page)}
+                              className={cn(
+                                "px-3 py-1 rounded-md",
+                                currentPage === page
+                                  ? "bg-[var(--color-bg-tertiary)] text-white"
+                                  : "text-gray-700 hover:bg-gray-50"
+                              )}
+                            >
+                              {page}
+                            </button>
+                          ))}
+                        </div>
+
+                        <button
+                          onClick={() => setCurrentPage(currentPage + 1)}
+                          disabled={
+                            currentPage ===
+                            Math.ceil(filteredBeaches.length / itemsPerPage)
+                          }
+                          className={cn(
+                            "p-2 rounded-md border",
+                            currentPage ===
+                              Math.ceil(filteredBeaches.length / itemsPerPage)
+                              ? "text-gray-400 border-gray-200 cursor-not-allowed"
+                              : "text-gray-700 border-gray-300 hover:bg-gray-50"
+                          )}
+                        >
+                          <ChevronRight className="h-5 w-5" />
+                        </button>
+                      </div>
+                    )}
+                  </>
                 )}
 
                 {/* Move Fun Facts below beach cards */}

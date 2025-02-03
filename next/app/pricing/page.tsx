@@ -36,7 +36,7 @@ export default function PricingPage() {
   const handleSubscribe = useHandleSubscribe();
   const [data, setData] = useState<PricingData | null>(null);
   const [imageLoading, setImageLoading] = useState(true);
-  const { isSubscribed } = useSubscription();
+  const { isSubscribed, hasActiveTrial } = useSubscription();
 
   useEffect(() => {
     const fetchData = async () => {
@@ -145,7 +145,11 @@ export default function PricingPage() {
                       isSubscribed ? handleUnsubscribe : () => handleSubscribe()
                     }
                   >
-                    {isSubscribed ? "Unsubscribe" : "Subscribe Now"}
+                    {isSubscribed
+                      ? "Unsubscribe"
+                      : hasActiveTrial
+                        ? "Subscribe Now"
+                        : "Start Free Trial"}
                   </Button>
                 </div>
               </div>

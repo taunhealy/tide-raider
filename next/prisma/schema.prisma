@@ -73,6 +73,9 @@ model User {
   updatedAt     DateTime    @updatedAt
   lemonCustomerId String?
   lemonSubscriptionId String?
+  trialStartDate    DateTime?
+  trialEndDate      DateTime?
+  hasActiveTrial    Boolean     @default(false)
 
   // Auth Relations
   accounts      Account[]
@@ -98,6 +101,8 @@ model User {
   stories       Story[]
 
   events        Event[]
+
+  filters       UserFilters?
 
   @@index([email])
   @@index([skillLevel])
@@ -456,4 +461,16 @@ model Story {
 
   @@index([authorId])
   @@index([beachId])
+}
+
+model UserFilters {
+  id        String   @id @default(cuid())
+  userEmail String   @unique
+  filters   Json
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  userId    String   @unique
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
 }

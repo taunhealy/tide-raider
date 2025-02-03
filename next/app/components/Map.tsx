@@ -33,9 +33,10 @@ interface MapProps {
   selectedRegions: any;
   onRegionClick: any;
   filters: any;
+  hasActiveTrial: boolean;
 }
 
-export default function Map({ beaches, windData }: MapProps) {
+export default function Map({ beaches, windData, hasActiveTrial }: MapProps) {
   const { isSubscribed } = useSubscription();
   const [selectedBeach, setSelectedBeach] = useState<
     (Beach & { score: number }) | null
@@ -44,7 +45,12 @@ export default function Map({ beaches, windData }: MapProps) {
   const mapInstance = useRef<OLMap | null>(null);
 
   // Apply gating to beaches before processing
-  const { visibleBeaches } = getGatedBeaches(beaches, windData, isSubscribed);
+  const { visibleBeaches } = getGatedBeaches(
+    beaches,
+    windData,
+    isSubscribed,
+    hasActiveTrial
+  );
 
   const topBeaches = windData
     ? visibleBeaches

@@ -85,7 +85,13 @@ export default function PricingPage() {
               <div className="px-[32px] py-[32px] bg-white">
                 <ul className="space-y-[16px] mb-[32px]">
                   {(
-                    data?.features || ["Reveal breaks with 4/5 star ratings"]
+                    data?.features || [
+                      "Access to all surf spots with 3+ star ratings",
+                      "14-day free trial",
+                      "Cancel anytime",
+                      "Premium surf forecasts",
+                      "Detailed spot insights",
+                    ]
                   ).map((feature) => (
                     <li
                       key={feature}
@@ -99,13 +105,15 @@ export default function PricingPage() {
                   ))}
                 </ul>
 
-                <Button
-                  variant="outline"
-                  className={cn("max-w-[210px] font-primary")}
-                  onClick={() => handleSubscribe()}
-                >
-                  Purchase
-                </Button>
+                <div className="space-y-4">
+                  <Button
+                    variant="outline"
+                    className={cn("w-full font-primary")}
+                    onClick={() => handleSubscribe()}
+                  >
+                    Subscribe Now
+                  </Button>
+                </div>
               </div>
             </div>
 

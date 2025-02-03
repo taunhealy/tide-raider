@@ -4,6 +4,7 @@ import Navbar from "./components/Navbar";
 import Footer from "./sections/Footer";
 import NewsBannerWrapper from "./components/NewsBannerWrapper";
 import { AppProviders } from "./providers/AppProviders";
+import { Toaster } from "sonner";
 
 const inter = Inter({
   subsets: ["latin"],
@@ -39,6 +40,7 @@ export default function RootLayout({
           <Footer />
           <NewsBannerWrapper />
         </AppProviders>
+        <Toaster position="top-center" />
       </body>
     </html>
   );

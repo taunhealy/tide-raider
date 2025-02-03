@@ -17,7 +17,7 @@ export function getScoreDisplay(score: number): ScoreDisplay {
   switch (roundedScore) {
     case 5:
       return {
-        description: "Good grief it actually might be good?!",
+        description: "Yeeeew!",
         emoji: "🤩🔥",
         stars: getStars(5),
       };
@@ -294,21 +294,40 @@ export function getConditionReasons(
 export function getGatedBeaches(
   beaches: Beach[],
   windData: WindData | null,
-  isSubscribed: boolean
+  isSubscribed: boolean,
+  hasActiveTrial: boolean
 ) {
-  // For non-subscribed users, show first 3 beaches as visible and rest as locked
-  if (!isSubscribed) {
+  // Show all beaches for subscribed users or those in trial
+  if (isSubscribed || hasActiveTrial) {
     return {
-      visibleBeaches: beaches.slice(0, 3),
-      lockedBeaches: beaches.slice(3),
+      visibleBeaches: beaches,
+      lockedBeaches: [],
     };
   }
 
-  // Subscribed users get all beaches as visible, none locked
-  return {
-    visibleBeaches: beaches,
-    lockedBeaches: [],
-  };
+  // For non-subscribed users, filter based on star rating
+  const { visibleBeaches, lockedBeaches } = beaches.reduce(
+    (acc, beach) => {
+      if (!windData) {
+        acc.visibleBeaches.push(beach);
+        return acc;
+      }
+
+      const { score } = isBeachSuitable(beach, windData);
+      if (score < 3) {
+        acc.visibleBeaches.push(beach);
+      } else {
+        acc.lockedBeaches.push(beach);
+      }
+      return acc;
+    },
+    { visibleBeaches: [], lockedBeaches: [] } as {
+      visibleBeaches: Beach[];
+      lockedBeaches: Beach[];
+    }
+  );
+
+  return { visibleBeaches, lockedBeaches };
 }
 
 export interface BeachCount {

@@ -1,6 +1,20 @@
 import type { Adapter, AdapterUser, AdapterAccount } from "next-auth/adapters";
 import { prisma } from "./prisma";
 
+// Add type conversion function
+function convertToAdapterUser(user: any): AdapterUser {
+  return {
+    id: user.id,
+    email: user.email,
+    emailVerified: user.emailVerified,
+    name: user.name,
+    image: user.image,
+    // Only include fields that match AdapterUser type
+    // Convert null to undefined for optional fields
+    lemonCustomerId: user.lemonCustomerId || undefined,
+  };
+}
+
 export function PrismaAdapter(): Adapter {
   return {
     async createUser(data: Omit<AdapterUser, "id">) {
@@ -8,11 +22,13 @@ export function PrismaAdapter(): Adapter {
     },
 
     async getUser(id) {
-      return prisma.user.findUnique({ where: { id } });
+      const user = await prisma.user.findUnique({ where: { id } });
+      return user ? convertToAdapterUser(user) : null;
     },
 
     async getUserByEmail(email) {
-      return prisma.user.findUnique({ where: { email } });
+      const user = await prisma.user.findUnique({ where: { email } });
+      return user ? convertToAdapterUser(user) : null;
     },
 
     async getUserByAccount({ providerAccountId, provider }) {
@@ -25,14 +41,15 @@ export function PrismaAdapter(): Adapter {
         },
         include: { user: true },
       });
-      return account?.user ?? null;
+      return account?.user ? convertToAdapterUser(account.user) : null;
     },
 
     async updateUser(user) {
-      return prisma.user.update({
+      const updated = await prisma.user.update({
         where: { id: user.id },
         data: user,
       });
+      return convertToAdapterUser(updated);
     },
 
     async linkAccount(data: AdapterAccount) {
@@ -50,7 +67,10 @@ export function PrismaAdapter(): Adapter {
       });
       if (!userAndSession) return null;
       const { user, ...session } = userAndSession;
-      return { user, session };
+      return {
+        user: convertToAdapterUser(user),
+        session,
+      };
     },
 
     async updateSession(data) {

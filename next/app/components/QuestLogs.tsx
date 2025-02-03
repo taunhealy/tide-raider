@@ -15,8 +15,8 @@ import {
   getSwellEmoji,
   getDirectionEmoji,
 } from "@/app/lib/forecastUtils";
-import { handleSignIn } from "../lib/auth-utils";
-import Link from "next/link";
+
+import { useSubscription } from "@/app/context/SubscriptionContext";
 
 interface QuestLogsProps {
   beaches: Beach[];
@@ -54,7 +54,8 @@ const defaultFilters: CombinedFilters = {
 };
 
 export default function QuestLogs({ beaches }: QuestLogsProps) {
-  const { data: session, status } = useSession();
+  const { data: session, status: authStatus } = useSession();
+  const { isSubscribed } = useSubscription();
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [activeTab, setActiveTab] = useState<"logs" | "new">("logs");
   const [isFilterOpen, setIsFilterOpen] = useState(false);
@@ -62,51 +63,21 @@ export default function QuestLogs({ beaches }: QuestLogsProps) {
   const [filters, setFilters] = useState<CombinedFilters>(defaultFilters);
   const [selectedRegion, setSelectedRegion] = useState<string | null>(null);
 
-  if (status === "unauthenticated") {
-    return (
-      <div className="flex flex-col items-center justify-center min-h-screen bg-[var(--color-bg-secondary)] p-4">
-        <div className="bg-white rounded-lg shadow-sm p-8 text-center font-primary">
-          <h2 className="heading-5 mb-4">Sign in Required</h2>
-          <p className="text-main text-[var(--color-text-secondary)] mb-6">
-            Please sign in to view and create quest logs.
-          </p>
-          <button
-            onClick={() => signIn()}
-            className="px-4 py-2 bg-[var(--color-tertiary)] text-white rounded-lg hover:bg-[var(--color-tertiary)] font-primary"
-          >
-            Sign In
-          </button>
-        </div>
-      </div>
-    );
-  }
-
-  const { data: questEntries = [], isLoading } = useQuery({
-    queryKey: ["questEntries"],
+  const { data: entries, isLoading: isEntriesLoading } = useQuery({
+    queryKey: ["questLogs"],
     queryFn: async () => {
-      try {
-        const response = await fetch("/api/quest-log", {
-          headers: {
-            "Content-Type": "application/json",
-            Accept: "application/json",
-          },
-        });
-
-        if (!response.ok) {
-          throw new Error(`Failed to fetch quest entries: ${response.status}`);
-        }
-
-        const data = await response.json();
-        return data.entries || [];
-      } catch (error) {
-        console.error("Error fetching entries:", error);
-        return [];
-      }
+      if (!session?.user) return [];
+      const response = await fetch("/api/quest-log");
+      if (!response.ok) throw new Error("Failed to fetch logs");
+      const data = await response.json();
+      return data.entries;
     },
-    enabled: status === "authenticated",
+    enabled: !!session?.user,
+    staleTime: 1000 * 60,
+    retry: 2,
   });
 
-  const { data: conditions } = useQuery({
+  const { data: conditions, isLoading: isConditionsLoading } = useQuery({
     queryKey: ["surfConditions", selectedRegion],
     queryFn: async () => {
       const response = await fetch(
@@ -119,17 +90,37 @@ export default function QuestLogs({ beaches }: QuestLogsProps) {
     enabled: !!selectedRegion,
   });
 
+  const isLoading = isEntriesLoading || isConditionsLoading;
+
   useEffect(() => {
-    if (questEntries && Array.isArray(questEntries)) {
-      setFilteredEntries(questEntries);
-    } else {
-      setFilteredEntries([]);
+    if (entries && Array.isArray(entries)) {
+      setFilteredEntries(entries);
     }
-  }, [questEntries]);
+  }, [entries]);
+
+  if (authStatus === "loading" || isLoading) {
+    return <div>Loading...</div>;
+  }
+
+  if (!session?.user) {
+    return <div>Please sign in to view your logs</div>;
+  }
+
+  if (!entries?.length) {
+    return <div>No entries available. Add your first surf session!</div>;
+  }
 
   const handleFilterChange = (newFilters: any) => {
-    // Ensure questEntries is an array before spreading
-    let filtered = Array.isArray(questEntries) ? [...questEntries] : [];
+    let filtered = Array.isArray(entries) ? [...entries] : [];
+
+    // Add subscription gate for high-rated logs
+    filtered = filtered.filter((entry) => {
+      // Free users can only see logs rated 3 stars or less
+      if (!isSubscribed && entry.surferRating > 3) {
+        return false;
+      }
+      return true;
+    });
 
     // Filter by beaches
     if (newFilters.beaches.length > 0) {
@@ -220,18 +211,29 @@ export default function QuestLogs({ beaches }: QuestLogsProps) {
                   Loading...
                 </div>
               ) : filteredEntries.length > 0 ? (
-                <QuestLogTable
-                  entries={filteredEntries.map((entry) => ({
-                    ...entry,
-                    forecastConditions:
-                      entry.windSpeed && entry.swellHeight
-                        ? {
-                            wind: `${getWindEmoji(entry.windSpeed)} ${entry.windSpeed}kts ${getDirectionEmoji(entry.windDirection || 0)}`,
-                            swell: `${getSwellEmoji(entry.swellHeight)} ${entry.swellHeight}m ${getDirectionEmoji(entry.swellDirection || 0)}`,
-                          }
-                        : undefined,
-                  }))}
-                />
+                <>
+                  {!isSubscribed && (
+                    <div className="mb-4 p-4 bg-yellow-50 rounded-lg">
+                      <p className="text-sm text-yellow-700">
+                        Subscribe to view sessions rated above 3 stars and
+                        access all features.
+                      </p>
+                    </div>
+                  )}
+                  <QuestLogTable
+                    entries={filteredEntries.map((entry) => ({
+                      ...entry,
+                      forecastConditions:
+                        entry.windSpeed && entry.swellHeight
+                          ? {
+                              wind: `${getWindEmoji(entry.windSpeed)} ${entry.windSpeed}kts ${getDirectionEmoji(entry.windDirection || 0)}`,
+                              swell: `${getSwellEmoji(entry.swellHeight)} ${entry.swellHeight}m ${getDirectionEmoji(entry.swellDirection || 0)}`,
+                            }
+                          : undefined,
+                    }))}
+                    isSubscribed={isSubscribed}
+                  />
+                </>
               ) : (
                 <div className="text-main text-[var(--color-text-secondary)]">
                   No entries available
@@ -244,7 +246,7 @@ export default function QuestLogs({ beaches }: QuestLogsProps) {
 
       {/* Right Sidebar Filter */}
       <QuestLogFilter
-        entries={questEntries}
+        entries={entries}
         onFilterChange={handleFilterChange}
         onRegionFilterChange={handleRegionFilterChange}
         isOpen={isFilterOpen}

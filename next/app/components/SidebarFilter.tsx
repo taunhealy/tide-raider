@@ -10,17 +10,29 @@ import {
 } from "@/app/lib/constants";
 import Image from "next/image";
 import { ChevronDown } from "lucide-react";
+import { Button } from "@/app/components/ui/Button";
+import { toast } from "sonner";
 
-type FilterType = {
+// Import types from BeachContainer
+type Difficulty =
+  | "Beginner"
+  | "Intermediate"
+  | "Advanced"
+  | "All Levels"
+  | "Expert";
+type CrimeLevel = "Low" | "Medium" | "High";
+
+interface FilterType {
   continent: string[];
   country: string[];
   waveType: string[];
-  difficulty: string[];
+  difficulty: Difficulty[];
   region: Region[];
-  crimeLevel: string[];
+  crimeLevel: CrimeLevel[];
   minPoints: number;
   sharkAttack: string[];
-};
+  minDistance?: number;
+}
 
 interface SidebarFilterProps {
   beaches: Beach[];
@@ -28,6 +40,8 @@ interface SidebarFilterProps {
   onMinPointsChange: (value: number) => void;
   onFilterChange: (filters: FilterType) => void;
   filters: FilterType;
+  onSaveDefault: (filters: FilterType) => Promise<void>;
+  isLoadingDefaults?: boolean;
 }
 
 export default function SidebarFilter({
@@ -36,6 +50,8 @@ export default function SidebarFilter({
   minPoints,
   onMinPointsChange,
   filters,
+  onSaveDefault,
+  isLoadingDefaults,
 }: SidebarFilterProps) {
   const FILTERS_STORAGE_KEY = "surfspot_filters";
 
@@ -107,6 +123,20 @@ export default function SidebarFilter({
   }, [beaches]);
 
   const [isRegionOpen, setIsRegionOpen] = useState(false);
+  const [isSaving, setIsSaving] = useState(false);
+
+  const handleSaveDefault = async () => {
+    setIsSaving(true);
+    try {
+      await onSaveDefault(filters);
+      toast.success("Default settings saved!");
+    } catch (error) {
+      console.error("Error saving defaults:", error);
+      toast.error("Failed to save defaults");
+    } finally {
+      setIsSaving(false);
+    }
+  };
 
   return (
     <div className="p-9 bg-[var(--color-bg-secondary)] rounded-lg">
@@ -152,11 +182,13 @@ export default function SidebarFilter({
             <input
               type="checkbox"
               className="filter-checkbox"
-              checked={filters.difficulty.includes(level)}
+              checked={filters.difficulty.includes(level as Difficulty)}
               onChange={(e) => {
                 const newDifficulty = e.target.checked
-                  ? [...filters.difficulty, level]
-                  : filters.difficulty.filter((d) => d !== level);
+                  ? [...filters.difficulty, level as Difficulty]
+                  : filters.difficulty.filter(
+                      (d) => d !== (level as Difficulty)
+                    );
                 updateFilters("difficulty", newDifficulty);
               }}
             />
@@ -173,11 +205,13 @@ export default function SidebarFilter({
             <input
               type="checkbox"
               className="filter-checkbox"
-              checked={filters.crimeLevel.includes(level)}
+              checked={filters.crimeLevel.includes(level as CrimeLevel)}
               onChange={(e) => {
                 const newCrimeLevels = e.target.checked
-                  ? [...filters.crimeLevel, level]
-                  : filters.crimeLevel.filter((l) => l !== level);
+                  ? [...filters.crimeLevel, level as CrimeLevel]
+                  : filters.crimeLevel.filter(
+                      (l) => l !== (level as CrimeLevel)
+                    );
                 updateFilters("crimeLevel", newCrimeLevels);
               }}
             />
@@ -248,6 +282,25 @@ export default function SidebarFilter({
             </button>
           ))}
         </div>
+      </div>
+
+      {/* Add Save as Default button */}
+      <div className="mt-6">
+        <Button
+          onClick={handleSaveDefault}
+          disabled={isSaving}
+          variant="default"
+          className="w-full bg-[var(--color-bg-tertiary)] text-white hover:bg-[var(--color-bg-tertiary)]/90 transition-colors"
+        >
+          {isSaving ? (
+            <div className="flex items-center justify-center gap-2">
+              <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+              <span>Saving...</span>
+            </div>
+          ) : (
+            "Save as Default"
+          )}
+        </Button>
       </div>
     </div>
   );

@@ -7,6 +7,7 @@ import { degreesToCardinal, isBeachSuitable } from "@/app/lib/surfUtils";
 
 import { redis } from "@/app/lib/redis";
 import { beachData } from "@/app/types/beaches";
+import { VALID_REGIONS, ValidRegion } from "@/app/lib/constants";
 
 interface RegionScrapeConfig {
   url: string;
@@ -100,89 +101,117 @@ function formatConditionsResponse(conditions: any) {
   };
 }
 
+// Add these constants at the top
+const SCRAPE_TIMEOUT = 30000; // 30 seconds
+const MAX_RETRIES = 3;
+const RETRY_DELAY = 2000; // 2 seconds
+
 async function scrapeAllRegions(): Promise<ScrapeResult[]> {
   const results: ScrapeResult[] = [];
 
   for (const config of REGION_CONFIGS) {
-    try {
-      console.log(`Starting scrape for ${config.region} from ${config.url}...`);
+    let retries = MAX_RETRIES;
+    while (retries > 0) {
+      try {
+        console.log(
+          `Starting scrape for ${config.region} from ${config.url}... (${retries} retries left)`
+        );
 
-      const response = await axios.get(config.url);
-      const html = response.data;
-      const $ = cheerio.load(html);
+        const response = await axios.get(config.url, {
+          timeout: SCRAPE_TIMEOUT,
+          headers: {
+            "User-Agent":
+              "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36",
+          },
+        });
 
-      const windDirection =
-        $(
-          'div[style="display:block; width: 49px; height:20px; line-height:20px;  text-align: center; float:left; vertical-align: middle; background-color: white; border: 0px solid orange; color: black;"]'
-        )
-          .first()
-          .text()
-          .trim() || "N/A";
+        const html = response.data;
+        const $ = cheerio.load(html);
 
-      const windSpeed =
-        parseFloat(
+        const windDirection =
           $(
-            'div[style*="width: 20px"][style*="height:20px"][style*="background-color: rgb(255, 255, 255)"][style*="color: rgb(0, 0, 0)"]'
+            'div[style="display:block; width: 49px; height:20px; line-height:20px;  text-align: center; float:left; vertical-align: middle; background-color: white; border: 0px solid orange; color: black;"]'
           )
             .first()
             .text()
-            .trim()
-        ) || 0;
+            .trim() || "N/A";
 
-      const waveHeight =
-        parseFloat(
+        const windSpeed =
+          parseFloat(
+            $(
+              'div[style*="width: 20px"][style*="height:20px"][style*="background-color: rgb(255, 255, 255)"][style*="color: rgb(0, 0, 0)"]'
+            )
+              .first()
+              .text()
+              .trim()
+          ) || 0;
+
+        const waveHeight =
+          parseFloat(
+            $('div[style*="width: 49px"][style*="height:20px"]')
+              .filter((_, el) => {
+                const num = parseFloat($(el).text());
+                return !isNaN(num) && num > 0 && num <= 5.0;
+              })
+              .first()
+              .text()
+              .trim()
+          ) || 0;
+
+        const swellPeriod =
+          parseFloat(
+            $('div[style*="width: 49px"][style*="height:20px"]')
+              .filter((_, el) => {
+                const num = parseFloat($(el).text());
+                return !isNaN(num) && num >= 5 && num <= 25;
+              })
+              .first()
+              .text()
+              .trim()
+          ) || 0;
+
+        const swellDirection =
           $('div[style*="width: 49px"][style*="height:20px"]')
-            .filter((_, el) => {
-              const num = parseFloat($(el).text());
-              return !isNaN(num) && num > 0 && num <= 5.0;
-            })
+            .filter((_, el) => $(el).text().includes("°"))
             .first()
             .text()
             .trim()
-        ) || 0;
+            .split("\n")
+            .pop()
+            ?.replace("°", "") || "N/A";
 
-      const swellPeriod =
-        parseFloat(
-          $('div[style*="width: 49px"][style*="height:20px"]')
-            .filter((_, el) => {
-              const num = parseFloat($(el).text());
-              return !isNaN(num) && num >= 5 && num <= 25;
-            })
-            .first()
-            .text()
-            .trim()
-        ) || 0;
+        results.push({
+          region: config.region,
+          windDirection,
+          windSpeed,
+          swellHeight: waveHeight,
+          swellDirection,
+          swellPeriod,
+          timestamp: Date.now(),
+        });
 
-      const swellDirection =
-        $('div[style*="width: 49px"][style*="height:20px"]')
-          .filter((_, el) => $(el).text().includes("°"))
-          .first()
-          .text()
-          .trim()
-          .split("\n")
-          .pop()
-          ?.replace("°", "") || "N/A";
+        console.log(
+          `Successfully scraped data for ${config.region}:`,
+          results[results.length - 1]
+        );
 
-      results.push({
-        region: config.region,
-        windDirection,
-        windSpeed,
-        swellHeight: waveHeight,
-        swellDirection,
-        swellPeriod,
-        timestamp: Date.now(),
-      });
+        break; // Success, exit retry loop
+      } catch (error) {
+        retries--;
+        console.error(`Scraping error for ${config.region}:`, {
+          message: (error as Error).message,
+          status: (error as any).response?.status,
+          statusText: (error as any).response?.statusText,
+          retries_left: retries,
+        });
 
-      console.log(
-        `Successfully scraped data for ${config.region}:`,
-        results[results.length - 1]
-      );
-    } catch (error) {
-      console.error(`Scraping error for ${config.region}:`, {
-        message: (error as Error).message,
-        status: (error as any).response?.status,
-        statusText: (error as any).response?.statusText,
-      });
+        if (retries > 0) {
+          await new Promise((resolve) => setTimeout(resolve, RETRY_DELAY));
+          continue;
+        }
+        // Only throw if we're out of retries
+        if (retries === 0) throw error;
+      }
     }
   }
 
@@ -193,9 +222,14 @@ async function scrapeAllRegions(): Promise<ScrapeResult[]> {
   return results;
 }
 
+// Add validation function
+function isValidRegion(region: string): region is ValidRegion {
+  return VALID_REGIONS.includes(region as ValidRegion);
+}
+
 async function getLatestConditions(
   forceRefresh = false,
-  region: string = "Western Cape"
+  region: ValidRegion = "Western Cape"
 ) {
   const today = getTodayDate();
 
@@ -380,21 +414,36 @@ export async function GET(request: Request) {
   try {
     const { searchParams } = new URL(request.url);
     const region = searchParams.get("region") || "Western Cape";
-    const date = searchParams.get("date") || getTodayDate();
-    const fetchAll = searchParams.get("fetchAll") === "true";
 
-    console.log("🎯 Request:", { region, fetchAll, date });
-
-    // Use date in cache key
-    const cacheKey = `surf_conditions:${region}:${date}`;
-    const cachedData = await redis.get(cacheKey);
-
-    if (cachedData) {
-      console.log("📦 Cache hit for:", { region, date });
-      return NextResponse.json(cachedData);
+    // Validate region immediately
+    if (!isValidRegion(region)) {
+      return NextResponse.json(
+        {
+          error: "Unsupported region",
+          message: `Surf forecasts are not yet available for ${region}. Valid regions are: ${VALID_REGIONS.join(", ")}`,
+        },
+        { status: 400 }
+      );
     }
 
-    // 2. If no cache, check database
+    const date = searchParams.get("date") || getTodayDate();
+
+    // Continue with cache/DB checks only for valid regions
+    console.log("🔍 Checking cache/DB for:", { region, date });
+
+    // Use more specific cache keys
+    const cacheKey = `surf_conditions:${region}:${date}:v1`;
+    const scrapeLockKey = `scrape_lock:${date}:v1`;
+
+    // Try cache first
+    const cachedData = await redis.get(cacheKey);
+    if (cachedData && typeof cachedData === "string") {
+      console.log("📦 Cache hit for:", { region, date });
+      return NextResponse.json(JSON.parse(cachedData));
+    }
+    console.log("❌ Cache miss for:", { region, date });
+
+    // Check database before scraping
     const conditions = await prisma.surfCondition.findFirst({
       where: {
         date: date,
@@ -404,6 +453,7 @@ export async function GET(request: Request) {
     });
 
     if (conditions) {
+      console.log("💾 DB hit for:", { region, date });
       const formattedData = formatConditionsResponse(conditions);
       // Store in cache
       await redis.setex(
@@ -413,36 +463,39 @@ export async function GET(request: Request) {
       );
       return NextResponse.json(formattedData);
     }
+    console.log("❌ DB miss for:", { region, date });
 
-    // 3. If no data in database, check if we're already scraping
-    const scrapeLockKey = `scrape_lock:${date}`;
+    // Implement better lock handling
     const isLocked = await redis.get(scrapeLockKey);
-
     if (isLocked) {
-      console.log("🔒 Scrape already in progress, waiting for data...");
-      // Wait a moment and check database again
-      await new Promise((resolve) => setTimeout(resolve, 5000));
-      const recentConditions = await prisma.surfCondition.findFirst({
-        where: {
-          date: date,
-          region: region,
-        },
-        orderBy: { timestamp: "desc" },
-      });
+      console.log("🔒 Scrape already in progress, waiting...");
+      // Wait and retry a few times
+      for (let i = 0; i < 3; i++) {
+        await new Promise((resolve) => setTimeout(resolve, 5000));
+        const recentConditions = await prisma.surfCondition.findFirst({
+          where: {
+            date: date,
+            region: region,
+          },
+          orderBy: { timestamp: "desc" },
+        });
 
-      if (recentConditions) {
-        const formattedData = formatConditionsResponse(recentConditions);
-        await redis.setex(
-          cacheKey,
-          CACHE_TIMES.getRedisExpiry(),
-          JSON.stringify(formattedData)
-        );
-        return NextResponse.json(formattedData);
+        if (recentConditions) {
+          const formattedData = formatConditionsResponse(recentConditions);
+          await redis.setex(
+            cacheKey,
+            CACHE_TIMES.getRedisExpiry(),
+            JSON.stringify(formattedData)
+          );
+          return NextResponse.json(formattedData);
+        }
       }
     }
 
-    // 4. Set scrape lock and fetch fresh data
+    // Set lock with proper expiry
     await redis.setex(scrapeLockKey, CACHE_TIMES.SCRAPE_LOCK, "1");
+
+    // 4. Set scrape lock and fetch fresh data
     console.log("🌊 Scraping fresh data for all regions");
 
     const scrapedData = await scrapeAllRegions();
@@ -489,7 +542,10 @@ export async function GET(request: Request) {
   } catch (error) {
     console.error("❌ Error in surf-conditions route:", error);
     return NextResponse.json(
-      { error: "Failed to fetch surf conditions" },
+      {
+        error: "Failed to fetch surf conditions",
+        details: (error as Error).message,
+      },
       { status: 500 }
     );
   }

@@ -42,23 +42,6 @@ export default function BeachGrid({
           index={index}
         />
       ))}
-
-      {!isSubscribed && beaches.length > 3 && (
-        <div className="bg-[var(--color-bg-primary)] rounded-lg p-[32px] border border-[var(--color-border-light)]">
-          <div className="text-center">
-            <h6 className="heading-6 text-gray-800 mb-2">Unlock More Spots</h6>
-            <p className="text-main text-gray-600 mb-4">
-              Subscribe to access all surf spots and detailed conditions
-            </p>
-            <Link
-              href="/pricing"
-              className="inline-block px-4 py-2 bg-[var(--color-tertiary)] text-white rounded-lg hover:bg-[var(--color-tertiary)]"
-            >
-              View Pricing
-            </Link>
-          </div>
-        </div>
-      )}
     </div>
   );
 }

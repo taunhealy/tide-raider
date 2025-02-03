@@ -118,3 +118,21 @@ export const AD_CATEGORIES = {
 } as const;
 
 export type AdCategory = keyof typeof AD_CATEGORIES;
+
+export const VALID_REGIONS = [
+  "Western Cape",
+  "Eastern Cape",
+  "KwaZulu-Natal",
+  "Northern Cape",
+  "Luanda Province",
+  "Mayotte",
+  "Benguela",
+  "Swakopmund",
+  "Inhambane Province",
+  "Ponta do Ouro",
+  "Madagascar South",
+  "Madagascar East",
+  "Madagascar West",
+] as const;
+
+export type ValidRegion = (typeof VALID_REGIONS)[number];

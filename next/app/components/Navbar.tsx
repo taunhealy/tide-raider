@@ -9,9 +9,9 @@ import { cn } from "../lib/utils";
 import { Menu, X } from "lucide-react";
 import { useState } from "react";
 import { handleSignIn } from "../lib/auth-utils";
+import RaidLink from "./RaidLink";
 
 const NAVIGATION_ITEMS = [
-  { href: "/raid", label: "Raid" },
   { href: "/raidlogs", label: "Raid Logs" },
   { href: "/chronicles", label: "Chronicles" },
   { href: "/blog", label: "Blog" },
@@ -55,7 +55,14 @@ export default function Navbar() {
         <div className="hidden md:flex items-center gap-8">
           <nav>
             <ul className="flex gap-6">
-              {NAVIGATION_ITEMS.map((link, index) => (
+              <li>
+                <RaidLink
+                  className={
+                    pathname === "/raid" ? "link-nav-active" : "link-nav"
+                  }
+                />
+              </li>
+              {NAVIGATION_ITEMS.map((link) => (
                 <li key={link.href}>
                   <Link
                     href={link.href}
@@ -63,7 +70,7 @@ export default function Navbar() {
                       pathname === link.href ? "link-nav-active" : "link-nav"
                     }
                   >
-                    {link.label}
+                    <span className="relative">{link.label}</span>
                   </Link>
                 </li>
               ))}
@@ -123,6 +130,14 @@ export default function Navbar() {
         <>
           <nav className="md:hidden absolute w-full px-4 py-6 bg-white border-t border-[var(--color-border-light)] z-50">
             <ul className="space-y-0">
+              <li>
+                <RaidLink
+                  className={
+                    pathname === "/raid" ? "link-nav-active" : "link-nav"
+                  }
+                />
+                <div className="border-t border-[var(--color-border-light)]" />
+              </li>
               {NAVIGATION_ITEMS.map((link, index) => (
                 <li key={link.href}>
                   <Link

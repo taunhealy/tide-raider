@@ -143,13 +143,40 @@
     @apply font-primary text-[16px] leading-6
     transition-colors duration-200
     text-[var(--color-text-secondary)]
-    hover:text-[var(--color-text-primary)];
+    hover:text-[var(--color-text-primary)]
+    relative;
+  }
+
+  .link-nav::after {
+    content: "";
+    position: absolute;
+    left: 0;
+    bottom: -3px;
+    height: 1px;
+    width: 0;
+    background-color: var(--color-tertiary);
+    transition: width 0.3s ease-out;
+  }
+
+  .link-nav:hover::after {
+    width: 100%;
   }
 
   .link-nav-active {
     @apply font-primary text-[16px] leading-6
     transition-colors duration-200
-    text-[var(--color-text-primary)];
+    text-[var(--color-text-primary)]
+    relative;
+  }
+
+  .link-nav-active::after {
+    content: "";
+    position: absolute;
+    left: 0;
+    bottom: -3px;
+    height: 1px;
+    width: 100%;
+    background-color: var(--color-tertiary);
   }
 }
 

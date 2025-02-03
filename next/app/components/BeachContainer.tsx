@@ -7,7 +7,7 @@ import SidebarFilter from "./SidebarFilter";
 import BeachGrid from "./BeachGrid";
 import Map from "./Map";
 import { useSubscription } from "../context/SubscriptionContext";
-import { useHandleSubscription } from "../hooks/useHandleSubscription";
+
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { isBeachSuitable, calculateBeachScores } from "@/app/lib/surfUtils";
 import FunFacts from "@/app/components/FunFacts";
@@ -43,6 +43,7 @@ import { getCachedBeachCounts, cacheBeachCounts } from "@/app/lib/redis";
 import { prisma } from "@/app/lib/prisma";
 import { storeGoodBeachRatings } from "@/app/lib/surfUtils";
 import StickyRegionFilter from "./StickyRegionFilter";
+import { toast } from "sonner";
 
 interface BeachContainerProps {
   initialBeaches: Beach[];
@@ -51,37 +52,128 @@ interface BeachContainerProps {
   availableAds: Ad[];
 }
 
+// Add these type definitions at the top
+type Difficulty =
+  | "Beginner"
+  | "Intermediate"
+  | "Advanced"
+  | "All Levels"
+  | "Expert";
+type CrimeLevel = "Low" | "Medium" | "High";
+
+interface FilterType {
+  continent: string[];
+  country: string[];
+  waveType: string[];
+  difficulty: Difficulty[];
+  region: Region[];
+  crimeLevel: CrimeLevel[];
+  minPoints: number;
+  sharkAttack: string[];
+  minDistance?: number;
+}
+
+type FilterKeys = keyof FilterType;
+
 export default function BeachContainer({
   initialBeaches,
   windData: initialWindData,
   blogPosts,
   availableAds,
 }: BeachContainerProps) {
-  const { isSubscribed } = useSubscription();
-  const { mutate: handleSubscriptionChange } = useHandleSubscription();
+  const { isSubscribed, hasActiveTrial } = useSubscription();
   const [minPoints, setMinPoints] = useState(0);
   const searchParams = useSearchParams();
+  const queryClient = useQueryClient();
 
-  // Initialize filters from URL params
-  const initialFilters = {
-    continent: searchParams?.get("continent")?.split(",")[0] || "Africa",
-    country: searchParams?.get("country")?.split(",")[0] || "South Africa",
-    waveType: searchParams?.get("waveType")?.split(",") || [],
-    difficulty: searchParams?.get("difficulty")?.split(",") || [],
-    region: searchParams?.get("region")?.split(",") || [],
-    crimeLevel: searchParams?.get("crimeLevel")?.split(",") || [],
-    minPoints: parseInt(searchParams?.get("minPoints") || "0"),
-    sharkAttack: searchParams?.get("sharkAttack")?.split(",") || [],
-  };
-
-  type FilterKeys = keyof typeof initialFilters;
-
-  const [filters, setFilters] = useState({
-    ...initialFilters,
-    continent: [initialFilters.continent],
-    country: [initialFilters.country],
-    minDistance: 0,
+  // Fetch default filters
+  const { data: defaultFilters, isLoading: isLoadingDefaults } = useQuery({
+    queryKey: ["userDefaultFilters"],
+    queryFn: async () => {
+      const response = await fetch("/api/user/filters");
+      if (!response.ok) return null;
+      return response.json();
+    },
   });
+
+  // Update the filters state
+  const [filters, setFilters] = useState<FilterType>(() => {
+    if (searchParams.toString()) {
+      return {
+        continent: [searchParams.get("continent")].filter(Boolean) as string[],
+        country: [searchParams.get("country")].filter(Boolean) as string[],
+        waveType:
+          searchParams.get("waveType")?.split(",").filter(Boolean) || [],
+        difficulty: (searchParams
+          .get("difficulty")
+          ?.split(",")
+          .filter(Boolean) || []) as Difficulty[],
+        region: (searchParams.get("region")?.split(",").filter(Boolean) ||
+          []) as Region[],
+        crimeLevel: (searchParams
+          .get("crimeLevel")
+          ?.split(",")
+          .filter(Boolean) || []) as CrimeLevel[],
+        minPoints: parseInt(searchParams.get("minPoints") || "0"),
+        sharkAttack:
+          searchParams.get("sharkAttack")?.split(",").filter(Boolean) || [],
+        minDistance: 0,
+      };
+    }
+    // Return empty filters initially, let useEffect handle default loading
+    return INITIAL_FILTERS;
+  });
+
+  // Update the useEffect for default filters
+  useEffect(() => {
+    if (defaultFilters && !searchParams.toString()) {
+      console.log("Loading default filters:", defaultFilters);
+
+      // Update filters state
+      setFilters((prevFilters) => ({
+        continent: defaultFilters.continent || prevFilters.continent,
+        country: defaultFilters.country || prevFilters.country,
+        region: defaultFilters.region || [],
+        waveType: defaultFilters.waveType || [],
+        difficulty: defaultFilters.difficulty || [],
+        crimeLevel: defaultFilters.crimeLevel || [],
+        sharkAttack: defaultFilters.sharkAttack || [],
+        minPoints: defaultFilters.minPoints || 0,
+        minDistance: defaultFilters.minDistance || 0,
+      }));
+
+      // Update URL with default filters
+      const params = new URLSearchParams();
+      if (defaultFilters.continent?.length)
+        params.set("continent", defaultFilters.continent.join(","));
+      if (defaultFilters.country?.length)
+        params.set("country", defaultFilters.country.join(","));
+      if (defaultFilters.region?.length)
+        params.set("region", defaultFilters.region.join(","));
+      if (defaultFilters.waveType?.length)
+        params.set("waveType", defaultFilters.waveType.join(","));
+      if (defaultFilters.difficulty?.length)
+        params.set("difficulty", defaultFilters.difficulty.join(","));
+      if (defaultFilters.crimeLevel?.length)
+        params.set("crimeLevel", defaultFilters.crimeLevel.join(","));
+      if (defaultFilters.sharkAttack?.length)
+        params.set("sharkAttack", defaultFilters.sharkAttack.join(","));
+      if (defaultFilters.minPoints)
+        params.set("minPoints", defaultFilters.minPoints.toString());
+
+      // Update URL without causing navigation
+      window.history.replaceState(
+        {},
+        "",
+        `${window.location.pathname}?${params.toString()}`
+      );
+
+      // Update selected region if it exists
+      if (defaultFilters.region?.length > 0) {
+        setSelectedRegion(defaultFilters.region[0]);
+      }
+    }
+  }, [defaultFilters]);
 
   // Initialize with Western Cape as default
   const [selectedRegion, setSelectedRegion] = useState<string>(
@@ -413,9 +505,6 @@ export default function BeachContainer({
         counts[beach.region] = (counts[beach.region] || 0) + 1;
         counts[beach.country] = (counts[beach.country] || 0) + 1;
         counts[beach.continent] = (counts[beach.continent] || 0) + 1;
-        console.log(
-          `✅ Good beach found: ${beach.name} (${score}) in ${beach.region}`
-        );
       }
     });
 
@@ -461,6 +550,37 @@ export default function BeachContainer({
     },
     enabled: !!selectedRegion,
   });
+
+  // Update the save handler with proper error handling
+  const [isSavingDefaults, setIsSavingDefaults] = useState(false);
+
+  const handleSaveDefault = async (filters: FilterType) => {
+    setIsSavingDefaults(true);
+    try {
+      // Save the exact URL parameters
+      const params = new URLSearchParams(window.location.search);
+      const currentParams = Object.fromEntries(params.entries());
+
+      const response = await fetch("/api/user/filters", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          urlParams: currentParams, // Save the exact URL parameters
+          ...filters,
+        }),
+      });
+
+      if (!response.ok) throw new Error("Failed to save filters");
+      await queryClient.invalidateQueries({ queryKey: ["userDefaultFilters"] });
+      toast.success("Default filters saved successfully!");
+    } catch (error) {
+      console.error("Error saving filters:", error);
+      toast.error("Failed to save default filters");
+      throw error;
+    } finally {
+      setIsSavingDefaults(false);
+    }
+  };
 
   return (
     <div className="bg-[var(--color-bg-secondary)] p-6 mx-auto relative min-h-[calc(100vh-72px)] flex flex-col">
@@ -750,6 +870,7 @@ export default function BeachContainer({
                   selectedRegions={filters.region}
                   onRegionClick={handleRegionChange}
                   filters={filters}
+                  hasActiveTrial={hasActiveTrial}
                 />
               </div>
             )}
@@ -918,6 +1039,8 @@ export default function BeachContainer({
               setFilters(updatedFilters as typeof filters);
             }}
             filters={filters}
+            onSaveDefault={handleSaveDefault}
+            isLoadingDefaults={isLoadingDefaults}
           />
         </div>
       </div>

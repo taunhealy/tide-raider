@@ -243,7 +243,22 @@ export default function HeroProduct() {
                   {/* Current Conditions */}
                   <div className="space-y-2">
                     <h4 className="font-primary text-sm text-gray-500 uppercase tracking-wide"></h4>
-                    {currentBeach && surfData[currentBeach.id] ? (
+                    {isLoading ? (
+                      // Skeleton loader for conditions
+                      <div className="animate-pulse space-y-4">
+                        {[1, 2, 3, 4].map((i) => (
+                          <div
+                            key={i}
+                            className="flex items-center gap-4 pb-2 border-b border-gray-200"
+                          >
+                            <div className="w-4 h-4 bg-gray-200 rounded-full"></div>
+                            <div className="flex-1">
+                              <div className="h-4 bg-gray-200 rounded w-3/4"></div>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    ) : currentBeach && surfData[currentBeach.id] ? (
                       <ul className="space-y-2">
                         {getConditionReasons(
                           currentBeach,

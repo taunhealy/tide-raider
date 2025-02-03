@@ -38,6 +38,7 @@ export function QuestLogForm({
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isSubmitted, setIsSubmitted] = useState(false);
   const [forecast, setForecast] = useState<any>(null);
+  const [uploadedImageUrl, setUploadedImageUrl] = useState<string>("");
 
   const createLogEntry = useMutation({
     mutationFn: async (newEntry: CreateLogEntryInput) => {
@@ -75,7 +76,7 @@ export function QuestLogForm({
     },
   });
 
-  const handleImageUpload = async (file: File) => {
+  const handleImageUpload = async (file: File): Promise<string> => {
     const formData = new FormData();
     formData.append("file", file);
 
@@ -84,12 +85,10 @@ export function QuestLogForm({
       body: formData,
     });
 
-    if (!response.ok) {
-      throw new Error("Failed to upload image");
-    }
+    if (!response.ok) throw new Error("Upload failed");
 
-    const { imageUrl } = await response.json();
-    return imageUrl;
+    const data = await response.json();
+    return data.imageUrl;
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -98,15 +97,17 @@ export function QuestLogForm({
 
     setIsSubmitting(true);
     try {
-      let imageUrl;
-      if (selectedImage) {
-        try {
-          imageUrl = await handleImageUpload(selectedImage);
-        } catch (uploadError) {
-          console.error("Image upload failed:", uploadError);
-          alert("Failed to upload image");
-          setIsSubmitting(false);
-          return;
+      let imageUrl = uploadedImageUrl;
+      if (!imageUrl) {
+        if (selectedImage) {
+          try {
+            imageUrl = await handleImageUpload(selectedImage);
+          } catch (uploadError) {
+            console.error("Image upload failed:", uploadError);
+            alert("Failed to upload image");
+            setIsSubmitting(false);
+            return;
+          }
         }
       }
 
@@ -147,6 +148,7 @@ export function QuestLogForm({
         setComments("");
         setSelectedImage(null);
         setImagePreview(null);
+        setUploadedImageUrl("");
         onClose();
         setIsSubmitting(false);
         setIsSubmitted(false);

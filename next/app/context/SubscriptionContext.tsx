@@ -5,9 +5,11 @@ import { useAuth } from "../hooks/useAuth";
 
 const SubscriptionContext = createContext<{
   isSubscribed: boolean;
+  hasActiveTrial: boolean;
   isLoading: boolean;
 }>({
   isSubscribed: false,
+  hasActiveTrial: false,
   isLoading: true,
 });
 
@@ -22,6 +24,7 @@ export function SubscriptionProvider({
     <SubscriptionContext.Provider
       value={{
         isSubscribed: session?.user?.isSubscribed ?? false,
+        hasActiveTrial: session?.user?.hasActiveTrial ?? false,
         isLoading,
       }}
     >

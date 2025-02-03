@@ -18,11 +18,15 @@ import {
   DEFAULT_PROFILE_IMAGE,
   WAVE_TYPE_ICONS,
   WaveType,
+  VALID_REGIONS,
+  ValidRegion,
 } from "@/app/lib/constants";
 import { MediaGrid } from "./MediaGrid";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import type { LogEntry } from "@/app/types/questlogs";
 import Link from "next/link";
+import { Star } from "lucide-react";
+import { cn } from "@/lib/utils";
 
 interface BeachCardProps {
   beach: Beach;
@@ -56,7 +60,7 @@ export default function BeachCard({
 }: BeachCardProps) {
   const router = useRouter();
   const searchParams = useSearchParams();
-  const { isSubscribed } = useSubscription();
+  const { isSubscribed, hasActiveTrial } = useSubscription();
   const handleSubscribe = useHandleSubscribe();
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [showWaveTypeHint, setShowWaveTypeHint] = useState(false);
@@ -64,7 +68,9 @@ export default function BeachCard({
   const queryClient = useQueryClient();
 
   const suitability = windData ? isBeachSuitable(beach, windData) : null;
-  const shouldBeLocked = !isSubscribed && (suitability?.score ?? 0) >= 4;
+  const isRegionSupported = VALID_REGIONS.includes(beach.region as ValidRegion);
+  const shouldBeLocked =
+    !isSubscribed && !hasActiveTrial && (suitability?.score ?? 0) >= 3;
 
   // Check URL params for modal state
   useEffect(() => {
@@ -134,6 +140,33 @@ export default function BeachCard({
     : [];
 
   const scoreDisplay = getScoreDisplay(suitability?.score || 0);
+
+  const renderRating = () => {
+    if (!isRegionSupported) {
+      return (
+        <div className="text-sm text-[var(--color-text-secondary)]">
+          Surf forecasts coming soon for {beach.region}
+        </div>
+      );
+    }
+
+    // Existing rating display logic
+    return (
+      <div className="flex gap-1">
+        {[1, 2, 3, 4, 5].map((rating) => (
+          <Star
+            key={rating}
+            className={cn(
+              "w-4 h-4",
+              rating <= (suitability?.score ?? 0)
+                ? "text-[var(--color-tertiary)] fill-current"
+                : "text-gray-300"
+            )}
+          />
+        ))}
+      </div>
+    );
+  };
 
   return (
     <>
@@ -316,21 +349,25 @@ export default function BeachCard({
                   {/* Current Conditions */}
                   <div className="text-sm flex flex-col gap-2">
                     <h6 className="heading-6">Current Conditions:</h6>
-                    <ul className="space-y-1">
+                    <ul className="space-y-2">
                       {getConditionReasons(
                         beach,
                         windData,
                         false
-                      ).optimalConditions.map((condition, index) => (
+                      ).optimalConditions.map((condition, index, array) => (
                         <li
                           key={index}
-                          className="text-main text-[var(--color-text-secondary)] flex items-center gap-2 mb-1"
+                          className={`flex items-center gap-4 pb-2 ${
+                            index !== array.length - 1
+                              ? "border-b border-gray-200"
+                              : ""
+                          }`}
                         >
                           <span className="inline-flex items-center justify-center w-4 h-4">
                             {condition.isMet ? (
                               <svg
                                 viewBox="0 0 24 24"
-                                className="w-4 h-4 text-[var(--color-brand-tertiary)]"
+                                className="w-4 h-4 text-[var(--color-tertiary)]"
                                 fill="none"
                                 stroke="currentColor"
                                 strokeWidth="3"
@@ -344,7 +381,7 @@ export default function BeachCard({
                             ) : (
                               <svg
                                 viewBox="0 0 24 24"
-                                className="w-4 h-4 text-red-500"
+                                className="w-4 h-4 text-[var(--color-text-secondary)]"
                                 fill="none"
                                 stroke="currentColor"
                                 strokeWidth="3"
@@ -357,7 +394,20 @@ export default function BeachCard({
                               </svg>
                             )}
                           </span>
-                          {condition.text}
+                          <span
+                            className={`font-primary ${
+                              condition.isMet
+                                ? "text-gray-800"
+                                : "text-gray-500"
+                            }`}
+                          >
+                            <span className="font-medium">
+                              {condition.text.split(":")[0]}:
+                            </span>{" "}
+                            <span className="font-normal">
+                              {condition.text.split(":")[1]}
+                            </span>
+                          </span>
                         </li>
                       ))}
                     </ul>

@@ -2,6 +2,8 @@ import { NextAuthOptions } from "next-auth";
 import GoogleProvider from "next-auth/providers/google";
 import { PrismaAdapter } from "./auth-adapter";
 import { prisma } from "@/app/lib/prisma";
+import type { Session, User } from "next-auth";
+import { JWT } from "next-auth/jwt";
 
 export const authOptions: NextAuthOptions = {
   adapter: PrismaAdapter(),
@@ -26,26 +28,26 @@ export const authOptions: NextAuthOptions = {
       else if (new URL(url).origin === baseUrl) return url;
       return baseUrl;
     },
-    async session({ session, token }) {
+    async session({
+      session,
+      token,
+    }: {
+      session: Session;
+      token: JWT;
+    }): Promise<Session> {
       if (session?.user) {
-        (session.user as any).id = token.sub!;
+        session.user.id = token.sub!;
 
-        // Fetch subscription status
         const dbUser = await prisma.user.findUnique({
           where: { id: token.sub },
           select: {
-            lemonCustomerId: true,
             lemonSubscriptionId: true,
+            hasActiveTrial: true,
           },
         });
 
-        (session.user as any).isSubscribed = !!dbUser?.lemonCustomerId;
-        (session.user as any).subscription = dbUser?.lemonSubscriptionId
-          ? {
-              status: "active",
-              active: true,
-            }
-          : undefined;
+        session.user.isSubscribed = !!dbUser?.lemonSubscriptionId;
+        session.user.hasActiveTrial = !!dbUser?.hasActiveTrial;
       }
       return session;
     },

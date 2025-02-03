@@ -155,6 +155,16 @@ export function QuestLogTable({
   isSubscribed = false,
   isLoading = false,
 }: QuestTableProps) {
+  // Filter entries for non-subscribers
+  const visibleEntries = entries.map((entry) => ({
+    ...entry,
+    // Blur comments for high-rated sessions for non-subscribers
+    comments:
+      !isSubscribed && entry.surferRating > 3
+        ? "Subscribe to view details of highly rated sessions"
+        : entry.comments,
+  }));
+
   if (isLoading) {
     return <TableSkeleton />;
   }
@@ -163,7 +173,7 @@ export function QuestLogTable({
     <div className="w-full">
       {/* Mobile View - Cards */}
       <div className="md:hidden space-y-4">
-        {entries.map((entry) => (
+        {visibleEntries.map((entry) => (
           <div
             key={entry.id}
             className="bg-white rounded-lg border border-gray-200 shadow p-4 space-y-3"
@@ -217,7 +227,7 @@ export function QuestLogTable({
               </tr>
             </thead>
             <tbody className="bg-white divide-y divide-gray-200">
-              {entries.map((entry) => (
+              {visibleEntries.map((entry) => (
                 <tr key={entry.id} className="hover:bg-gray-50">
                   <td className="px-6 py-4 whitespace-nowrap">
                     {format(new Date(entry.date), "MMM d, yyyy")}
@@ -240,13 +250,15 @@ export function QuestLogTable({
                   <td className="px-6 py-4">{entry.comments}</td>
                   {isSubscribed && entry.imageUrl && (
                     <td className="px-4 py-2">
-                      <Image
-                        src={entry.imageUrl}
-                        alt="Session photo"
-                        width={100}
-                        height={100}
-                        className="rounded-md object-cover"
-                      />
+                      <div className="relative w-[200px] h-[200px]">
+                        <Image
+                          src={entry.imageUrl}
+                          alt="Session photo"
+                          width={200}
+                          height={200}
+                          className="object-cover rounded-md"
+                        />
+                      </div>
                     </td>
                   )}
                 </tr>

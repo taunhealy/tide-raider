@@ -1,11 +1,24 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   images: {
-    domains: [
-      "images.unsplash.com",
-      "cdn.sanity.io",
-      `${process.env.R2_ACCOUNT_ID}.r2.cloudflarestorage.com`,
-      "images.unsplash.com",
+    unoptimized: true,
+    remotePatterns: [
+      {
+        protocol: "https",
+        hostname: "storage.tideraider.com",
+        pathname: "/sessions/**",
+      },
+      {
+        protocol: "https",
+        hostname: "images.unsplash.com",
+      },
+      {
+        protocol: "https",
+        hostname: "cdn.sanity.io",
+      },
+      {
+        hostname: `${process.env.R2_ACCOUNT_ID}.r2.cloudflarestorage.com`,
+      },
     ],
   },
   webpack: (config) => {

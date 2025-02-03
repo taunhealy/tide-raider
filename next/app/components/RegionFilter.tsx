@@ -118,7 +118,7 @@ const RegionFilter = memo(function RegionFilter({
     return (
       <button
         onClick={handleSaveFilters}
-        className="ml-auto text-sm text-[var(--color-tertiary)] hover:text-[var(--color-tertiary)]"
+        className="px-4 py-2 bg-white border border-gray-200 rounded-md text-sm text-gray-900 hover:bg-gray-50 transition-colors"
       >
         Save as Default
       </button>

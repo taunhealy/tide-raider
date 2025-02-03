@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { X, ChevronDown } from "lucide-react";
 import { cn } from "@/app/lib/utils";
 import { LogEntry } from "../types/questlogs";
@@ -83,8 +83,13 @@ export function QuestLogFilter({
 
   // Update parent component when filters change
   useEffect(() => {
-    onFilterChange(filters);
-  }, [filters, onFilterChange]);
+    // Skip the initial render
+    const timeoutId = setTimeout(() => {
+      onFilterChange(filters);
+    }, 300);
+
+    return () => clearTimeout(timeoutId);
+  }, [filters]); // Remove onFilterChange from dependencies
 
   return (
     <div

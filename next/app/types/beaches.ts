@@ -240,24 +240,24 @@ export const beachData: Beach[] = [
       cardinal: "SW",
     },
     bestSeasons: ["winter"],
-    optimalTide: "unknown",
+    optimalTide: "Low to Mid",
     description:
-      "Powerful beach break with multiple peaks along boulder-strewn beach. Main A-frame peak offers hollow right-handers and longer left walls. Best performance on SW swell with SE winds and mid tide. Wave size ranges from 2-12ft, ideal at 4-8ft. Rocky bottom creates consistent peaks but poses hazards, especially at low tide. Strong currents between peaks - use southern rip for paddle out. Often crowded on good days. Limited parking requires early arrival. Summer afternoons typically blown out by SE winds. No shark attacks reported. Spectacular setting in affluent suburb.",
+      "Powerful beach break with multiple peaks along boulder-strewn beach for advanced surfers unless it's small. Main A-frame peak offers hollow right-handers and longer left walls. Best performance on SW swell with SE winds and mid tide. Wave size ranges from 2-12ft, ideal at 4-8ft. Strong currents between peaks - use southern rip for paddle out. Often crowded on good days. Limited parking requires early arrival. Summer afternoons typically blown out by SE winds. No shark attacks reported. Spectacular setting in affluent suburb.",
     difficulty: "Advanced",
     waveType: "Beach Break",
     swellSize: {
-      min: 1.6,
-      max: 4.2,
+      min: 1.5,
+      max: 2.5,
     },
     idealSwellPeriod: {
-      min: 12,
+      min: 13,
       max: 24,
     },
     waterTemp: {
       summer: 16,
       winter: 12,
     },
-    hazards: ["Rip currents", "Rocks", "Strong currents", "Sharks"],
+    hazards: ["Strong currents", "powerful waves"],
     crimeLevel: "Low",
     sharkAttack: {
       hasAttack: false,
@@ -739,7 +739,7 @@ export const beachData: Beach[] = [
     region: "Western Cape",
     location: "Pringle Bay",
     distanceFromCT: 85,
-    optimalWindDirections: ["SE"],
+    optimalWindDirections: ["SE", "SSE"],
     optimalSwellDirections: {
       min: 200.5,
       max: 245.5,
@@ -1204,24 +1204,24 @@ export const beachData: Beach[] = [
     region: "Eastern Cape",
     location: "Jeffreys Bay",
     distanceFromCT: 750,
-    optimalWindDirections: ["WNW", "W", "WSW"], // Added WNW as primary optimal wind
+    optimalWindDirections: ["WNW", "W", "NW"], // Added WNW as primary optimal wind
     optimalSwellDirections: {
-      min: 170, // S
-      max: 190, // SSW
+      min: 220, // S
+      max: 240, // SSW
       cardinal: "S", // Updated to South as primary direction
     },
     bestSeasons: ["winter"],
-    optimalTide: "Mid to High",
+    optimalTide: "Low to Mid",
     description:
       "World-class right-hand point break consisting of several sections: Kitchen Windows, Magnatubes, Boneyards, Supertubes, Impossibles, and Point. Supertubes section considered one of the best waves globally, offering perfect barrels over reef. Wave quality varies by section - Supertubes most hollow and fast, Point more manageable. Best performance on 4-8ft south swell with WNW winds. Handles all sizes while maintaining shape. Strong currents between sections require good fitness. Extremely competitive lineup - strict priority system observed. Winter brings consistent groundswells and optimal winds. Popular international destination - expect crowds during peak season.",
     difficulty: "Advanced",
     waveType: "Point Break",
     swellSize: {
-      min: 1.2,
-      max: 4.0,
+      min: 1.5,
+      max: 3,
     },
     idealSwellPeriod: {
-      min: 12,
+      min: 14,
       max: 18,
     },
     waterTemp: {
@@ -4740,24 +4740,24 @@ export const beachData: Beach[] = [
     region: "Swakopmund",
     location: "Skeleton Coast",
     distanceFromCT: 1800,
-    optimalWindDirections: ["NE"],
+    optimalWindDirections: ["NE", "ENE", "E"],
     optimalSwellDirections: {
-      min: 202.5, // SSW
-      max: 247.5, // WSW
+      min: 205.5, // SSW
+      max: 232.5, // WSW
       cardinal: "SW",
     },
     bestSeasons: ["winter"],
-    optimalTide: "Mid",
+    optimalTide: "Low to Mid",
     description:
       "World-renowned left-hand point break producing incredibly long barrels. One of the longest waves in the world, offering rides up to 2km long. Extremely challenging wave that breaks over a sand bottom. Works best with large SW swells and offshore NE winds. Very consistent during winter months but highly sensitive to conditions. Remote location requires careful planning.",
     difficulty: "Expert",
     waveType: "Point Break",
     swellSize: {
       min: 2.5,
-      max: 9.0,
+      max: 5.5,
     },
     idealSwellPeriod: {
-      min: 14,
+      min: 15,
       max: 20,
     },
     waterTemp: {
@@ -4769,6 +4769,9 @@ export const beachData: Beach[] = [
       "Strong currents",
       "Long paddle back",
       "Desert environment",
+      "No easy access to hospitals or surf rescue",
+      "Strong currents & heavy paddle back",
+      "Extremely fast and powerful",
     ],
     crimeLevel: "Low",
     sharkAttack: {
@@ -5758,7 +5761,8 @@ export const beachData: Beach[] = [
     sharkAttack: {
       hasAttack: false,
     },
-    image: "",
+    image: "/images/beaches/td-cabo-ledo.webp",
+
     coordinates: {
       lat: 0.0, // Please update with actual coordinates
       lng: 0.0,
@@ -7309,20 +7313,20 @@ export const beachData: Beach[] = [
     region: "Madagascar West",
     location: "Vezo Reefs",
     distanceFromCT: 2900, // Approximate distance from Cape Town
-    optimalWindDirections: ["SE"],
+    optimalWindDirections: ["SE", "ESE", "E"],
     optimalSwellDirections: {
       min: 157.5, // SSE
       max: 202.5, // SSW
       cardinal: "S",
     },
     bestSeasons: ["winter"],
-    optimalTide: "All",
+    optimalTide: "Low to Mid",
     description:
-      "Fairly exposed reef break rated 2/5 with fairly consistent surf. Works best with South groundswell and Southeast offshore winds. Predominantly groundswell-driven spot offering a left-hand reef break. Despite consistent conditions, rarely gets crowded. Watch out for coral, sharks, and rocks.",
+      "Fairly exposed reef break with fairly consistent surf. Predominantly groundswell-driven spot offering a left-hand reef break. Despite consistent conditions, rarely gets crowded. Reaching Flame Bowls typically involves a 30-minute boat trip from Anakao, often via Nosy Ve Island. The area is part of the Vezo Reef system, which includes other notable surf spots like Chefs, Googles, Jelly Babies, Puss Puss, and Resorts. Watch out for coral, sharks, and rocks.",
     difficulty: "Advanced",
     waveType: "Reef Break",
     swellSize: {
-      min: 1.0,
+      min: 1.5,
       max: 3.0,
     },
     idealSwellPeriod: {
@@ -7333,7 +7337,7 @@ export const beachData: Beach[] = [
       summer: 30, // Based on current reading of 29.6°C
       winter: 25,
     },
-    hazards: ["Coral reef", "Sharks", "Rocks"],
+    hazards: ["Sharp, jagged coral reef", "Sharks", "Rocks"],
     crimeLevel: "Medium",
     sharkAttack: {
       hasAttack: false,

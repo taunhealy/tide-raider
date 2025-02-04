@@ -116,7 +116,7 @@ export default function HeroProduct() {
     <section className="bg-[var(--color-bg-secondary)] section-padding mb-6">
       <div className="heading-3 mb-12 md:mb-24">
         <h3>Daily Spot Ratings</h3>
-        <h5 className="text-large">Raid, effectively.</h5>
+        <h5 className="text-large">Beyond your horizon.</h5>
       </div>
 
       <div className="slider-section container mx-auto px-4">
@@ -236,7 +236,7 @@ export default function HeroProduct() {
               )}
               <div className="mt-8 md:mt-12 bg-white rounded-xl p-4 shadow-sm border border-gray-100 max-w-[640px] mx-auto lg:mx-0 pl-6 md:pl-8">
                 <h3 className="font-primary text-base md:text-lg font-semibold mb-2 mt-4">
-                  Today's Conditions
+                  Optimal Conditions
                 </h3>
 
                 <div className="grid max-h-[320px] h-auto md:grid-cols-2 gap-4 min-h-[320px]">

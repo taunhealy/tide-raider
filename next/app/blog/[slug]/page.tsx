@@ -1,10 +1,13 @@
+"use client";
+
+import { useQuery } from "@tanstack/react-query";
 import { client } from "@/app/lib/sanity";
 import { PortableText } from "@portabletext/react";
 import { urlForImage } from "@/app/lib/urlForImage";
 import { notFound } from "next/navigation";
 import Image from "next/image";
-import { postQuery } from "@/app/lib/queries";
 import BlogSidebar from "@/app/components/postsSidebars/BlogSidebar";
+import { postQuery } from "@/lib/queries";
 
 interface SidebarWidget {
   type: string;
@@ -19,11 +22,17 @@ export default async function BlogPost({
 }: {
   params: { slug: string };
 }) {
-  const post = await client.fetch(postQuery, { slug: params.slug });
+  const post = await client.fetch(
+    postQuery,
+    { slug: params.slug },
+    {
+      cache: "no-store", // Force fresh data
+    }
+  );
   console.log("Post data from Sanity:", {
     title: post?.title,
     widgets: post?.sidebarWidgets,
-    location: post?.location,
+    location: post?.location, // Now includes location data
   });
 
   if (!post) return notFound();
@@ -61,10 +70,9 @@ export default async function BlogPost({
           </div>
         </main>
 
-        {/* Sidebar */}
+        {/* Sidebar - Now passing location data */}
         <aside className="space-y-8">
           <BlogSidebar
-            location={post.location}
             posts={post.relatedPosts}
             widgets={post.sidebarWidgets}
           />

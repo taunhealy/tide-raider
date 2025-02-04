@@ -1,4 +1,22 @@
 import {defineType, defineField} from 'sanity'
+import {beachData} from '../../../next/app/types/beaches'
+
+// Get unique regions from beachData
+const uniqueRegions = Array.from(new Set(beachData.map((beach) => beach.region))).sort()
+
+// Reusable region field definition
+const regionField = defineField({
+  name: 'region',
+  title: 'Region',
+  type: 'string',
+  options: {
+    list: uniqueRegions.map((region) => ({
+      title: region,
+      value: region,
+    })),
+  },
+  validation: (Rule) => Rule.required(),
+})
 
 // Related Posts Widget
 export const relatedPostsWidget = defineType({
@@ -52,6 +70,7 @@ export const locationMapWidget = defineType({
       type: 'string',
       initialValue: 'Location',
     }),
+    regionField,
     defineField({
       name: 'mapStyle',
       title: 'Map Style',
@@ -161,15 +180,9 @@ export const weatherWidget = defineType({
       type: 'string',
       initialValue: 'Local Weather',
     }),
+    regionField,
     defineField({
-      name: 'type',
-      type: "string",
-      initialValue: "weather",
-      readOnly: true,
-      hidden: true,
-    }),
-    defineField({
-      name: "order",
+      name: 'order',
       type: 'number',
       title: 'Order',
       initialValue: 1,
@@ -177,8 +190,57 @@ export const weatherWidget = defineType({
   ],
 })
 
-// Flight Search Widget
-export const flightSearchWidget = {
+// Travel Widget (Kiwi Flights)
+export const travelWidget = defineType({
+  name: 'travelWidget',
+  title: 'Travel Widget',
+  type: 'object',
+  fields: [
+    defineField({
+      name: 'title',
+      title: 'Widget Title',
+      type: 'string',
+      initialValue: 'Find Flights',
+    }),
+    defineField({
+      name: 'destinationCode',
+      title: 'Destination Airport Code',
+      type: 'string',
+      description: 'Enter the IATA code for the destination airport (e.g., TNR for Antananarivo)',
+      validation: (Rule) => Rule.required().length(3).uppercase(),
+    }),
+    defineField({
+      name: 'order',
+      type: 'number',
+      title: 'Order',
+      initialValue: 1,
+    }),
+  ],
+})
+
+// Surf Spots Widget
+export const surfSpotsWidget = defineType({
+  name: 'surfSpotsWidget',
+  title: 'Surf Spots Widget',
+  type: 'object',
+  fields: [
+    defineField({
+      name: 'title',
+      title: 'Widget Title',
+      type: 'string',
+      initialValue: 'Local Surf Spots',
+    }),
+    regionField,
+    defineField({
+      name: 'order',
+      type: 'number',
+      title: 'Order',
+      initialValue: 1,
+    }),
+  ],
+})
+
+export const flightSearchWidget = defineType({
   name: 'flightSearchWidget',
   title: 'Flight Search Widget',
   type: 'object',
@@ -193,8 +255,8 @@ export const flightSearchWidget = {
       name: 'destinationCode',
       title: 'Destination Airport Code',
       type: 'string',
-      description: 'IATA airport code (e.g., CPT for Cape Town)',
+      description: 'Enter the IATA code for the destination airport (e.g., CPT for Cape Town)',
       validation: (Rule) => Rule.required().length(3).uppercase(),
     }),
   ],
-}
+})

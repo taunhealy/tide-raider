@@ -1,49 +1,28 @@
 import { ReactNode } from "react";
+import { Post, Widget } from "@/app/types/blog";
 import RelatedPostsWidget from "./RelatedPostsWidget";
 import LocationMapWidget from "./LocationMapWidget";
 import CategoryListWidget from "./CategoryListWidget";
 import TagCloudWidget from "./TagCloudWidget";
 import WeatherWidget from "./WeatherWidget";
-import FlightSearchWidget from "../FlightSearchWidget";
-
-interface WidgetConfig {
-  type: string;
-  order: number;
-  config: any;
-  title?: string;
-}
+import SurfSpotsWidget from "./SurfSpotsWidget";
+import TravelWidget from "./TravelWidget";
 
 interface SidebarWidgetFactoryProps {
-  widget: WidgetConfig;
-  location?: {
-    beachName: string;
-    region: string;
-    country: string;
-  };
-  posts?: any[];
+  widget: Widget;
+  posts?: Post[];
 }
 
 export default function SidebarWidgetFactory({
   widget,
-  location,
   posts,
 }: SidebarWidgetFactoryProps): ReactNode {
   // Add detailed widget logging
   console.log("🎯 SidebarWidgetFactory: Widget details:", {
-    type: widget.type, // Just use type, not _type
+    type: widget._type, // Just use type, not _type
     title: widget.title,
     order: widget.order,
   });
-
-  // Debug log to check widget configuration
-  console.log("🔧 SidebarWidgetFactory: Processing widget:", {
-    type: widget.type,
-    config: widget.config,
-    location: location,
-  });
-
-  // Debug log to check location data
-  console.log("Location data in SidebarWidgetFactory:", location);
 
   // Default placeholder component for missing data
   const PlaceholderWidget = ({ type }: { type: string }) => (
@@ -52,53 +31,73 @@ export default function SidebarWidgetFactory({
     </div>
   );
 
-  switch (widget.type) {
-    case "relatedPosts":
+  switch (widget._type) {
+    case "tagCloudWidget":
+      return (
+        <TagCloudWidget
+          title={widget.title}
+          maxTags={widget.maxTags}
+          orderBy={widget.orderBy}
+          showTagCount={widget.showTagCount}
+        />
+      );
+
+    case "travelWidget":
+      return (
+        <TravelWidget
+          title={widget.title}
+          destinationCode={widget.destinationCode}
+        />
+      );
+
+    case "weatherWidget":
+      console.log("🌤️ Weather widget config:", widget.region);
+      return <WeatherWidget title={widget.title} region={widget.region} />;
+
+    case "relatedPostsWidget":
       return posts ? (
         <RelatedPostsWidget
+          title={widget.title}
           posts={posts}
-          title={widget.config?.title || "Related Posts"}
-          maxPosts={widget.config?.maxPosts || 3}
+          maxPosts={widget.numberOfPosts}
         />
-      ) : (
-        <PlaceholderWidget type="Related Posts" />
-      );
+      ) : null;
 
     case "locationMap":
-      return location ? (
-        <LocationMapWidget location={location} {...widget.config} />
-      ) : (
-        <PlaceholderWidget type="Location Map" />
-      );
-
-    case "categoryList":
-      return <CategoryListWidget {...widget.config} />;
-
-    case "tagCloud":
-      return <TagCloudWidget {...widget.config} />;
-
-    case "weather":
-      console.log("🌤️ SidebarWidgetFactory: Weather widget case hit", {
-        location,
-        widget,
-      });
-      return location ? (
-        <WeatherWidget
-          location={location}
-          key={`weather-${location.beachName}`}
+      return (
+        <LocationMapWidget
+          location={{
+            beachName: widget.title,
+            region: widget.region,
+            country: widget.country || "Unknown",
+            continent: widget.continent || "Unknown",
+          }}
         />
-      ) : (
-        <PlaceholderWidget type="Weather" />
       );
 
-    case "flightSearch":
-      return location ? (
-        <FlightSearchWidget destination={location.country} {...widget.config} />
-      ) : (
-        <PlaceholderWidget type="Flight Search" />
+    case "categoryListWidget":
+      return (
+        <CategoryListWidget
+          title={widget.title}
+          displayStyle={widget.displayStyle}
+          showPostCount={widget.showPostCount}
+        />
       );
+      return (
+        <FlightSearchWidget
+          title={widget.title}
+          destinationCode={widget.destinationCode || "CPT"}
+        />
+      );
+
+    case "surfSpotsWidget":
+      console.log("🏄‍♂️ Surf spots config:", widget.region);
+      return <SurfSpotsWidget title={widget.title} region={widget.region} />;
 
     default:
-      return <PlaceholderWidget type={widget.type || "Unknown"} />;
+      console.warn(
+        `Unknown widget type: ${(widget as { _type: string })._type}`
+      );
+      return null;
   }
 }

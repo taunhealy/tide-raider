@@ -55,7 +55,7 @@ export default function HeroSection({ data }: HeroProps) {
 
       {/* Hero content */}
       <div className="absolute inset-0 flex items-end">
-        <div className="backdrop-blur-sm bg-gradient-to-r from-black/80 to-[var(--color-tertiary)]/30 px-4 md:pl-[81px] pb-[16px] md:pb-[54px] w-full">
+        <div className="backdrop-blur-sm bg-gradient-to-r from-white/30 to-[var(--color-tertiary)]/30 px-4 md:pl-[81px] pb-[16px] md:pb-[54px] w-full">
           <h1 className="font-secondary text-white text-[72px] sm:text-[96px] md:text-[210px] leading-[0.9] font-bold uppercase">
             {data?.heroHeading}
           </h1>

@@ -12,6 +12,8 @@ import {
   tagCloudWidget,
   weatherWidget,
   flightSearchWidget,
+  surfSpotsWidget,
+  travelWidget,
 } from './objects/sidebarWidgets'
 
 export const schemaTypes = [
@@ -29,4 +31,6 @@ export const schemaTypes = [
   tagCloudWidget,
   weatherWidget,
   flightSearchWidget,
+  surfSpotsWidget,
+  travelWidget,
 ]

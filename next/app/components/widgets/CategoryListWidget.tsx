@@ -3,19 +3,34 @@
 import Link from "next/link";
 import { useQuery } from "@tanstack/react-query";
 import { client } from "@/app/lib/sanity";
+import { Widget } from "@/app/types/blog";
+import type { CategoryListWidget } from "@/app/types/blog";
 
-interface CategoryListWidgetProps {
-  title?: string;
-  displayStyle?: "list" | "grid" | "dropdown";
-  showPostCount?: boolean;
+type CategoryListWidgetProps = Pick<
+  CategoryListWidget,
+  "title" | "displayStyle" | "showPostCount"
+>;
+
+type DisplayStyle = "list" | "grid" | "dropdown";
+
+const containerStyles: Record<DisplayStyle, string> = {
+  list: "space-y-2",
+  grid: "grid grid-cols-2 gap-4",
+  dropdown: "relative",
+};
+
+interface Category {
+  title: string;
+  slug: { current: string };
+  postCount: number;
 }
 
 export default function CategoryListWidget({
-  title = "Categories",
+  title,
   displayStyle = "list",
-  showPostCount = true,
+  showPostCount,
 }: CategoryListWidgetProps) {
-  const { data: categories, isLoading } = useQuery({
+  const { data: categories, isLoading } = useQuery<Category[]>({
     queryKey: ["categories"],
     queryFn: async () => {
       const query = `
@@ -25,34 +40,23 @@ export default function CategoryListWidget({
           "postCount": count(*[_type == "post" && references(^._id)])
         }
       `;
-      return client.fetch(query);
+      return client.fetch<Category[]>(query);
     },
   });
 
   if (isLoading) return <div>Loading categories...</div>;
 
-  const containerStyles = {
-    list: "space-y-2",
-    grid: "grid grid-cols-2 gap-4",
-    dropdown: "relative",
-  };
-
   return (
     <div className="bg-white p-6 rounded-lg shadow-sm">
       <h3 className="text-lg font-semibold text-gray-800 mb-4">{title}</h3>
-      <div className={containerStyles[displayStyle]}>
-        {categories?.map((category: any) => (
+      <div className={containerStyles[displayStyle as DisplayStyle]}>
+        {categories?.map((category: Category) => (
           <Link
             key={category.slug.current}
             href={`/blog?category=${category.slug.current}`}
             className="flex items-center justify-between hover:text-[var(--color-tertiary)] transition-colors"
           >
             <span>{category.title}</span>
-            {showPostCount && (
-              <span className="text-sm text-gray-500">
-                ({category.postCount})
-              </span>
-            )}
           </Link>
         ))}
       </div>

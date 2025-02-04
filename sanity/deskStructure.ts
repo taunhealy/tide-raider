@@ -1,5 +1,4 @@
 import type {StructureBuilder} from 'sanity/structure'
-import {schemaTypes} from './schemaTypes'
 
 export const structure = (S: StructureBuilder) =>
   S.list()

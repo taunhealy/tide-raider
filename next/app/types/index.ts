@@ -1,3 +1,5 @@
+import type { Widget } from "./blog";
+
 export interface SectionData {
   title: string;
   description: string;
@@ -38,13 +40,6 @@ export interface Post {
   }>;
   relatedPosts?: Post[];
   travelCosts?: TravelCosts;
-}
-
-// Widget Types
-export interface Widget {
-  type: string;
-  order: number;
-  config?: any;
 }
 
 // Travel Types

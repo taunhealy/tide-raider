@@ -8,18 +8,19 @@ import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { blogListingQuery } from "@/app/lib/queries";
 
-interface BlogSectionProps {
-  _type: string;
-  _id: string;
-  // Add other props as needed
-}
-
-export default function BlogSection(props: BlogSectionProps) {
+export default function BlogSection() {
   const [activeCategory, setActiveCategory] = useState("All");
 
   const { data, isLoading } = useQuery({
-    queryKey: ["blogSection", props._id],
-    queryFn: () => client.fetch(blogListingQuery),
+    queryKey: ["blogSection"],
+    queryFn: async () => {
+      const data = await client.fetch(blogListingQuery);
+      return {
+        posts: data.posts,
+        categories: data.categories,
+        widgets: data.widgets,
+      };
+    },
     staleTime: 1000 * 60 * 5,
   });
 

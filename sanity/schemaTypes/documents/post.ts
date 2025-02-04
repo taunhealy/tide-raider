@@ -111,19 +111,7 @@ export default defineType({
       type: 'array',
       of: [{type: 'reference', to: {type: 'postTag'}}],
     }),
-    // Location reference
-    defineField({
-      name: 'location',
-      title: 'Location',
-      type: 'object',
-      fields: [
-        {name: 'beachName', type: 'string', title: 'Beach Name'},
-        {name: 'region', type: 'string', title: 'Region'},
-        {name: 'country', type: 'string', title: 'Country'},
-        {name: 'continent', type: 'string', title: 'Continent'},
-      ],
-      validation: (Rule) => Rule.required(),
-    }),
+
     // Publication date
     defineField({
       name: 'publishedAt',
@@ -143,45 +131,15 @@ export default defineType({
       title: 'Sidebar Widgets',
       type: 'array',
       of: [
-        {
-          type: 'object',
-          name: 'sidebarWidget',
-          fields: [
-            {
-              name: 'type',
-              type: 'string',
-              title: 'Widget Type',
-              options: {
-                list: [
-                  {title: 'Weather', value: 'weather'},
-                  {title: 'Location Map', value: 'locationMap'},
-                  {title: 'Related Posts', value: 'relatedPosts'},
-                  {title: 'Category List', value: 'categoryList'},
-                  {title: 'Tag Cloud', value: 'tagCloud'},
-                  {title: 'Flight Search', value: 'flightSearch'},
-                ],
-              },
-            },
-            {
-              name: 'order',
-              type: 'number',
-              title: 'Display Order',
-            },
-            {
-              name: 'config',
-              type: 'object',
-              title: 'Widget Configuration',
-              fields: [
-                {
-                  name: 'title',
-                  type: 'string',
-                  title: 'Widget Title',
-                },
-              ],
-            },
-          ],
-        },
+        {type: 'weatherWidget'},
+        {type: 'surfSpotsWidget'},
+        {type: 'relatedPostsWidget'},
+        {type: 'locationMapWidget'},
+        {type: 'categoryListWidget'},
+        {type: 'tagCloudWidget'},
+        {type: 'flightSearchWidget'},
       ],
+      validation: (Rule) => Rule.unique().warning('Each widget type should be unique'),
     }),
   ],
   preview: {

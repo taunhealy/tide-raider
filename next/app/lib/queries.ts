@@ -74,17 +74,25 @@ export const postQuery = groq`*[_type == "post" && slug.current == $slug][0]{
   mainImage,
   content,
   location,
-  "relatedPosts": *[_type == "post" && references(^.categories[0]._ref) && _id != ^._id][0...3]{
+  publishedAt,
+  "relatedPosts": *[_type == "post" && references(^.categories[0]._ref) && _id != ^._id] | order(publishedAt desc)[0...3]{
     title,
-    slug,
-    mainImage
+    "slug": slug.current,
+    mainImage,
+    publishedAt,
+    description
   },
   sidebarWidgets[] {
-    type,
+    _type,
     order,
-    config {
-      title
-    }
+    title,
+    numberOfPosts,
+    region,
+    criteria,
+    maxTags,
+    showTagCount,
+    displayStyle,
+    showPostCount
   }
 }`;
 

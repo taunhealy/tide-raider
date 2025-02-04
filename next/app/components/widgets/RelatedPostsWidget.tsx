@@ -3,15 +3,7 @@
 import { urlForImage } from "@/app/lib/urlForImage";
 import { FormattedDate } from "../FormattedDate";
 import Link from "next/link";
-
-interface Post {
-  title: string;
-  slug: { current: string };
-  mainImage: any;
-  publishedAt: string;
-  description: string;
-  categories: { title: string }[];
-}
+import { Post } from "@/app/types/blog";
 
 interface RelatedPostsWidgetProps {
   title?: string;

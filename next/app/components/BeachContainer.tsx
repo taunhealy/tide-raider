@@ -246,11 +246,12 @@ export default function BeachContainer({
       const response = await fetch(`/api/surf-conditions`);
       if (!response.ok) throw new Error("Failed to fetch conditions");
       const data = await response.json();
-
-      return data; // Remove the { data } wrapper
+      return data;
     },
-    enabled: true,
+    enabled: !isSidebarOpen,
     staleTime: 1000 * 60 * 5,
+    refetchOnWindowFocus: false,
+    refetchInterval: false,
   });
 
   // Calculate scores and counts using allWindData

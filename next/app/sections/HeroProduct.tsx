@@ -116,7 +116,7 @@ export default function HeroProduct() {
     <section className="bg-[var(--color-bg-secondary)] section-padding mb-6">
       <div className="heading-3 mb-12 md:mb-24">
         <h3>Daily Spot Ratings</h3>
-        <h5 className="text-large">Beyond your horizon.</h5>
+        <h5 className="text-large">Explore beyond your regular surf break.</h5>
       </div>
 
       <div className="slider-section container mx-auto px-4">

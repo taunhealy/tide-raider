@@ -1253,7 +1253,7 @@ export const beachData: Beach[] = [
         },
       ],
     },
-    image: "/images/beaches/td-jbay.webp",
+    image: "/images/beaches/td-jbay.jpg",
     coordinates: {
       lat: -34.0507,
       lng: 24.9281,

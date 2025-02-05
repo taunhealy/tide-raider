@@ -1,5 +1,6 @@
 import { ReactNode } from "react";
-import { Post, Widget } from "@/app/types/blog";
+import { Post } from "@/app/types/blog";
+import { Widget, isValidWidgetType } from "@/app/types/widgets";
 import RelatedPostsWidget from "./RelatedPostsWidget";
 import LocationMapWidget from "./LocationMapWidget";
 import CategoryListWidget from "./CategoryListWidget";
@@ -7,6 +8,8 @@ import TagCloudWidget from "./TagCloudWidget";
 import WeatherWidget from "./WeatherWidget";
 import SurfSpotsWidget from "./SurfSpotsWidget";
 import TravelWidget from "./TravelWidget";
+import UnsplashGridWidget from "./UnsplashGridWidget";
+import FlightSearchWidget from "./FlightSearchWidget";
 
 interface SidebarWidgetFactoryProps {
   widget: Widget;
@@ -23,6 +26,11 @@ export default function SidebarWidgetFactory({
     title: widget.title,
     order: widget.order,
   });
+
+  if (!isValidWidgetType(widget._type)) {
+    console.warn(`Unknown widget type: ${widget._type}`);
+    return null;
+  }
 
   // Default placeholder component for missing data
   const PlaceholderWidget = ({ type }: { type: string }) => (
@@ -83,6 +91,8 @@ export default function SidebarWidgetFactory({
           showPostCount={widget.showPostCount}
         />
       );
+
+    case "flightSearchWidget":
       return (
         <FlightSearchWidget
           title={widget.title}
@@ -94,10 +104,12 @@ export default function SidebarWidgetFactory({
       console.log("🏄‍♂️ Surf spots config:", widget.region);
       return <SurfSpotsWidget title={widget.title} region={widget.region} />;
 
-    default:
-      console.warn(
-        `Unknown widget type: ${(widget as { _type: string })._type}`
+    case "unsplashGridWidget":
+      return (
+        <UnsplashGridWidget title={widget.title} images={widget.images || []} />
       );
+
+    default:
       return null;
   }
 }

@@ -9,7 +9,12 @@ import Map from "./Map";
 import { useSubscription } from "../context/SubscriptionContext";
 
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { isBeachSuitable, calculateBeachScores } from "@/app/lib/surfUtils";
+import {
+  isBeachSuitable,
+  calculateBeachScores,
+  FREE_BEACH_LIMIT,
+  getGatedBeaches,
+} from "@/app/lib/surfUtils";
 import FunFacts from "@/app/components/FunFacts";
 import { cn } from "@/app/lib/utils";
 import {
@@ -44,6 +49,7 @@ import { prisma } from "@/app/lib/prisma";
 import { storeGoodBeachRatings } from "@/app/lib/surfUtils";
 import StickyRegionFilter from "./StickyRegionFilter";
 import { toast } from "sonner";
+import Link from "next/link";
 
 interface BeachContainerProps {
   initialBeaches: Beach[];
@@ -583,6 +589,13 @@ export default function BeachContainer({
     }
   };
 
+  const { visibleBeaches, lockedBeaches } = getGatedBeaches(
+    filteredBeaches,
+    windData,
+    isSubscribed,
+    hasActiveTrial
+  );
+
   return (
     <div className="bg-[var(--color-bg-secondary)] p-6 mx-auto relative min-h-[calc(100vh-72px)] flex flex-col">
       {/* Main Layout */}
@@ -768,7 +781,7 @@ export default function BeachContainer({
 
                 {filteredBeaches.length === 0 ? (
                   <div className="text-center py-8">
-                    <p className="text-[var(--color-text-primary)] text-left max-w-[34ch]">
+                    <p className="text-[var(--color-text-primary)] text-left max-w-[34ch] font-primary">
                       No beaches match filters. Try adjusting the filters or
                       your search query.
                     </p>
@@ -783,7 +796,7 @@ export default function BeachContainer({
                     ) : (
                       !windData && (
                         <div className="mb-6 p-4 bg-yellow-50 border border-yellow-200 rounded-lg">
-                          <p className="text-yellow-800">
+                          <p className="text-yellow-800 font-primary">
                             No forecast data available for {selectedRegion}.
                             Showing beaches with their optimal conditions.
                           </p>
@@ -793,34 +806,36 @@ export default function BeachContainer({
 
                     {/* Beach Grid */}
                     <BeachGrid
-                      beaches={currentItems}
+                      beaches={visibleBeaches}
                       windData={windData}
                       isBeachSuitable={isBeachSuitable}
                       isLoading={isLoading}
                     />
 
-                    {/* Subscription Banner - Moved here */}
-                    {!isSubscribed && filteredBeaches.length > 3 && (
-                      <div className="mt-8 p-6 bg-gradient-to-r from-[var(--color-bg-tertiary)] to-[var(--color-bg-secondary)] rounded-lg text-white shadow-lg">
-                        <div className="flex flex-col items-center text-center space-y-4">
-                          <h3 className="text-xl font-semibold">
-                            Unlock {filteredBeaches.length - 3} More Beaches
-                          </h3>
-                          <p className="text-white/90 max-w-md">
-                            Subscribe to access all beaches, detailed forecasts,
-                            and premium features to find your perfect wave.
-                          </p>
-                          <a
-                            href="/pricing"
-                            className="mt-4 px-6 py-2 bg-white text-[var(--color-bg-tertiary)] rounded-full font-semibold hover:bg-gray-100 transition-colors"
-                          >
-                            {hasActiveTrial
-                              ? "Subscribe Now"
-                              : "Start Free Trial"}
-                          </a>
+                    {/* Subscription Banner */}
+                    {!isSubscribed &&
+                      filteredBeaches.length > FREE_BEACH_LIMIT && (
+                        <div className="mt-8 p-6 bg-[var(--color-bg-tertiary)] rounded-lg text-white shadow-lg">
+                          <div className="flex flex-col items-center text-center space-y-4">
+                            <h3 className="text-xl md: font-primary font-semibold">
+                              Unlock {filteredBeaches.length - FREE_BEACH_LIMIT}{" "}
+                              More Surf Breaks In This Region
+                            </h3>
+                            <p className="text-white/90 max-w-md font-primary">
+                              Subscribe to access all beaches and logs. Seek
+                              your perfect wave.
+                            </p>
+                            <Link
+                              href="/pricing"
+                              className="mt-4 px-6 py-2 bg-white text-[var(--color-bg-tertiary)] rounded-full font-semibold font-primary hover:bg-gray-100 transition-colors"
+                            >
+                              {hasActiveTrial
+                                ? "Subscribe Now"
+                                : "Start Free Trial"}
+                            </Link>
+                          </div>
                         </div>
-                      </div>
-                    )}
+                      )}
 
                     {/* Pagination */}
                     {(isSubscribed ? totalPages > 1 : false) && (

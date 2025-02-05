@@ -2,6 +2,9 @@ import type { Beach } from "@/app/types/beaches";
 import type { WindData } from "@/app/types/wind";
 import { prisma } from "@/app/lib/prisma";
 import { beachData } from "@/app/types/beaches";
+
+export const FREE_BEACH_LIMIT = 7;
+
 interface ScoreDisplay {
   description: string;
   emoji: string;
@@ -305,29 +308,11 @@ export function getGatedBeaches(
     };
   }
 
-  // For non-subscribed users, filter based on star rating
-  const { visibleBeaches, lockedBeaches } = beaches.reduce(
-    (acc, beach) => {
-      if (!windData) {
-        acc.visibleBeaches.push(beach);
-        return acc;
-      }
-
-      const { score } = isBeachSuitable(beach, windData);
-      if (score < 3) {
-        acc.visibleBeaches.push(beach);
-      } else {
-        acc.lockedBeaches.push(beach);
-      }
-      return acc;
-    },
-    { visibleBeaches: [], lockedBeaches: [] } as {
-      visibleBeaches: Beach[];
-      lockedBeaches: Beach[];
-    }
-  );
-
-  return { visibleBeaches, lockedBeaches };
+  // For non-subscribed users, show first N beaches
+  return {
+    visibleBeaches: beaches.slice(0, FREE_BEACH_LIMIT),
+    lockedBeaches: beaches.slice(FREE_BEACH_LIMIT),
+  };
 }
 
 export interface BeachCount {

@@ -14,6 +14,7 @@ import {
   flightSearchWidget,
   surfSpotsWidget,
   travelWidget,
+  unsplashGridWidget,
 } from './objects/sidebarWidgets'
 
 export const schemaTypes = [
@@ -33,4 +34,5 @@ export const schemaTypes = [
   flightSearchWidget,
   surfSpotsWidget,
   travelWidget,
+  unsplashGridWidget,
 ]

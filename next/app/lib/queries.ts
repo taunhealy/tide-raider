@@ -72,27 +72,67 @@ export const pricingQuery = groq`
 export const postQuery = groq`*[_type == "post" && slug.current == $slug][0]{
   title,
   mainImage,
-  content,
-  location,
+  "slug": slug.current,
   publishedAt,
-  "relatedPosts": *[_type == "post" && references(^.categories[0]._ref) && _id != ^._id] | order(publishedAt desc)[0...3]{
+  description,
+  content[] {
+    _key,
+    sectionHeading,
+    content,
+    sectionImages[] {
+      source,
+      uploadedImage {
+        asset->,
+        alt,
+        caption
+      },
+      unsplashImage {
+        asset->,
+        url,
+        alt
+      },
+      layout
+    }
+  },
+  // Fetch categories with their details
+  categories[]-> {
+    _id,
+    title,
+    "slug": slug.current
+  },
+  // Fetch tags with their details
+  tags[]-> {
+    _id,
+    title,
+    "slug": slug.current
+  },
+  // Fetch sidebar widgets with their configurations
+  sidebarWidgets[] {
+    _type,
+    _key,
+    title,
+    order,
+    ...select(
+      _type == 'weatherWidget' => { region },
+      _type == 'surfSpotsWidget' => { region },
+      _type == 'relatedPostsWidget' => { numberOfPosts },
+      _type == 'locationMapWidget' => { region },
+      _type == 'categoryListWidget' => { showPostCount, displayStyle },
+      _type == 'tagCloudWidget' => { maxTags, showTagCount },
+      _type == 'flightSearchWidget' => { destinationCode },
+      _type == 'unsplashGridWidget' => { searchTerm }
+    )
+  },
+  // Fetch related posts based on shared categories
+  "relatedPosts": *[_type == "post" && 
+    references(^.categories[]._ref) && 
+    _id != ^._id
+  ] | order(publishedAt desc)[0...3] {
     title,
     "slug": slug.current,
     mainImage,
     publishedAt,
     description
-  },
-  sidebarWidgets[] {
-    _type,
-    order,
-    title,
-    numberOfPosts,
-    region,
-    criteria,
-    maxTags,
-    showTagCount,
-    displayStyle,
-    showPostCount
   }
 }`;
 

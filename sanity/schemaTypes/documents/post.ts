@@ -36,54 +36,98 @@ export default defineType({
       type: 'array',
       of: [
         {
-          type: 'block',
-          styles: [
-            {title: 'Normal', value: 'normal'},
-            {title: 'H1', value: 'h1'},
-            {title: 'H2', value: 'h2'},
-            {title: 'H3', value: 'h3'},
-            {title: 'Quote', value: 'blockquote'},
-          ],
-          lists: [
-            {title: 'Bullet', value: 'bullet'},
-            {title: 'Number', value: 'number'},
-          ],
-          marks: {
-            decorators: [
-              {title: 'Strong', value: 'strong'},
-              {title: 'Emphasis', value: 'em'},
-            ],
-            annotations: [
-              {
-                name: 'link',
-                type: 'object',
-                title: 'URL',
-                fields: [
-                  {
-                    title: 'URL',
-                    name: 'href',
-                    type: 'url',
-                  },
-                ],
-              },
-            ],
-          },
-        },
-        {
-          type: 'image',
-          options: {hotspot: true},
+          type: 'object',
+          name: 'section',
+          title: 'Content Section',
           fields: [
             {
-              name: 'alt',
+              name: 'sectionHeading',
+              title: 'Section Heading',
               type: 'string',
-              title: 'Alternative text',
-              description: 'Important for SEO and accessibility.',
+              description: 'Optional heading for this section',
             },
             {
-              name: 'caption',
-              type: 'string',
-              title: 'Caption',
-              description: 'Optional caption for the image',
+              name: 'content',
+              title: 'Section Content',
+              type: 'array',
+              of: [
+                {
+                  type: 'block',
+                  styles: [
+                    {title: 'Normal', value: 'normal'},
+                    {title: 'H2', value: 'h2'},
+                    {title: 'H3', value: 'h3'},
+                    {title: 'Quote', value: 'blockquote'},
+                  ],
+                },
+              ],
+            },
+            {
+              name: 'sectionImages',
+              title: 'Section Images',
+              type: 'array',
+              of: [
+                {
+                  type: 'object',
+                  name: 'sectionImage',
+                  fields: [
+                    {
+                      name: 'source',
+                      title: 'Image Source',
+                      type: 'string',
+                      options: {
+                        list: [
+                          {title: 'Upload', value: 'upload'},
+                          {title: 'Unsplash', value: 'unsplash'},
+                        ],
+                      },
+                    },
+                    {
+                      name: 'uploadedImage',
+                      title: 'Uploaded Image',
+                      type: 'image',
+                      hidden: ({parent}) => parent?.source !== 'upload',
+                      options: {
+                        hotspot: true,
+                      },
+                      fields: [
+                        {
+                          name: 'alt',
+                          type: 'string',
+                          title: 'Alternative text',
+                        },
+                        {
+                          name: 'caption',
+                          type: 'string',
+                          title: 'Caption',
+                        },
+                      ],
+                    },
+                    {
+                      name: 'unsplashImage',
+                      title: 'Unsplash Image',
+                      type: 'image',
+                      hidden: ({parent}) => parent?.source !== 'unsplash',
+                      options: {
+                        source: 'unsplash',
+                      },
+                    },
+                    {
+                      name: 'layout',
+                      title: 'Image Layout',
+                      type: 'string',
+                      options: {
+                        list: [
+                          {title: 'Full Width', value: 'full'},
+                          {title: 'Half Width', value: 'half'},
+                          {title: 'Quarter Width', value: 'quarter'},
+                        ],
+                      },
+                    },
+                  ],
+                },
+              ],
+              validation: (Rule) => Rule.max(4),
             },
           ],
         },
@@ -122,8 +166,20 @@ export default defineType({
     defineField({
       name: 'description',
       title: 'Description',
-      type: 'text',
-      rows: 3,
+      type: 'array',
+      of: [
+        {
+          type: 'block',
+          styles: [{title: 'Normal', value: 'normal'}],
+          lists: [],
+          marks: {
+            decorators: [
+              {title: 'Strong', value: 'strong'},
+              {title: 'Emphasis', value: 'em'},
+            ],
+          },
+        },
+      ],
     }),
     // Sidebar widgets
     defineField({
@@ -138,6 +194,7 @@ export default defineType({
         {type: 'categoryListWidget'},
         {type: 'tagCloudWidget'},
         {type: 'flightSearchWidget'},
+        {type: 'unsplashGridWidget'},
       ],
       validation: (Rule) => Rule.unique().warning('Each widget type should be unique'),
     }),

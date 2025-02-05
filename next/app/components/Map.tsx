@@ -216,7 +216,7 @@ export default function Map({ beaches, windData, hasActiveTrial }: MapProps) {
                         {beach.region}
                       </div>
                       {!isSubscribed && (
-                        <div className="text-sm text-blue-600 mt-1">
+                        <div className="text-sm text-black mt-1">
                           {hasActiveTrial
                             ? "Subscribe to unlock"
                             : "Sign in to unlock"}

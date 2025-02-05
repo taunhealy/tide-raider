@@ -170,8 +170,9 @@ export default function Blog({ data }: BlogProps) {
               style={{ scrollSnapAlign: "start" }}
             >
               <Link
-                href={`/blog/${post.slug.current}`}
-                className="flex flex-row md:flex-col"
+                href={`/blog/${encodeURIComponent(post.slug.current)}`}
+                className="flex flex-row md:flex-col hover:no-underline"
+                prefetch={false}
               >
                 <div className="relative w-[140px] md:w-full h-[140px] md:h-[410px] overflow-hidden">
                   {post.mainImage?.asset && (

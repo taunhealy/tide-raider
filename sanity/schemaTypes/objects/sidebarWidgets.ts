@@ -260,3 +260,37 @@ export const flightSearchWidget = defineType({
     }),
   ],
 })
+
+export const unsplashGridWidget = defineType({
+  name: 'unsplashGridWidget',
+  title: 'Photo Gallery Widget',
+  type: 'object',
+  fields: [
+    defineField({
+      name: 'title',
+      title: 'Widget Title',
+      type: 'string',
+      initialValue: 'Photo Gallery',
+    }),
+    defineField({
+      name: 'images',
+      title: 'Gallery Images',
+      type: 'array',
+      of: [
+        {
+          type: 'image',
+          options: {
+            source: 'unsplash',
+          },
+        },
+      ],
+      validation: (Rule) => Rule.max(8),
+    }),
+    defineField({
+      name: 'order',
+      type: 'number',
+      title: 'Order',
+      initialValue: 1,
+    }),
+  ],
+})

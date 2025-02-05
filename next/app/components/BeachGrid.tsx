@@ -32,7 +32,7 @@ export default function BeachGrid({
 
   return (
     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-1 gap-[16px]">
-      {displayedBeaches.map((beach, index) => (
+      {beaches.map((beach, index) => (
         <BeachCard
           key={beach.name}
           beach={beach}

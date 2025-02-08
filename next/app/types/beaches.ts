@@ -5312,6 +5312,13 @@ export const beachData: Beach[] = [
       lat: -34.1234, // Please update with actual coordinates
       lng: 18.4567,
     },
+    videos: [
+      {
+        url: "https://www.youtube.com/watch?v=mW4g6PQ9LcY&ab_channel=daboys",
+        title: "Massive waves at Victoria Bay: 4 brothers explore Grom comp!!",
+        platform: "youtube",
+      },
+    ],
   },
   {
     id: "ferme-aux-cochons",

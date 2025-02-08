@@ -4,7 +4,7 @@ import { useState } from "react";
 import { Cloud, Loader2 } from "lucide-react";
 import { useQuery } from "@tanstack/react-query";
 import { beachData } from "@/app/types/beaches";
-import { Widget, WeatherWidgetProps } from "@/app/types/blog";
+import { WeatherWidgetProps } from "@/app/types/blog";
 
 interface WeatherData {
   temp: number;

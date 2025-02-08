@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { useQuery } from "@tanstack/react-query";
 import { client } from "@/app/lib/sanity";
-import { useState, useMemo } from "react";
+import { useMemo } from "react";
 
 interface TagCloudWidgetProps {
   title?: string;

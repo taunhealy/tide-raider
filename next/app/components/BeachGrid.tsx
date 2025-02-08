@@ -2,8 +2,7 @@ import type { Beach } from "../types/beaches";
 import type { WindData } from "../types/wind";
 import BeachCard from "./BeachCard";
 import { useSubscription } from "../context/SubscriptionContext";
-import Link from "next/link";
-import { getGatedBeaches } from "../lib/surfUtils";
+
 
 interface BeachGridProps {
   beaches: Beach[];

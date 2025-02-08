@@ -3,7 +3,6 @@
 import Link from "next/link";
 import { useQuery } from "@tanstack/react-query";
 import { client } from "@/app/lib/sanity";
-import { Widget } from "@/app/types/blog";
 import type { CategoryListWidget } from "@/app/types/blog";
 
 type CategoryListWidgetProps = Pick<

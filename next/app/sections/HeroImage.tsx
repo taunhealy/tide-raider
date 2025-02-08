@@ -1,7 +1,6 @@
 import { urlForImage } from "@/app/lib/urlForImage";
 import { SanityImage } from "@/types";
 import Image from "next/image";
-import { Post, Category } from "@/types"; // Ensure you have the correct import path
 
 interface HeroImageProps {
   data: {

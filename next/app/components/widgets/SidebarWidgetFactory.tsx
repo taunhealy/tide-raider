@@ -9,7 +9,6 @@ import WeatherWidget from "./WeatherWidget";
 import SurfSpotsWidget from "./SurfSpotsWidget";
 import TravelWidget from "./TravelWidget";
 import UnsplashGridWidget from "./UnsplashGridWidget";
-import FlightSearchWidget from "./FlightSearchWidget";
 
 interface SidebarWidgetFactoryProps {
   widget: Widget;
@@ -89,14 +88,6 @@ export default function SidebarWidgetFactory({
           title={widget.title}
           displayStyle={widget.displayStyle}
           showPostCount={widget.showPostCount}
-        />
-      );
-
-    case "flightSearchWidget":
-      return (
-        <FlightSearchWidget
-          title={widget.title}
-          destinationCode={widget.destinationCode || "CPT"}
         />
       );
 

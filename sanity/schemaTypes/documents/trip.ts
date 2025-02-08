@@ -72,7 +72,7 @@ export default defineType({
                     },
                     {
                       name: 'price',
-                      title: 'Price',
+                      title: 'Price (ZAR)',
                       type: 'number',
                       validation: (Rule) => Rule.min(0),
                     },

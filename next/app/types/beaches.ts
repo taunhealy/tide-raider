@@ -6091,49 +6091,6 @@ export const beachData: Beach[] = [
     },
   },
   {
-    id: "silverstroom",
-    name: "Silverstroom",
-    continent: "Africa",
-    country: "South Africa",
-    region: "Western Cape",
-    location: "Melkbosstrand",
-    distanceFromCT: 35,
-    optimalWindDirections: ["ENE"], // Changed to be more specific
-    optimalSwellDirections: {
-      min: 247.5, // WSW
-      max: 270, // W
-      cardinal: "WSW", // Updated to match the reported optimal direction
-    },
-    bestSeasons: ["winter"],
-    optimalTide: "Low",
-    description:
-      "Remote beach break in Cape Point Reserve offering multiple peaks across 3km of pristine coastline. Wave quality varies with constantly shifting sandbanks - scout before paddling out. Main peak provides powerful A-frames, with rights typically offering longer rides. Handles all swell sizes but excels in 4-8ft SW groundswell with 12+ second period. Best conditions with light NW-NE winds early morning. Strong currents and multiple rip channels require good ocean knowledge. Extremely isolated location - bring all supplies and never surf alone. Notable wildlife activity including seals, sharks, and occasional whales. Access requires Cape Point Reserve entry fee and 20-minute drive on dirt road. Best during winter months when groundswells are most consistent. No facilities or cell reception - emergency assistance far away. Watch for sudden weather changes typical of peninsula location.",
-    difficulty: "Intermediate",
-    waveType: "Beach Break",
-    swellSize: {
-      min: 1.2,
-      max: 6.0,
-    },
-    idealSwellPeriod: {
-      min: 12,
-      max: 24,
-    },
-    waterTemp: {
-      summer: 18,
-      winter: 14,
-    },
-    hazards: ["Remote location", "Rip currents", "Strong currents", "Sharks"],
-    crimeLevel: "Medium",
-    sharkAttack: {
-      hasAttack: false,
-    },
-    image: "",
-    coordinates: {
-      lat: -34.1123,
-      lng: 18.4876,
-    },
-  },
-  {
     id: "holbaai",
     name: "Holbaai",
     continent: "Africa",

@@ -1,3 +1,5 @@
+"use client";
+
 import { client } from "@/app/lib/sanity";
 import { PortableText, PortableTextComponents } from "@portabletext/react";
 import { urlForImage } from "@/app/lib/urlForImage";
@@ -5,8 +7,6 @@ import { notFound } from "next/navigation";
 import Image from "next/image";
 import BlogSidebar from "@/app/components/postsSidebars/BlogSidebar";
 import { postQuery } from "@/lib/queries";
-import imageUrlBuilder from "@sanity/image-url";
-import { Post } from "@/app/types/blog";
 import { SectionImage } from "@/app/types/blog";
 import { PortableTextBlock } from "@portabletext/types";
 import { getVideoId } from "@/app/lib/videoUtils";
@@ -120,8 +120,6 @@ const components: PortableTextComponents = {
                           }
                           alt={alt}
                           fill
-                          unoptimized
-                          sizes="(max-width: 800px) 100vw, 800px"
                           className="object-cover rounded-lg"
                         />
                       </div>
@@ -153,7 +151,6 @@ const components: PortableTextComponents = {
                           }
                           alt={image.unsplashImage?.alt || ""}
                           fill
-                          unoptimized
                           className="object-cover rounded-lg"
                         />
                       </div>
@@ -205,33 +202,68 @@ export default async function BlogPost({
 }: {
   params: { slug: string };
 }) {
-  const post: Post = await client.fetch(
-    postQuery,
-    { slug: params.slug },
-    { cache: "no-store" }
+  // Add more detailed logging
+  console.log("Request params:", params);
+  console.log("Requested slug:", params.slug);
+
+  if (!params.slug) {
+    console.error("No slug provided in params");
+    return notFound();
+  }
+
+  // Add error handling for the fetch
+  let post;
+  try {
+    post = await client.fetch(
+      postQuery,
+      { slug: params.slug },
+      { cache: "no-store" }
+    );
+  } catch (error) {
+    console.error("Error fetching post:", error);
+    return notFound();
+  }
+
+  console.log("Fetched post data:", post);
+
+  if (!post) {
+    console.error("No post found for slug:", params.slug);
+    return notFound();
+  }
+
+  // Add default values for null fields
+  const safePost = {
+    ...post,
+    publishedAt: post.publishedAt || new Date().toISOString(),
+    description: post.description || "No description available",
+    mainImage: post.mainImage || {
+      asset: {
+        url: "/images/placeholder.jpg",
+      },
+    },
+  };
+
+  const sortedWidgets = safePost.sidebarWidgets?.sort(
+    (a: { order: number }, b: { order: number }) => a.order - b.order
   );
-
-  if (!post) return notFound();
-
-  const sortedWidgets = post.sidebarWidgets?.sort((a, b) => a.order - b.order);
 
   return (
     <div className="container mx-auto px-4 py-8 max-w-[1200px]">
       <div className="grid grid-cols-1 lg:grid-cols-[1fr_400px] gap-8">
         <main className="max-w-[720px]">
           <h1 className="font-primary text-[2.5rem] leading-[1.2] font-bold mb-6">
-            {post.title}
+            {safePost.title}
           </h1>
 
           {/* Main Image */}
-          {post.mainImage?.asset && (
+          {safePost.mainImage?.asset && (
             <div className="relative aspect-[16/9] mb-12">
               <Image
                 src={
-                  urlForImage(post.mainImage)?.url() ||
+                  urlForImage(safePost.mainImage)?.url() ||
                   "/images/placeholder.jpg"
                 }
-                alt={post.title}
+                alt={safePost.title}
                 fill
                 priority
                 className="object-cover rounded-lg"
@@ -241,66 +273,79 @@ export default async function BlogPost({
 
           {/* Content */}
           <div className="prose max-w-none font-primary prose-lg">
-            {post.content.map((section, index) => (
-              <div key={index} className="mt-16">
-                {section.sectionHeading && (
-                  <h2 className="text-[1.875rem] leading-[1.3] font-bold mb-6">
-                    {section.sectionHeading}
-                  </h2>
-                )}
+            {safePost.content.map(
+              (
+                section: {
+                  sectionHeading?: string;
+                  content: PortableTextBlock[];
+                  videoLink?: string;
+                  sectionImages?: SectionImage[];
+                },
+                index: number
+              ) => (
+                <div key={index} className="mt-16">
+                  {section.sectionHeading && (
+                    <h2 className="text-[1.875rem] leading-[1.3] font-bold mb-6">
+                      {section.sectionHeading}
+                    </h2>
+                  )}
 
-                <PortableText value={section.content} components={components} />
+                  <PortableText
+                    value={section.content}
+                    components={components}
+                  />
 
-                {section.videoLink && (
-                  <div className="my-6">
-                    <iframe
-                      src={`https://www.youtube.com/embed/${getVideoId(section.videoLink)}`}
-                      title="YouTube Video"
-                      className="w-full h-64"
-                      frameBorder="0"
-                      allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-                      allowFullScreen
-                    />
-                  </div>
-                )}
+                  {section.videoLink && (
+                    <div className="my-6">
+                      <iframe
+                        src={`https://www.youtube.com/embed/${getVideoId(section.videoLink)}`}
+                        title="YouTube Video"
+                        className="w-full h-64"
+                        frameBorder="0"
+                        allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                        allowFullScreen
+                      />
+                    </div>
+                  )}
 
-                {section.sectionImages &&
-                  section.sectionImages.map((image, imgIndex) => {
-                    const imageUrl = image.uploadedImage?.asset
-                      ? urlForImage(image.uploadedImage.asset)?.url() ||
-                        "/images/placeholder.jpg"
-                      : "/images/placeholder.jpg";
+                  {section.sectionImages &&
+                    section.sectionImages.map((image, imgIndex) => {
+                      const imageUrl = image.uploadedImage?.asset
+                        ? urlForImage(image.uploadedImage.asset)?.url() ||
+                          "/images/placeholder.jpg"
+                        : "/images/placeholder.jpg";
 
-                    return (
-                      <div key={imgIndex} className="relative aspect-[16/9]">
-                        <Image
-                          src={
-                            image.uploadedImage?.asset?.url ||
-                            "/images/placeholder.jpg"
-                          }
-                          alt={image.uploadedImage?.alt || ""}
-                          fill
-                          className="object-cover rounded-lg"
-                        />
-                        {image.uploadedImage?.caption && (
-                          <p className="text-sm text-gray-500 mt-2">
-                            {image.uploadedImage.caption}
-                          </p>
-                        )}
-                      </div>
-                    );
-                  })}
-              </div>
-            ))}
+                      return (
+                        <div key={imgIndex} className="relative aspect-[16/9]">
+                          <Image
+                            src={
+                              image.uploadedImage?.asset?.url ||
+                              "/images/placeholder.jpg"
+                            }
+                            alt={image.uploadedImage?.alt || ""}
+                            fill
+                            className="object-cover rounded-lg"
+                          />
+                          {image.uploadedImage?.caption && (
+                            <p className="text-sm text-gray-500 mt-2">
+                              {image.uploadedImage.caption}
+                            </p>
+                          )}
+                        </div>
+                      );
+                    })}
+                </div>
+              )
+            )}
 
             {/* Replace the details section with the new TripDetails component */}
-            {post.trip && <TripDetails trip={post.trip} />}
+            {safePost.trip && <TripDetails trip={safePost.trip} />}
           </div>
         </main>
 
         {/* Sidebar */}
         <aside className="space-y-8 lg:sticky lg:top-4 lg:self-start">
-          <BlogSidebar posts={post.relatedPosts} widgets={sortedWidgets} />
+          <BlogSidebar posts={safePost.relatedPosts} widgets={sortedWidgets} />
         </aside>
       </div>
     </div>

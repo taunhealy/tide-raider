@@ -324,6 +324,12 @@ export default function BeachContainer({
   const filteredBeaches = useMemo(() => {
     let filtered = initialBeaches;
 
+    // Add a check to ensure beaches are properly filtered
+    if (!Array.isArray(filtered)) {
+      console.error("Invalid beaches data:", filtered);
+      return [];
+    }
+
     // Apply search filter
     if (searchQuery.trim()) {
       const query = searchQuery.toLowerCase();
@@ -403,7 +409,6 @@ export default function BeachContainer({
       }))
       .filter(({ score }) => minPoints === 0 || score >= minPoints)
       .sort((a, b) => {
-        // If no windData, sort alphabetically by name
         if (!windData) {
           return a.beach.name.localeCompare(b.beach.name);
         }

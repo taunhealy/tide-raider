@@ -410,6 +410,8 @@ const CACHE_TIMES = {
   SCRAPE_LOCK: 60 * 10, // 10 minute lock to prevent multiple scrapes
 };
 
+export const dynamic = "force-dynamic";
+
 export async function GET(request: Request) {
   try {
     const { searchParams } = new URL(request.url);

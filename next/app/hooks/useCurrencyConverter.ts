@@ -4,7 +4,7 @@ import { useState, useEffect } from "react";
 
 export function useCurrencyConverter(
   amount: number,
-  baseCurrency: string = "EUR"
+  baseCurrency: string = "ZAR"
 ) {
   const [convertedAmount, setConvertedAmount] = useState(amount);
   const [currencyCode, setCurrencyCode] = useState(baseCurrency);

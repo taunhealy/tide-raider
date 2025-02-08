@@ -14,12 +14,19 @@ export default function BlogSection() {
   const { data, isLoading } = useQuery({
     queryKey: ["blogSection"],
     queryFn: async () => {
-      const data = await client.fetch(blogListingQuery);
-      return {
-        posts: data.posts,
-        categories: data.categories,
-        widgets: data.widgets,
-      };
+      try {
+        const data = await client.fetch(blogListingQuery);
+        console.log("Fetched blog data:", data);
+        if (data?.posts) {
+          data.posts = data.posts.filter(
+            (post: any) => post.hasSlug && post.slug
+          );
+        }
+        return data;
+      } catch (error) {
+        console.error("Error fetching blog data:", error);
+        return { posts: [] };
+      }
     },
     staleTime: 1000 * 60 * 5,
   });
@@ -27,134 +34,123 @@ export default function BlogSection() {
   const filteredPosts =
     data?.posts?.filter(
       (post: any) =>
-        activeCategory === "All" ||
-        post.categories?.some(
-          (category: any) => category.title === activeCategory
-        )
+        (activeCategory === "All" ||
+          post.categories?.some(
+            (category: any) => category.title === activeCategory
+          )) &&
+        post.hasSlug &&
+        post.slug
     ) ?? [];
 
-  const posts = data?.posts;
-  console.log("Posts data:", posts); // Check if slugs exist
+  console.log("Filtered posts:", filteredPosts);
 
-  if (isLoading) {
+  if (isLoading) return <BlogSkeleton />;
+
+  if (!data?.posts || data.posts.length === 0) {
     return (
-      <div className="container mx-auto py-16 px-4">
-        <div className="animate-pulse">
-          <div className="h-8 bg-gray-200 rounded w-1/4 mb-8"></div>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-            {[...Array(6)].map((_, i) => (
-              <div key={i} className="bg-white rounded-lg overflow-hidden">
-                <div className="h-48 bg-gray-200"></div>
-                <div className="p-6">
-                  <div className="h-4 bg-gray-200 rounded w-3/4 mb-4"></div>
-                  <div className="h-4 bg-gray-200 rounded w-1/2"></div>
-                </div>
-              </div>
-            ))}
+      <section className="py-20 bg-gray-50">
+        <div className="container mx-auto px-4">
+          <div className="text-center">
+            <h2 className="text-4xl font-bold text-gray-900 mb-4">Our Blog</h2>
+            <p className="text-lg text-gray-600">
+              No posts available at the moment
+            </p>
           </div>
         </div>
-      </div>
+      </section>
     );
   }
 
   return (
-    <section className="container mx-auto py-16 px-4">
-      <div className="max-w-[800px] py-[32px] text-left mb-8">
-        <h3 className="heading-3 font-primary mb-6">Quest & Glory</h3>
-        <p className="font-primary text-[var(--color-text-secondary)] max-w-[64ch] font-normal italic">
-          'The winds carry whispers of forgotten realms and treasures buried
-          deep, guarded by tales of curses and legend. Will ye brave the
-          Kraken's grasp? Will ye uncover the troves of pirate kings past? The
-          only thing certain is the thrill of the chase and the bond of yer
-          loyal crew. So sharpen yer cutlass, stow yer doubloons, and set yer
-          heart ablaze with wanderlust. The seas be calling, and the gold favors
-          the bold! Onward, ye scallywags! 🏴‍☠️⚓✨'
-        </p>
-      </div>
-
-      {/* Category Navigation */}
-      <div className="mb-12">
-        <div className="flex items-center justify-start overflow-x-auto no-scrollbar border-b border-gray-200">
-          <button
-            onClick={() => setActiveCategory("All")}
-            className={`px-6 py-4 font-primary text-sm transition-colors duration-200 ${
-              activeCategory === "All"
-                ? "text-gray-900 bg-gray-50"
-                : "text-gray-500 hover:text-gray-700 hover:bg-gray-50"
-            }`}
-          >
-            <span className="whitespace-nowrap">All Posts</span>
-          </button>
-
-          {data?.categories?.map((category: any) => (
-            <button
-              key={category.slug.current}
-              onClick={() => setActiveCategory(category.title)}
-              className={`px-6 py-4 font-primary text-sm transition-colors duration-200 ${
-                activeCategory === category.title
-                  ? "text-gray-900 bg-gray-50"
-                  : "text-gray-500 hover:text-gray-700 hover:bg-gray-50"
-              }`}
-            >
-              <span className="whitespace-nowrap">{category.title}</span>
-            </button>
-          ))}
+    <section className="py-20 bg-gray-50">
+      <div className="container mx-auto px-4">
+        <div className="mb-12 text-center">
+          <h2 className="text-4xl font-bold text-gray-900 mb-4">Our Blog</h2>
+          <p className="text-lg text-gray-600">
+            Insights, stories, and expert advice
+          </p>
         </div>
-      </div>
 
-      {/* Posts Grid */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-        {filteredPosts.map((post: any) => (
-          <Link
-            key={post._id}
-            href={`/blog/${post.slug}`}
-            className="group hover:no-underline"
-          >
-            <article className="h-full bg-[var(--color-bg-secondary)] rounded-lg overflow-hidden">
-              {post.mainImage && (
-                <div className="relative aspect-[16/9] overflow-hidden">
-                  {urlForImage(post.mainImage)?.url() ? (
-                    <Image
-                      src={
-                        urlForImage(post.mainImage)!
-                          .width(600)
-                          .height(400)
-                          .url() || "" // Default to empty string if url() returns null
-                      }
-                      alt={post.title}
-                      fill
-                      className="object-cover transition duration-300 group-hover:scale-105"
-                    />
-                  ) : (
-                    <span className="font-primary">Image not available</span> // Placeholder if the image URL is missing
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+          {filteredPosts.map((post: any) => {
+            if (!post.slug) {
+              console.warn("Post missing slug:", post);
+              return null;
+            }
+            return (
+              <Link
+                key={post._id}
+                href={`/blog/${post.slug}`}
+                className="group hover:no-underline transform transition-all duration-300 hover:-translate-y-2"
+              >
+                <article className="bg-white rounded-lg overflow-hidden shadow-lg hover:shadow-xl h-full flex flex-col">
+                  {post.mainImage && (
+                    <div className="relative aspect-[16/9]">
+                      <Image
+                        src={
+                          urlForImage(post.mainImage)?.url() ||
+                          "/images/placeholder.jpg"
+                        }
+                        alt={post.title}
+                        fill
+                        className="object-cover"
+                      />
+                    </div>
                   )}
-                </div>
-              )}
-
-              <div className="p-6">
-                <h2 className="font-primary text-[21px] md:text-[21px] mb-2 md:mb-[16px] font-semibold text-gray-900 group-hover:text-primary transition-colors duration-300">
-                  {post.title}
-                </h2>
-                <p className="font-primary text-[var(--color-text-secondary)] mb-4 line-clamp-2">
-                  {post.description}
-                </p>
-                {post.categories && (
-                  <div className="flex flex-wrap gap-2">
-                    {post.categories.map((category: any) => (
-                      <span
-                        key={category.slug.current}
-                        className="font-primary text-xs bg-[var(--color-bg-tertiary)] text-white px-2 py-1 rounded font-semibold uppercase"
-                      >
-                        {category.title}
-                      </span>
-                    ))}
+                  <div className="p-6 flex flex-col flex-grow">
+                    <h3 className="text-xl font-bold mb-3 text-gray-900 group-hover:text-blue-600 transition-colors">
+                      {post.title}
+                    </h3>
+                    <p className="text-gray-600 line-clamp-3 mb-4 flex-grow">
+                      {post.description}
+                    </p>
+                    <div className="flex flex-wrap gap-2">
+                      {post.categories?.map((category: any) => (
+                        <span
+                          key={category._id}
+                          className="px-3 py-1 bg-gray-100 text-gray-700 rounded-full text-sm hover:bg-gray-200 transition-colors"
+                        >
+                          {category.title}
+                        </span>
+                      ))}
+                    </div>
                   </div>
-                )}
-              </div>
-            </article>
-          </Link>
-        ))}
+                </article>
+              </Link>
+            );
+          })}
+        </div>
       </div>
     </section>
   );
 }
+
+const BlogSkeleton = () => (
+  <section className="py-20 bg-gray-50">
+    <div className="container mx-auto px-4">
+      <div className="mb-12 text-center">
+        <div className="h-12 bg-gray-200 rounded w-1/4 mx-auto mb-4"></div>
+        <div className="h-6 bg-gray-200 rounded w-1/3 mx-auto"></div>
+      </div>
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+        {[...Array(6)].map((_, i) => (
+          <div key={i} className="bg-white rounded-lg shadow-lg">
+            <div className="aspect-[16/9] bg-gray-200 animate-pulse"></div>
+            <div className="p-6">
+              <div className="h-6 bg-gray-200 rounded w-3/4 mb-3 animate-pulse"></div>
+              <div className="space-y-2">
+                <div className="h-4 bg-gray-200 rounded animate-pulse"></div>
+                <div className="h-4 bg-gray-200 rounded w-5/6 animate-pulse"></div>
+                <div className="h-4 bg-gray-200 rounded w-2/3 animate-pulse"></div>
+              </div>
+              <div className="flex gap-2 mt-4">
+                <div className="h-6 bg-gray-200 rounded-full w-20 animate-pulse"></div>
+                <div className="h-6 bg-gray-200 rounded-full w-16 animate-pulse"></div>
+              </div>
+            </div>
+          </div>
+        ))}
+      </div>
+    </div>
+  </section>
+);

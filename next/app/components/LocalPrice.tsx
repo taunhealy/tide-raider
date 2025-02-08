@@ -13,29 +13,31 @@ export default function LocalPrice({
   showOriginal = false,
 }: LocalPriceProps) {
   const [isClient, setIsClient] = useState(false);
-  const { formatted, currency } = useCurrencyConverter(amount);
+  const { formatted, currency } = useCurrencyConverter(amount, "ZAR");
 
-  // Use consistent initial format for both server and client
-  const euroFormat = new Intl.NumberFormat("en-US", {
+  // Use consistent ZAR format for both server and client
+  const zarFormat = new Intl.NumberFormat("en-ZA", {
     style: "currency",
-    currency: "EUR",
+    currency: "ZAR",
+    minimumFractionDigits: 2,
+    maximumFractionDigits: 2,
   }).format(amount);
 
   useEffect(() => {
     setIsClient(true);
   }, []);
 
-  // Return server-side format until client-side hydration is complete
+  // Always use the same ZAR format for server-side rendering
   if (!isClient) {
-    return <span className="text-gray-700 font-medium">{euroFormat}</span>;
+    return <span className="text-gray-700 font-medium">{zarFormat}</span>;
   }
 
-  // Show original EUR price in smaller text if requested
-  if (showOriginal && currency !== "EUR") {
+  // Show converted price with original ZAR price in smaller text if requested
+  if (showOriginal && currency !== "ZAR") {
     return (
       <div className="text-right">
         <div>{formatted}</div>
-        <div className="text-sm text-gray-500">{euroFormat}</div>
+        <div className="text-sm text-gray-500">{zarFormat}</div>
       </div>
     );
   }

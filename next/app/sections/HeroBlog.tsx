@@ -5,6 +5,7 @@ import { urlForImage } from "@/app/lib/urlForImage";
 import { useState, useMemo, useEffect, useRef, useCallback } from "react";
 import { ChevronRight, ChevronLeft } from "lucide-react";
 import Link from "next/link";
+import ClientImage from "@/app/components/ClientImage";
 
 interface Category {
   title: string;
@@ -163,89 +164,95 @@ export default function Blog({ data }: BlogProps) {
           className="md:flex md:overflow-x-auto gap-4 md:gap-8 scroll-smooth no-scrollbar md:min-h-[540px] flex-col md:flex-row"
           style={{ scrollSnapType: "x mandatory" }}
         >
-          {data?.posts?.slice(0, 5).map((post: Post, index: number) => (
-            <article
-              key={`${post._id}-${index}`}
-              className="flex-none w-full md:w-[calc(33.333%-1.33rem)] min-w-[280px] md:min-w-[300px] bg-white rounded-lg overflow-hidden transition-all duration-300 group mb-4 md:mb-0"
-              style={{ scrollSnapAlign: "start" }}
-            >
-              <Link
-                href={`/blog/${encodeURIComponent(post.slug.current)}`}
-                className="flex flex-row md:flex-col hover:no-underline"
-                prefetch={false}
+          {filteredPosts.slice(0, 5).map((post: Post) => {
+            if (!post.slug) {
+              console.warn("Post missing slug:", post);
+              return null;
+            }
+            return (
+              <article
+                key={post._id}
+                className="flex-none w-full md:w-[calc(33.333%-1.33rem)] min-w-[280px] md:min-w-[300px] bg-white rounded-lg overflow-hidden transition-all duration-300 group mb-4 md:mb-0"
+                style={{ scrollSnapAlign: "start" }}
               >
-                <div className="relative w-[140px] md:w-full h-[140px] md:h-[410px] overflow-hidden">
-                  {post.mainImage?.asset && (
-                    <>
-                      <div className="w-full h-full absolute inset-0 bg-[var(--color-bg-tertiary)] opacity-0 group-hover:opacity-30 transition-all duration-300 z-10" />
+                <Link
+                  href={`/blog/${post.slug}`}
+                  className="flex flex-row md:flex-col hover:no-underline"
+                >
+                  <div className="relative w-[140px] md:w-full h-[140px] md:h-[410px] overflow-hidden">
+                    {post.mainImage?.asset && (
+                      <>
+                        <div className="w-full h-full absolute inset-0 bg-[var(--color-bg-tertiary)] opacity-0 group-hover:opacity-30 transition-all duration-300 z-10" />
+                        <ClientImage
+                          src={
+                            urlForImage(post.mainImage)
+                              ?.width(600)
+                              ?.height(400)
+                              ?.url() ?? ""
+                          }
+                          alt={post.title || "Blog post image"}
+                          className="w-full h-full object-cover"
+                          onLoad={() => console.log("Image loaded")}
+                        />
+                      </>
+                    )}
+
+                    {post.hoverImage?.asset && (
                       <img
                         src={
-                          urlForImage(post.mainImage)
+                          urlForImage(post.hoverImage?.asset)
                             ?.width(600)
                             ?.height(400)
                             ?.url() ?? ""
                         }
-                        alt={post.title || "Blog post image"}
-                        className="w-full h-full object-cover"
+                        alt={
+                          post.title
+                            ? `${post.title} hover image`
+                            : "Blog post hover image"
+                        }
+                        className="your-class-name"
                       />
-                    </>
-                  )}
-
-                  {post.hoverImage?.asset && (
-                    <img
-                      src={
-                        urlForImage(post.hoverImage?.asset)
-                          ?.width(600)
-                          ?.height(400)
-                          ?.url() ?? ""
-                      }
-                      alt={
-                        post.title
-                          ? `${post.title} hover image`
-                          : "Blog post hover image"
-                      }
-                      className="your-class-name"
-                    />
-                  )}
-                </div>
-
-                <div className="flex-1 p-4 md:p-6">
-                  {post.categories && post.categories.length > 0 && (
-                    <div className="flex gap-2 mb-2">
-                      {post.categories.map((category: Category) => (
-                        <span
-                          key={category.title}
-                          className="font-primary text-xs bg-[var(--color-bg-secondary)] text-[var(--color-text-secondary)] px-2 py-1 rounded font-semibold uppercase"
-                        >
-                          {category.title}
-                        </span>
-                      ))}
-                    </div>
-                  )}
-
-                  <h3 className="font-primary text-lg md:text-xl mb-2 md:mb-[16px] font-semibold text-gray-900 group-hover:text-primary transition-colors duration-300">
-                    {post.title}
-                  </h3>
-
-                  <div className="hidden md:flex items-center text-[var(--color-text-secondary)] font-primary font-medium mt-4">
-                    Read More
-                    <svg
-                      xmlns="http://www.w3.org/2000/svg"
-                      className="h-4 w-4 ml-1 group-hover:translate-x-1 transition-transform duration-300"
-                      viewBox="0 0 20 20"
-                      fill="currentColor"
-                    >
-                      <path
-                        fillRule="evenodd"
-                        d="M10.293 3.293a1 1 0 011.414 0l6 6a1 1 0 010 1.414l-6 6a1 1 0 01-1.414-1.414L14.586 11H3a1 1 0 110-2h11.586l-4.293-4.293a1 1 0 010-1.414z"
-                        clipRule="evenodd"
-                      />
-                    </svg>
+                    )}
                   </div>
-                </div>
-              </Link>
-            </article>
-          ))}
+
+                  <div className="flex-1 p-4 md:p-6">
+                    {post.categories && post.categories.length > 0 && (
+                      <div className="flex gap-2 mb-2">
+                        {post.categories.map((category: Category) => (
+                          <span
+                            key={category.title}
+                            className="font-primary text-xs bg-[var(--color-bg-secondary)] text-[var(--color-text-secondary)] px-2 py-1 rounded font-semibold uppercase"
+                          >
+                            {category.title}
+                          </span>
+                        ))}
+                      </div>
+                    )}
+
+                    <h3 className="font-primary text-lg md:text-xl mb-2 md:mb-[16px] font-semibold text-gray-900 group-hover:text-primary transition-colors duration-300">
+                      {post.title}
+                    </h3>
+
+                    <div className="hidden md:flex items-center text-[var(--color-text-secondary)] font-primary font-medium mt-4">
+                      Read More
+                      <svg
+                        xmlns="http://www.w3.org/2000/svg"
+                        className="h-4 w-4 ml-1 group-hover:translate-x-1 transition-transform duration-300"
+                        viewBox="0 0 20 20"
+                        fill="currentColor"
+                      >
+                        <path
+                          fillRule="evenodd"
+                          d="M10.293 3.293a1 1 0 011.414 0l6 6a1 1 0 010 1.414l-6 6a1 1 0 01-1.414-1.414L14.586 11H3a1 1 0 110-2h11.586l-4.293-4.293a1 1 0 010-1.414z"
+                          clipRule="evenodd"
+                        />
+                      </svg>
+                    </div>
+                  </div>
+                </Link>
+              </article>
+            );
+          })}
         </div>
 
         <div className="hidden md:block">

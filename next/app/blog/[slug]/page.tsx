@@ -1,91 +1,59 @@
 import { client } from "@/app/lib/sanity";
-import { PortableText } from "@portabletext/react";
+import { PortableText, PortableTextComponents } from "@portabletext/react";
 import { urlForImage } from "@/app/lib/urlForImage";
 import { notFound } from "next/navigation";
 import Image from "next/image";
 import BlogSidebar from "@/app/components/postsSidebars/BlogSidebar";
 import { postQuery } from "@/lib/queries";
 import imageUrlBuilder from "@sanity/image-url";
+import { Post } from "@/app/types/blog";
+import { SectionImage } from "@/app/types/blog";
+import { PortableTextBlock } from "@portabletext/types";
+import { getVideoId } from "@/app/lib/videoUtils";
+import TripDetails from "@/app/components/TripDetails";
 
-interface SidebarWidget {
-  type: string;
-  order: number;
-  config: {
-    widgetConfig: any;
-  };
-}
-
-interface SectionImage {
-  source: "upload" | "unsplash";
-  uploadedImage?: {
-    asset: any; // You might want to type this more specifically with Sanity's image asset type
-    alt?: string;
-    caption?: string;
-  };
-  unsplashImage?: {
-    url: string;
-    alt?: string;
-  };
-  layout: "full" | "half" | "quarter";
-}
-
-interface ContentSection {
-  _key: string;
-  sectionHeading?: string;
-  content: any[]; // This is the PortableText content array
-  sectionImages?: SectionImage[];
-}
-
-interface BlogPost {
-  title: string;
-  mainImage?: any; // Sanity image
-  slug: string;
-  publishedAt: string;
-  description: any[]; // PortableText content
-  content?: ContentSection[];
-  categories: Array<{
-    _id: string;
-    title: string;
-    slug: string;
-  }>;
-  tags?: Array<{
-    _id: string;
-    title: string;
-    slug: string;
-  }>;
-  sidebarWidgets?: SidebarWidget[];
-  relatedPosts?: Array<{
-    title: string;
-    slug: string;
-    mainImage: any;
-    publishedAt: string;
-    description: any;
-  }>;
-}
-
-const builder = imageUrlBuilder(client);
-
-function urlFor(source: any) {
-  return builder
-    .image(source)
-    .auto("format") // Automatically choose modern formats like WebP
-    .width(1200) // Set a reasonable max width
-    .quality(80) // Slightly higher quality
-    .fit("max") // Maintain aspect ratio
-    .url();
-}
-
-const components = {
+const components: PortableTextComponents = {
+  block: {
+    normal: ({ children }) => <p className="mb-4">{children}</p>,
+    h2: ({ children }) => (
+      <h2 className="text-[21px] font-semibold mb-4">{children}</h2>
+    ),
+    h3: ({ children }) => (
+      <h3 className="text-[18px] font-semibold mb-4">{children}</h3>
+    ),
+    blockquote: ({ children }) => (
+      <blockquote className="border-l-4 border-gray-300 pl-4 mb-4 italic">
+        {children}
+      </blockquote>
+    ),
+  },
+  list: {
+    bullet: ({ children }) => (
+      <ul className="list-disc list-inside mb-4">{children}</ul>
+    ),
+    number: ({ children }) => (
+      <ol className="list-decimal list-inside mb-4">{children}</ol>
+    ),
+  },
+  listItem: {
+    bullet: ({ children }) => <li>{children}</li>,
+    number: ({ children }) => <li>{children}</li>,
+  },
   types: {
-    section: ({ value }: { value: any }) => {
-      const { sectionHeading, content, sectionImages } = value;
+    section: ({
+      value,
+    }: {
+      value: {
+        content: PortableTextBlock[];
+        sectionImages?: SectionImage[];
+        videoLink?: string;
+        sectionHeading?: string;
+      };
+    }) => {
+      const { content, sectionImages, videoLink, sectionHeading } = value;
 
-      console.log("Section data:", {
-        heading: sectionHeading,
-        hasImages: !!sectionImages,
-        imageCount: sectionImages?.length,
-        images: sectionImages,
-      });
+      // Use our helper to extract the video id
+      const videoId = videoLink ? getVideoId(videoLink) : null;
 
       return (
         <div className="mb-8">
@@ -95,13 +63,24 @@ const components = {
             </h2>
           )}
 
-          <div className="prose max-w-none">
-            <PortableText value={content} />
-          </div>
+          <PortableText value={content} components={components} />
+
+          {videoId && (
+            <div className="my-6">
+              <iframe
+                src={`https://www.youtube.com/embed/${videoId}`}
+                title="YouTube Video"
+                className="w-full h-64"
+                frameBorder="0"
+                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                allowFullScreen
+              />
+            </div>
+          )}
 
           {sectionImages && sectionImages.length > 0 && (
             <div
-              className={`grid gap-4 my-6 ${
+              className={`grid gap-6 my-12 ${
                 sectionImages.length === 1
                   ? "grid-cols-1"
                   : sectionImages.length === 2
@@ -136,9 +115,8 @@ const components = {
                       <div className="relative aspect-[16/9]">
                         <Image
                           src={
-                            image.uploadedImage?.asset
-                              ? urlFor(image.uploadedImage.asset)
-                              : "/images/placeholder.jpg"
+                            image.uploadedImage?.asset?.url ||
+                            "/images/placeholder.jpg"
                           }
                           alt={alt}
                           fill
@@ -170,11 +148,10 @@ const components = {
                       <div className="relative aspect-[16/9]">
                         <Image
                           src={
-                            image.unsplashImage?.url
-                              ? urlFor(image.unsplashImage.url)
-                              : "/images/placeholder.jpg"
+                            image.unsplashImage?.url ||
+                            "/images/placeholder.jpg"
                           }
-                          alt={alt}
+                          alt={image.unsplashImage?.alt || ""}
                           fill
                           unoptimized
                           className="object-cover rounded-lg"
@@ -189,45 +166,58 @@ const components = {
         </div>
       );
     },
+
+    // *** The custom YouTube Portable Text component ***
+    youtube: ({ value }) => {
+      // Helper function to extract the YouTube video ID from the provided URL
+      const getYouTubeVideoId = (url: string) => {
+        const regExp =
+          /^.*(?:youtu\.be\/|v\/|u\/\w\/|embed\/|watch\?v=)([^#\&\?]*).*/;
+        const match = url.match(regExp);
+        return match ? match[1] : null;
+      };
+
+      const videoId = value?.url && getYouTubeVideoId(value.url);
+
+      if (!videoId) return null;
+
+      return (
+        <div className="my-6">
+          <iframe
+            src={`https://www.youtube.com/embed/${videoId}`}
+            title="YouTube Video"
+            className="w-full h-64"
+            frameBorder="0"
+            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+            allowFullScreen
+          />
+        </div>
+      );
+    },
   },
 };
+
+// Define a type for layout options
+type LayoutOption = "full" | "half" | "quarter";
 
 export default async function BlogPost({
   params,
 }: {
   params: { slug: string };
 }) {
-  const post: BlogPost = await client.fetch(
+  const post: Post = await client.fetch(
     postQuery,
     { slug: params.slug },
-    {
-      cache: "no-store", // Force fresh data
-    }
+    { cache: "no-store" }
   );
-
-  // Add these debug logs
-  console.log("Full post content:", post.content);
-  console.log(
-    "Sections with images:",
-    post.content?.filter(
-      (section) => section.sectionImages && section.sectionImages.length > 0
-    )
-  );
-
-  console.log("Post data from Sanity:", {
-    title: post?.title,
-    widgets: post?.sidebarWidgets,
-  });
 
   if (!post) return notFound();
 
-  // Sort widgets by order if they exist
   const sortedWidgets = post.sidebarWidgets?.sort((a, b) => a.order - b.order);
 
   return (
     <div className="container mx-auto px-4 py-8 max-w-[1200px]">
       <div className="grid grid-cols-1 lg:grid-cols-[1fr_400px] gap-8">
-        {/* Main Content */}
         <main className="max-w-[720px]">
           <h1 className="font-primary text-[2.5rem] leading-[1.2] font-bold mb-6">
             {post.title}
@@ -235,7 +225,7 @@ export default async function BlogPost({
 
           {/* Main Image */}
           {post.mainImage?.asset && (
-            <div className="relative aspect-[16/9] mb-8">
+            <div className="relative aspect-[16/9] mb-12">
               <Image
                 src={
                   urlForImage(post.mainImage)?.url() ||
@@ -251,76 +241,64 @@ export default async function BlogPost({
 
           {/* Content */}
           <div className="prose max-w-none font-primary prose-lg">
-            {post.content?.map((section, index) => (
-              <div key={section._key || index} className="mb-8">
+            {post.content.map((section, index) => (
+              <div key={index} className="mt-16">
                 {section.sectionHeading && (
                   <h2 className="text-[1.875rem] leading-[1.3] font-bold mb-6">
                     {section.sectionHeading}
                   </h2>
                 )}
+
                 <PortableText value={section.content} components={components} />
 
-                {section.sectionImages && section.sectionImages.length > 0 && (
-                  <div className="grid gap-4 my-6">
-                    {section.sectionImages.map((image, imageIndex) => {
-                      console.log("Image data:", image);
-                      const imageUrl =
-                        image.source === "upload"
-                          ? urlForImage(image.uploadedImage?.asset)?.url()
-                          : image.unsplashImage?.url;
-
-                      const alt =
-                        image.source === "upload"
-                          ? image.uploadedImage?.alt || ""
-                          : image.unsplashImage?.alt || "";
-
-                      const caption =
-                        image.source === "upload"
-                          ? image.uploadedImage?.caption || ""
-                          : "";
-
-                      // Layout classes based on the schema options
-                      const layoutClasses = {
-                        full: "col-span-full w-full",
-                        half: "col-span-1 md:col-span-2 w-full",
-                        quarter: "col-span-1 w-full",
-                      }[image.layout || "quarter"];
-
-                      return (
-                        <div
-                          key={imageIndex}
-                          className={`relative ${layoutClasses}`}
-                        >
-                          <div className="relative aspect-[16/9]">
-                            <Image
-                              src={
-                                image.uploadedImage?.asset
-                                  ? urlFor(image.uploadedImage.asset)
-                                  : "/images/placeholder.jpg"
-                              }
-                              alt={alt}
-                              fill
-                              unoptimized
-                              sizes="(max-width: 800px) 100vw, 800px"
-                              className="object-cover rounded-lg"
-                            />
-                          </div>
-                          {caption && (
-                            <p className="text-sm text-gray-500 mt-2">
-                              {caption}
-                            </p>
-                          )}
-                        </div>
-                      );
-                    })}
+                {section.videoLink && (
+                  <div className="my-6">
+                    <iframe
+                      src={`https://www.youtube.com/embed/${getVideoId(section.videoLink)}`}
+                      title="YouTube Video"
+                      className="w-full h-64"
+                      frameBorder="0"
+                      allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                      allowFullScreen
+                    />
                   </div>
                 )}
+
+                {section.sectionImages &&
+                  section.sectionImages.map((image, imgIndex) => {
+                    const imageUrl = image.uploadedImage?.asset
+                      ? urlForImage(image.uploadedImage.asset)?.url() ||
+                        "/images/placeholder.jpg"
+                      : "/images/placeholder.jpg";
+
+                    return (
+                      <div key={imgIndex} className="relative aspect-[16/9]">
+                        <Image
+                          src={
+                            image.uploadedImage?.asset?.url ||
+                            "/images/placeholder.jpg"
+                          }
+                          alt={image.uploadedImage?.alt || ""}
+                          fill
+                          className="object-cover rounded-lg"
+                        />
+                        {image.uploadedImage?.caption && (
+                          <p className="text-sm text-gray-500 mt-2">
+                            {image.uploadedImage.caption}
+                          </p>
+                        )}
+                      </div>
+                    );
+                  })}
               </div>
             ))}
+
+            {/* Replace the details section with the new TripDetails component */}
+            {post.trip && <TripDetails trip={post.trip} />}
           </div>
         </main>
 
-        {/* Sidebar - Now with sticky positioning */}
+        {/* Sidebar */}
         <aside className="space-y-8 lg:sticky lg:top-4 lg:self-start">
           <BlogSidebar posts={post.relatedPosts} widgets={sortedWidgets} />
         </aside>

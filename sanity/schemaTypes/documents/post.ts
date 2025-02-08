@@ -63,6 +63,12 @@ export default defineType({
               ],
             },
             {
+              name: 'videoLink',
+              title: 'Video Link',
+              type: 'url',
+              description: 'Optional link to a video',
+            },
+            {
               name: 'sectionImages',
               title: 'Section Images',
               type: 'array',
@@ -72,21 +78,9 @@ export default defineType({
                   name: 'sectionImage',
                   fields: [
                     {
-                      name: 'source',
-                      title: 'Image Source',
-                      type: 'string',
-                      options: {
-                        list: [
-                          {title: 'Upload', value: 'upload'},
-                          {title: 'Unsplash', value: 'unsplash'},
-                        ],
-                      },
-                    },
-                    {
                       name: 'uploadedImage',
                       title: 'Uploaded Image',
                       type: 'image',
-                      hidden: ({parent}) => parent?.source !== 'upload',
                       options: {
                         hotspot: true,
                       },
@@ -102,15 +96,6 @@ export default defineType({
                           title: 'Caption',
                         },
                       ],
-                    },
-                    {
-                      name: 'unsplashImage',
-                      title: 'Unsplash Image',
-                      type: 'image',
-                      hidden: ({parent}) => parent?.source !== 'unsplash',
-                      options: {
-                        source: 'unsplash',
-                      },
                     },
                     {
                       name: 'layout',
@@ -197,6 +182,12 @@ export default defineType({
         {type: 'unsplashGridWidget'},
       ],
       validation: (Rule) => Rule.unique().warning('Each widget type should be unique'),
+    }),
+    defineField({
+      name: 'trip',
+      title: 'Trip',
+      type: 'reference',
+      to: [{type: 'trip'}],
     }),
   ],
   preview: {

@@ -13,7 +13,7 @@ import FlightSearchWidget from "./FlightSearchWidget";
 
 interface SidebarWidgetFactoryProps {
   widget: Widget;
-  posts?: Post[];
+  posts: Post[];
 }
 
 export default function SidebarWidgetFactory({

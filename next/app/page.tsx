@@ -1,6 +1,5 @@
 import { client } from "./lib/sanity";
-
-import { groq } from "next-sanity";
+import { landingPageQuery } from "./lib/queries";
 import HeroBlogSection from "@/app/sections/HeroBlog";
 import HeroSection from "./sections/Hero";
 import HeroImage from "./sections/HeroImage";
@@ -10,34 +9,8 @@ export const revalidate = 0;
 
 // Only fetch content, not structure
 async function getHomeContent() {
-  const content = await client.fetch(groq`
-    *[_type == "landingPage"][0] {
-      heroHeading,
-      heroSubheading,
-      heroImage {
-        asset->,
-        alt,
-        "dimensions": asset->metadata.dimensions,
-        overlayText
-      },
-      "blog": {
-        "posts": *[_type == "post"] | order(publishedAt desc) [0...3] {
-          _id,
-          title,
-          slug,
-          mainImage,
-          publishedAt,
-          description,
-          categories[]-> {
-            title,
-            slug
-          }
-        }
-      }
-    }
-  `);
+  const content = await client.fetch(landingPageQuery);
 
-  console.log("Home content:", content);
   return content
     ? {
         hero: {

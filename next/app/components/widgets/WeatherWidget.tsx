@@ -2,7 +2,6 @@
 
 import { useState } from "react";
 import { Cloud, Loader2 } from "lucide-react";
-import { SanityWidget } from "@/app/types/sanity";
 import { useQuery } from "@tanstack/react-query";
 import { beachData } from "@/app/types/beaches";
 import { Widget, WeatherWidgetProps } from "@/app/types/blog";

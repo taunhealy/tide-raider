@@ -364,6 +364,9 @@ export default function BeachContainer({
       filtered = filtered.filter((beach) =>
         filters.region.includes(beach.region)
       );
+    } else {
+      // If no region is selected, you might want to include all beaches
+      // filtered = initialBeaches; // Uncomment this line if you want to show all beaches when no region is selected
     }
 
     // Apply difficulty filter

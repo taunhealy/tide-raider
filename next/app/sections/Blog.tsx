@@ -33,6 +33,9 @@ export default function BlogSection() {
         )
     ) ?? [];
 
+  const posts = data?.posts;
+  console.log("Posts data:", posts); // Check if slugs exist
+
   if (isLoading) {
     return (
       <div className="container mx-auto py-16 px-4">
@@ -103,8 +106,8 @@ export default function BlogSection() {
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
         {filteredPosts.map((post: any) => (
           <Link
-            href={`/blog/${post.slug.current}`}
-            key={post.slug.current}
+            key={post._id}
+            href={`/blog/${post.slug}`}
             className="group hover:no-underline"
           >
             <article className="h-full bg-[var(--color-bg-secondary)] rounded-lg overflow-hidden">

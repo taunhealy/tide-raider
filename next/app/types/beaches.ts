@@ -7306,8 +7306,8 @@ export const beachData: Beach[] = [
     },
   },
   {
-    id: "flame-bowls",
-    name: "Flame Bowls",
+    id: "flameballs",
+    name: "Flameballs",
     continent: "Africa",
     country: "Madagascar",
     region: "Madagascar West",

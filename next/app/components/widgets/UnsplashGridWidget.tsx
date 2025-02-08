@@ -13,37 +13,16 @@ interface UnsplashImage {
 
 interface UnsplashGridWidgetProps {
   title: string;
-  searchTerm: string;
+  images: UnsplashImage[];
 }
 
-export default function UnsplashGridWidget({
-  title,
-  searchTerm,
-}: UnsplashGridWidgetProps) {
+export default function UnsplashGridWidget({ title }: UnsplashGridWidgetProps) {
   const [images, setImages] = useState<UnsplashImage[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  if (loading) {
-    return (
-      <div className="bg-gray-50 rounded-lg p-4">
-        <h3 className="text-lg font-semibold mb-4">{title}</h3>
-        <div className="grid grid-cols-2 gap-2 animate-pulse">
-          {[...Array(8)].map((_, i) => (
-            <div key={i} className="aspect-square bg-gray-200 rounded" />
-          ))}
-        </div>
-      </div>
-    );
-  }
-
-  if (error) {
-    return (
-      <div className="bg-gray-50 rounded-lg p-4">
-        <h3 className="text-lg font-semibold mb-2">{title}</h3>
-        <p className="text-red-500 text-sm">{error}</p>
-      </div>
-    );
+  if (loading || images.length === 0) {
+    return null;
   }
 
   return (
@@ -60,6 +39,7 @@ export default function UnsplashGridWidget({
               alt={image.alt_description || "Unsplash image"}
               fill
               className="object-cover hover:scale-110 transition-transform duration-300"
+              unoptimized={false}
             />
           </div>
         ))}

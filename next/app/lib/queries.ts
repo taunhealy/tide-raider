@@ -71,42 +71,64 @@ export const pricingQuery = groq`
 // Single post query with template-specific fields
 export const postQuery = groq`*[_type == "post" && slug.current == $slug][0]{
   title,
-  mainImage,
+  mainImage{
+    ...,
+    asset->
+  },
   "slug": slug.current,
   publishedAt,
   description,
-  content[] {
-    _key,
+  content[]{
+    ...,
+    _type,
     sectionHeading,
     content,
-    sectionImages[] {
-      source,
-      uploadedImage {
+    videoLink,
+    sectionImages[]{
+      _key,
+      uploadedImage{
         asset->,
         alt,
         caption
-      },
-      unsplashImage {
-        asset->,
-        url,
-        alt
-      },
-      layout
+      }
     }
   },
-  // Fetch categories with their details
+  "trip": *[_type == "trip" && _id == ^.trip._ref][0]{
+    title,
+    destination,
+    "days": days[]{
+      dayNumber,
+      activities[]{
+        title,
+        duration,
+        price,
+        transport,
+        bookingURL
+      },
+      stay{
+        title,
+        price,
+        bookingURL
+      },
+      includes[]
+    }
+  },
+  "relatedPosts": *[_type == "post" && slug.current != $slug][0...3]{
+    title,
+    slug,
+    mainImage,
+    publishedAt
+  },
   categories[]-> {
     _id,
     title,
     "slug": slug.current
   },
-  // Fetch tags with their details
   tags[]-> {
     _id,
     title,
     "slug": slug.current
   },
-  // Fetch sidebar widgets with their configurations
   sidebarWidgets[] {
     _type,
     _key,
@@ -122,17 +144,6 @@ export const postQuery = groq`*[_type == "post" && slug.current == $slug][0]{
       _type == 'flightSearchWidget' => { destinationCode },
       _type == 'unsplashGridWidget' => { searchTerm }
     )
-  },
-  // Fetch related posts based on shared categories
-  "relatedPosts": *[_type == "post" && 
-    references(^.categories[]._ref) && 
-    _id != ^._id
-  ] | order(publishedAt desc)[0...3] {
-    title,
-    "slug": slug.current,
-    mainImage,
-    publishedAt,
-    description
   }
 }`;
 
@@ -141,8 +152,11 @@ export const blogListingQuery = groq`{
   "posts": *[_type == "post"] | order(publishedAt desc) {
     _id,
     title,
-    slug,
-    mainImage,
+    "slug": slug.current,
+    mainImage{
+      ...,
+      asset->
+    },
     publishedAt,
     description,
     "template": template->,
@@ -194,7 +208,10 @@ export const relatedPostsQuery = groq`
 ] | order(publishedAt desc)[0...3] {
   title,
   slug,
-  mainImage,
+  mainImage{
+    ...,
+    asset->
+  },
   publishedAt,
   description,
   categories[]-> {
@@ -202,3 +219,34 @@ export const relatedPostsQuery = groq`
     slug
   }
 }`;
+
+// Add this with the other query exports
+export const landingPageQuery = groq`
+  *[_type == "landingPage"][0] {
+    heroHeading,
+    heroSubheading,
+    heroImage {
+      asset->,
+      alt,
+      "dimensions": asset->metadata.dimensions,
+      overlayText
+    },
+    "blog": {
+      "posts": *[_type == "post"] | order(publishedAt desc) [0...3] {
+        _id,
+        title,
+        "slug": slug.current,
+        mainImage{
+          ...,
+          asset->
+        },
+        publishedAt,
+        description,
+        categories[]-> {
+          title,
+          slug
+        }
+      }
+    }
+  }
+`;

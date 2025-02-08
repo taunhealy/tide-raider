@@ -1,3 +1,74 @@
+import { PortableTextBlock } from "@portabletext/types";
+import { Widget } from "@/app/types/widgets";
+
+export interface Route {
+  _id?: string;
+  title: string;
+  steps: Step[];
+  accommodations: Accommodation[];
+  bestTimeToGo: string;
+  routeImage: any;
+  routeVideo: any;
+  routeDescription: string;
+}
+
+interface Step {
+  stepNumber: number;
+  description: string;
+  details: PortableTextBlock[];
+  price: number;
+  accommodations?: {
+    name: string;
+    category: string;
+    price: number;
+    description?: string;
+  }[];
+}
+
+interface Accommodation {
+  name: string;
+  category: string;
+  price?: number;
+  description?: string;
+  images?: any[];
+}
+
+export interface Category {
+  title: string;
+  slug?: { current: string };
+}
+
+export interface RouteReference {
+  _ref: string; // Reference ID of the Route document
+  _type: "route"; // Type of the reference
+}
+
+export interface Trip {
+  title: string;
+  destination: string;
+  days: TripDay[];
+}
+
+interface TripDay {
+  dayNumber: number;
+  activities: Activity[];
+  stay: Stay;
+}
+
+interface Activity {
+  title: string;
+  duration: string;
+  price: number;
+  transport: string;
+  bookingURL: string | null;
+}
+
+interface Stay {
+  title: string;
+  price: number;
+  bookingURL: string | null;
+}
+
 export interface Post {
   _id?: string;
   title: string;
@@ -5,12 +76,40 @@ export interface Post {
   mainImage: any;
   publishedAt: string;
   description: string;
-  categories?: { title: string; slug?: { current: string } }[];
+  categories?: Category[];
+  sidebarWidgets: Widget[];
   template?: {
     name: string;
     sidebar: string;
-    sidebarWidgets: Array<Widget>;
+    sidebarWidgets: Widget[];
   };
+  content: ContentSection[];
+  relatedPosts: Post[];
+  trip?: Trip;
+  sectionImages?: SectionImage[];
+}
+
+export interface ContentSection {
+  _type: string;
+  _key: string;
+  sectionHeading?: string;
+  content: PortableTextBlock[];
+  sectionImages?: SectionImage[];
+  videoLink?: string;
+}
+
+export interface SectionImage {
+  source: "upload" | "unsplash";
+  uploadedImage?: {
+    asset: any;
+    alt?: string;
+    caption?: string;
+  };
+  unsplashImage?: {
+    url: string;
+    alt?: string;
+  };
+  layout: "full" | "half" | "quarter";
 }
 
 // Base Widget Interface
@@ -67,17 +166,6 @@ export interface FlightSearchWidget extends BaseWidget {
   destinationCode?: string;
 }
 
-// Union type for all widgets
-export type Widget =
-  | SurfSpotsWidget
-  | WeatherWidget
-  | TravelWidget
-  | LocationMapWidget
-  | CategoryListWidget
-  | TagCloudWidget
-  | RelatedPostsWidget
-
-
 // Props Types for Widget Components
 export type SurfSpotsWidgetProps = Pick<SurfSpotsWidget, "title" | "region">;
 export type WeatherWidgetProps = Pick<WeatherWidget, "title" | "region">;
@@ -88,3 +176,10 @@ type CategoryListWidgetProps = Pick<
   CategoryListWidget,
   "title" | "displayStyle" | "showPostCount"
 >;
+
+// Add these types
+interface RouteStep {
+  stepNumber: number;
+  title: string;
+  details: PortableTextBlock[];
+}

@@ -84,7 +84,6 @@ export type Widget =
   | RelatedPostsWidget
   | UnsplashGridWidget
   | FlightSearchWidget;
-
 // Type guard to check if a widget type is valid
 export function isValidWidgetType(type: string): type is WidgetType {
   return WIDGET_TYPES.includes(type as WidgetType);

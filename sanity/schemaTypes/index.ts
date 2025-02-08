@@ -16,6 +16,9 @@ import {
   travelWidget,
   unsplashGridWidget,
 } from './objects/sidebarWidgets'
+import trip from './documents/trip'
+import accommodation from './documents/accommodation'
+import {youTube} from './objects/youtube'
 
 export const schemaTypes = [
   // Documents
@@ -25,6 +28,8 @@ export const schemaTypes = [
   postCategory,
   postTag,
   pricing,
+  trip,
+  accommodation,
   // Widgets
   relatedPostsWidget,
   locationMapWidget,
@@ -35,4 +40,6 @@ export const schemaTypes = [
   surfSpotsWidget,
   travelWidget,
   unsplashGridWidget,
+  // Objects
+  youTube,
 ]

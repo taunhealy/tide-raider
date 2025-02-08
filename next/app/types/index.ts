@@ -1,5 +1,3 @@
-import type { Widget } from "./blog";
-
 export interface SectionData {
   title: string;
   description: string;
@@ -10,36 +8,6 @@ export interface SectionData {
 export interface Category {
   title: string;
   slug: { current: string };
-}
-
-export interface Post {
-  _id?: string;
-  title: string;
-  template?: {
-    name: string;
-    sidebar: string;
-    sidebarWidgets: Array<Widget>;
-  };
-  location?: {
-    beachName: string;
-    region: string;
-    country: string;
-    continent: string;
-    weatherCity: string;
-  };
-  slug: { current: string };
-  mainImage: any;
-  hoverImage?: any;
-  publishedAt: string;
-  description: string;
-  categories: Category[];
-  content: Array<{
-    type: "intro" | "content" | "conclusion";
-    text: any;
-    image: any;
-  }>;
-  relatedPosts?: Post[];
-  travelCosts?: TravelCosts;
 }
 
 // Travel Types

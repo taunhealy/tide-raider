@@ -1,9 +1,9 @@
-import { Post } from "@/app/types";
+import { Post } from "@/app/types/blog";
 import SidebarWidgetFactory from "../widgets/SidebarWidgetFactory";
 import { Widget } from "@/app/types/widgets";
 
 interface BlogSidebarProps {
-  posts?: Post[];
+  posts: Post[];
   widgets: Widget[];
 }
 

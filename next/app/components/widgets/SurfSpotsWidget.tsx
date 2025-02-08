@@ -4,7 +4,6 @@ import { beachData } from "@/app/types/beaches";
 import { useState } from "react";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 import { cn } from "@/app/lib/utils";
-import { Widget } from "@/app/types/blog";
 import { SurfSpotsWidgetProps } from "@/app/types/blog";
 
 export default function SurfSpotsWidget({

@@ -104,6 +104,12 @@ export default function TripDetails({ trip }: TripDetailsProps) {
               <h4 className="font-semibold mb-2">Destination</h4>
               <p>{trip.destination}</p>
             </div>
+            {trip.idealMonth && (
+              <div className="bg-white p-4 rounded-lg shadow-sm">
+                <h4 className="font-semibold mb-2">Ideal Month to Travel</h4>
+                <p>{trip.idealMonth}</p>
+              </div>
+            )}
           </div>
         </div>
 
@@ -159,7 +165,7 @@ export default function TripDetails({ trip }: TripDetailsProps) {
                             <div>
                               <p className="font-medium">{activity.title}</p>
                               <p className="text-sm text-gray-600">
-                                Duration: {activity.duration}
+                                Duration: {activity.duration} hours
                               </p>
                               {activity.transport &&
                                 activity.transport !== "None" && (

@@ -243,3 +243,25 @@ export const landingPageQuery = groq`
     }
   }
 `;
+
+export const tripQuery = groq`*[_type == "trip" && slug.current == $slug][0]{
+  title,
+  destination,
+  "days": days[]{
+    dayNumber,
+    activities[]{
+      title,
+      duration,
+      price,
+      transport,
+      bookingURL
+    },
+    stay{
+      title,
+      price,
+      bookingURL
+    },
+    includes[]
+  },
+  idealMonth
+}`;

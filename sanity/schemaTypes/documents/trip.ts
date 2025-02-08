@@ -18,6 +18,28 @@ export default defineType({
       validation: (Rule) => Rule.required(),
     }),
     defineField({
+      name: 'idealMonth',
+      title: 'Ideal Month To Travel',
+      type: 'string',
+      options: {
+        list: [
+          {title: 'January', value: 'January'},
+          {title: 'February', value: 'February'},
+          {title: 'March', value: 'March'},
+          {title: 'April', value: 'April'},
+          {title: 'May', value: 'May'},
+          {title: 'June', value: 'June'},
+          {title: 'July', value: 'July'},
+          {title: 'August', value: 'August'},
+          {title: 'September', value: 'September'},
+          {title: 'October', value: 'October'},
+          {title: 'November', value: 'November'},
+          {title: 'December', value: 'December'},
+        ],
+        layout: 'dropdown',
+      },
+    }),
+    defineField({
       name: 'travelInsurance',
       title: 'Travel Insurance',
       type: 'object',

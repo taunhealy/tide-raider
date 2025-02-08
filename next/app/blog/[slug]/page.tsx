@@ -1,5 +1,3 @@
-"use client";
-
 import { client } from "@/app/lib/sanity";
 import { PortableText, PortableTextComponents } from "@portabletext/react";
 import { urlForImage } from "@/app/lib/urlForImage";
@@ -251,7 +249,7 @@ export default async function BlogPost({
     <div className="container mx-auto px-4 py-8 max-w-[1200px]">
       <div className="grid grid-cols-1 lg:grid-cols-[1fr_400px] gap-8">
         <main className="max-w-[720px]">
-          <h1 className="font-primary text-[2.5rem] leading-[1.2] font-bold mb-6">
+          <h1 className="font-primary text-[2.5rem] leading-[1.2] font-bold mb-4">
             {safePost.title}
           </h1>
 

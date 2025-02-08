@@ -47,6 +47,7 @@ export interface Trip {
   title: string;
   destination: string;
   days: TripDay[];
+  idealMonth?: string;
 }
 
 interface TripDay {

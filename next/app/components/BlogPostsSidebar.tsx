@@ -36,8 +36,8 @@ export default function BlogPostsSidebar({ posts }: BlogPostsSidebarProps) {
       <div className="space-y-6">
         {travelPosts.slice(0, 3).map((post) => (
           <Link
-            key={post.slug.current}
-            href={`/blog/${post.slug.current}`}
+            key={post.slug}
+            href={`/blog/${post.slug}`}
             className="group block"
           >
             <article className="flex gap-4">

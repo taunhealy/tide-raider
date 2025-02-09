@@ -3,6 +3,9 @@ import Link from "next/link";
 import { Mail } from "lucide-react";
 import { useQuery } from "@tanstack/react-query";
 import { cn } from "@/lib/utils";
+import { getWindEmoji } from "@/lib/forecastUtils";
+import { getSwellEmoji } from "@/lib/forecastUtils";
+import { getDirectionEmoji } from "@/lib/forecastUtils";
 
 interface SurfLog {
   id: string;
@@ -44,8 +47,8 @@ const SponsorContainer = () => {
       setShowLog(true);
       timeout = setTimeout(() => {
         setShowLog(false);
-        setTimeout(cycle, 5000);
-      }, 9000);
+        setTimeout(cycle, 14000); // Total cycle time = 14s (9s visible + 5s hidden)
+      }, 9000); // Show log for 9 seconds
     };
 
     if (recentLog) cycle();
@@ -119,24 +122,43 @@ const SponsorContainer = () => {
               href="mailto:advertise@tideraider.com?subject=Sponsorship Inquiry"
               className="flex flex-col cursor-pointer group"
             >
-              <div className="space-y-1">
-                <p className="text-xs font-medium">{recentLog.surferName}</p>
-                <p className="text-[0.6rem] uppercase tracking-wide text-[var(--color-text-secondary)]">
-                  {recentLog.beachName}
-                </p>
-                <div className="flex items-center justify-start space-x-0.5">
-                  {[...Array(5)].map((_, i) => (
-                    <span
-                      key={i}
-                      className={`text-[0.7rem] ${
-                        i < Math.floor(recentLog.surferRating)
-                          ? "opacity-100"
-                          : "opacity-20"
-                      }`}
-                    >
-                      ★
-                    </span>
-                  ))}
+              <p className="text-xs font-medium">{recentLog.surferName}</p>
+              <div className="flex justify-between items-start mt-1">
+                <div className="space-y-1">
+                  <p className="text-[0.6rem] uppercase tracking-wide text-[var(--color-text-secondary)]">
+                    {recentLog.beachName}
+                  </p>
+                  <div className="flex items-center justify-start space-x-0.5">
+                    {[...Array(5)].map((_, i) => (
+                      <span
+                        key={i}
+                        className={`text-[0.7rem] ${
+                          i < Math.floor(recentLog.surferRating)
+                            ? "opacity-100"
+                            : "opacity-20"
+                        }`}
+                      >
+                        ★
+                      </span>
+                    ))}
+                  </div>
+                </div>
+
+                {/* Forecast Information */}
+                <div className="text-right space-y-1">
+                  <div className="text-[0.6rem] text-[var(--color-text-secondary)]">
+                    {getWindEmoji(recentLog.forecast.wind.speed)}{" "}
+                    {recentLog.forecast.wind.direction} @{" "}
+                    {recentLog.forecast.wind.speed}km/h
+                  </div>
+                  <div className="text-[0.6rem] text-[var(--color-text-secondary)]">
+                    {getSwellEmoji(recentLog.forecast.swell.height)}{" "}
+                    {recentLog.forecast.swell.height}m @{" "}
+                    {recentLog.forecast.swell.period}s{" "}
+                    {getDirectionEmoji(
+                      (parseInt(recentLog.forecast.swell.direction) + 180) % 360
+                    )}
+                  </div>
                 </div>
               </div>
             </Link>

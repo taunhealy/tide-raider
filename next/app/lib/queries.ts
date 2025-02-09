@@ -224,6 +224,12 @@ export const landingPageQuery = groq`
       "dimensions": asset->metadata.dimensions,
       overlayText
     },
+    heroFooterImage {
+      asset->,
+      alt,
+      "dimensions": asset->metadata.dimensions,
+      overlayText
+    },
     "blog": {
       "posts": *[_type == "post"] | order(publishedAt desc) [0...3] {
         _id,

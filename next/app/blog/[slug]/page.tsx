@@ -79,9 +79,9 @@ export default async function BlogPost({
                 },
                 index: number
               ) => (
-                <div key={index} className="mt-16">
+                <div key={index} className="mt-8">
                   {section.sectionHeading && (
-                    <h2 className="text-[1.875rem] leading-[1.3] font-bold mb-6">
+                    <h2 className="text-[1.875rem] leading-[1.3] font-bold mb-4 md:mb-4">
                       {section.sectionHeading}
                     </h2>
                   )}

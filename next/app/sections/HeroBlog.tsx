@@ -1,6 +1,7 @@
 "use client";
 
 import { urlForImage } from "@/app/lib/urlForImage";
+import { Post as BasePost } from "@/app/types/blog";
 
 import { useState, useMemo, useEffect, useRef, useCallback } from "react";
 import { ChevronRight, ChevronLeft } from "lucide-react";
@@ -12,20 +13,24 @@ interface Category {
   slug: { current: string };
 }
 
-interface Post {
-  _id: string;
-  title: string;
-  slug: { current: string };
-  mainImage: any;
-  hoverImage: any;
-  publishedAt: string;
-  description: string;
-  categories: Category[];
+// Extend the base Post type with any HeroBlog-specific fields
+interface HeroPost
+  extends Pick<
+    BasePost,
+    | "_id"
+    | "title"
+    | "slug"
+    | "mainImage"
+    | "publishedAt"
+    | "description"
+    | "categories"
+  > {
+  hoverImage: any; // Additional field specific to HeroBlog
 }
 
 interface BlogProps {
   data: {
-    posts: Post[];
+    posts: HeroPost[];
     allCategories: Category[];
   } | null;
 }
@@ -164,7 +169,7 @@ export default function Blog({ data }: BlogProps) {
           className="md:flex md:overflow-x-auto gap-4 md:gap-8 scroll-smooth no-scrollbar md:min-h-[540px] flex-col md:flex-row"
           style={{ scrollSnapType: "x mandatory" }}
         >
-          {filteredPosts.slice(0, 5).map((post: Post) => {
+          {filteredPosts.slice(0, 5).map((post: HeroPost) => {
             if (!post.slug) {
               console.warn("Post missing slug:", post);
               return null;
@@ -218,14 +223,18 @@ export default function Blog({ data }: BlogProps) {
                   <div className="flex-1 p-4 md:p-6">
                     {post.categories && post.categories.length > 0 && (
                       <div className="flex gap-2 mb-2">
-                        {post.categories.map((category: Category) => (
-                          <span
-                            key={category.title}
-                            className="font-primary text-xs bg-[var(--color-bg-secondary)] text-[var(--color-text-secondary)] px-2 py-1 rounded font-semibold uppercase"
-                          >
-                            {category.title}
-                          </span>
-                        ))}
+                        {post.categories
+                          .filter(
+                            (category): category is Category => !!category?.slug
+                          )
+                          .map((category) => (
+                            <span
+                              key={category.title}
+                              className="font-primary text-xs bg-[var(--color-bg-secondary)] text-[var(--color-text-secondary)] px-2 py-1 rounded font-semibold uppercase"
+                            >
+                              {category.title}
+                            </span>
+                          ))}
                       </div>
                     )}
 

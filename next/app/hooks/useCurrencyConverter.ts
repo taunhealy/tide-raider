@@ -3,14 +3,14 @@
 import { useState, useEffect } from "react";
 
 // Add consistent formatter
-const zarFormatter = new Intl.NumberFormat('en-ZA', {
-  style: 'currency',
-  currency: 'ZAR',
+const zarFormatter = new Intl.NumberFormat("en-ZA", {
+  style: "currency",
+  currency: "ZAR",
   minimumFractionDigits: 2,
   maximumFractionDigits: 2,
   useGrouping: true,
-  currencyDisplay: 'symbol',
-  numberingSystem: 'latn'
+  currencyDisplay: "symbol",
+  numberingSystem: "latn",
 });
 
 export function useCurrencyConverter(

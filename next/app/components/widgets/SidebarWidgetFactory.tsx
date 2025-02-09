@@ -62,10 +62,13 @@ export default function SidebarWidgetFactory({
       return <WeatherWidget title={widget.title} region={widget.region} />;
 
     case "relatedPostsWidget":
-      return posts ? (
+      const validPosts = posts?.filter(
+        (post) => post?.slug && typeof post.slug === "string"
+      );
+      return validPosts?.length > 0 ? (
         <RelatedPostsWidget
           title={widget.title}
-          posts={posts}
+          posts={validPosts}
           maxPosts={widget.numberOfPosts}
         />
       ) : null;

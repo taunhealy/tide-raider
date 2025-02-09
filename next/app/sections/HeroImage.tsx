@@ -2,18 +2,18 @@ import { urlForImage } from "@/app/lib/urlForImage";
 import { SanityImage } from "@/types";
 import Image from "next/image";
 
-interface HeroImageProps {
+interface HeroFooterImageProps {
   data: {
     heroHeading?: string;
     heroSubheading?: string;
-    heroImage: SanityImage;
+    heroFooterImage: SanityImage;
     overlayText?: string;
   };
 }
 
-export default function HeroImage({ data }: HeroImageProps) {
-  const imageUrl = data.heroImage?.asset
-    ? urlForImage(data.heroImage)?.url()
+export default function HeroImage({ data }: HeroFooterImageProps) {
+  const imageUrl = data.heroFooterImage?.asset
+    ? urlForImage(data.heroFooterImage)?.url()
     : null;
 
   return (
@@ -22,7 +22,7 @@ export default function HeroImage({ data }: HeroImageProps) {
         {imageUrl ? (
           <Image
             src={imageUrl}
-            alt={data.heroImage?.alt || "Hero image"}
+            alt={data.heroFooterImage?.alt || "Hero image"}
             fill
             className="object-cover"
             priority

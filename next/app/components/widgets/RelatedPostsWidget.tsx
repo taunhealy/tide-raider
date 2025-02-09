@@ -16,16 +16,23 @@ export default function RelatedPostsWidget({
   posts,
   maxPosts = 3,
 }: RelatedPostsWidgetProps) {
+  // Filter out posts without valid slugs
+  const validPosts = posts?.filter((post) => post?.slug) || [];
+
+  if (validPosts.length === 0) {
+    return null;
+  }
+
   return (
     <div className="bg-white p-6 rounded-lg shadow-sm">
       <div className="flex items-center justify-between mb-6">
         <h3 className={`text-lg font-semibold text-gray-800`}>{title}</h3>
       </div>
       <div className="space-y-6">
-        {posts.slice(0, maxPosts).map((post) => (
+        {validPosts.slice(0, maxPosts).map((post) => (
           <Link
-            key={post.slug.current}
-            href={`/blog/${post.slug.current}`}
+            key={post.slug}
+            href={`/blog/${post.slug}`}
             className="group block"
           >
             <article className="flex gap-4">

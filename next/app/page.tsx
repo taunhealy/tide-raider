@@ -17,6 +17,7 @@ async function getHomeContent() {
           heroHeading: content.heroHeading,
           heroSubheading: content.heroSubheading,
           heroImage: content.heroImage,
+          heroFooterImage: content.heroFooterImage,
         },
         blog: content.blog,
         image: content.heroImage,

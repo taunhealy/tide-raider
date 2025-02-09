@@ -73,7 +73,7 @@ interface Stay {
 export interface Post {
   _id?: string;
   title: string;
-  slug: { current: string };
+  slug: string;
   mainImage: any;
   publishedAt: string;
   description: string;

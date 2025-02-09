@@ -56,5 +56,14 @@ export default {
         },
       ],
     },
+    {
+      name: 'heroFooterImage',
+      title: 'Hero Footer Image',
+      type: 'image',
+      options: {
+        hotspot: true,
+      },
+      validation: (Rule: any) => Rule.required(),
+    },
   ],
 }

@@ -57,23 +57,25 @@ export default function StickyForecastWidget({
           : "opacity-0 translate-y-8 pointer-events-none"
       )}
     >
-      <div className="flex items-center gap-4 text-sm">
-        <div>
-          <span className="text-gray-600 block mb-1">Wind</span>
-          <div className="font-medium">
-            {getWindEmoji(windData.wind.speed)} {windData.wind.direction} @{" "}
-            {windData.wind.speed}km/h
+      <div className="flex items-center gap-6">
+        <div className="flex items-center gap-4 text-sm">
+          <div>
+            <span className="text-gray-600 block mb-1">Wind</span>
+            <div className="font-medium">
+              {getWindEmoji(windData.wind.speed)} {windData.wind.direction} @{" "}
+              {windData.wind.speed}km/h
+            </div>
           </div>
-        </div>
-        <div className="w-px h-8 bg-gray-200" />
-        <div>
-          <span className="text-gray-600 block mb-1">Swell</span>
-          <div className="font-medium">
-            {getSwellEmoji(windData.swell.height)} {windData.swell.height}m @{" "}
-            {windData.swell.period}s{" "}
-            {getDirectionEmoji(
-              (parseInt(windData.swell.direction) + 180) % 360
-            )}
+          <div className="w-px h-8 bg-gray-200" />
+          <div>
+            <span className="text-gray-600 block mb-1">Swell</span>
+            <div className="font-medium">
+              {getSwellEmoji(windData.swell.height)} {windData.swell.height}m @{" "}
+              {windData.swell.period}s{" "}
+              {getDirectionEmoji(
+                (parseInt(windData.swell.direction) + 180) % 360
+              )}
+            </div>
           </div>
         </div>
       </div>

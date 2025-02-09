@@ -257,6 +257,11 @@ export function QuestLogTable({
                           width={200}
                           height={200}
                           className="object-cover rounded-md"
+                          unoptimized={process.env.NODE_ENV === "development"}
+                          onError={(e) => {
+                            (e.target as HTMLImageElement).style.display =
+                              "none";
+                          }}
                         />
                       </div>
                     </td>

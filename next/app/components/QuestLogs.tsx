@@ -66,13 +66,11 @@ export default function QuestLogs({ beaches }: QuestLogsProps) {
   const { data: entries, isLoading: isEntriesLoading } = useQuery({
     queryKey: ["questLogs"],
     queryFn: async () => {
-      if (!session?.user) return [];
       const response = await fetch("/api/quest-log");
       if (!response.ok) throw new Error("Failed to fetch logs");
       const data = await response.json();
       return data.entries;
     },
-    enabled: !!session?.user,
     staleTime: 1000 * 60,
     retry: 2,
   });
@@ -98,12 +96,8 @@ export default function QuestLogs({ beaches }: QuestLogsProps) {
     }
   }, [entries]);
 
-  if (authStatus === "loading" || isLoading) {
-    return <div>Loading...</div>;
-  }
-
-  if (!session?.user) {
-    return <div>Please sign in to view your logs</div>;
+  if (isLoading) {
+    return <div></div>;
   }
 
   if (!entries?.length) {

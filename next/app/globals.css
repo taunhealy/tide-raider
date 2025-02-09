@@ -303,3 +303,19 @@
 .modal-textarea {
   @apply input-base;
 }
+
+@keyframes water-surface {
+  0% {
+    transform: translateY(-3px) rotate(0deg);
+  }
+  50% {
+    transform: translateY(3px) rotate(1deg);
+  }
+  100% {
+    transform: translateY(-3px) rotate(0deg);
+  }
+}
+
+.animate-water-surface {
+  animation: water-surface 2s ease-in-out infinite;
+}

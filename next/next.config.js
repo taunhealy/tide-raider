@@ -2,6 +2,12 @@
 const nextConfig = {
   images: {
     unoptimized: true,
+    domains: [
+      "storage.tideraider.com",
+      "images.unsplash.com",
+      "cdn.sanity.io",
+      `${process.env.R2_ACCOUNT_ID}.r2.cloudflarestorage.com`,
+    ],
     remotePatterns: [
       {
         protocol: "https",

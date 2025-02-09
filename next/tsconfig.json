@@ -29,6 +29,6 @@
     ".next/types/**/*.ts",
     "tailwind.config.js",
     "next.config.js"
-  ],
+, "app/components/WaveAnimation.jsx"  ],
   "exclude": ["node_modules"]
 }

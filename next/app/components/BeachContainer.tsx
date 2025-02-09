@@ -50,6 +50,7 @@ import { storeGoodBeachRatings } from "@/app/lib/surfUtils";
 import StickyRegionFilter from "./StickyRegionFilter";
 import { toast } from "sonner";
 import Link from "next/link";
+import SponsorContainer from "./SponsorContainer";
 
 interface BeachContainerProps {
   initialBeaches: Beach[];
@@ -235,8 +236,8 @@ export default function BeachContainer({
   );
 
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
+  const itemsPerPage = 18;
   const [currentPage, setCurrentPage] = useState(1);
-  const itemsPerPage = 9;
   const [viewMode, setViewMode] = useState<"list" | "map">("list");
   const [searchQuery, setSearchQuery] = useState("");
 
@@ -425,10 +426,17 @@ export default function BeachContainer({
   ]);
 
   // Modify the pagination to respect subscription status
-  const totalBeaches = isSubscribed ? filteredBeaches.length : 3;
-  const totalPages = Math.ceil(totalBeaches / itemsPerPage);
+  const { visibleBeaches, lockedBeaches } = getGatedBeaches(
+    filteredBeaches,
+    windData,
+    isSubscribed,
+    hasActiveTrial
+  );
 
-  const currentItems = filteredBeaches.slice(
+  // Apply pagination to the VISIBLE beaches only
+  const totalBeaches = visibleBeaches.length;
+  const totalPages = Math.ceil(totalBeaches / itemsPerPage);
+  const currentItems = visibleBeaches.slice(
     (currentPage - 1) * itemsPerPage,
     currentPage * itemsPerPage
   );
@@ -596,13 +604,6 @@ export default function BeachContainer({
       setIsSavingDefaults(false);
     }
   };
-
-  const { visibleBeaches, lockedBeaches } = getGatedBeaches(
-    filteredBeaches,
-    windData,
-    isSubscribed,
-    hasActiveTrial
-  );
 
   return (
     <div className="bg-[var(--color-bg-secondary)] p-6 mx-auto relative min-h-[calc(100vh-72px)] flex flex-col">
@@ -814,7 +815,7 @@ export default function BeachContainer({
 
                     {/* Beach Grid */}
                     <BeachGrid
-                      beaches={visibleBeaches}
+                      beaches={currentItems}
                       windData={windData}
                       isBeachSuitable={isBeachSuitable}
                       isLoading={isLoading}
@@ -1113,6 +1114,9 @@ export default function BeachContainer({
         regionCounts={regionScoreCounts}
         isLoading={isAllDataLoading}
       />
+
+      {/* Add Sponsor Container */}
+      <SponsorContainer />
     </div>
   );
 }

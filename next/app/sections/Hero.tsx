@@ -87,12 +87,15 @@ export default function HeroSection({ data }: HeroProps) {
         className="absolute inset-0 bg-[var(--color-tertiary)] opacity-30"
       />
 
-      {/* Hero content */}
-      <div className="absolute inset-0 flex items-end justify-end flex-col">
-        <div className="backdrop-blur-sm bg-gradient-to-r from-white/30 to-[var(--color-tertiary)]/30 px-4 md:pl-[81px] pb-[8px] md:pb-[24px] w-full">
-          <h1 className="font-secondary text-white text-[72px] sm:text-[96px] md:text-[210px] leading-[0.9] font-bold uppercase">
+      {/* Sidebar with vertical text */}
+      <div className="absolute left-[40px] top-1/2 -translate-y-1 border-r border-white pr-4">
+        <div className="writing-mode-vertical-rl rotate-270 space-y-4">
+          <h2 className="font-primary font-bold text-[64px] leading-none tracking-tighter text-white">
             {data?.heroHeading}
-          </h1>
+          </h2>
+          <p className="font-primary font-medium text-[20px] leading-none tracking-tight text-white">
+            New frontiers.
+          </p>
         </div>
       </div>
     </section>

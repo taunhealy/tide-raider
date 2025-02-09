@@ -187,7 +187,7 @@ export default function Blog({ data }: BlogProps) {
                   <div className="relative w-[140px] md:w-full h-[140px] md:h-[410px] overflow-hidden">
                     {post.mainImage?.asset && (
                       <>
-                        <div className="w-full h-full absolute inset-0 bg-[var(--color-bg-tertiary)] opacity-0 group-hover:opacity-30 transition-all duration-300 z-10" />
+                        <div className="w-full h-full absolute inset-0 opacity-0 group-hover:opacity-30 transition-all duration-300 z-10" />
                         <ClientImage
                           src={
                             urlForImage(post.mainImage)
@@ -196,8 +196,7 @@ export default function Blog({ data }: BlogProps) {
                               ?.url() ?? ""
                           }
                           alt={post.title || "Blog post image"}
-                          className="w-full h-full object-cover"
-                          onLoad={() => console.log("Image loaded")}
+                          className="w-full h-full object-cover transition-transform duration-300"
                         />
                       </>
                     )}

@@ -2,6 +2,17 @@
 
 import { useState, useEffect } from "react";
 
+// Add consistent formatter
+const zarFormatter = new Intl.NumberFormat('en-ZA', {
+  style: 'currency',
+  currency: 'ZAR',
+  minimumFractionDigits: 2,
+  maximumFractionDigits: 2,
+  useGrouping: true,
+  currencyDisplay: 'symbol',
+  numberingSystem: 'latn'
+});
+
 export function useCurrencyConverter(
   amount: number,
   baseCurrency: string = "ZAR"
@@ -42,9 +53,6 @@ export function useCurrencyConverter(
   return {
     amount: convertedAmount,
     currency: currencyCode,
-    formatted: new Intl.NumberFormat(locale, {
-      style: "currency",
-      currency: currencyCode,
-    }).format(convertedAmount),
+    formatted: zarFormatter.format(convertedAmount),
   };
 }

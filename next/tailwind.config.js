@@ -11,6 +11,9 @@ module.exports = {
       colors: {
         background: "var(--background)",
         foreground: "var(--foreground)",
+        "brand-1": "var(--color-primary)", // Replace with your brand color
+        "brand-2": "var(--color-secondary)", // Replace with your brand color
+        "brand-3": "var(--color-tertiary)", // Replace with your brand color
       },
       fontFamily: {
         primary: ["var(--font-inter)", "system-ui", "sans-serif"],

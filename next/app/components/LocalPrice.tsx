@@ -8,28 +8,34 @@ interface LocalPriceProps {
   showOriginal?: boolean;
 }
 
-export default function LocalPrice({
-  amount,
-  showOriginal = false,
-}: LocalPriceProps) {
-  const [isClient, setIsClient] = useState(false);
-  const { formatted, currency } = useCurrencyConverter(amount, "ZAR");
-
-  // Use consistent ZAR format for both server and client
-  const zarFormat = new Intl.NumberFormat("en-ZA", {
+export function formatPrice(amount: number) {
+  // Always use en-ZA locale with explicit options
+  return new Intl.NumberFormat("en-ZA", {
     style: "currency",
     currency: "ZAR",
     minimumFractionDigits: 2,
     maximumFractionDigits: 2,
+    useGrouping: true,
+    // Force specific format settings
+    currencyDisplay: "symbol",
+    numberingSystem: "latn",
   }).format(amount);
+}
+
+export default function LocalPrice({
+  amount,
+  showOriginal = false,
+}: LocalPriceProps) {
+  const [mounted, setMounted] = useState(false);
+  const { formatted, currency } = useCurrencyConverter(amount, "ZAR");
 
   useEffect(() => {
-    setIsClient(true);
+    setMounted(true);
   }, []);
 
-  // Always use the same ZAR format for server-side rendering
-  if (!isClient) {
-    return <span className="text-gray-700 font-medium">{zarFormat}</span>;
+  // Don't render anything until mounted (client-side)
+  if (!mounted) {
+    return null;
   }
 
   // Show converted price with original ZAR price in smaller text if requested
@@ -37,7 +43,7 @@ export default function LocalPrice({
     return (
       <div className="text-right">
         <div>{formatted}</div>
-        <div className="text-sm text-gray-500">{zarFormat}</div>
+        <div className="text-sm text-gray-500">{formatted}</div>
       </div>
     );
   }

@@ -16,6 +16,7 @@
     "sanity"
   ],
   "dependencies": {
+    "@sanity/color-input": "^4.0.3",
     "@sanity/vision": "^3.67.1",
     "gsap": "^3.12.5",
     "lodash.debounce": "^4.0.8",
@@ -23,6 +24,7 @@
     "react-dom": "^18.2.0",
     "sanity": "^3.67.1",
     "sanity-plugin-asset-source-unsplash": "^3.0.3",
+    "sanity-plugin-simpler-color-input": "^3.0.0",
     "styled-components": "^6.1.8"
   },
   "devDependencies": {

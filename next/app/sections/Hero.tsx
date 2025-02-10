@@ -5,6 +5,8 @@ import Image from "next/image";
 import { useState, useEffect, useRef } from "react";
 import gsap from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
+import ThreeJSEdgyX from "../components/ThreeJSEdgyX";
+import VHSEffect from "../components/VHSEffect";
 
 interface HeroProps {
   data: {
@@ -13,6 +15,7 @@ interface HeroProps {
     heroImage: {
       _type: "image";
       _id: string;
+      alt?: string;
       asset: {
         _ref: string;
         _type: "reference";
@@ -23,29 +26,56 @@ interface HeroProps {
 
 export default function HeroSection({ data }: HeroProps) {
   const [heroImageLoaded, setHeroImageLoaded] = useState(false);
-  const sectionRef = useRef(null);
+  const sectionRef = useRef<HTMLElement>(null);
   const imageRef = useRef(null);
   const overlayRef = useRef(null);
+  const textRef = useRef<HTMLDivElement>(null);
+  const xRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     gsap.registerPlugin(ScrollTrigger);
 
-    const tl = gsap.timeline({
-      scrollTrigger: {
-        trigger: sectionRef.current,
-        start: "top top",
-        end: "bottom top",
-        scrub: true,
-      },
-    });
+    const ctx = gsap.context(() => {
+      // Only create timeline if elements exist
+      if (
+        imageRef.current &&
+        overlayRef.current &&
+        textRef.current &&
+        xRef.current
+      ) {
+        const tl = gsap.timeline({
+          scrollTrigger: {
+            trigger: sectionRef.current,
+            start: "top top",
+            end: "bottom top",
+            scrub: true,
+          },
+        });
 
-    tl.to([imageRef.current, overlayRef.current], {
-      opacity: 0,
-      duration: 1,
-    });
+        tl.to([imageRef.current, overlayRef.current], {
+          opacity: 0,
+          duration: 1,
+        });
+
+        gsap.from(textRef.current, {
+          opacity: 0,
+          y: 50,
+          duration: 1.5,
+          ease: "power4.out",
+        });
+
+        gsap.from(xRef.current, {
+          opacity: 0,
+          scale: 0.8,
+          duration: 1.2,
+          delay: 0.3,
+        });
+      }
+    }, sectionRef);
 
     return () => {
       ScrollTrigger.getAll().forEach((trigger) => trigger.kill());
+      ctx.revert();
     };
   }, []);
 
@@ -64,37 +94,31 @@ export default function HeroSection({ data }: HeroProps) {
     : null;
 
   return (
-    <section
-      ref={sectionRef}
-      className="relative w-full h-[60vh] md:h-[90vh] md:px-[121.51px]"
-    >
-      {imageUrl && (
+    <section className="relative w-full h-[60vh] md:h-[90vh] overflow-hidden">
+      {/* Background image */}
+      <div className="absolute inset-0">
         <Image
-          ref={imageRef}
-          src={imageUrl}
-          alt={data.heroHeading || "Hero background"}
+          src={imageUrl || ""}
+          alt={data?.heroImage?.alt || ""}
           fill
-          priority
-          quality={100}
           className="object-cover"
-          onLoadingComplete={() => setHeroImageLoaded(true)}
         />
-      )}
+      </div>
 
-      {/* Overlay */}
+      {/* VHS Effect Overlay */}
+      <VHSEffect />
+
+      {/* Left sidebar text */}
       <div
-        ref={overlayRef}
-        className="absolute inset-0 bg-[var(--color-tertiary)] opacity-30"
-      />
-
-      {/* Sidebar with vertical text */}
-      <div className="absolute left-[40px] top-1/2 -translate-y-1 border-r border-white pr-4">
+        ref={textRef}
+        className="absolute left-[40px] top-1/2 -translate-y-1/2 pr-4 border-r border-white"
+      >
         <div className="writing-mode-vertical-rl rotate-270 space-y-4">
           <h2 className="font-primary font-bold text-[64px] leading-none tracking-tighter text-white">
             {data?.heroHeading}
           </h2>
           <p className="font-primary font-medium text-[20px] leading-none tracking-tight text-white">
-            New frontiers.
+            For kicks.
           </p>
         </div>
       </div>

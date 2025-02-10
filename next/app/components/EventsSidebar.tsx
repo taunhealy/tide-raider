@@ -4,6 +4,7 @@ import { useState, useEffect, useMemo } from "react";
 import { beachData } from "@/app/types/beaches";
 import { format } from "date-fns";
 import { Event } from "../types/events";
+import { useSession } from "next-auth/react";
 
 export default function EventsSidebar() {
   const [events, setEvents] = useState<Event[]>([]);
@@ -16,6 +17,10 @@ export default function EventsSidebar() {
     startTime: "",
     link: "",
   });
+
+
+  // when check for ownership, compares 'event.userId' with 'session.user.id'.
+  const { data: session } = useSession();
 
   // Extract unique countries and regions from beach data
   const { countries, regionsByCountry } = useMemo(() => {
@@ -94,6 +99,25 @@ export default function EventsSidebar() {
       startTime: "",
       link: "",
     });
+  };
+
+  const handleDelete = async (eventId: string) => {
+    try {
+      const response = await fetch(`/api/events/${eventId}`, {
+        method: "DELETE",
+        headers: {
+          "Content-Type": "application/json",
+        },
+      });
+
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+
+      fetchEvents();
+    } catch (error) {
+      console.error("Error deleting event:", error);
+    }
   };
 
   return (
@@ -252,6 +276,14 @@ export default function EventsSidebar() {
                 >
                   Learn more
                 </a>
+              )}
+              {session?.user?.id === event.userId && (
+                <button
+                  onClick={() => handleDelete(event.id)}
+                  className="text-grey-600 hover:text-red-600 text-sm mt-2 block"
+                >
+                  Delete Event
+                </button>
               )}
             </div>
           ))

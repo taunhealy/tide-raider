@@ -48,26 +48,15 @@ export default function PricingPage() {
 
   const handleUnsubscribe = async () => {
     try {
-      const response = await fetch("/api/auth/session");
-      const session = await response.json();
-
-      if (!session?.user?.id) {
-        alert("Please sign in first");
-        return;
-      }
-
-      const unsubResponse = await fetch("/api/test-webhook/route", {
+      const response = await fetch("/api/subscriptions", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
         },
-        body: JSON.stringify({
-          userId: session.user.id,
-          action: "unsubscribe",
-        }),
+        body: JSON.stringify({ action: "unsubscribe" }),
       });
 
-      if (!unsubResponse.ok) {
+      if (!response.ok) {
         throw new Error("Failed to unsubscribe");
       }
 

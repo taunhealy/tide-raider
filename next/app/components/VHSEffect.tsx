@@ -59,13 +59,16 @@ export default function VHSEffect() {
           uv.x += sin(uv.y * 15.0 + time * 1.5) * 0.01; // Slower horizontal warping
           uv.y += sin(time * 1.0) * 0.001; // Slower and smaller jitter
           
-          // Unidirectional downward scanlines
-          float scanSpeed = 0.08; // Reduced from 0.15
-          float scanDensity = 0.5; // Reduced line density
-          float scanPos = fract(uv.y + time * scanSpeed);
-          float scanline = smoothstep(0.9, 0.95, 
-            sin(scanPos * 3.1415 * 2.0 * scanDensity)
-          ) * 0.2;
+          // Scanline variations
+          float scanlineNoise = rand(vec2(uv.y * 100.0, time * 0.1)) * 0.1;
+          float scanlineWobble = sin(uv.y * 50.0 + time * 2.0) * 0.005;
+          
+          float scanPos = fract(uv.y * 1.2 + time * 0.1 + scanlineWobble);
+          float baseScanline = smoothstep(0.4, 0.6, sin(scanPos * 3.1415 * 2.0));
+          
+          // Dynamic intensity
+          float scanlineFlicker = 0.8 + sin(time * 3.0) * 0.2;
+          float scanline = baseScanline * 0.15 * scanlineFlicker + scanlineNoise;
           
           // Scanline curvature
           float curvature = 1.0 - pow(abs(uv.x - 0.5) * 2.0, 2.0);

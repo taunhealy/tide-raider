@@ -3,7 +3,6 @@
 import { signIn, getProviders } from "next-auth/react";
 import { useSearchParams } from "next/navigation";
 import { Suspense, useEffect, useState } from "react";
-import Image from "next/image";
 
 function SignInContent() {
   const searchParams = useSearchParams();
@@ -20,18 +19,20 @@ function SignInContent() {
   }, []);
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-[var(--color-bg-secondary)]">
-      <div className="max-w-md w-full p-8 bg-white rounded-lg shadow-lg">
+    <div className="min-h-[80vh] flex items-center justify-center bg-[var(--color-bg-secondary)]">
+      <div className="max-w-md w-full p-8 bg-[var(--color-bg-primary)] rounded-lg shadow-sm border border-gray-200">
         <div className="text-center mb-8">
-          <h1 className="text-2xl font-bold text-gray-900 mb-2">
+          <h1 className="text-2xl font-primary font-semibold text-gray-900 mb-2">
             Welcome Back
           </h1>
-          <p className="text-gray-600">Sign in to continue your journey</p>
+          <p className="text-gray-600 font-primary">
+            Sign in to continue your journey
+          </p>
         </div>
 
         {error === "OAuthAccountNotLinked" && (
           <div className="mb-6 p-4 bg-red-50 border border-red-200 rounded-lg">
-            <p className="text-red-600 text-sm text-center">
+            <p className="text-red-600 text-sm text-center font-primary">
               This email is already associated with another account. Please sign
               in with the same method you used previously.
             </p>
@@ -46,7 +47,7 @@ function SignInContent() {
                 onClick={() => signIn(provider.id, { callbackUrl })}
                 className="w-full flex items-center justify-center gap-3 px-6 py-3 
                          bg-white border border-gray-300 rounded-lg shadow-sm 
-                         hover:bg-gray-50 transition-all duration-200"
+                         hover:bg-gray-50 transition-colors duration-200 font-primary"
               >
                 {provider.id === "google" && (
                   <svg
@@ -72,14 +73,14 @@ function SignInContent() {
                     />
                   </svg>
                 )}
-                <span className="text-gray-700 font-primary">
+                <span className="text-gray-700 font-medium">
                   Continue with {provider.name}
                 </span>
               </button>
             ))}
         </div>
 
-        <div className="mt-8 text-center text-sm text-gray-500">
+        <div className="mt-8 text-center text-sm text-gray-500 font-primary">
           <p>
             By continuing, you agree to our Terms of Service and Privacy Policy
           </p>

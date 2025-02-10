@@ -1,13 +1,15 @@
 import { DefaultSession } from "next-auth";
 
 declare module "next-auth" {
-  interface Session extends DefaultSession {
+  interface Session {
     user: {
       id: string;
       name?: string;
       email?: string;
+      image?: string;
       isSubscribed?: boolean;
       hasActiveTrial?: boolean;
+      emailVerified?: Date | null;
     };
   }
 }

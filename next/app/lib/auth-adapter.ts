@@ -1,24 +1,25 @@
 import type { Adapter, AdapterUser, AdapterAccount } from "next-auth/adapters";
 import { prisma } from "./prisma";
+import { SkillLevel } from "@prisma/client";
 
 // Add type conversion function
 function convertToAdapterUser(user: any): AdapterUser {
   return {
-    id: user.id,
-    email: user.email,
-    emailVerified: user.emailVerified,
-    name: user.name,
-    image: user.image,
-    // Only include fields that match AdapterUser type
-    // Convert null to undefined for optional fields
-    lemonCustomerId: user.lemonCustomerId || undefined,
+    ...user,
+    skillLevel: user.skillLevel as SkillLevel | null,
+    emailVerified: user.emailVerified ? new Date(user.emailVerified) : null,
   };
 }
 
 export function PrismaAdapter(): Adapter {
   return {
     async createUser(data: Omit<AdapterUser, "id">) {
-      return prisma.user.create({ data });
+      return prisma.user.create({
+        data: {
+          ...data,
+          name: data.name || "",
+        },
+      });
     },
 
     async getUser(id) {
@@ -47,7 +48,10 @@ export function PrismaAdapter(): Adapter {
     async updateUser(user) {
       const updated = await prisma.user.update({
         where: { id: user.id },
-        data: user,
+        data: {
+          ...user,
+          name: user.name || "",
+        },
       });
       return convertToAdapterUser(updated);
     },

@@ -62,7 +62,8 @@ model AdRequest {
 // Core User Model
 model User {
   id            String      @id @default(cuid())
-  name          String?
+  name          String
+  bio           String?
   email         String      @unique
   emailVerified DateTime?
   image         String?
@@ -103,6 +104,8 @@ model User {
   events        Event[]
 
   filters       UserFilters?
+
+  favorites     UserFavorite[]
 
   @@index([email])
   @@index([skillLevel])
@@ -197,7 +200,7 @@ enum SkillLevel {
   BEGINNER
   INTERMEDIATE
   ADVANCED
-  EXPERT
+  PRO
 }
 
 enum BookingStatus {
@@ -473,4 +476,17 @@ model UserFilters {
   user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@index([userId])
+}
+
+model UserFavorite {
+  id          String   @id @default(cuid())
+  userId      String
+  user        User     @relation(fields: [userId], references: [id])
+  title       String   @db.VarChar(255)
+  videoLink   String   @db.VarChar(2048)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@index([userId])
+  @@index([createdAt])
 }

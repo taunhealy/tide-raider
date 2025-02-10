@@ -10,6 +10,7 @@ import { Menu, X } from "lucide-react";
 import { useState } from "react";
 import { handleSignIn } from "../lib/auth-utils";
 import RaidLink from "./RaidLink";
+import Image from "next/image";
 
 const NAVIGATION_ITEMS = [
   { href: "/raidlogs", label: "Raid Logs" },
@@ -26,6 +27,7 @@ export default function Navbar() {
   const pathname = usePathname();
   const router = useRouter();
   const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const [isProfileOpen, setIsProfileOpen] = useState(false);
 
   const handleHomeClick = (e: React.MouseEvent) => {
     e.preventDefault();
@@ -76,15 +78,50 @@ export default function Navbar() {
               ))}
             </ul>
           </nav>
-          <div className="flex gap-4">
+          <div className="flex gap-4 items-center">
             {session ? (
-              <Button
-                variant="outline"
-                onClick={() => signOut()}
-                className="transition-all duration-300"
-              >
-                Sign Out
-              </Button>
+              <>
+                <div className="relative">
+                  <button
+                    onClick={() => setIsProfileOpen(!isProfileOpen)}
+                    className="flex items-center gap-2 p-1 hover:bg-gray-100 rounded-full"
+                  >
+                    <Image
+                      src={session.user?.image || "/default-avatar.png"}
+                      alt="Profile"
+                      width={32}
+                      height={32}
+                      className="rounded-full"
+                    />
+                  </button>
+
+                  {isProfileOpen && (
+                    <div className="absolute right-0 mt-2 w-48 bg-white rounded-md shadow-lg py-1">
+                      <Link
+                        href="/dashboard"
+                        className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+                        onClick={() => setIsProfileOpen(false)}
+                      >
+                        Dashboard
+                      </Link>
+                      <Link
+                        href={`/profile/${session.user.id}`}
+                        className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+                        onClick={() => setIsProfileOpen(false)}
+                      >
+                        Profile
+                      </Link>
+                    </div>
+                  )}
+                </div>
+                <Button
+                  variant="outline"
+                  onClick={() => signOut()}
+                  className="transition-all duration-300"
+                >
+                  Sign Out
+                </Button>
+              </>
             ) : (
               <Button
                 variant="outline"
@@ -103,7 +140,7 @@ export default function Navbar() {
             <Button
               variant="outline"
               onClick={() => signOut()}
-              className="transition-all duration-300"
+              className="transition-all duration-300 font-primary"
             >
               Sign Out
             </Button>
@@ -111,7 +148,7 @@ export default function Navbar() {
             <Button
               variant="outline"
               onClick={() => handleSignIn()}
-              className="transition-all duration-300"
+              className="transition-all duration-300 font-primary"
             >
               Sign In
             </Button>

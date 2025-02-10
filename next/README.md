@@ -39,6 +39,7 @@ Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/bui
 Fetching & Caching Surf Conditions:
 
 graph TD
+
     A[HeroProduct loads] --> B[Fetch surf-conditions]
     B --> C[API scrapes data if needed]
     C --> D[Store in Redis cache]
@@ -47,3 +48,37 @@ graph TD
     G[User visits Raid page] --> H[Check Redis cache]
     H --> I[Return cached data]
     H --> J[Use stored beach ratings]
+    __________________________
+
+ Session Usage 
+
+    const userId = session.user.id;
+
+    const user = await prisma.user.findUnique({
+        where: { id: userId },
+    });
+
+    // Usage when querying relationships:
+const event = await prisma.event.findUnique({
+  where: { id: eventId },
+  select: { userId: true } // Foreign key to user
+});
+
+// 
+When to use which:
+Use id when referring to:
+The primary key of the current user (session.user.id)
+Any entity's own ID (event.id, board.id, etc)
+
+Use userId when referring to:
+A foreign key relationship to the user (event.userId, board.userId)
+
+// In [...nextauth].ts configuration
+callbacks: {
+  session({ session, user }) {
+    session.user.id = user.id; // Ensures database ID is in session
+    return session;
+  }
+}
+__________________________
+    

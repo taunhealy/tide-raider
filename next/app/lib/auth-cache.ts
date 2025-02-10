@@ -24,3 +24,8 @@ export async function getCachedSession(userId: string) {
     return null;
   }
 }
+
+export async function clearUserSession(userId: string) {
+  const key = `${AUTH_PREFIX}${userId}`;
+  await redis.del(key);
+}

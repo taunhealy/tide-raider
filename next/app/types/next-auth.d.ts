@@ -7,17 +7,26 @@ declare module "next-auth" {
     lemonCustomerId?: string;
     lemonSubscriptionId?: string;
     hasActiveTrial?: boolean;
+    bio?: string | null;
+    skillLevel?: SkillLevel | null;
+  }
+
+  interface AdapterUser extends User {
+    emailVerified: Date | null;
   }
 
   interface Session extends DefaultSession {
     user: {
       id: string;
-      isSubscribed?: boolean;
-      hasActiveTrial?: boolean;
+      name?: string;
+      email?: string;
+      image?: string;
+      isSubscribed: boolean;
+      hasActiveTrial: boolean;
       subscription?: {
         status: string;
         active: boolean;
       };
-    } & DefaultSession["user"];
+    } & User;
   }
 }

@@ -88,6 +88,23 @@ const SponsorContainer = () => {
       )}
     >
       <div className="flex items-center gap-4">
+        {/*Current Sponsor Container */}
+        <div
+          className={`flex flex-col transition-opacity duration-1000 ${showLog ? "opacity-0" : "opacity-100"}`}
+        >
+          <div className="space-y-1">
+            <h3 className="text-sm font-semibold text-[var(--color-primary)]">
+              Current Sponsor
+            </h3>
+            <p className="text-xs text-[var(--color-text-secondary)]">
+              Kea Logic
+            </p>
+          </div>
+          <div className="mt-1 text-xs font-medium text-[var(--color-tertiary)]">
+            Web design & development
+          </div>
+        </div>
+
         {/* Text Content */}
         <div className="flex-1 min-w-[160px] space-y-2">
           <Link

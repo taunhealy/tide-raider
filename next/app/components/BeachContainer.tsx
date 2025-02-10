@@ -51,6 +51,7 @@ import StickyRegionFilter from "./StickyRegionFilter";
 import { toast } from "sonner";
 import Link from "next/link";
 import SponsorContainer from "./SponsorContainer";
+import FavouriteSurfVideosSidebar from "@/app/components/FavouriteSurfVideosSidebar";
 
 interface BeachContainerProps {
   initialBeaches: Beach[];
@@ -614,6 +615,7 @@ export default function BeachContainer({
         <aside className="hidden lg:block lg:w-[300px] flex-shrink-0">
           <BlogPostsSidebar posts={blogPosts} />
           <div className="space-y-6">
+            <FavouriteSurfVideosSidebar />
             <GoldSeeker />
             <QuestLogSidebar />
             <EventsSidebar />

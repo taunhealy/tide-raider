@@ -131,6 +131,7 @@ export function QuestLogForm({
           region: selectedBeach.region,
           waveType: selectedBeach.waveType,
         },
+        isAnonymous,
       };
 
       await createLogEntry.mutateAsync(newEntry);

@@ -3,19 +3,23 @@ import { LogEntry } from "@/app/types/questlogs";
 import Image from "next/image";
 import { Star } from "lucide-react";
 
-interface SessionModalProps {
+interface QuestLogModalProps {
   session: LogEntry;
   isOpen: boolean;
   onClose: () => void;
 }
 
-export function SessionModal({ session, isOpen, onClose }: SessionModalProps) {
+export function QuestLogModal({
+  session,
+  isOpen,
+  onClose,
+}: QuestLogModalProps) {
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
       <DialogContent className="max-w-3xl bg-white">
         <DialogHeader>
           <DialogTitle className="text-2xl font-bold mb-4">
-            Session at {session.beachName}
+            Quest at {session.beachName}
           </DialogTitle>
         </DialogHeader>
 
@@ -23,7 +27,7 @@ export function SessionModal({ session, isOpen, onClose }: SessionModalProps) {
           <div className="relative aspect-video w-full mb-6">
             <Image
               src={session.imageUrl}
-              alt={`Session at ${session.beachName}`}
+              alt={`Quest at ${session.beachName}`}
               fill
               className="object-cover rounded-lg"
               priority

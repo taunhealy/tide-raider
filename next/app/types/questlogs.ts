@@ -4,16 +4,7 @@ import {
   getSwellEmoji,
   getDirectionEmoji,
 } from "../lib/forecastUtils";
-
-export interface Beach {
-  id: string;
-  name: string;
-  region: string;
-  continent: string;
-  country: string;
-  waveType: string;
-  location: string;
-}
+import type { Beach } from "./beaches";
 
 export interface LogEntry {
   id: string;
@@ -22,11 +13,18 @@ export interface LogEntry {
   surferName: string;
   surferEmail: string;
   beachName: string;
+  beachId: string;
   forecast: {
-    windSpeed?: number;
-    windDirection?: number;
-    swellHeight?: number;
-    swellDirection?: number;
+    wind: {
+      speed: number;
+      direction: string;
+    };
+    swell: {
+      height: number;
+      period: number;
+      direction: string;
+      cardinalDirection: string;
+    };
   };
   surferRating: number;
   comments: string;
@@ -34,6 +32,12 @@ export interface LogEntry {
   isPrivate: boolean;
   createdAt: Date;
   updatedAt: Date;
+  windSpeed?: number;
+  windDirection?: number;
+  swellHeight?: number;
+  swellDirection?: number;
+  beach: Beach;
+  isAnonymous: boolean;
 }
 
 export interface CreateLogEntryInput {
@@ -84,7 +88,7 @@ export const DEFAULT_COLUMNS: QuestLogTableColumn[] = [
     label: "Conditions",
     render: (entry: LogEntry) =>
       entry.forecast
-        ? `${entry.forecast.swellHeight || 0}m ${getSwellEmoji(entry.forecast.swellHeight || 0)} | ${getWindEmoji(entry.forecast.windSpeed || 0)} ${entry.forecast.windSpeed || 0}km/h | ${getDirectionEmoji(parseInt(String(entry.forecast.swellDirection || 0)))}`
+        ? `${entry.forecast.swell.height || 0}m ${getSwellEmoji(entry.forecast.swell.height || 0)} | ${getWindEmoji(entry.forecast.wind.speed || 0)} ${entry.forecast.wind.speed || 0}km/h | ${getDirectionEmoji(parseInt(String(entry.forecast.swell.direction || 0)))}`
         : "No forecast data",
   },
   { key: "comments", label: "Comments" },

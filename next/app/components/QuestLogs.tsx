@@ -25,6 +25,7 @@ import { useSearchParams, useRouter } from "next/navigation";
 
 interface QuestLogsProps {
   beaches: Beach[];
+  userId: string;
 }
 
 const defaultFilters: FilterConfig = {
@@ -147,14 +148,14 @@ export default function QuestLogs({ beaches }: QuestLogsProps) {
 
     // Apply filters
     if (newFilters.beachName) {
-      filtered = filtered.filter((entry) =>
+      filtered = filtered.filter((entry: LogEntry) =>
         entry.beachName.includes(newFilters.beachName)
       );
     }
 
     if (newFilters.minRating > 0) {
       filtered = filtered.filter(
-        (entry) => entry.surferRating >= newFilters.minRating
+        (entry: LogEntry) => entry.surferRating >= newFilters.minRating
       );
     }
 

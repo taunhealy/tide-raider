@@ -139,6 +139,7 @@ model LogEntry {
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
   isPrivate   Boolean @default(false)
+  isAnonymous Boolean @default(false)
 
   @@index([surferEmail])
   @@index([date])

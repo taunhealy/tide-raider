@@ -7,7 +7,7 @@ import { HoverOverlay } from "@/app/components/ui/HoverOverlay";
 import dynamic from "next/dynamic";
 import Link from "next/link";
 import { Beach } from "@/app/types/beaches";
-import { SessionModal } from "./SessionModal";
+import { QuestLogModal } from "./QuestLogModal";
 import { useSession } from "next-auth/react";
 import Image from "next/image";
 import { Star } from "lucide-react";
@@ -262,7 +262,7 @@ function MediaGridBase({ videos, beach, sessions = [] }: MediaGridProps) {
 
       {/* Session Modal */}
       {selectedSession && (
-        <SessionModal
+        <QuestLogModal
           session={selectedSession}
           isOpen={!!selectedSession}
           onClose={() => setSelectedSession(null)}
@@ -283,6 +283,10 @@ export interface LogEntry {
   surferName: string;
   surferEmail: string;
   beachName: string;
+  beachId: string;
+  isPrivate: boolean;
+  beach: any;
+  isAnonymous: boolean;
   forecast: {
     wind: {
       speed: number;

@@ -3,7 +3,6 @@ import { prisma } from "@/app/lib/prisma";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/app/lib/authOptions";
 import { beachData } from "@/app/types/beaches";
-import { checkSubscription } from "@/app/lib/surfUtils";
 
 function getTodayDate() {
   const date = new Date();
@@ -130,7 +129,14 @@ export async function POST(request: Request) {
     const session = await getServerSession(authOptions);
     if (!session?.user) return new Response("Unauthorized", { status: 401 });
 
-    const isSubscribed = await checkSubscription(session.user.id);
+    // Direct subscription check
+    const user = await prisma.user.findUnique({
+      where: { id: session.user.id },
+      select: { lemonSubscriptionId: true },
+    });
+
+    const isSubscribed = !!user?.lemonSubscriptionId;
+
     if (!isSubscribed) {
       return new Response("Subscription required to create logs", {
         status: 403,

@@ -2,6 +2,8 @@ import { NextResponse } from "next/server";
 import { prisma } from "@/app/lib/prisma";
 import { sendTrialEndingSoonEmail } from "@/app/lib/email";
 
+export const dynamic = "force-dynamic";
+
 export async function GET(request: Request) {
   try {
     // Verify cron secret to ensure this is called by the scheduler

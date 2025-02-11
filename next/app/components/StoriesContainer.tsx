@@ -244,6 +244,7 @@ export default function WildStoriesContainer({ beaches }: WildStoriesProps) {
                     }}
                     className={cn(
                       "px-3 md:px-4 py-1.5 md:py-2 rounded-full text-xs md:text-sm whitespace-nowrap transition-colors font-primary",
+                      "min-w-[100px] max-w-[150px] truncate",
                       filters.regions.includes(region)
                         ? "bg-white text-[var(--color-bg-tertiary)] border-2 border-[var(--color-bg-tertiary)]"
                         : "bg-gray-100 text-gray-600 border-2 border-[var(--color-bg-primary)] hover:bg-gray-100"
@@ -267,6 +268,7 @@ export default function WildStoriesContainer({ beaches }: WildStoriesProps) {
                 key={story.id}
                 story={story}
                 isAuthor={session?.user?.id === story.author.id}
+                beaches={beaches}
               />
             ))}
           </div>

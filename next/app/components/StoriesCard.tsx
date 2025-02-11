@@ -11,19 +11,22 @@ import { EditPostModal } from "./EditPostModal";
 import { ViewPostModal } from "./ViewPostModal";
 import { useQueryClient, useMutation } from "@tanstack/react-query";
 import { useRouter, useSearchParams } from "next/navigation";
+import Link from "next/link";
 
 const inter = Inter({ subsets: ["latin"] });
 
 interface PostCardProps {
   story: Story;
   isAuthor: boolean;
+  beaches: any[];
 }
 
-export function PostCard({ story, isAuthor }: PostCardProps) {
+export function PostCard({ story, isAuthor, beaches }: PostCardProps) {
   const router = useRouter();
   const searchParams = useSearchParams();
   const { data: session } = useSession();
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
+  const [isViewModalOpen, setIsViewModalOpen] = useState(false);
   const [isExpanded, setIsExpanded] = useState(false);
   const queryClient = useQueryClient();
 
@@ -54,14 +57,11 @@ export function PostCard({ story, isAuthor }: PostCardProps) {
 
   // Handle card click
   const handleCardClick = (e: React.MouseEvent) => {
-    // Prevent click if clicking on buttons or links
     if ((e.target as HTMLElement).closest("button, a")) {
       return;
     }
-
-    // Update URL with story ID
-    router.push(`?story=${story.id}`, { scroll: false });
-    setIsEditModalOpen(true);
+    router.push(`?viewStory=${story.id}`, { scroll: false });
+    setIsViewModalOpen(true);
   };
 
   // Handle modal close
@@ -72,10 +72,10 @@ export function PostCard({ story, isAuthor }: PostCardProps) {
 
   // Check URL params on mount and when they change
   useEffect(() => {
-    const storyId = searchParams.get("story");
-    if (storyId === story.id) {
-      setIsEditModalOpen(true);
-    }
+    const viewStory = searchParams.get("viewStory");
+    const editStory = searchParams.get("editStory");
+    if (viewStory === story.id) setIsViewModalOpen(true);
+    if (editStory === story.id) setIsEditModalOpen(true);
   }, [searchParams, story.id]);
 
   return (
@@ -108,9 +108,16 @@ export function PostCard({ story, isAuthor }: PostCardProps) {
               {story.title}
             </h3>
 
-            <div className="flex items-center flex-wrap gap-2">
-              <p className="text-xs sm:text-sm text-[var(--color-text-secondary)]">
-                {story.author.name} •{" "}
+            <div className="flex items-center flex-wrap gap-2 max-w-[200px]">
+              <p className="text-xs sm:text-sm text-[var(--color-text-secondary)] truncate">
+                <Link
+                  href={`/profile/${story.author.id}`}
+                  className="hover:text-[var(--color-brand-primary)] transition-colors inline-block whitespace-nowrap hover:underline font-primary"
+                  onClick={(e) => e.stopPropagation()}
+                >
+                  {story.author.name}
+                </Link>{" "}
+                •{" "}
                 {formatDistanceToNow(new Date(story.createdAt), {
                   addSuffix: true,
                 })}
@@ -173,7 +180,10 @@ export function PostCard({ story, isAuthor }: PostCardProps) {
         {isAuthor && (
           <div className="flex items-center gap-2 mt-3 sm:mt-4 pt-2 sm:pt-3 border-t border-[var(--color-border-light)]">
             <button
-              onClick={() => setIsEditModalOpen(true)}
+              onClick={() => {
+                router.push(`?editStory=${story.id}`, { scroll: false });
+                setIsEditModalOpen(true);
+              }}
               className="flex items-center gap-1 px-2 py-1 text-xs sm:text-sm text-[var(--color-text-secondary)] hover:text-[var(--color-text-primary)] transition-colors"
             >
               <Edit2 className="w-3 h-3 sm:w-4 sm:h-4" />
@@ -190,17 +200,21 @@ export function PostCard({ story, isAuthor }: PostCardProps) {
         )}
       </article>
 
-      {isAuthor ? (
+      <ViewPostModal
+        isOpen={isViewModalOpen}
+        onClose={() => {
+          router.push("/chronicles", { scroll: false });
+          setIsViewModalOpen(false);
+        }}
+        story={story}
+      />
+
+      {isAuthor && (
         <EditPostModal
           isOpen={isEditModalOpen}
           onClose={handleModalClose}
           story={story}
-        />
-      ) : (
-        <ViewPostModal
-          isOpen={isEditModalOpen}
-          onClose={handleModalClose}
-          story={story}
+          beaches={beaches}
         />
       )}
     </>

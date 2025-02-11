@@ -4,7 +4,7 @@ import { useState } from "react";
 import { useQueryClient, useMutation } from "@tanstack/react-query";
 import { X, Loader2, Link as LinkIcon } from "lucide-react";
 import { cn } from "@/app/lib/utils";
-import type { Story } from "@/app/types/stories";
+import type { Story, StoryBeach } from "@/app/types/stories";
 import { beachData } from "@/app/types/beaches";
 import { Button } from "@/app/components/ui/Button";
 import { STORY_CATEGORIES, StoryCategory } from "@/app/lib/constants";
@@ -13,9 +13,15 @@ interface EditPostModalProps {
   isOpen: boolean;
   onClose: () => void;
   story: Story;
+  beaches: StoryBeach[];
 }
 
-export function EditPostModal({ isOpen, onClose, story }: EditPostModalProps) {
+export function EditPostModal({
+  isOpen,
+  onClose,
+  story,
+  beaches,
+}: EditPostModalProps) {
   const queryClient = useQueryClient();
   const [searchTerm, setSearchTerm] = useState(story.beach?.name || "");
 
@@ -61,7 +67,7 @@ export function EditPostModal({ isOpen, onClose, story }: EditPostModalProps) {
         className="w-full px-3 py-2 bg-[var(--color-bg-secondary)] border border-[var(--color-border-light)] rounded-md focus:outline-none focus:ring-2 focus:ring-[var(--color-tertiary)]"
       >
         <option value="other">Other</option>
-        {beachData.map((beach) => (
+        {beaches.map((beach) => (
           <option key={beach.id} value={beach.id}>
             {beach.name}
           </option>

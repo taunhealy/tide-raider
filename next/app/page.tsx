@@ -29,7 +29,7 @@ export default async function HomePage() {
   const content = await getHomeContent();
 
   if (!content) {
-    return <div>Loading...</div>;
+    return <div className="font-primary">Loading...</div>;
   }
 
   return (

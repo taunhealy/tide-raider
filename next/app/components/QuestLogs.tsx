@@ -231,7 +231,7 @@ export default function QuestLogs({ beaches }: QuestLogsProps) {
                 </div>
               </div>
               {isLoading ? (
-                <div className="text-main text-[var(--color-text-secondary)]">
+                <div className="text-main text-[var(--color-text-secondary)] font-primary">
                   Loading...
                 </div>
               ) : filteredEntries.length > 0 ? (

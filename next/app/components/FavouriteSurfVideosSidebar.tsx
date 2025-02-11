@@ -93,9 +93,7 @@ export default function FavouriteSurfVideosSidebar({
                 >
                   <td className="p-4 text-sm text-gray-600">
                     <Link
-                      href={
-                        favorite.user?.id ? `/profile/${favorite.user.id}` : "#"
-                      }
+                      href={`/profile/${favorite.userId}`}
                       className="hover:text-[var(--color-bg-tertiary)] transition-colors"
                     >
                       {favorite.user?.name || "Anonymous"}

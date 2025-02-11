@@ -37,7 +37,7 @@ export default function ProfilePage() {
 
   if (isLoading)
     return (
-      <div className="min-h-screen flex items-center justify-center">
+      <div className="min-h-screen flex items-center justify-center font-primary">
         Loading...
       </div>
     );

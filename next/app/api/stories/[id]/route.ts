@@ -122,3 +122,43 @@ export async function DELETE(
     );
   }
 }
+
+export async function GET(
+  request: Request,
+  { params }: { params: { userId: string } }
+) {
+  try {
+    const userStories = await prisma.story.findMany({
+      where: {
+        authorId: params.userId,
+      },
+      include: {
+        author: {
+          select: {
+            id: true,
+            name: true,
+            email: true,
+            image: true,
+          },
+        },
+        beach: {
+          select: {
+            id: true,
+            name: true,
+          },
+        },
+      },
+      orderBy: {
+        createdAt: "desc",
+      },
+    });
+
+    return NextResponse.json(userStories);
+  } catch (error) {
+    console.error("Failed to fetch user stories:", error);
+    return NextResponse.json(
+      { error: "Failed to fetch user stories" },
+      { status: 500 }
+    );
+  }
+}

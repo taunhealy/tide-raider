@@ -52,31 +52,33 @@ export default function FavouriteSurfVideosSidebar({
   };
 
   return (
-    <div className="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden">
-      <div className="p-6 border-b border-gray-200">
-        <div className="flex justify-between items-center">
-          <h6 className="heading-6 text-gray-900">Favourite Surf Vids</h6>
+    <div className="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden max-w-[540px]">
+      <div className="p-6 border-b border-gray-200 ">
+        <div className="flex justify-between items-left ">
+          <h6 className="heading-6 text-gray-900">
+            Favourite Surf Travel Vids
+          </h6>
           <Link
             href="/favorites/create"
-            className="text-small bg-[var(--color-bg-tertiary)] text-white px-4 py-2 rounded-md hover:opacity-90"
+            className="flex items-center justify-center h-[40px] text-small bg-[var(--color-bg-tertiary)] text-white px-4 py-2 rounded-md hover:opacity-90"
           >
             Post
           </Link>
         </div>
       </div>
 
-      <div className="divide-y divide-gray-200">
+      <div className="divide-y divide-gray-100">
         {loading ? (
           Array(3)
             .fill(0)
             .map((_, i) => (
               <div key={i} className="p-4">
                 <div className="flex gap-4">
-                  <Skeleton className="h-16 w-16 rounded-lg" />
+                  <Skeleton className="h-16 w-16 rounded-lg bg-[var(--color-bg-secondary)]" />
                   <div className="flex-1 space-y-2">
-                    <Skeleton className="h-4 w-[200px]" />
-                    <Skeleton className="h-3 w-[160px]" />
-                    <Skeleton className="h-3 w-[120px]" />
+                    <Skeleton className="h-4 w-[200px] bg-[var(--color-bg-secondary)]" />
+                    <Skeleton className="h-3 w-[160px] bg-[var(--color-bg-secondary)]" />
+                    <Skeleton className="h-3 w-[120px] bg-[var(--color-bg-secondary)]" />
                   </div>
                 </div>
               </div>
@@ -123,7 +125,7 @@ export default function FavouriteSurfVideosSidebar({
             </tbody>
           </table>
         ) : (
-          <div className="text-center p-6">
+          <div className="text-start p-6">
             <p className="text-small font-primary text-gray-800 mb-4">
               No Favourites Yet 🌊
             </p>

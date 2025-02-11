@@ -1,13 +1,9 @@
-import QuestLogs from "@/app/components/QuestLogs";
 import { getBeaches } from "@/app/lib/data";
+import { ClientRaidLogs } from "@/app/components/ClientRaidLogs";
+import type { Beach } from "@/types/beaches";
 
+// Server component (can be async)
 export default async function RaidLogsPage() {
   const beaches = await getBeaches();
-
-  return (
-    <div className="min-h-screen bg-[var(--color-bg-secondary)]">
-      <QuestLogs beaches={beaches} />
-    </div>
-  );
+  return <ClientRaidLogs beaches={beaches} />;
 }
-  

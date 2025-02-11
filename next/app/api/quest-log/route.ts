@@ -3,6 +3,7 @@ import { prisma } from "@/app/lib/prisma";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/app/lib/authOptions";
 import { beachData } from "@/app/types/beaches";
+import { checkSubscription } from "@/app/lib/surfUtils";
 
 function getTodayDate() {
   const date = new Date();
@@ -14,6 +15,8 @@ export async function GET(request: Request) {
     const { searchParams } = new URL(request.url);
     const date = searchParams.get("date");
     const beachName = searchParams.get("beach");
+    const userId = searchParams.get("userId");
+    const session = await getServerSession(authOptions);
 
     // If date and beach are provided, return forecast data without auth check
     if (date && beachName) {
@@ -69,25 +72,54 @@ export async function GET(request: Request) {
     }
 
     // For entry listing, require authentication
-    const session = await getServerSession(authOptions);
     if (!session?.user?.email) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
+    const where: any = {};
+
+    // If viewing specific user's logs
+    if (userId) {
+      where.surferEmail = userId;
+      // Show private logs only if viewing own profile
+      if (userId !== session.user.email) {
+        where.isPrivate = false;
+      }
+    } else {
+      // For general log listing
+      where.OR = [{ isPrivate: false }, { surferEmail: session.user.email }];
+    }
+
     const entries = await prisma.logEntry.findMany({
-      where: {
-        surferEmail: session.user.email,
-      },
+      where,
       orderBy: {
         date: "desc",
+      },
+      select: {
+        id: true,
+        date: true,
+        surferName: true,
+        surferEmail: true,
+        beachName: true,
+        forecast: true,
+        surferRating: true,
+        comments: true,
+        imageUrl: true,
+        isPrivate: true,
+        createdAt: true,
+        updatedAt: true,
       },
     });
 
     return NextResponse.json({ entries });
-  } catch (error) {
-    console.error("Error in quest-log route:", error);
+  } catch (error: any) {
+    console.error("Database error:", error);
     return NextResponse.json(
-      { error: "Failed to process request" },
+      {
+        error: "Failed to fetch log entries",
+        details: error.message,
+        prismaErrorCode: error.code,
+      },
       { status: 500 }
     );
   }
@@ -96,29 +128,23 @@ export async function GET(request: Request) {
 export async function POST(request: Request) {
   try {
     const session = await getServerSession(authOptions);
-    if (!session?.user?.email) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    if (!session?.user) return new Response("Unauthorized", { status: 401 });
+
+    const isSubscribed = await checkSubscription(session.user.id);
+    if (!isSubscribed) {
+      return new Response("Subscription required to create logs", {
+        status: 403,
+      });
     }
 
     const data = await request.json();
 
-    // Get forecast data from surf-conditions endpoint instead
-    const forecastResponse = await fetch(
-      `${process.env.NEXT_PUBLIC_BASE_URL}/api/surf-conditions?date=${data.date}&region=${encodeURIComponent(data.beach.region)}`
-    );
-
-    const forecastData = await forecastResponse.json();
-
     const entry = await prisma.logEntry.create({
       data: {
+        ...data,
         date: new Date(data.date),
-        surferName: data.surferName,
         surferEmail: session.user.email,
-        beachName: data.beachName,
-        forecast: forecastData,
-        surferRating: data.surferRating,
-        comments: data.comments || "",
-        imageUrl: data.imageUrl,
+        isPrivate: data.isPrivate || false,
       },
     });
 

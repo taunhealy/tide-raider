@@ -47,6 +47,7 @@ export function QuestLogFilter({
     countries: [] as string[],
     regions: [] as string[],
     minRating: 0,
+    isPrivate: false,
   });
 
   const [beachSearch, setBeachSearch] = useState("");
@@ -226,6 +227,25 @@ export function QuestLogFilter({
           </div>
         </div>
 
+        {/* Visibility */}
+        <div className="mb-4">
+          <h3 className="text-sm font-medium mb-2">Visibility</h3>
+          <div className="flex items-center space-x-2">
+            <input
+              type="checkbox"
+              id="showPrivate"
+              checked={filters.isPrivate || false}
+              onChange={(e) =>
+                setFilters((prev) => ({ ...prev, isPrivate: e.target.checked }))
+              }
+              className="rounded border-gray-300"
+            />
+            <label htmlFor="showPrivate" className="text-sm text-gray-600">
+              Show Private Logs Only
+            </label>
+          </div>
+        </div>
+
         {/* Reset Filters */}
         <button
           onClick={() =>
@@ -236,6 +256,7 @@ export function QuestLogFilter({
               countries: [],
               regions: [],
               minRating: 0,
+              isPrivate: false,
             })
           }
           className="w-full px-4 py-2 text-sm font-medium text-gray-600 bg-gray-100 rounded-lg hover:bg-gray-200"

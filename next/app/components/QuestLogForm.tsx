@@ -1,6 +1,6 @@
 "use client";
 import { useState, useEffect } from "react";
-import { Star, Search, X, Upload } from "lucide-react";
+import { Star, Search, X, Upload, Lock } from "lucide-react";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { cn } from "@/app/lib/utils";
 import { beachData } from "@/app/types/beaches";
@@ -10,6 +10,8 @@ import SurfForecastWidget from "./SurfForecastWidget";
 import confetti from "canvas-confetti";
 import { Button } from "@/app/components/ui/Button";
 import { validateFile, compressImageIfNeeded } from "@/app/lib/file";
+import { LogVisibilityToggle } from "@/app/components/LogVisibilityToggle";
+import { useSubscription } from "@/app/context/SubscriptionContext";
 
 interface QuestLogFormProps {
   userEmail: string;
@@ -25,6 +27,7 @@ export function QuestLogForm({
   beaches,
 }: QuestLogFormProps) {
   const queryClient = useQueryClient();
+  const { isSubscribed } = useSubscription();
   const [selectedDate, setSelectedDate] = useState<string>(
     new Date().toISOString().split("T")[0]
   );
@@ -39,6 +42,7 @@ export function QuestLogForm({
   const [isSubmitted, setIsSubmitted] = useState(false);
   const [forecast, setForecast] = useState<any>(null);
   const [uploadedImageUrl, setUploadedImageUrl] = useState<string>("");
+  const [isHovered, setIsHovered] = useState(false);
 
   const createLogEntry = useMutation({
     mutationFn: async (newEntry: CreateLogEntryInput) => {
@@ -230,6 +234,25 @@ export function QuestLogForm({
         <div className="fixed inset-0 z-50 flex items-center justify-center">
           <div className="absolute inset-0 bg-black/50" onClick={onClose} />
           <div className="relative bg-white rounded-lg shadow-xl max-w-[1200px] w-full m-4 p-6 overflow-y-auto max-h-[90vh]">
+            {!isSubscribed && (
+              <div className="absolute inset-0 bg-gray-100/50 backdrop-blur-[2px] z-10 rounded-lg" />
+            )}
+
+            {!isSubscribed && (
+              <div
+                className="absolute inset-0 flex items-center justify-center z-20"
+                onMouseEnter={() => setIsHovered(true)}
+                onMouseLeave={() => setIsHovered(false)}
+              >
+                <Lock className="h-16 w-16 text-gray-400 transition-opacity" />
+                {isHovered && (
+                  <div className="absolute top-1/2 left-1/2 -translate-x-1/2 translate-y-16 bg-gray-800 text-white px-4 py-2 rounded-md text-sm">
+                    Subscribe to log sessions
+                  </div>
+                )}
+              </div>
+            )}
+
             <button
               onClick={onClose}
               className="absolute top-4 right-4 text-gray-400 hover:text-gray-500"
@@ -400,8 +423,16 @@ export function QuestLogForm({
                   <Button
                     type="submit"
                     variant="secondary"
-                    className="w-full lg:bg-[var(--color-tertiary)] lg:text-white lg:hover:bg-[var(--color-tertiary)]/90"
-                    disabled={!selectedBeach || !selectedDate || isSubmitting}
+                    className={cn(
+                      "w-full lg:bg-[var(--color-tertiary)] lg:text-white lg:hover:bg-[var(--color-tertiary)]/90",
+                      !isSubscribed && "opacity-50 cursor-not-allowed"
+                    )}
+                    disabled={
+                      !isSubscribed ||
+                      !selectedBeach ||
+                      !selectedDate ||
+                      isSubmitting
+                    }
                   >
                     {isSubmitting
                       ? "Submitting..."

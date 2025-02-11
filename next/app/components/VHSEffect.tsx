@@ -59,23 +59,24 @@ export default function VHSEffect() {
           uv.x += sin(uv.y * 15.0 + time * 1.5) * 0.01; // Slower horizontal warping
           uv.y += sin(time * 1.0) * 0.001; // Slower and smaller jitter
           
-          // Scanline variations
-          float scanlineNoise = rand(vec2(uv.y * 100.0, time * 0.1)) * 0.1;
-          float scanlineWobble = sin(uv.y * 50.0 + time * 2.0) * 0.005;
+          // Reduced scanline parameters
+          float scanlineNoise = rand(vec2(uv.y * 100.0, time * 0.1)) * 0.05;  // Reduced from 0.1
+          float scanlineWobble = sin(uv.y * 50.0 + time * 2.0) * 0.003;  // Reduced from 0.005
           
+          // Softer scanline parameters
           float scanPos = fract(uv.y * 1.2 + time * 0.1 + scanlineWobble);
-          float baseScanline = smoothstep(0.4, 0.6, sin(scanPos * 3.1415 * 2.0));
+          float baseScanline = smoothstep(0.3, 0.7, sin(scanPos * 3.1415 * 2.0));  // Wider smoothstep range
           
-          // Dynamic intensity
-          float scanlineFlicker = 0.8 + sin(time * 3.0) * 0.2;
-          float scanline = baseScanline * 0.15 * scanlineFlicker + scanlineNoise;
+          // Reduced scanline intensity
+          float scanlineFlicker = 0.8 + sin(time * 3.0) * 0.05;  // Reduced flicker variation
+          float scanline = baseScanline * 0.06 * scanlineFlicker + scanlineNoise;  // Reduced multiplier
           
-          // Scanline curvature
-          float curvature = 1.0 - pow(abs(uv.x - 0.5) * 2.0, 2.0);
-          scanline *= curvature;
+          // Smoother curvature with adjusted falloff
+          float curvature = 1.0 - pow(abs(uv.x - 0.5) * 2.0, 2.0);  // Changed exponent to 2.0 for smoother curve
+          scanline *= curvature * 0.7;  // Reduced curvature intensity
           
-          // Scanline opacity falloff
-          scanline *= 1.0 - smoothstep(0.3, 0.7, abs(uv.y - 0.5));
+          // Faster opacity falloff
+          scanline *= 1.0 - smoothstep(0.4, 0.6, abs(uv.y - 0.5));  // Tighter falloff range
           
           // Stabilized color offsets
           float rOffset = 0.003 * sin(time * 0.3);
@@ -92,22 +93,18 @@ export default function VHSEffect() {
           // Distortion
           float distortion = (noise + scanline) * vignette;
           
-          // Tracking lines (every 0.5 seconds)
-          float tracking = step(0.999, sin(uv.y * 100.0 + time * 0.5));
+          // Softer tracking lines
+          float tracking = smoothstep(0.998, 0.999, sin(uv.y * 80.0 + time * 0.5)) * 0.15;  // Wider line spread
           
-          // Magnetic tape glitch (random full-screen flash)
-          float glitch = step(0.9995, rand(vec2(time)));
+          // Reduced vertical noise intensity
+          float verticalNoise = smoothstep(0.98, 0.99, rand(vec2(uv.x * 30.0, floor(time * 1.5)))) * 0.1;
           
-          // Head switching noise (vertical bursts)
-          float verticalNoise = step(0.99, rand(vec2(uv.x * 50.0, floor(time * 2.0))));
-          
-          // Dropout dots
-          float dropouts = step(0.999, rand(uv + time));
+          // Softer dropout effect
+          float dropouts = smoothstep(0.998, 0.999, rand(uv + time)) * 0.2;
           
           // Combine new effects
           distortion += tracking * 0.3;
-          distortion = mix(distortion, 1.0, glitch * 0.5);
-          distortion += verticalNoise * 0.2;
+          distortion = mix(distortion, 1.0, verticalNoise * 0.2);
           distortion -= dropouts * 0.4;
           
           // Color tint

@@ -12,12 +12,14 @@ import {
   getDirectionEmoji,
 } from "@/app/lib/forecastUtils";
 import Image from "next/image";
+import { useSession } from "next-auth/react";
 
 interface QuestTableProps {
   entries: LogEntry[];
   columns?: QuestLogTableColumn[];
   isSubscribed?: boolean;
   isLoading?: boolean;
+  showPrivateOnly?: boolean;
 }
 
 interface LogEntryDisplayProps {
@@ -154,16 +156,20 @@ export function QuestLogTable({
   columns = DEFAULT_COLUMNS,
   isSubscribed = false,
   isLoading = false,
+  showPrivateOnly = false,
 }: QuestTableProps) {
-  // Filter entries for non-subscribers
-  const visibleEntries = entries.map((entry) => ({
-    ...entry,
-    // Blur comments for high-rated sessions for non-subscribers
-    comments:
-      !isSubscribed && entry.surferRating > 3
-        ? "Subscribe to view details of highly rated sessions"
-        : entry.comments,
-  }));
+  const { data: session } = useSession();
+
+  const filteredEntries = entries.filter((entry) => {
+    if (showPrivateOnly) {
+      return entry.isPrivate;
+    }
+    // Show private entries only if user is the owner
+    if (entry.isPrivate) {
+      return entry.surferEmail === session?.user?.email;
+    }
+    return true;
+  });
 
   if (isLoading) {
     return <TableSkeleton />;
@@ -173,7 +179,7 @@ export function QuestLogTable({
     <div className="w-full">
       {/* Mobile View - Cards */}
       <div className="md:hidden space-y-4">
-        {visibleEntries.map((entry) => (
+        {filteredEntries.map((entry) => (
           <div
             key={entry.id}
             className="bg-white rounded-lg border border-gray-200 shadow p-4 space-y-3"
@@ -227,7 +233,7 @@ export function QuestLogTable({
               </tr>
             </thead>
             <tbody className="bg-white divide-y divide-gray-200">
-              {visibleEntries.map((entry) => (
+              {filteredEntries.map((entry) => (
                 <tr key={entry.id} className="hover:bg-gray-50">
                   <td className="px-6 py-4 whitespace-nowrap">
                     {format(new Date(entry.date), "MMM d, yyyy")}

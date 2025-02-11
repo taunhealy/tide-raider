@@ -98,91 +98,93 @@ export default function DashboardPage() {
         </Button>
       </div>
 
-      {activeTab === "account" && (
-        <div className="max-w-lg space-y-4">
-          <div>
-            <label className="block text-sm font-medium mb-2 font-primary">
-              Email
-            </label>
-            <input
-              type="email"
-              value={session?.user?.email || ""}
-              className="w-full p-2 border rounded-md"
-              disabled
-            />
-          </div>
-          <div>
-            <label className="block text-sm font-medium mb-2 font-primary">
-              Username
-            </label>
-            <div className="flex gap-2">
-              <input
-                type="text"
-                value={username}
-                onChange={(e) => {
-                  setUsername(e.target.value);
-                  setError(null);
-                }}
-                className="flex-1 p-2 border rounded-md"
-              />
-              <Button onClick={handleUsernameUpdate} disabled={isLoading}>
-                {isLoading ? "Updating..." : "Update"}
-              </Button>
-            </div>
-            <div className="mt-2">
+      <div className="min-h-[400px] min-w-[500px] max-w-[500px]">
+        {activeTab === "account" && (
+          <div className="space-y-4">
+            <div>
               <label className="block text-sm font-medium mb-2 font-primary">
-                User ID
+                Email
               </label>
               <input
-                type="text"
-                value={session?.user?.id || ""}
-                className="w-full p-2 border rounded-md bg-gray-100"
+                type="email"
+                value={session?.user?.email || ""}
+                className="w-full p-2 border rounded-md"
                 disabled
               />
             </div>
-            {error && <p className="text-sm text-red-600 mt-1">{error}</p>}
+            <div>
+              <label className="block text-sm font-medium mb-2 font-primary">
+                Username
+              </label>
+              <div className="flex gap-2">
+                <input
+                  type="text"
+                  value={username}
+                  onChange={(e) => {
+                    setUsername(e.target.value);
+                    setError(null);
+                  }}
+                  className="flex-1 p-2 border rounded-md"
+                />
+                <Button onClick={handleUsernameUpdate} disabled={isLoading}>
+                  {isLoading ? "Updating..." : "Update"}
+                </Button>
+              </div>
+              <div className="mt-2">
+                <label className="block text-sm font-medium mb-2 font-primary">
+                  User ID
+                </label>
+                <input
+                  type="text"
+                  value={session?.user?.id || ""}
+                  className="w-full p-2 border rounded-md bg-gray-100"
+                  disabled
+                />
+              </div>
+              {error && <p className="text-sm text-red-600 mt-1">{error}</p>}
+            </div>
           </div>
-        </div>
-      )}
+        )}
 
-      {activeTab === "billing" && (
-        <div className="max-w-lg space-y-4">
-          <h2 className="text-xl font-semibold font-primary">
-            Subscription Status
-          </h2>
-          {isSubscribed ? (
-            <div className="p-4 border rounded-md bg-green-50">
-              <p className="font-medium">Active Subscription</p>
-              <Button
-                variant="destructive"
-                className="mt-2"
-                onClick={() => handleUnsubscribe()}
-              >
-                Unsubscribe
-              </Button>
-            </div>
-          ) : (
-            <div className="p-4 border rounded-md bg-yellow-50">
-              <p className="mb-2">
-                {hasActiveTrial
-                  ? "Your free trial is active!"
-                  : "No active subscription"}
-              </p>
-              <Button
-                onClick={() =>
-                  hasActiveTrial
-                    ? (window.location.href = "/pricing")
-                    : handleTrial()
-                }
-              >
-                {hasActiveTrial
-                  ? "Continue to Subscription"
-                  : "Start Free Trial"}
-              </Button>
-            </div>
-          )}
-        </div>
-      )}
+        {activeTab === "billing" && (
+          <div className="space-y-4">
+            <h2 className="text-xl font-semibold font-primary">
+              Subscription Status
+            </h2>
+            {isSubscribed ? (
+              <div className="p-4 border rounded-md bg-green-50">
+                <p className="font-medium">Active Subscription</p>
+                <Button
+                  variant="destructive"
+                  className="mt-2"
+                  onClick={() => handleUnsubscribe()}
+                >
+                  Unsubscribe
+                </Button>
+              </div>
+            ) : (
+              <div className="p-4 border rounded-md bg-yellow-50">
+                <p className="mb-2">
+                  {hasActiveTrial
+                    ? "Your free trial is active!"
+                    : "No active subscription"}
+                </p>
+                <Button
+                  onClick={() =>
+                    hasActiveTrial
+                      ? (window.location.href = "/pricing")
+                      : handleTrial()
+                  }
+                >
+                  {hasActiveTrial
+                    ? "Continue to Subscription"
+                    : "Start Free Trial"}
+                </Button>
+              </div>
+            )}
+          </div>
+        )}
+      </div>
     </div>
   );
 }

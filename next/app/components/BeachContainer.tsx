@@ -1108,15 +1108,6 @@ export default function BeachContainer({
       {/* Sticky Forecast Widget */}
       <StickyForecastWidget windData={windData} />
 
-      {/* Sticky Region Filter */}
-      <StickyRegionFilter
-        regions={uniqueRegions}
-        selectedRegion={selectedRegion}
-        onRegionChange={handleRegionChange}
-        regionCounts={regionScoreCounts}
-        isLoading={isAllDataLoading}
-      />
-
       {/* Add Sponsor Container */}
       <SponsorContainer />
     </div>

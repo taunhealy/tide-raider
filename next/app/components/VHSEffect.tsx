@@ -54,73 +54,53 @@ export default function VHSEffect() {
         }
         
         void main() {
-          // Reduced distortion parameters
           vec2 uv = vUv;
-          uv.x += sin(uv.y * 15.0 + time * 1.5) * 0.01; // Slower horizontal warping
-          uv.y += sin(time * 1.0) * 0.001; // Slower and smaller jitter
           
-          // Reduced scanline parameters
-          float scanlineNoise = rand(vec2(uv.y * 100.0, time * 0.1)) * 0.05;  // Reduced from 0.1
-          float scanlineWobble = sin(uv.y * 50.0 + time * 2.0) * 0.003;  // Reduced from 0.005
+          // Enhanced distortion
+          uv.x += sin(uv.y * 20.0 + time * 2.0) * 0.02;
+          uv.y += sin(time * 1.5) * 0.002;
           
-          // Softer scanline parameters
-          float scanPos = fract(uv.y * 1.2 + time * 0.1 + scanlineWobble);
-          float baseScanline = smoothstep(0.3, 0.7, sin(scanPos * 3.1415 * 2.0));  // Wider smoothstep range
+          // Yellow tracking line effect
+          float yellowLine = smoothstep(0.998, 0.999, sin(uv.y * 100.0 + time * 3.0)) * 0.3;
+          yellowLine *= smoothstep(0.4, 0.6, rand(vec2(time * 0.1, floor(uv.y * 50.0))));
           
-          // Reduced scanline intensity
-          float scanlineFlicker = 0.8 + sin(time * 3.0) * 0.05;  // Reduced flicker variation
-          float scanline = baseScanline * 0.06 * scanlineFlicker + scanlineNoise;  // Reduced multiplier
+          // Intensified scanlines
+          float scanPos = fract(uv.y * 1.5 + time * 0.2);
+          float scanline = smoothstep(0.4, 0.6, sin(scanPos * 3.1415 * 2.0)) * 0.08;
+          scanline += rand(vec2(uv.y * 100.0, time * 0.1)) * 0.1;
           
-          // Smoother curvature with adjusted falloff
-          float curvature = 1.0 - pow(abs(uv.x - 0.5) * 2.0, 2.0);  // Changed exponent to 2.0 for smoother curve
-          scanline *= curvature * 0.7;  // Reduced curvature intensity
+          // Vertical noise interference
+          float verticalNoise = smoothstep(0.95, 0.99, rand(vec2(uv.x * 50.0, floor(time * 2.0)))) * 0.2;
           
-          // Faster opacity falloff
-          scanline *= 1.0 - smoothstep(0.4, 0.6, abs(uv.y - 0.5));  // Tighter falloff range
+          // Color channel offsets
+          float rOffset = 0.005 * sin(time * 0.25);
+          float gOffset = 0.005 * sin(time * 0.3 + 1.0);
+          float bOffset = 0.005 * sin(time * 0.35 + 2.0);
           
-          // Stabilized color offsets
-          float rOffset = 0.003 * sin(time * 0.3);
-          float gOffset = 0.003 * sin(time * 0.4 + 1.0);
-          float bOffset = 0.003 * sin(time * 0.5 + 2.0);
-          
-          // Noise
-          float noise = rand(uv * vec2(time * 0.2)) * 0.5;
-          noise += rand(uv * 15.0 + time) * 0.2;
+          // Tape-like distortion
+          float warp = sin(uv.x * 30.0 + time * 2.0) * 0.005;
+          uv.x += warp * (0.5 + 0.5 * sin(time * 0.5));
           
           // Vignette
-          float vignette = 1.0 - length(uv - 0.5) * 1.2;
+          float vignette = 1.0 - length(uv - 0.5) * 1.5;
+          vignette = pow(vignette, 2.0);
           
-          // Distortion
-          float distortion = (noise + scanline) * vignette;
-          
-          // Softer tracking lines
-          float tracking = smoothstep(0.998, 0.999, sin(uv.y * 80.0 + time * 0.5)) * 0.15;  // Wider line spread
-          
-          // Reduced vertical noise intensity
-          float verticalNoise = smoothstep(0.98, 0.99, rand(vec2(uv.x * 30.0, floor(time * 1.5)))) * 0.1;
-          
-          // Softer dropout effect
-          float dropouts = smoothstep(0.998, 0.999, rand(uv + time)) * 0.2;
-          
-          // Combine new effects
-          distortion += tracking * 0.3;
-          distortion = mix(distortion, 1.0, verticalNoise * 0.2);
-          distortion -= dropouts * 0.4;
-          
-          // Color tint
-          vec3 tint = vec3(
-            0.85 + distortion * 0.5,
-            0.9 + distortion * 0.2,
-            0.95 - distortion * 0.4
+          // Final color composition
+          vec3 baseColor = vec3(
+            rand(uv * vec2(time * 0.3)) * 0.3 + scanline,
+            rand(uv * vec2(time * 0.25)) * 0.3 + scanline,
+            rand(uv * vec2(time * 0.2)) * 0.3 + scanline
           );
           
-          // Final color
-          vec3 color = vec3(distortion) * tint;
+          // Add yellow line with fade-out
+          vec3 finalColor = mix(baseColor, vec3(1.0, 0.8, 0.1), yellowLine * vignette);
+          finalColor = mix(finalColor, vec3(0.0), verticalNoise);
+          
           gl_FragColor = vec4(
-            color.r * 1.1 - rOffset,
-            color.g * 0.95 - gOffset,
-            color.b * 0.9 - bOffset,
-            0.25 // Increased opacity
+            finalColor.r * (1.0 - rOffset),
+            finalColor.g * (1.0 - gOffset),
+            finalColor.b * (1.0 - bOffset),
+            0.3
           );
         }
       `,

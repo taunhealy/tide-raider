@@ -37,11 +37,11 @@ const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
           "disabled:opacity-50 disabled:pointer-events-none",
           // Variant styles
           {
-            "bg-[var(--color-bg-tertiary)] text-white hover:bg-[var(--color-bg-tertiary)]/90 focus-visible:ring-[var(--color-bg-tertiary)]":
+            "bg-[var(--color-bg-tertiary)] text-white hover:bg-[var(--color-bg-tertiary)]/90":
               variant === "default",
             "bg-red-600 text-white hover:bg-red-700 focus-visible:ring-red-600":
               variant === "destructive",
-            "border border-gray-300 bg-white hover:bg-gray-50 focus-visible:ring-gray-400":
+            "border border-gray-300 bg-white hover:bg-gray-100":
               variant === "outline",
             "hover:bg-gray-100 hover:text-gray-900 focus-visible:ring-gray-400":
               variant === "ghost",

@@ -4,7 +4,6 @@ import React, { useState, useEffect } from "react";
 import { QuestLogForm } from "./QuestLogForm";
 import { useSession, signIn } from "next-auth/react";
 import { useQuery } from "@tanstack/react-query";
-import { cn } from "@/app/lib/utils";
 import { QuestLogTable } from "./QuestLogTable";
 import { QuestLogFilter } from "./QuestLogFilter";
 import type {
@@ -196,7 +195,7 @@ export default function QuestLogs({ beaches }: QuestLogsProps) {
                   : "text-[var(--color-text-secondary)] hover:text-[var(--color-text-primary)] hover:bg-gray-50"
               }`}
             >
-              <span className="whitespace-nowrap">Logged Side Quests</span>
+              <span className="whitespace-nowrap">Logged Sessions</span>
             </button>
             <button
               onClick={handleOpenModal}
@@ -216,7 +215,7 @@ export default function QuestLogs({ beaches }: QuestLogsProps) {
           {activeTab === "logs" ? (
             <div className="w-full">
               <div className="flex justify-between items-center mb-6">
-                <h2 className="heading-5">Logged Side Quests</h2>
+                <h2 className="heading-5">Logged Sessions</h2>
                 <div className="flex gap-4 items-center">
                   <LogVisibilityToggle
                     isPrivate={showPrivateOnly}

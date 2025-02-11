@@ -17,14 +17,14 @@ export function LogVisibilityToggle({
     <div className={cn("flex items-center gap-2", className)}>
       <span className="text-sm font-medium text-gray-700">Visibility:</span>
       <Button
-        variant={isPrivate ? "default" : "outline"}
+        variant={!isPrivate ? "default" : "outline"}
         size="sm"
         onClick={() => onChange(false)}
       >
         Public
       </Button>
       <Button
-        variant={isPrivate ? "outline" : "default"}
+        variant={isPrivate ? "default" : "outline"}
         size="sm"
         onClick={() => onChange(true)}
       >

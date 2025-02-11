@@ -58,10 +58,10 @@ export interface SortConfig {
 }
 
 export interface FilterConfig {
-  beachName?: string;
-  surferName?: string;
-  minRating?: number;
-  dateRange?: {
+  beachName: string;
+  surferName: string;
+  minRating: number;
+  dateRange: {
     start: string;
     end: string;
   };
@@ -84,8 +84,16 @@ export const DEFAULT_COLUMNS: QuestLogTableColumn[] = [
     label: "Conditions",
     render: (entry: LogEntry) =>
       entry.forecast
-        ? `${entry.forecast.swellHeight}m ${getSwellEmoji(entry.forecast.swellHeight)} | ${getWindEmoji(entry.forecast.windSpeed)} ${entry.forecast.windSpeed}km/h | ${getDirectionEmoji(parseInt(entry.forecast.swellDirection))}`
+        ? `${entry.forecast.swellHeight || 0}m ${getSwellEmoji(entry.forecast.swellHeight || 0)} | ${getWindEmoji(entry.forecast.windSpeed || 0)} ${entry.forecast.windSpeed || 0}km/h | ${getDirectionEmoji(parseInt(String(entry.forecast.swellDirection || 0)))}`
         : "No forecast data",
   },
   { key: "comments", label: "Comments" },
 ];
+
+export type RegionFilters = {
+  continents: string[];
+  countries: string[];
+  regions: string[];
+  beaches: string[];
+  waveTypes: string[];
+};

@@ -11,10 +11,11 @@ import UserNotFound from "@/app/components/UserNotFound";
 import BioSection from "@/app/components/profile/BioSection";
 import { ClientProfileLogs } from "@/app/components/ClientProfileLogs";
 import StoriesContainer from "@/app/components/StoriesContainer";
+import ProfileHeader from "@/app/components/profile/ProfileHeader";
 
 // Server component
 export default function ProfilePage() {
-  const { userId } = useParams();
+  const { userId } = useParams<{ userId: string }>();
   const { data: session } = useSession();
   const [activeTab, setActiveTab] = useState<
     "account" | "favourites" | "logs" | "chronicles"
@@ -46,28 +47,7 @@ export default function ProfilePage() {
 
   return (
     <div className="container mx-auto p-6 font-primary">
-      <div className="flex items-center gap-4 mb-8">
-        <div className="relative group">
-          <div className="relative w-20 h-20 rounded-full overflow-hidden">
-            <Image
-              src={avatarUrl || "/default-avatar.png"}
-              alt="Profile"
-              width={80}
-              height={80}
-              className="object-cover"
-            />
-          </div>
-        </div>
-
-        <div>
-          <h1 className="text-2xl font-bold">
-            {userData?.name || "Anonymous"}
-          </h1>
-          <p className="text-gray-600">
-            Joined {new Date(userData?.createdAt).toLocaleDateString()}
-          </p>
-        </div>
-      </div>
+      <ProfileHeader userData={userData} isOwnProfile={isOwnProfile} />
 
       <div className="flex gap-4 mb-6">
         <Button

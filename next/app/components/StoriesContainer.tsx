@@ -13,6 +13,7 @@ import { STORY_CATEGORIES, type StoryCategory } from "@/app/lib/constants";
 
 interface WildStoriesProps {
   beaches: StoryBeach[];
+  userId: string;
 }
 
 const inter = Inter({ subsets: ["latin"] });

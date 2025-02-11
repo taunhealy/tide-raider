@@ -11,6 +11,7 @@ export type StoryBeach = {
 
 export interface Story {
   id: string;
+  userId: string;
   title: string;
   beach?: StoryBeach;
   date: string;

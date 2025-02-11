@@ -8,6 +8,7 @@ import { cn } from "@/app/lib/utils";
 import type { Beach } from "@/app/types/beaches";
 import { STORY_CATEGORIES, type StoryCategory } from "@/app/lib/constants";
 import { StoryBeach } from "../types/stories";
+import confetti from "canvas-confetti";
 
 interface CreatePostModalProps {
   isOpen: boolean;
@@ -51,7 +52,11 @@ export function CreatePostModal({
       queryClient.invalidateQueries({ queryKey: ["stories"] });
       onClose();
       resetForm();
-      // TODO: Add confetti here
+      confetti({
+        particleCount: 100,
+        spread: 70,
+        origin: { y: 0.6 },
+      });
     },
     onError: (error: Error) => {
       setError(error.message);

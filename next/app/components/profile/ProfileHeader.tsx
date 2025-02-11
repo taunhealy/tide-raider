@@ -11,6 +11,7 @@ interface ProfileHeaderProps {
     image: string | null;
     id: string;
     createdAt?: Date | string;
+    link?: string;
   };
   isOwnProfile?: boolean;
 }
@@ -87,12 +88,18 @@ export default function ProfileHeader({
         <h1 className="text-2xl font-bold font-primary">
           {userData?.name || "Anonymous"}
         </h1>
-        <p className="text-gray-600 font-primary">
-          Joined{" "}
-          {userData?.createdAt
-            ? new Date(userData.createdAt).toLocaleDateString()
-            : "Unknown"}
-        </p>
+        {userData?.link && (
+          <div className="mt-1">
+            <a
+              href={userData.link}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="text-[var(--color-tertiary)] hover:underline text-sm"
+            >
+              {userData.link.replace(/(^\w+:|^)\/\//, "")}
+            </a>
+          </div>
+        )}
       </div>
     </div>
   );

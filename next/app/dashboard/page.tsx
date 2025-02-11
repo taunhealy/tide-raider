@@ -103,17 +103,6 @@ export default function DashboardPage() {
           <div className="space-y-4">
             <div>
               <label className="block text-sm font-medium mb-2 font-primary">
-                Email
-              </label>
-              <input
-                type="email"
-                value={session?.user?.email || ""}
-                className="w-full p-2 border rounded-md"
-                disabled
-              />
-            </div>
-            <div>
-              <label className="block text-sm font-medium mb-2 font-primary">
                 Username
               </label>
               <div className="flex gap-2">

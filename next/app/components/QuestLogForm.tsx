@@ -261,7 +261,7 @@ export function QuestLogForm({
               <X className="h-6 w-6" />
             </button>
 
-            <h2 className="text-xl font-semibold mb-4">Log a Side Quest</h2>
+            <h2 className="text-xl font-semibold mb-4">Log Session</h2>
 
             <div className="flex flex-col lg:flex-row gap-3 sm:gap-4 lg:gap-6">
               {/* Left Column - Beach Selection */}

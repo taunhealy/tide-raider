@@ -78,7 +78,7 @@ export async function PUT(
   }
 
   try {
-    const { bio, name } = await request.json();
+    const { bio, name, link } = await request.json();
 
     // Update user data
     const updatedUser = await prisma.user.update({
@@ -86,11 +86,13 @@ export async function PUT(
       data: {
         bio: bio?.trim(),
         name: name?.trim(),
+        link: link?.trim(),
       },
       select: {
         id: true,
         name: true,
         bio: true,
+        link: true,
         image: true,
         email: true,
       },

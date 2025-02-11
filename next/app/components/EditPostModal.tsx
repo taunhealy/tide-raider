@@ -28,18 +28,24 @@ export function EditPostModal({ isOpen, onClose, story }: EditPostModalProps) {
     link: story.link || "",
   });
 
+  // Add this state
+  const [isCustomBeach, setIsCustomBeach] = useState(
+    formData.beach === "other"
+  );
+
   // Filter beaches based on search term
   const filteredBeaches = beachData.filter((beach) =>
     beach.name.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
-  // Handle beach selection
-  const handleBeachSelect = (beachId: string, beachName: string) => {
-    setFormData({
-      ...formData,
-      beach: beachId,
-    });
-    setSearchTerm(beachName);
+  // Update the beach selection to handle "other"
+  const handleBeachChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
+    const value = e.target.value;
+    setIsCustomBeach(value === "other");
+    setFormData({ ...formData, beach: value });
+    setSearchTerm(
+      value === "other" ? "" : beachData.find((b) => b.id === value)?.name || ""
+    );
   };
 
   // Beach selection JSX
@@ -51,14 +57,7 @@ export function EditPostModal({ isOpen, onClose, story }: EditPostModalProps) {
       <select
         required
         value={formData.beach}
-        onChange={(e) => {
-          setFormData({ ...formData, beach: e.target.value });
-          setSearchTerm(
-            e.target.value === "other"
-              ? "Other"
-              : beachData.find((b) => b.id === e.target.value)?.name || ""
-          );
-        }}
+        onChange={handleBeachChange}
         className="w-full px-3 py-2 bg-[var(--color-bg-secondary)] border border-[var(--color-border-light)] rounded-md focus:outline-none focus:ring-2 focus:ring-[var(--color-tertiary)]"
       >
         <option value="other">Other</option>
@@ -81,6 +80,7 @@ export function EditPostModal({ isOpen, onClose, story }: EditPostModalProps) {
     formDataToSend.append("details", formData.details);
     formDataToSend.append("category", formData.category);
     formDataToSend.append("beach", formData.beach);
+    formDataToSend.append("isCustomBeach", String(isCustomBeach));
     formDataToSend.append("link", formData.link);
 
     editStoryMutation.mutate(formDataToSend);

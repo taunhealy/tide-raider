@@ -46,17 +46,12 @@ export async function PUT(
         details,
         category,
         link: link || null,
-        beachName:
-          beach === "other"
-            ? "Other"
-            : beachData.find((b) => b.id === beach)?.name || "",
-        ...(beach !== "other"
-          ? {
-              beach: { connect: { id: beach } },
-            }
-          : {
-              beach: { disconnect: true },
-            }),
+        beachName: isCustomBeach
+          ? beach
+          : beachData.find((b) => b.id === beach)?.name || "",
+        ...(isCustomBeach || beach === "other"
+          ? { beach: { disconnect: true } }
+          : { beach: { connect: { id: beach } } }),
       },
       include: {
         author: {

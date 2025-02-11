@@ -23,7 +23,7 @@ function SignInContent() {
       <div className="max-w-md w-full p-8 bg-[var(--color-bg-primary)] rounded-lg shadow-sm border border-gray-200">
         <div className="text-center mb-8">
           <h1 className="text-2xl font-primary font-semibold text-gray-900 mb-2">
-            Welcome Back
+            Welcome
           </h1>
           <p className="text-gray-600 font-primary">
             Sign in to continue your journey

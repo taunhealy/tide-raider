@@ -59,7 +59,7 @@ export default function FavouriteSurfVideosSidebar({
             Favourite Surf Travel Vids
           </h6>
           <Link
-            href="/favorites/create"
+            href={`/favorites/create?from=${encodeURIComponent(window.location.pathname)}`}
             className="flex items-center justify-center h-[40px] text-small bg-[var(--color-bg-tertiary)] text-white px-4 py-2 rounded-md hover:opacity-90"
           >
             Post
@@ -72,13 +72,12 @@ export default function FavouriteSurfVideosSidebar({
           Array(3)
             .fill(0)
             .map((_, i) => (
-              <div key={i} className="p-4">
-                <div className="flex gap-4">
-                  <Skeleton className="h-16 w-16 rounded-lg bg-[var(--color-bg-secondary)]" />
+              <div key={i} className="p-4 animate-pulse">
+                <div className="flex items-center gap-4">
+                  <div className="w-16 h-16 bg-gray-200 rounded-lg" />
                   <div className="flex-1 space-y-2">
-                    <Skeleton className="h-4 w-[200px] bg-[var(--color-bg-secondary)]" />
-                    <Skeleton className="h-3 w-[160px] bg-[var(--color-bg-secondary)]" />
-                    <Skeleton className="h-3 w-[120px] bg-[var(--color-bg-secondary)]" />
+                    <div className="h-4 bg-gray-200 rounded w-3/4" />
+                    <div className="h-3 bg-gray-200 rounded w-1/2" />
                   </div>
                 </div>
               </div>

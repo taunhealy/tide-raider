@@ -24,18 +24,20 @@ export default function CreateFavoritePage() {
       });
 
       if (response.ok) {
-        toast.success("Favorite added successfully!", {
-          description: "Your surf video has been saved to your favorites",
+        toast.success("Favourite added successfully!", {
+          description: "Your surf video has been saved to your favourites",
         });
         confetti({
           particleCount: 100,
           spread: 70,
           origin: { y: 0.6 },
         });
-        setTimeout(() => router.push("/"), 2000);
+        const redirectTo =
+          new URLSearchParams(window.location.search).get("from") || "/";
+        setTimeout(() => router.push(redirectTo), 2000);
       } else {
         const errorData = await response.json();
-        toast.error("Failed to save favorite", {
+        toast.error("Failed to save favourite", {
           description: errorData.error || "Please try again later",
         });
       }
@@ -68,7 +70,7 @@ export default function CreateFavoritePage() {
                 required
                 value={form.title}
                 onChange={(e) => setForm({ ...form, title: e.target.value })}
-                className="w-full p-3 border border-gray-200 rounded-lg focus:ring-2 focus:ring-[var(--color-tertiary)] focus:border-[var(--color-tertiary)] transition-all"
+                className="w-full p-3 border border-gray-200 rounded-lg focus:ring-2 focus:ring-[var(--color-tertiary)] focus:border-transparent transition-all"
               />
             </div>
             <div>
@@ -82,7 +84,7 @@ export default function CreateFavoritePage() {
                 onChange={(e) =>
                   setForm({ ...form, videoLink: e.target.value })
                 }
-                className="w-full p-3 border border-gray-200 rounded-lg focus:ring-2 focus:ring-[var(--color-tertiary)] focus:border-[var(--color-tertiary)] transition-all"
+                className="w-full p-3 border border-gray-200 rounded-lg focus:ring-2 focus:ring-[var(--color-tertiary)] focus:border-transparent transition-all"
                 placeholder="https://youtube.com/..."
               />
             </div>

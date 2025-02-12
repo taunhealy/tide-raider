@@ -234,7 +234,7 @@ export function QuestLogForm({
       {isOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center">
           <div className="absolute inset-0 bg-black/50" onClick={onClose} />
-          <div className="relative bg-white rounded-lg shadow-xl max-w-[1200px] w-full m-4 p-6 overflow-y-auto max-h-[90vh]">
+          <div className="relative bg-white rounded-lg shadow-xl max-w-[95%] lg:max-w-[1200px] w-full m-4 p-4 lg:p-6 overflow-y-auto max-h-[90vh]">
             {!isSubscribed && (
               <div className="absolute inset-0 bg-gray-100/50 backdrop-blur-[2px] z-10 rounded-lg" />
             )}
@@ -265,7 +265,7 @@ export function QuestLogForm({
 
             <div className="flex flex-col lg:flex-row gap-3 sm:gap-4 lg:gap-6">
               {/* Left Column - Beach Selection */}
-              <div className="w-full lg:flex-1 lg:min-w-[400px]">
+              <div className="w-full lg:flex-1 mb-4 lg:mb-0">
                 <div>
                   <label className="block text-sm font-medium mb-1">
                     Select a Beach
@@ -302,7 +302,10 @@ export function QuestLogForm({
 
               {/* Right Column - Form */}
               <div className="w-full lg:flex-1">
-                <form onSubmit={handleSubmit} className="space-y-4">
+                <form
+                  onSubmit={handleSubmit}
+                  className="space-y-2 sm:space-y-4"
+                >
                   <div>
                     <label className="block text-sm font-medium mb-1">
                       Date
@@ -326,7 +329,7 @@ export function QuestLogForm({
                   </div>
 
                   {selectedBeach && (
-                    <div className="border rounded-lg p-4 bg-gray-50 min-w-[540px]">
+                    <div className="border rounded-lg p-2 sm:p-4 bg-gray-50 min-w-[540px]">
                       <SurfForecastWidget
                         beachId={selectedBeach.id}
                         date={selectedDate}

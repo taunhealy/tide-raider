@@ -1,13 +1,15 @@
 "use client";
 
-import { useState, useEffect } from "react";
-import { Button } from "@/app/components/ui/Button";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 import confetti from "canvas-confetti";
+import Textarea from "../ui/Textarea";
+import Input from "../ui/Input";
+import { Button } from "../ui/Button";
 
 export default function BioSection({
-  initialBio,
-  initialLink,
+  initialBio = "",
+  initialLink = "",
   isOwnProfile,
   userId,
 }: {
@@ -16,88 +18,110 @@ export default function BioSection({
   isOwnProfile: boolean;
   userId: string;
 }) {
-  const [bio, setBio] = useState(initialBio || "");
-  const [link, setLink] = useState(initialLink || "");
-  const [isSaving, setIsSaving] = useState(false);
+  const queryClient = useQueryClient();
 
-  // Sync with parent updates
-  useEffect(() => {
-    setBio(initialBio || "");
-    setLink(initialLink || "");
-  }, [initialBio, initialLink]);
-
-  const handleSaveBio = async () => {
-    setIsSaving(true);
-    try {
+  const updateBioMutation = useMutation({
+    mutationFn: async ({ bio, link }: { bio: string; link: string }) => {
       const response = await fetch(`/api/user/${userId}`, {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ bio, link }),
       });
-      if (!response.ok) throw new Error("Failed to save bio");
+      if (!response.ok) throw new Error("Failed to save");
+      return response.json();
+    },
+    onMutate: async (newData) => {
+      // Cancel any outgoing refetches
+      await queryClient.cancelQueries({ queryKey: ["user", userId] });
 
+      // Snapshot previous value
+      const previousData = queryClient.getQueryData(["user", userId]);
+
+      // Optimistically update to new value
+      queryClient.setQueryData(["user", userId], (old: any) => ({
+        ...old,
+        bio: newData.bio,
+        link: newData.link,
+      }));
+
+      return { previousData };
+    },
+    onError: (err, newData, context) => {
+      // Rollback to previous value on error
+      queryClient.setQueryData(["user", userId], context?.previousData);
+      toast.error("Failed to save bio");
+    },
+    onSettled: () => {
+      // Always refetch after error or success
+      queryClient.invalidateQueries({ queryKey: ["user", userId] });
+    },
+    onSuccess: () => {
       toast.success("Bio updated successfully!");
       confetti({
         particleCount: 100,
         spread: 70,
         origin: { y: 0.6 },
       });
-    } catch (error) {
-      toast.error("Failed to save bio");
-    } finally {
-      setIsSaving(false);
-    }
-  };
+    },
+  });
 
   return (
-    <div className="space-y-4">
-      <div>
-        <label className="block text-sm font-medium mb-2">Bio</label>
-        {isOwnProfile ? (
-          <>
-            <textarea
-              value={bio}
-              onChange={(e) => setBio(e.target.value)}
-              className="w-full p-4 border rounded-sm min-h-[100px]"
-              placeholder="A bit about you..."
-            />
-            <Button
-              onClick={handleSaveBio}
-              className="mt-2"
-              variant="outline"
-              isLoading={isSaving}
-            >
-              {isSaving ? "Saving..." : "Save Bio"}
-            </Button>
-          </>
-        ) : (
-          <p className="text-gray-600">{bio || "No bio yet..."}</p>
-        )}
-      </div>
+    <div className="space-y-4 font-primary max-w-[540px]">
+      {isOwnProfile ? (
+        <Textarea
+          value={initialBio}
+          onChange={(e) =>
+            queryClient.setQueryData(["user", userId], (old: any) => ({
+              ...old,
+              bio: e.target.value,
+            }))
+          }
+          placeholder="Something about yoU..."
+          className="min-h-[120px]"
+        />
+      ) : (
+        <p className="text-gray-600">{initialBio || "No bio yet"}</p>
+      )}
 
-      <div>
-        <label className="block text-sm font-medium mb-2">Website</label>
-        {isOwnProfile ? (
-          <input
-            type="url"
-            value={link}
-            onChange={(e) => setLink(e.target.value)}
-            className="w-full p-2 border rounded-md"
-            placeholder="https://www.lekkersoosafirekrekker.com"
-          />
-        ) : (
-          link && (
-            <a
-              href={link}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="text-[var(--color-tertiary)] hover:underline"
-            >
-              {link}
-            </a>
-          )
-        )}
-      </div>
+      {isOwnProfile ? (
+        <Input
+          type="url"
+          value={initialLink}
+          onChange={(e) =>
+            queryClient.setQueryData(["user", userId], (old: any) => ({
+              ...old,
+              link: e.target.value,
+            }))
+          }
+          placeholder="Add your website/social link"
+        />
+      ) : initialLink ? (
+        <a
+          href={initialLink}
+          target="_blank"
+          rel="noopener noreferrer"
+          className="text-black hover:underline"
+        >
+          {initialLink}
+        </a>
+      ) : null}
+
+      {isOwnProfile && (
+        <div className="flex justify-end">
+          <Button
+            onClick={() =>
+              updateBioMutation.mutate({
+                bio: initialBio,
+                link: initialLink,
+              })
+            }
+            disabled={updateBioMutation.isPending}
+            className="mt-4"
+          >
+            {updateBioMutation.isPending ? "Saving..." : "Save Bio"}
+          </Button>
+        </div>
+      )}
     </div>
   );
 }

@@ -83,8 +83,8 @@ export default function Footer() {
 
         {/* Bottom Bar */}
         <div className="mt-8 md:mt-[54px] pt-[32px] border-t border-[var(--color-border-light)] flex flex-col md:flex-row justify-between items-center gap-4">
-          <p className="text-main text-[var(--color-text-secondary)] text-center md:text-left">
-            © {currentYear} Side Quest. All rights reserved.
+          <p className="text-main text-[var(--color-text-secondary)] text-center md:text-left pb-4">
+            © {currentYear} Tide Raider. All rights reserved.
           </p>
         </div>
       </div>

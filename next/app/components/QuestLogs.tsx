@@ -22,6 +22,8 @@ import {
 import { useSubscription } from "@/app/context/SubscriptionContext";
 import { LogVisibilityToggle } from "@/app/components/LogVisibilityToggle";
 import { useSearchParams, useRouter } from "next/navigation";
+import RippleLoader from "./ui/RippleLoader";
+import dynamic from "next/dynamic";
 
 interface QuestLogsProps {
   beaches: Beach[];
@@ -45,6 +47,11 @@ const defaultRegionFilters: RegionFilters = {
   beaches: [],
   waveTypes: [],
 };
+
+const FireFlies = dynamic(() => import("@/app/components/ui/FireFlies"), {
+  ssr: false,
+  loading: () => null,
+});
 
 export default function QuestLogs({ beaches }: QuestLogsProps) {
   const { data: session, status: authStatus } = useSession();
@@ -183,14 +190,16 @@ export default function QuestLogs({ beaches }: QuestLogsProps) {
   };
 
   return (
-    <div className="min-h-screen bg-[var(--color-bg-secondary)] p-9 font-primary">
-      <div className="max-w-[1600px] mx-auto">
+    <div className="min-h-screen bg-[var(--color-bg-secondary)] p-9 font-primary relative">
+      <FireFlies />
+
+      <div className="max-w-[1600px] mx-auto relative z-10">
         {/* Tabs */}
-        <div className="mb-12">
-          <div className="flex items-center justify-start overflow-x-auto no-scrollbar border-b border-gray-200">
+        <div className="mb-6 sm:mb-12">
+          <div className="flex flex-col sm:flex-row items-center justify-start overflow-x-auto no-scrollbar border-b border-gray-200">
             <button
               onClick={() => setActiveTab("logs")}
-              className={`px-6 py-4 text-small font-primary transition-colors duration-200 ${
+              className={`px-4 py-3 sm:px-6 sm:py-4 text-small font-primary transition-colors duration-200 ${
                 activeTab === "logs"
                   ? "text-[var(--color-text-primary)]"
                   : "text-[var(--color-text-secondary)] hover:text-[var(--color-text-primary)] hover:bg-gray-50"
@@ -200,7 +209,7 @@ export default function QuestLogs({ beaches }: QuestLogsProps) {
             </button>
             <button
               onClick={handleOpenModal}
-              className={`px-6 py-4 text-small font-primary transition-colors duration-200 ${
+              className={`px-4 py-3 sm:px-6 sm:py-4 text-small font-primary transition-colors duration-200 ${
                 activeTab === "new"
                   ? "text-[var(--color-text-primary)]"
                   : "text-[var(--color-text-secondary)] hover:text-[var(--color-text-primary)] hover:bg-gray-50"
@@ -212,60 +221,58 @@ export default function QuestLogs({ beaches }: QuestLogsProps) {
         </div>
 
         {/* Main Content */}
-        <div className="bg-white rounded-lg shadow-sm p-9">
-          {activeTab === "logs" ? (
-            <div className="w-full">
-              <div className="flex justify-between items-center mb-6">
-                <h2 className="heading-5">Logged Sessions</h2>
-                <div className="flex gap-4 items-center">
-                  <LogVisibilityToggle
-                    isPrivate={showPrivateOnly}
-                    onChange={handleVisibilityChange}
-                  />
-                  <button
-                    onClick={() => setIsFilterOpen(true)}
-                    className="flex items-center gap-2 px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50"
-                  >
-                    Filter Logs
-                  </button>
-                </div>
-              </div>
-              {isLoading ? (
-                <div className="text-main text-[var(--color-text-secondary)] font-primary">
-                  Loading...
-                </div>
-              ) : filteredEntries.length > 0 ? (
-                <>
-                  {!isSubscribed && (
-                    <div className="mb-4 p-4 bg-yellow-50 rounded-lg">
-                      <p className="text-sm text-yellow-700">
-                        Subscribe to view sessions rated above 3 stars and
-                        access all features.
-                      </p>
-                    </div>
-                  )}
-                  <QuestLogTable
-                    entries={filteredEntries.map((entry) => ({
-                      ...entry,
-                      forecastConditions:
-                        entry.windSpeed && entry.swellHeight
-                          ? {
-                              wind: `${getWindEmoji(entry.windSpeed)} ${entry.windSpeed}kts ${getDirectionEmoji(entry.windDirection || 0)}`,
-                              swell: `${getSwellEmoji(entry.swellHeight)} ${entry.swellHeight}m ${getDirectionEmoji(entry.swellDirection || 0)}`,
-                            }
-                          : undefined,
-                    }))}
-                    isSubscribed={isSubscribed}
-                    showPrivateOnly={showPrivateOnly}
-                  />
-                </>
-              ) : (
-                <div className="text-main text-[var(--color-text-secondary)]">
-                  No entries available
+        <div className="bg-white rounded-lg shadow-sm p-4 sm:p-9">
+          <div className="flex flex-col sm:flex-row justify-between items-start mb-6 w-full">
+            <div className="w-full border-b border-gray-200 pb-3 mb-6">
+              <h2 className="text-lg sm:text-xl font-semibold font-primary">
+                Logged Sessions
+              </h2>
+            </div>
+            <div className="flex gap-4 items-center">
+              <LogVisibilityToggle
+                isPrivate={showPrivateOnly}
+                onChange={handleVisibilityChange}
+              />
+              <button
+                onClick={() => setIsFilterOpen(true)}
+                className="flex items-center gap-2 px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50"
+              >
+                Filter
+              </button>
+            </div>
+          </div>
+          {isLoading ? (
+            <RippleLoader isLoading={true} />
+          ) : filteredEntries.length > 0 ? (
+            <>
+              {!isSubscribed && (
+                <div className="mb-4 p-4 bg-yellow-50 rounded-lg">
+                  <p className="text-sm text-yellow-700">
+                    Subscribe to view sessions rated above 3 stars and access
+                    all features.
+                  </p>
                 </div>
               )}
+              <QuestLogTable
+                entries={filteredEntries.map((entry) => ({
+                  ...entry,
+                  forecastConditions:
+                    entry.windSpeed && entry.swellHeight
+                      ? {
+                          wind: `${getWindEmoji(entry.windSpeed)} ${entry.windSpeed}kts ${getDirectionEmoji(entry.windDirection || 0)}`,
+                          swell: `${getSwellEmoji(entry.swellHeight)} ${entry.swellHeight}m ${getDirectionEmoji(entry.swellDirection || 0)}`,
+                        }
+                      : undefined,
+                }))}
+                isSubscribed={isSubscribed}
+                showPrivateOnly={showPrivateOnly}
+              />
+            </>
+          ) : (
+            <div className="text-main text-[var(--color-text-secondary)]">
+              No entries available
             </div>
-          ) : null}
+          )}
         </div>
       </div>
 

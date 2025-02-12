@@ -4,6 +4,7 @@ import { useQuery } from "@tanstack/react-query";
 import Link from "next/link";
 import { cn } from "@/app/lib/utils";
 import type { Story } from "@/app/types/stories";
+import RippleLoader from "./ui/RippleLoader";
 
 export default function RecentChronicles() {
   const { data: stories = [], isLoading } = useQuery({
@@ -34,7 +35,7 @@ export default function RecentChronicles() {
 
       <div className="space-y-6">
         {isLoading ? (
-          <div>Loading...</div>
+          <RippleLoader isLoading={isLoading} />
         ) : (
           stories.map((story: Story) => (
             <div key={story.id} className="group">

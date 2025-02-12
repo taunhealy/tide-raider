@@ -39,7 +39,7 @@ function ForecastInfo({ forecast }: { forecast: LogEntry["forecast"] }) {
 
   return (
     <div className="space-y-1 text-sm">
-      <p>
+      <p className="break-words">
         <span
           title={`Wind Speed: ${forecast.wind.speed < 5 ? "Light" : forecast.wind.speed < 12 ? "Moderate" : forecast.wind.speed < 20 ? "Strong" : "Very Strong"}`}
         >
@@ -47,7 +47,7 @@ function ForecastInfo({ forecast }: { forecast: LogEntry["forecast"] }) {
         </span>{" "}
         {forecast.wind.direction} @ {forecast.wind.speed}km/h
       </p>
-      <p>
+      <p className="break-words">
         <span
           title={`Swell Height: ${forecast.swell.height < 0.5 ? "Flat" : forecast.swell.height < 1 ? "Small" : forecast.swell.height < 2 ? "Medium" : "Large"}`}
         >
@@ -55,7 +55,7 @@ function ForecastInfo({ forecast }: { forecast: LogEntry["forecast"] }) {
         </span>{" "}
         {forecast.swell.height}m @ {forecast.swell.period}s
       </p>
-      <p>
+      <p className="break-words">
         <span title={`Swell Direction: ${forecast.swell.cardinalDirection}`}>
           {getDirectionEmoji(parseInt(forecast.swell.direction))}
         </span>{" "}
@@ -208,7 +208,7 @@ export function QuestLogTable({
             </div>
 
             {entry.comments && (
-              <p className="text-sm text-gray-600">
+              <p className="text-sm text-gray-600 break-words">
                 <span className="font-medium">Comments:</span> {entry.comments}
               </p>
             )}
@@ -225,7 +225,7 @@ export function QuestLogTable({
                 {columns.map((column) => (
                   <th
                     key={column.key}
-                    className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider whitespace-nowrap"
+                    className="px-3 py-3 sm:px-6 sm:py-3 text-xs sm:text-sm text-left text-gray-500 uppercase tracking-wider whitespace-nowrap"
                   >
                     {column.label}
                   </th>
@@ -235,7 +235,7 @@ export function QuestLogTable({
             <tbody className="bg-white divide-y divide-gray-200">
               {filteredEntries.map((entry) => (
                 <tr key={entry.id} className="hover:bg-gray-50">
-                  <td className="px-6 py-4 whitespace-nowrap">
+                  <td className="px-3 py-4 sm:px-6 whitespace-nowrap text-sm">
                     {format(new Date(entry.date), "MMM d, yyyy")}
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap">
@@ -255,13 +255,13 @@ export function QuestLogTable({
                   </td>
                   <td className="px-6 py-4">{entry.comments}</td>
                   {isSubscribed && entry.imageUrl && (
-                    <td className="px-4 py-2">
-                      <div className="relative w-[200px] h-[200px]">
+                    <td className="px-2 py-2 sm:px-4">
+                      <div className="relative w-[80px] h-[80px] sm:w-[120px] sm:h-[120px]">
                         <Image
                           src={entry.imageUrl}
                           alt="Session photo"
-                          width={200}
-                          height={200}
+                          width={80}
+                          height={80}
                           className="object-cover rounded-md"
                           unoptimized={process.env.NODE_ENV === "development"}
                           onError={(e) => {

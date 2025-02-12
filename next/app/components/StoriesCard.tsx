@@ -203,7 +203,11 @@ export function PostCard({ story, isAuthor, beaches }: PostCardProps) {
       <ViewPostModal
         isOpen={isViewModalOpen}
         onClose={() => {
-          router.push("/chronicles", { scroll: false });
+          const params = new URLSearchParams(window.location.search);
+          params.delete("viewStory");
+          router.replace(`${window.location.pathname}?${params.toString()}`, {
+            scroll: false,
+          });
           setIsViewModalOpen(false);
         }}
         story={story}

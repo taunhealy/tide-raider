@@ -25,6 +25,7 @@ export async function GET(
         id: true,
         name: true,
         bio: true,
+        link: true,
         image: true,
         createdAt: true,
         skillLevel: true, // Added missing field

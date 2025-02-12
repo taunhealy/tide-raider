@@ -56,23 +56,25 @@ export default function Navbar() {
         {/* Desktop Navigation */}
         <div className="hidden md:flex items-center gap-8">
           <nav>
-            <ul className="flex gap-6">
-              <li>
+            <ul className="flex gap-2 items-center">
+              <li className="px-2 py-2">
                 <RaidLink
-                  className={
-                    pathname === "/raid" ? "link-nav-active" : "link-nav"
-                  }
+                  className={cn(
+                    "link-nav",
+                    pathname === "/raid" && "link-nav-active"
+                  )}
                 />
               </li>
               {NAVIGATION_ITEMS.map((link) => (
-                <li key={link.href}>
+                <li key={link.href} className="px-2 py-2">
                   <Link
                     href={link.href}
-                    className={
-                      pathname === link.href ? "link-nav-active" : "link-nav"
-                    }
+                    className={cn(
+                      "link-nav",
+                      pathname === link.href && "link-nav-active"
+                    )}
                   >
-                    <span className="relative">{link.label}</span>
+                    {link.label}
                   </Link>
                 </li>
               ))}
@@ -117,7 +119,7 @@ export default function Navbar() {
                 <Button
                   variant="outline"
                   onClick={() => signOut()}
-                  className="transition-all duration-300"
+                  className="transition-all duration-300 font-primary"
                 >
                   Sign Out
                 </Button>
@@ -126,7 +128,7 @@ export default function Navbar() {
               <Button
                 variant="outline"
                 onClick={() => handleSignIn()}
-                className="transition-all duration-300"
+                className="transition-all duration-300 font-primary"
               >
                 Sign In
               </Button>
@@ -167,21 +169,27 @@ export default function Navbar() {
         <>
           <nav className="md:hidden absolute w-full px-4 py-6 bg-white border-t border-[var(--color-border-light)] z-50">
             <ul className="space-y-0">
-              <li>
+              <li className="px-4 py-4">
                 <RaidLink
-                  className={
-                    pathname === "/raid" ? "link-nav-active" : "link-nav"
-                  }
+                  className={cn(
+                    "block font-primary text-[var(--color-text-primary)] hover:text-[var(--color-text-primary)] hover:font-semibold",
+                    "transition-all duration-300",
+                    pathname === "/raid" &&
+                      "font-semibold text-[var(--color-text-primary)]"
+                  )}
                 />
-                <div className="border-t border-[var(--color-border-light)]" />
+                <div className="border-t border-[var(--color-border-light)] mt-4" />
               </li>
               {NAVIGATION_ITEMS.map((link, index) => (
-                <li key={link.href}>
+                <li key={link.href} className="px-4 py-4">
                   <Link
                     href={link.href}
-                    className={
-                      pathname === link.href ? "link-nav-active" : "link-nav"
-                    }
+                    className={cn(
+                      "block font-primary text-[var(--color-text-primary)] hover:text-[var(--color-text-primary)] hover:font-semibold",
+                      "transition-all duration-300",
+                      pathname === link.href &&
+                        "font-semibold text-[var(--color-text-primary)]"
+                    )}
                   >
                     {link.label}
                   </Link>

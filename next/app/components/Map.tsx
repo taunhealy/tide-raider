@@ -184,7 +184,7 @@ export default function Map({ beaches, windData, hasActiveTrial }: MapProps) {
   return (
     <div className="w-full min-h-[500px] h-full max-h-[500px] relative flex gap-6 rounded-lg">
       {/* Top Beaches Sidebar */}
-      <div className="w-56 bg-white overflow-y-auto border-r border-gray-200 z-20">
+      <div className="w-48 lg:w-56 bg-white overflow-y-auto border-r border-gray-200 z-20">
         <div className="p-4">
           <h3 className={cn("text-lg font-semibold mb-4", inter.className)}>
             Worth a look 🏄‍♂️
@@ -242,7 +242,7 @@ export default function Map({ beaches, windData, hasActiveTrial }: MapProps) {
 
         {/* Wind and Swell Compass */}
         {windData && (
-          <div className="absolute top-4 right-4 scale-75 origin-top-right">
+          <div className="absolute top-4 right-4 scale-75 origin-top-right z-50">
             <WindCompass
               windDirection={windData.wind.direction}
               windSpeed={windData.wind.speed}

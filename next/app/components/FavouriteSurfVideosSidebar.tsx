@@ -5,6 +5,9 @@ import Link from "next/link";
 import { Skeleton } from "@/app/components/ui/Skeleton";
 import { Favorite } from "@/types/favorites";
 import { useSession } from "next-auth/react";
+import { toast } from "sonner";
+import confetti from "canvas-confetti";
+import Image from "next/image";
 
 export default function FavouriteSurfVideosSidebar({
   userId,
@@ -17,6 +20,8 @@ export default function FavouriteSurfVideosSidebar({
   const [selectedFavorite, setSelectedFavorite] = useState<Favorite | null>(
     null
   );
+  const [editingFavorite, setEditingFavorite] = useState<Favorite | null>(null);
+  const [isUpdating, setIsUpdating] = useState(false);
 
   useEffect(() => {
     const fetchFavorites = async () => {
@@ -51,15 +56,54 @@ export default function FavouriteSurfVideosSidebar({
     }
   };
 
+  const handleEditFavorite = async (
+    favoriteId: string,
+    updatedData: { title: string; videoLink: string }
+  ) => {
+    try {
+      setIsUpdating(true);
+      const response = await fetch(`/api/favorites/${favoriteId}`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(updatedData),
+      });
+
+      if (!response.ok) throw new Error("Failed to update");
+
+      setFavorites(
+        favorites.map((f) =>
+          f.id === favoriteId ? { ...f, ...updatedData } : f
+        )
+      );
+
+      toast.success("Favourite Updated", {
+        description: "Your changes have been saved successfully",
+      });
+      confetti({
+        particleCount: 50,
+        spread: 70,
+        origin: { y: 0.6 },
+      });
+    } catch (error) {
+      console.error("Update error:", error);
+      toast.error("Update Failed", {
+        description: "Could not save changes. Please try again.",
+      });
+    } finally {
+      setIsUpdating(false);
+      setEditingFavorite(null);
+    }
+  };
+
   return (
     <div className="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden max-w-[540px]">
       <div className="p-6 border-b border-gray-200 ">
         <div className="flex justify-between items-left ">
-          <h6 className="heading-6 text-gray-900">
+          <h6 className="heading-6 text-gray-900 max-w-[32ch]">
             Favourite Surf Travel Vids
           </h6>
           <Link
-            href={`/favorites/create?from=${encodeURIComponent(window.location.pathname)}`}
+            href={`/favorites/create?from=${encodeURIComponent(typeof window !== "undefined" ? window.location.pathname : "")}`}
             className="flex items-center justify-center h-[40px] text-small bg-[var(--color-bg-tertiary)] text-white px-4 py-2 rounded-md hover:opacity-90"
           >
             Post
@@ -92,12 +136,31 @@ export default function FavouriteSurfVideosSidebar({
                   onClick={() => setSelectedFavorite(favorite)}
                 >
                   <td className="p-4 text-sm text-gray-600">
-                    <Link
-                      href={`/profile/${favorite.userId}`}
-                      className="hover:text-[var(--color-bg-tertiary)] transition-colors"
-                    >
-                      {favorite.user?.name || "Anonymous"}
-                    </Link>
+                    <div className="flex items-center gap-2">
+                      {favorite.user?.image ? (
+                        <Image
+                          src={favorite.user.image}
+                          alt={favorite.user.name || "User avatar"}
+                          width={24}
+                          height={24}
+                          className="rounded-full w-6 h-6 object-cover"
+                        />
+                      ) : (
+                        <div className="w-6 h-6 rounded-full bg-gray-100 flex items-center justify-center">
+                          <span className="text-xs text-gray-400">?</span>
+                        </div>
+                      )}
+                      {favorite.user?.name ? (
+                        <Link
+                          href={`/profile/${favorite.userId}`}
+                          className="hover:text-[var(--color-bg-tertiary)] transition-colors"
+                        >
+                          {favorite.user.name}
+                        </Link>
+                      ) : (
+                        <span className="text-gray-400">Anonymous</span>
+                      )}
+                    </div>
                   </td>
                   <td className="p-4">
                     <span className="text-[var(--color-primary)] font=primary text-sm font-primary">
@@ -105,15 +168,50 @@ export default function FavouriteSurfVideosSidebar({
                     </span>
                   </td>
                   {session?.user?.id === favorite.userId && (
-                    <td className="p-4">
+                    <td className="p-4 flex items-center gap-2">
+                      <button
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          setEditingFavorite(favorite);
+                        }}
+                        className="text-gray-400 hover:text-gray-600 transition-colors p-1"
+                      >
+                        <svg
+                          xmlns="http://www.w3.org/2000/svg"
+                          className="h-5 w-5"
+                          fill="none"
+                          viewBox="0 0 24 24"
+                          stroke="currentColor"
+                        >
+                          <path
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                            strokeWidth={2}
+                            d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"
+                          />
+                        </svg>
+                      </button>
                       <button
                         onClick={(e) => {
                           e.stopPropagation();
                           handleDeleteFavorite(favorite.id);
                         }}
-                        className="text-red-500 hover:text-red-700"
+                        className="text-gray-400 hover:text-gray-600 transition-colors p-1"
                       >
-                        Delete
+                        <svg
+                          xmlns="http://www.w3.org/2000/svg"
+                          className="h-5 w-5"
+                          fill="none"
+                          viewBox="0 0 24 24"
+                          stroke="currentColor"
+                        >
+                          <path
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                            strokeWidth={2}
+                            d="M6 18L18 6M6 6l12 12"
+                          />
+                        </svg>
                       </button>
                     </td>
                   )}
@@ -184,7 +282,17 @@ export default function FavouriteSurfVideosSidebar({
 
               <div className="space-y-2">
                 <p className="text-sm font-primary text-gray-600">
-                  Posted by: {selectedFavorite.user?.name || "Anonymous"}
+                  Posted by:{" "}
+                  {selectedFavorite.user?.name ? (
+                    <Link
+                      href={`/profile/${selectedFavorite.userId}`}
+                      className="hover:text-[var(--color-bg-tertiary)] transition-colors"
+                    >
+                      {selectedFavorite.user.name}
+                    </Link>
+                  ) : (
+                    "Anonymous"
+                  )}
                 </p>
                 {selectedFavorite.description && (
                   <p className="text-sm font-primary text-gray-800">
@@ -193,6 +301,85 @@ export default function FavouriteSurfVideosSidebar({
                 )}
               </div>
             </div>
+          </div>
+        </div>
+      )}
+
+      {editingFavorite && (
+        <div className="fixed inset-0 z-50 bg-black/50 flex items-center justify-center p-4">
+          <div className="bg-white rounded-lg w-full max-w-md shadow-xl p-6 font-primary">
+            <h3 className="heading-6 mb-4">Edit Favourite</h3>
+            <form
+              onSubmit={(e) => {
+                e.preventDefault();
+                const formData = new FormData(e.currentTarget);
+                handleEditFavorite(editingFavorite.id, {
+                  title: formData.get("title") as string,
+                  videoLink: formData.get("videoLink") as string,
+                });
+              }}
+            >
+              <div className="space-y-4">
+                <div>
+                  <label className="text-sm font-medium block mb-2">
+                    Title
+                  </label>
+                  <input
+                    name="title"
+                    defaultValue={editingFavorite.title}
+                    className="w-full p-2 border border-gray-200 rounded-lg"
+                    required
+                  />
+                </div>
+                <div>
+                  <label className="text-sm font-medium block mb-2">
+                    Video URL
+                  </label>
+                  <input
+                    name="videoLink"
+                    type="url"
+                    defaultValue={editingFavorite.videoLink}
+                    className="w-full p-2 border border-gray-200 rounded-lg"
+                    required
+                  />
+                </div>
+                <div className="flex justify-end gap-2 mt-4">
+                  <button
+                    type="button"
+                    onClick={() => setEditingFavorite(null)}
+                    className="px-4 py-2 text-gray-600 hover:bg-gray-50 rounded-lg"
+                    disabled={isUpdating}
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    type="submit"
+                    className="px-4 py-2 bg-[var(--color-tertiary)] text-white rounded-lg hover:opacity-90 flex items-center gap-2"
+                    disabled={isUpdating}
+                  >
+                    {isUpdating && (
+                      <svg className="animate-spin h-4 w-4" viewBox="0 0 24 24">
+                        <circle
+                          className="opacity-25"
+                          cx="12"
+                          cy="12"
+                          r="10"
+                          stroke="currentColor"
+                          strokeWidth="4"
+                          fill="none"
+                        />
+                        <path
+                          className="opacity-75"
+                          fill="currentColor"
+                          d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+                        />
+                      </svg>
+                    )}
+                    {isUpdating ? "Saving..." : "Save Changes"}
+                  </button>
+                </div>
+              </div>
+            </form>
           </div>
         </div>
       )}

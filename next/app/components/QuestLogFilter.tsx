@@ -46,7 +46,7 @@ export function QuestLogFilter({
     surfers: [] as string[],
     countries: [] as string[],
     regions: [] as string[],
-    minRating: 0,
+    minRating: null as number | null,
     isPrivate: false,
   });
 
@@ -82,6 +82,14 @@ export function QuestLogFilter({
     ),
   ].sort();
 
+  // Add this handler function
+  const handleRatingClick = (rating: number) => {
+    setFilters((prev) => ({
+      ...prev,
+      minRating: prev.minRating === rating ? null : rating,
+    }));
+  };
+
   // Update parent component when filters change
   useEffect(() => {
     // Skip the initial render
@@ -100,7 +108,7 @@ export function QuestLogFilter({
       )}
     >
       <div className="flex justify-between items-center p-6 border-b">
-        <h2 className="text-lg font-semibold">Filter Logs</h2>
+        <h2 className="text-lg font-semibold">Filter</h2>
         <button
           onClick={onClose}
           className="p-2 hover:bg-gray-100 rounded-full"
@@ -115,7 +123,9 @@ export function QuestLogFilter({
           <h3 className="text-sm font-medium mb-2">Date Range</h3>
           <div className="grid grid-cols-2 gap-4">
             <div>
-              <label className="text-xs text-gray-500">Start Date</label>
+              <label className="text-xs text-gray-500 font-primary">
+                Start Date
+              </label>
               <input
                 type="date"
                 value={filters.dateRange.start}
@@ -125,11 +135,13 @@ export function QuestLogFilter({
                     dateRange: { ...prev.dateRange, start: e.target.value },
                   }))
                 }
-                className="mt-1 block w-full rounded-md border-gray-300 shadow-sm"
+                className="mt-1 block w-full rounded-md border-gray-300 shadow-sm text-sm font-primary py-2 px-3"
               />
             </div>
             <div>
-              <label className="text-xs text-gray-500">End Date</label>
+              <label className="text-xs text-gray-500 font-primary">
+                End Date
+              </label>
               <input
                 type="date"
                 value={filters.dateRange.end}
@@ -139,7 +151,7 @@ export function QuestLogFilter({
                     dateRange: { ...prev.dateRange, end: e.target.value },
                   }))
                 }
-                className="mt-1 block w-full rounded-md border-gray-300 shadow-sm"
+                className="mt-1 block w-full rounded-md border-gray-300 shadow-sm text-sm font-primary py-2 px-3"
               />
             </div>
           </div>
@@ -208,41 +220,20 @@ export function QuestLogFilter({
         {/* Rating */}
         <div>
           <h3 className="text-sm font-medium mb-2">Minimum Rating</h3>
-          <input
-            type="range"
-            min="0"
-            max="5"
-            value={filters.minRating}
-            onChange={(e) =>
-              setFilters((prev) => ({
-                ...prev,
-                minRating: parseInt(e.target.value),
-              }))
-            }
-            className="w-full"
-          />
-          <div className="flex justify-between text-xs text-gray-500">
-            <span>Any</span>
-            <span>{filters.minRating} Stars</span>
-          </div>
-        </div>
-
-        {/* Visibility */}
-        <div className="mb-4">
-          <h3 className="text-sm font-medium mb-2">Visibility</h3>
-          <div className="flex items-center space-x-2">
-            <input
-              type="checkbox"
-              id="showPrivate"
-              checked={filters.isPrivate || false}
-              onChange={(e) =>
-                setFilters((prev) => ({ ...prev, isPrivate: e.target.checked }))
-              }
-              className="rounded border-gray-300"
-            />
-            <label htmlFor="showPrivate" className="text-sm text-gray-600">
-              Show Private Logs Only
-            </label>
+          <div className="grid grid-cols-5 gap-2">
+            {[1, 2, 3, 4, 5].map((rating) => (
+              <button
+                key={rating}
+                onClick={() => handleRatingClick(rating)}
+                className={`p-2 rounded-md ${
+                  filters.minRating === rating
+                    ? "bg-[var(--color-bg-tertiary)] text-white"
+                    : "bg-gray-100 hover:bg-gray-200"
+                }`}
+              >
+                {rating}
+              </button>
+            ))}
           </div>
         </div>
 
@@ -255,7 +246,7 @@ export function QuestLogFilter({
               surfers: [],
               countries: [],
               regions: [],
-              minRating: 0,
+              minRating: null,
               isPrivate: false,
             })
           }

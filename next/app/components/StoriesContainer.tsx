@@ -10,6 +10,7 @@ import { CreatePostModal } from "./CreatePostModal";
 import { PostCard } from "./StoriesCard";
 import { Story, StoryBeach } from "@/app/types/stories";
 import { STORY_CATEGORIES, type StoryCategory } from "@/app/lib/constants";
+import { RandomLoader } from "@/app/components/ui/RandomLoader";
 
 interface WildStoriesProps {
   beaches: StoryBeach[];
@@ -244,10 +245,12 @@ export default function WildStoriesContainer({ beaches }: WildStoriesProps) {
                     }}
                     className={cn(
                       "px-3 md:px-4 py-1.5 md:py-2 rounded-full text-xs md:text-sm whitespace-nowrap transition-colors font-primary",
-                      "min-w-[100px] max-w-[150px] truncate",
+                      "min-w-[120px] max-w-[150px] truncate",
+                      "min-h-[36px] flex items-center justify-center gap-1.5",
+                      "relative before:content-[''] before:w-2 before:h-2 before:rounded-full",
                       filters.regions.includes(region)
-                        ? "bg-white text-[var(--color-bg-tertiary)] border-2 border-[var(--color-bg-tertiary)]"
-                        : "bg-gray-100 text-gray-600 border-2 border-[var(--color-bg-primary)] hover:bg-gray-100"
+                        ? "bg-white text-[var(--color-bg-tertiary)] border-2 border-[var(--color-bg-tertiary)] before:bg-[var(--color-bg-tertiary)]"
+                        : "bg-gray-100 text-gray-600 border-2 border-[var(--color-bg-primary)] hover:bg-gray-100 before:bg-transparent"
                     )}
                   >
                     {region}
@@ -260,7 +263,7 @@ export default function WildStoriesContainer({ beaches }: WildStoriesProps) {
 
         {/* Stories Grid */}
         {isLoading ? (
-          <div className="text-center py-8">Loading...</div>
+          <RandomLoader isLoading={true} />
         ) : filteredStories.length > 0 ? (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4 md:gap-6">
             {filteredStories.map((story) => (

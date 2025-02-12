@@ -40,4 +40,6 @@ const nextConfig = {
   },
 };
 
+process.env.NODE_OPTIONS = "--no-deprecation";
+
 module.exports = nextConfig;

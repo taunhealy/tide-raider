@@ -117,14 +117,24 @@ export default function WindCompass({
             W
           </text>
 
-          {/* Wind arrow */}
-          <g transform={`rotate(${Number(windDirection)} 50 50)`}>
-            <path
-              d="M50 15 L45 45 L50 40 L55 45 L50 15"
-              fill="#3b82f6"
-              stroke="#3b82f6"
-            />
-          </g>
+          {/* Wind direction arrow */}
+          <line
+            x1="50"
+            y1="50"
+            x2="50"
+            y2="15"
+            stroke="#3b82f6"
+            strokeWidth="4"
+            strokeLinecap="round"
+            transform={`rotate(${windDirection} 50 50)`}
+          />
+
+          {/* Arrowhead pointing in wind direction */}
+          <path
+            d="M50 15 L54 25 L46 25 Z"
+            fill="#3b82f6"
+            transform={`rotate(${windDirection} 50 50)`}
+          />
 
           {/* Swell arrow - rotated 180° and positioned on opposite side */}
           <g transform={`rotate(${Number(swellDirection) + 180} 50 50)`}>

@@ -5,11 +5,11 @@ export interface Favorite {
   userId: string;
   createdAt: Date;
   updatedAt: Date;
-  user?: {
-    name: string;
-    bio: string;
+  user: {
+    name: string | null;
+    bio: string | null;
     id: string;
-    image: string;
+    image: string | null;
   };
   description?: string;
 }

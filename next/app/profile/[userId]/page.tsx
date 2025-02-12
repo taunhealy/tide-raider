@@ -5,13 +5,13 @@ import { useSession } from "next-auth/react";
 import { useState } from "react";
 import { Button } from "@/app/components/ui/Button";
 import { useQuery } from "@tanstack/react-query";
-import Image from "next/image";
 import FavouriteSurfVideosSidebar from "@/app/components/FavouriteSurfVideosSidebar";
 import UserNotFound from "@/app/components/UserNotFound";
 import BioSection from "@/app/components/profile/BioSection";
 import { ClientProfileLogs } from "@/app/components/ClientProfileLogs";
 import StoriesContainer from "@/app/components/StoriesContainer";
 import ProfileHeader from "@/app/components/profile/ProfileHeader";
+import RippleLoader from "@/app/components/ui/RippleLoader";
 
 // Server component
 export default function ProfilePage() {
@@ -35,12 +35,13 @@ export default function ProfilePage() {
     },
   });
 
-  if (isLoading)
+  if (isLoading) {
     return (
-      <div className="min-h-screen flex items-center justify-center font-primary">
-        Loading...
+      <div className="min-h-[calc(100vh-160px)] flex items-center justify-center">
+        <RippleLoader isLoading={true} />
       </div>
     );
+  }
   if (error) return <UserNotFound />;
 
   const isOwnProfile = session?.user?.id?.toString() === userId;
@@ -54,7 +55,7 @@ export default function ProfilePage() {
           variant={activeTab === "account" ? "default" : "outline"}
           onClick={() => setActiveTab("account")}
         >
-          Account
+          Profile
         </Button>
         <Button
           variant={activeTab === "favourites" ? "default" : "outline"}
@@ -80,6 +81,7 @@ export default function ProfilePage() {
         {activeTab === "account" && (
           <BioSection
             initialBio={userData?.bio}
+            initialLink={userData?.link}
             isOwnProfile={isOwnProfile}
             userId={userId}
           />

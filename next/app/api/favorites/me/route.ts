@@ -2,7 +2,6 @@ import { getServerSession } from "next-auth";
 import { NextResponse } from "next/server";
 import { prisma } from "@/app/lib/prisma";
 import { authOptions } from "@/app/lib/authOptions";
-
 export async function GET() {
   const session = await getServerSession(authOptions);
   if (!session) {
@@ -12,6 +11,16 @@ export async function GET() {
   try {
     const favorites = await prisma.userFavorite.findMany({
       where: { userId: session.user.id },
+      include: {
+        user: {
+          select: {
+            id: true,
+            name: true,
+            image: true,
+            createdAt: true,
+          },
+        },
+      },
       orderBy: { createdAt: "desc" },
     });
     return NextResponse.json(favorites);

@@ -100,3 +100,35 @@ export async function DELETE(req: Request) {
     );
   }
 }
+
+export async function PUT(req: Request) {
+  const session = await getServerSession(authOptions);
+  if (!session) {
+    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  }
+
+  try {
+    const { id, ...updateData } = await req.json();
+
+    const favorite = await prisma.userFavorite.findUnique({
+      where: { id },
+      select: { userId: true },
+    });
+
+    if (!favorite || favorite.userId !== session.user.id) {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 403 });
+    }
+
+    const updatedFavorite = await prisma.userFavorite.update({
+      where: { id },
+      data: updateData,
+    });
+
+    return NextResponse.json(updatedFavorite);
+  } catch (error) {
+    return NextResponse.json(
+      { error: "Failed to update favorite" },
+      { status: 500 }
+    );
+  }
+}

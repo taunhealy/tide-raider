@@ -5,10 +5,20 @@ import { authOptions } from "@/app/lib/authOptions";
 import { sendTrialStartEmail } from "@/app/lib/email";
 
 export async function POST() {
+  const session = await getServerSession(authOptions);
   try {
-    const session = await getServerSession(authOptions);
-    if (!session?.user?.email) {
+    // Validate session and user ID
+    if (!session?.user?.id) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    }
+
+    // First check if user exists using their ID
+    const existingUser = await prisma.user.findUnique({
+      where: { id: session.user.id },
+    });
+
+    if (!existingUser) {
+      return NextResponse.json({ error: "User not found" }, { status: 404 });
     }
 
     const trialStartDate = new Date();
@@ -16,7 +26,7 @@ export async function POST() {
     trialEndDate.setDate(trialEndDate.getDate() + 14); // 14 days trial
 
     const user = await prisma.user.update({
-      where: { email: session.user.email },
+      where: { id: session.user.id },
       data: {
         trialStartDate,
         trialEndDate,
@@ -29,7 +39,11 @@ export async function POST() {
 
     return NextResponse.json({ success: true });
   } catch (error) {
-    console.error("Error starting trial:", error);
+    console.error("Error starting trial:", {
+      error,
+      userEmail: session?.user?.email,
+      sessionUserId: session?.user?.id,
+    });
     return NextResponse.json(
       { error: "Failed to start trial" },
       { status: 500 }

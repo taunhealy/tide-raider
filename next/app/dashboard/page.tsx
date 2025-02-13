@@ -155,10 +155,11 @@ export default function DashboardPage() {
               <div className="p-4 border rounded-md bg-yellow-50">
                 <p className="mb-2">
                   {hasActiveTrial
-                    ? "Your free trial is active!"
+                    ? "Your free trial is active. 🐟🐟🐟 "
                     : "No active subscription"}
                 </p>
                 <Button
+                  variant="outline"
                   onClick={() =>
                     hasActiveTrial
                       ? (window.location.href = "/pricing")

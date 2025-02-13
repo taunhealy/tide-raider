@@ -15,7 +15,10 @@ export async function GET(request: Request) {
 
     const user = await prisma.user.findUnique({
       where: { email: session.user.email },
-      select: { lemonSubscriptionId: true },
+      select: {
+        lemonSubscriptionId: true,
+        hasActiveTrial: true,
+      },
     });
 
     console.log("User subscription check:", {
@@ -30,6 +33,7 @@ export async function GET(request: Request) {
 
     return NextResponse.json({
       isSubscribed: !!user.lemonSubscriptionId,
+      hasActiveTrial: user?.hasActiveTrial || false,
       lemonSubscriptionId: user.lemonSubscriptionId,
     });
   } catch (error) {

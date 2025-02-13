@@ -3,14 +3,16 @@
 import { useRouter } from "next/navigation";
 import { useQuery } from "@tanstack/react-query";
 import { useState } from "react";
+import Link from "next/link";
 
 interface RaidLinkProps {
   className?: string;
+  onClick?: () => void;
 }
 
 const DEFAULT_URL = "/raid?continent=Africa&country=South+Africa";
 
-export default function RaidLink({ className }: RaidLinkProps) {
+export default function RaidLink({ className, onClick }: RaidLinkProps) {
   const router = useRouter();
   const [isNavigating, setIsNavigating] = useState(false);
 
@@ -53,8 +55,8 @@ export default function RaidLink({ className }: RaidLinkProps) {
   };
 
   return (
-    <a href="/raid" onClick={handleClick} className={className}>
+    <Link href="/raid" className={className} onClick={onClick || handleClick}>
       <span className="relative">Raid</span>
-    </a>
+    </Link>
   );
 }

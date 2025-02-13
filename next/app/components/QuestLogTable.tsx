@@ -4,7 +4,7 @@ import {
   LogEntry,
 } from "../types/questlogs";
 import { format } from "date-fns";
-import { Star } from "lucide-react";
+import { Star, Pencil, X } from "lucide-react";
 import { cn } from "@/app/lib/utils";
 import {
   getWindEmoji,
@@ -13,6 +13,8 @@ import {
 } from "@/app/lib/forecastUtils";
 import Image from "next/image";
 import { useSession } from "next-auth/react";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { useRouter } from "next/navigation";
 
 interface QuestTableProps {
   entries: LogEntry[];
@@ -158,7 +160,41 @@ export function QuestLogTable({
   isLoading = false,
   showPrivateOnly = false,
 }: QuestTableProps) {
+  const router = useRouter();
+  const queryClient = useQueryClient();
   const { data: session } = useSession();
+
+  // Delete mutation
+  const deleteMutation = useMutation({
+    mutationFn: async (entryId: string) => {
+      const response = await fetch(`/api/quest-log/${entryId}`, {
+        method: "DELETE",
+      });
+      if (!response.ok) throw new Error("Delete failed");
+      return response.json();
+    },
+    onSuccess: () => {
+      // Invalidate all related queries
+      queryClient.invalidateQueries({
+        queryKey: ["questLogs"],
+        refetchType: "active",
+      });
+      queryClient.invalidateQueries({
+        queryKey: ["userLogs"],
+        refetchType: "active",
+      });
+    },
+  });
+
+  // Edit handler
+  const handleEdit = (entry: LogEntry) => {
+    router.push(`/raidlogs/${entry.id}`);
+  };
+
+  // Delete handler
+  const handleDelete = (entryId: string) => {
+    deleteMutation.mutate(entryId);
+  };
 
   const filteredEntries = entries.filter((entry) => {
     if (showPrivateOnly) {
@@ -170,6 +206,42 @@ export function QuestLogTable({
     }
     return true;
   });
+
+  const actionColumn = {
+    key: "actions",
+    header: "",
+    accessor: "actions",
+    cell: ({ row }: { row: any }) => {
+      const entry = row.original;
+      const isOwner = session?.user?.email === entry.surferEmail;
+
+      if (!isOwner) return null;
+
+      return (
+        <div className="flex gap-2">
+          <button
+            onClick={() => handleEdit(entry)}
+            className="text-gray-500 hover:text-blue-600"
+          >
+            <Pencil className="w-4 h-4" />
+          </button>
+          <button
+            onClick={() => handleDelete(entry.id)}
+            className="text-gray-500 hover:text-red-600"
+            disabled={deleteMutation.isPending}
+          >
+            {deleteMutation.isPending ? (
+              <span className="loading-spinner" />
+            ) : (
+              <X className="w-4 h-4" />
+            )}
+          </button>
+        </div>
+      );
+    },
+  };
+
+  const columnsWithAction = [...columns, actionColumn];
 
   if (isLoading) {
     return <TableSkeleton />;
@@ -222,12 +294,12 @@ export function QuestLogTable({
           <table className="w-full divide-y divide-gray-200">
             <thead className="bg-gray-50">
               <tr>
-                {columns.map((column) => (
+                {columnsWithAction.map((column) => (
                   <th
                     key={column.key}
                     className="px-3 py-3 sm:px-6 sm:py-3 text-xs sm:text-sm text-left text-gray-500 uppercase tracking-wider whitespace-nowrap"
                   >
-                    {column.label}
+                    {(column as QuestLogTableColumn).label}
                   </th>
                 ))}
               </tr>
@@ -272,6 +344,27 @@ export function QuestLogTable({
                       </div>
                     </td>
                   )}
+                  <td className="px-6 py-4">
+                    <div className="flex gap-2">
+                      <button
+                        onClick={() => handleEdit(entry)}
+                        className="text-gray-500 hover:text-[var(--brand-tertiary)]"
+                      >
+                        <Pencil className="w-4 h-4" />
+                      </button>
+                      <button
+                        onClick={() => handleDelete(entry.id)}
+                        className="text-gray-500 hover:text-red-600"
+                        disabled={deleteMutation.isPending}
+                      >
+                        {deleteMutation.isPending ? (
+                          <span className="loading-spinner" />
+                        ) : (
+                          <X className="w-4 h-4" />
+                        )}
+                      </button>
+                    </div>
+                  </td>
                 </tr>
               ))}
             </tbody>

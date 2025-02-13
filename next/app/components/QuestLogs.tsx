@@ -12,18 +12,15 @@ import type {
   RegionFilters,
 } from "@/app/types/questlogs";
 import type { Beach } from "@/app/types/beaches";
-import Image from "next/image";
-import {
-  getWindEmoji,
-  getSwellEmoji,
-  getDirectionEmoji,
-} from "@/app/lib/forecastUtils";
 
 import { useSubscription } from "@/app/context/SubscriptionContext";
 import { LogVisibilityToggle } from "@/app/components/LogVisibilityToggle";
 import { useSearchParams, useRouter } from "next/navigation";
 import RippleLoader from "./ui/RippleLoader";
 import dynamic from "next/dynamic";
+import { Button } from "@/app/components/ui/Button";
+import { RandomLoader } from "./ui/RandomLoader";
+import { useQueryClient } from "@tanstack/react-query";
 
 interface QuestLogsProps {
   beaches: Beach[];
@@ -59,54 +56,65 @@ export default function QuestLogs({ beaches }: QuestLogsProps) {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [activeTab, setActiveTab] = useState<"logs" | "new">("logs");
   const [isFilterOpen, setIsFilterOpen] = useState(false);
-  const [filteredEntries, setFilteredEntries] = useState<LogEntry[]>([]);
   const [filters, setFilters] = useState<FilterConfig>(defaultFilters);
   const [regionFilters, setRegionFilters] =
     useState<RegionFilters>(defaultRegionFilters);
   const [selectedRegion, setSelectedRegion] = useState<string | null>(null);
   const router = useRouter();
   const searchParams = useSearchParams();
-  const [showPrivateOnly, setShowPrivateOnly] = useState(false);
+  const [showPrivateOnly, setShowPrivateOnly] = useState(
+    searchParams.get("visibility") === "private"
+  );
+  const queryClient = useQueryClient();
 
-  const { data: entries, isLoading } = useQuery({
-    queryKey: ["questLogs"],
+  const { data: logEntriesData, isLoading } = useQuery({
+    queryKey: ["questLogs", showPrivateOnly, selectedRegion, filters],
     queryFn: async () => {
-      try {
-        const response = await fetch("/api/quest-log");
-        if (!response.ok) {
-          console.error("Failed to fetch logs:", await response.text());
-          throw new Error("Failed to fetch logs");
-        }
-        const data = await response.json();
-        // Transform the data to match the LogEntry type
-        return data.entries.map((entry: any) => ({
-          ...entry,
-          sessionDate: new Date(entry.date), // Convert date field to sessionDate
-          beachName: entry.beachName,
-          surferName: entry.surferName,
-          surferEmail: entry.surferEmail,
-          surferRating: entry.surferRating,
-          comments: entry.comments,
-          imageUrl: entry.imageUrl,
-          isPrivate: entry.isPrivate,
-          // Extract forecast data if it exists
-          windSpeed: entry.forecast?.windSpeed,
-          windDirection: entry.forecast?.windDirection,
-          swellHeight: entry.forecast?.swellHeight,
-          swellDirection: entry.forecast?.swellDirection,
-        }));
-      } catch (error) {
-        console.error("Error fetching logs:", error);
-        throw error;
-      }
+      const params = new URLSearchParams({
+        showPrivate: showPrivateOnly.toString(),
+        ...(selectedRegion && { region: selectedRegion }),
+        ...(filters.regions.length && { regions: filters.regions.join(",") }),
+        ...(filters.beaches.length && { beaches: filters.beaches.join(",") }),
+        ...(filters.countries.length && {
+          countries: filters.countries.join(","),
+        }),
+        ...(filters.waveTypes.length && {
+          waveTypes: filters.waveTypes.join(","),
+        }),
+        ...(filters.minRating && { minRating: filters.minRating.toString() }),
+        ...(filters.dateRange.start && {
+          startDate: new Date(filters.dateRange.start).toISOString(),
+        }),
+        ...(filters.dateRange.end && {
+          endDate: new Date(filters.dateRange.end).toISOString(),
+        }),
+      });
+
+      const response = await fetch(`/api/quest-log?${params.toString()}`);
+
+      if (!response.ok) throw new Error("Failed to fetch logs");
+
+      const data = await response.json();
+      return data.entries.map((entry: any) => ({
+        ...entry,
+        sessionDate: new Date(entry.date),
+        beachName: entry.beachName,
+        surferName: entry.surferName,
+        surferEmail: entry.surferEmail,
+        surferRating: entry.surferRating,
+        comments: entry.comments,
+        imageUrl: entry.imageUrl,
+        isPrivate: entry.isPrivate,
+      })) as LogEntry[];
     },
+    staleTime: 5 * 60 * 1000,
   });
 
   const { data: conditions, isLoading: isConditionsLoading } = useQuery({
     queryKey: ["surfConditions", selectedRegion],
     queryFn: async () => {
       const response = await fetch(
-        `/api/surf-conditions?region=${selectedRegion || ""}`
+        `/api/surf-conditions?region=${selectedRegion || ""}&date=${new Date().toISOString()}`
       );
       if (!response.ok) throw new Error("Failed to fetch conditions");
       const data = await response.json();
@@ -117,59 +125,9 @@ export default function QuestLogs({ beaches }: QuestLogsProps) {
 
   const isLoadingCombined = isLoading || isConditionsLoading;
 
-  useEffect(() => {
-    if (entries && Array.isArray(entries)) {
-      setFilteredEntries(entries);
-    }
-  }, [entries]);
-
   if (isLoadingCombined) {
-    return <div></div>;
+    return <RandomLoader isLoading={true} />;
   }
-
-  if (!entries?.length) {
-    return (
-      <div className="min-h-screen bg-[var(--color-bg-secondary)] p-9 font-primary">
-        <div className="max-w-[1600px] mx-auto">
-          <div className="bg-white rounded-lg shadow-sm p-9 text-center">
-            <h2 className="heading-5 mb-4">Welcome to Quest Logs!</h2>
-            <p className="text-[var(--color-text-secondary)] mb-6">
-              No surf sessions logged yet. Start your journey by logging your
-              first session!
-            </p>
-            <button
-              onClick={() => setIsModalOpen(true)}
-              className="px-6 py-3 bg-[var(--color-tertiary)] text-white rounded-lg hover:bg-[var(--color-tertiary)]/90 transition-colors"
-            >
-              Log Your First Session
-            </button>
-          </div>
-        </div>
-      </div>
-    );
-  }
-
-  const handleFilterChange = (newFilters: FilterConfig) => {
-    setFilters(newFilters);
-    let filtered = entries;
-
-    // Apply filters
-    if (newFilters.beachName) {
-      filtered = filtered.filter((entry: LogEntry) =>
-        entry.beachName.includes(newFilters.beachName)
-      );
-    }
-
-    if (newFilters.minRating > 0) {
-      filtered = filtered.filter(
-        (entry: LogEntry) => entry.surferRating >= newFilters.minRating
-      );
-    }
-
-    // ... other filter logic
-
-    setFilteredEntries(filtered);
-  };
 
   const handleRegionFilterChange = (newRegionFilters: RegionFilters) => {
     setRegionFilters(newRegionFilters);
@@ -187,7 +145,41 @@ export default function QuestLogs({ beaches }: QuestLogsProps) {
       : newParams.delete("visibility");
     router.replace(`?${newParams.toString()}`, { scroll: false });
     setShowPrivateOnly(isPrivate);
+    queryClient.invalidateQueries({ queryKey: ["questLogs"] }); // Refresh data
   };
+
+  const handleFiltersChange = (filters: FilterConfig) => {
+    const params = new URLSearchParams();
+
+    // Handle all filter properties
+    if (filters.regions.length)
+      params.set("regions", filters.regions.join(","));
+    if (filters.beaches.length)
+      params.set("beaches", filters.beaches.join(","));
+    if (filters.countries.length)
+      params.set("countries", filters.countries.join(","));
+    if (filters.waveTypes.length)
+      params.set("waveTypes", filters.waveTypes.join(","));
+    if (filters.minRating)
+      params.set("minRating", filters.minRating.toString());
+    if (filters.surferName) params.set("surferName", filters.surferName);
+    if (filters.beachName) params.set("beachName", filters.beachName);
+
+    // Date range handling
+    if (filters.dateRange.start)
+      params.set("startDate", filters.dateRange.start);
+    if (filters.dateRange.end) params.set("endDate", filters.dateRange.end);
+
+    window.history.replaceState(null, "", `?${params.toString()}`);
+  };
+
+  const filteredEntries =
+    logEntriesData?.filter((entry) => {
+      const matchesRegion =
+        !selectedRegion || entry.beach?.region === selectedRegion;
+      const matchesPrivacy = showPrivateOnly ? entry.isPrivate : true;
+      return matchesRegion && matchesPrivacy;
+    }) || [];
 
   return (
     <div className="min-h-screen bg-[var(--color-bg-secondary)] p-9 font-primary relative">
@@ -208,7 +200,10 @@ export default function QuestLogs({ beaches }: QuestLogsProps) {
               <span className="whitespace-nowrap">Logged Sessions</span>
             </button>
             <button
-              onClick={handleOpenModal}
+              onClick={() => {
+                setActiveTab("new");
+                setIsModalOpen(true);
+              }}
               className={`px-4 py-3 sm:px-6 sm:py-4 text-small font-primary transition-colors duration-200 ${
                 activeTab === "new"
                   ? "text-[var(--color-text-primary)]"
@@ -241,36 +236,18 @@ export default function QuestLogs({ beaches }: QuestLogsProps) {
               </button>
             </div>
           </div>
-          {isLoading ? (
-            <RippleLoader isLoading={true} />
-          ) : filteredEntries.length > 0 ? (
-            <>
-              {!isSubscribed && (
-                <div className="mb-4 p-4 bg-yellow-50 rounded-lg">
-                  <p className="text-sm text-yellow-700">
-                    Subscribe to view sessions rated above 3 stars and access
-                    all features.
-                  </p>
-                </div>
+          {filteredEntries?.length === 0 && (
+            <div className="text-center py-12">
+              <p className="text-gray-500 mb-4">
+                {isLoading
+                  ? "Loading sessions..."
+                  : "No matching sessions found"}
+              </p>
+              {!isLoading && (
+                <Button onClick={() => setIsModalOpen(true)}>
+                  Log Your First Session
+                </Button>
               )}
-              <QuestLogTable
-                entries={filteredEntries.map((entry) => ({
-                  ...entry,
-                  forecastConditions:
-                    entry.windSpeed && entry.swellHeight
-                      ? {
-                          wind: `${getWindEmoji(entry.windSpeed)} ${entry.windSpeed}kts ${getDirectionEmoji(entry.windDirection || 0)}`,
-                          swell: `${getSwellEmoji(entry.swellHeight)} ${entry.swellHeight}m ${getDirectionEmoji(entry.swellDirection || 0)}`,
-                        }
-                      : undefined,
-                }))}
-                isSubscribed={isSubscribed}
-                showPrivateOnly={showPrivateOnly}
-              />
-            </>
-          ) : (
-            <div className="text-main text-[var(--color-text-secondary)]">
-              No entries available
             </div>
           )}
         </div>
@@ -278,9 +255,8 @@ export default function QuestLogs({ beaches }: QuestLogsProps) {
 
       {/* Right Sidebar Filter */}
       <QuestLogFilter
-        entries={entries}
-        onFilterChange={handleFilterChange}
-        onRegionFilterChange={handleRegionFilterChange}
+        entries={filteredEntries || []}
+        onFiltersChange={handleFiltersChange}
         isOpen={isFilterOpen}
         onClose={() => setIsFilterOpen(false)}
       />

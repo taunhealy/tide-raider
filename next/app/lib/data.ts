@@ -1,8 +1,6 @@
-import { beachData, type Beach } from "@/app/types/beaches";
+import { beachData } from "@/app/types/beaches";
 
-
-
-export async function getBeaches(): Promise<Beach[]> {
+export async function getBeaches() {
   return beachData;
 }
 

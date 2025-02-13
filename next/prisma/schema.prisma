@@ -141,6 +141,10 @@ model LogEntry {
   updatedAt   DateTime @updatedAt
   isPrivate   Boolean @default(false)
   isAnonymous Boolean @default(false)
+  continent   String?  @db.VarChar(255)
+  country     String?  @db.VarChar(255)
+  region      String?  @db.VarChar(255)
+  waveType    String?  @db.VarChar(255)
 
   @@index([surferEmail])
   @@index([date])
@@ -339,6 +343,11 @@ model Beach {
   name        String    @unique
   stories     Story[]
   feedback    Feedback[]
+  region      Region?   @relation(fields: [regionId], references: [id])
+  regionId    String?
+  waveType    String
+  latitude    Float
+  longitude   Float
 }
 
 model Account {
@@ -490,4 +499,14 @@ model UserFavorite {
 
   @@index([userId])
   @@index([createdAt])
+}
+
+model Region {
+  id        String   @id @default(cuid())
+  date      String
+  name      String
+  forecast  Json
+  continent String
+  country   String
+  beaches   Beach[]
 }

@@ -198,7 +198,7 @@ export default function BeachCard({
           group
           bg-[var(--color-bg-primary)]
           rounded-lg 
-          p-[32px]
+          p-[24px] md:p-[32px]
           border
           border-[var(--color-border-light)]
           transition-all
@@ -206,7 +206,7 @@ export default function BeachCard({
           relative
           w-full
           h-full
-          min-h-[360px]
+          min-h-[280px] md:min-h-[360px]
           ${!shouldBeLocked && "hover:border-[var(--color-border-medium)] hover:shadow-sm cursor-pointer"} 
           ${suitability?.suitable ? "bg-brand-secondary" : ""}
         `}
@@ -214,14 +214,14 @@ export default function BeachCard({
         {isLocalLoading || isLoading ? (
           <ConditionsSkeleton />
         ) : (
-          <div className="flex flex-col gap-[32px]">
+          <div className="flex flex-col gap-[24px] md:gap-[32px]">
             {/* Beach Information Header */}
             <div className="flex items-center justify-between">
               {/* Wave Type Icon and Beach Details */}
-              <div className="flex items-center gap-3">
+              <div className="flex items-center gap-2 md:gap-3">
                 {/* Wave Type Icon with Tooltip */}
                 <div
-                  className="relative min-w-[54px] w-[54px] h-[54px] sm:w-[54px] sm:h-[54px] rounded-full overflow-hidden bg-gray-100 border border-gray-200"
+                  className="relative min-w-[40px] w-10 h-10 md:min-w-[54px] md:w-14 md:h-14 rounded-full overflow-hidden bg-gray-100 border border-gray-200"
                   onMouseEnter={() => setShowWaveTypeHint(true)}
                   onMouseLeave={() => setShowWaveTypeHint(false)}
                 >
@@ -274,7 +274,7 @@ export default function BeachCard({
                 ) : (
                   <>
                     <div>
-                      <h4 className="heading-5 text-[var(--color-text-primary)] flex items-center gap-2">
+                      <h4 className="text-base sm:text-lg font-semibold text-[var(--color-text-primary)] flex items-center gap-2">
                         {beach.name}
                         {windData?.wind?.speed && windData.wind.speed > 25 && (
                           <span title="Strong winds">🌪️</span>
@@ -292,7 +292,7 @@ export default function BeachCard({
                           </span>
                         )}
                       </h4>
-                      <h5 className="heading-6 font-secondary text-[var(--color-text-secondary)]">
+                      <h5 className="text-sm sm:text-base font-secondary text-[var(--color-text-secondary)]">
                         {beach.region}
                       </h5>
                     </div>
@@ -302,21 +302,22 @@ export default function BeachCard({
 
               {/* Action Buttons */}
               {!shouldBeLocked && (
-                <div className="flex items-center gap-2">
+                <div className="flex items-center gap-1 md:gap-2">
                   <GoogleMapsButton
                     coordinates={beach.coordinates}
                     name={beach.name}
                     region={beach.region}
                     location={beach.location}
+                    className="hidden md:flex"
                   />
                   <button
                     onClick={(e) => {
                       e.stopPropagation();
                       handleOpenModal();
                     }}
-                    className="p-2 hover:bg-gray-100 rounded-full transition-colors"
+                    className="p-1.5 md:p-2 hover:bg-gray-100 rounded-full transition-colors"
                   >
-                    <InfoIcon className="w-5 h-5 text-gray-500" />
+                    <InfoIcon className="w-4 h-4 md:w-5 md:h-5 text-gray-500" />
                   </button>
                 </div>
               )}
@@ -328,7 +329,7 @@ export default function BeachCard({
                 <ConditionsSkeleton />
               ) : windData ? (
                 // Show actual conditions when windData is available
-                <div className="flex flex-col gap-1">
+                <div className="flex flex-col gap-1 md:gap-2">
                   <div className="flex items-center gap-2">
                     <div
                       className="flex items-center gap-2 relative px-2 py-1"
@@ -351,8 +352,10 @@ export default function BeachCard({
                   </div>
 
                   {/* Current Conditions */}
-                  <div className="text-sm flex flex-col gap-2">
-                    <h6 className="heading-6">Current Conditions:</h6>
+                  <div className="text-sm flex flex-col gap-1 md:gap-2">
+                    <h6 className="text-sm md:text-base">
+                      Current Conditions:
+                    </h6>
                     <ul className="space-y-2">
                       {getConditionReasons(
                         beach,
@@ -361,7 +364,7 @@ export default function BeachCard({
                       ).optimalConditions.map((condition, index, array) => (
                         <li
                           key={index}
-                          className={`flex items-center gap-4 pb-2 ${
+                          className={`flex items-center gap-2 md:gap-4 pb-1 md:pb-2 ${
                             index !== array.length - 1
                               ? "border-b border-gray-200"
                               : ""
@@ -399,13 +402,13 @@ export default function BeachCard({
                             )}
                           </span>
                           <span
-                            className={`font-primary ${
+                            className={`text-xs md:text-sm ${
                               condition.isMet
                                 ? "text-gray-800"
                                 : "text-gray-500"
                             }`}
                           >
-                            <span className="font-medium">
+                            <span className="font-medium md:font-semibold">
                               {condition.text.split(":")[0]}:
                             </span>{" "}
                             <span className="font-normal">
@@ -419,8 +422,8 @@ export default function BeachCard({
                 </div>
               ) : (
                 // Show optimal conditions when no windData is available
-                <div className="text-sm flex flex-col gap-2">
-                  <p className="text-main font-primary font-semibold">
+                <div className="text-sm flex flex-col gap-1 md:gap-2">
+                  <p className="text-sm md:text-base font-semibold">
                     Optimal Conditions:
                   </p>
                   <ul className="space-y-1">
@@ -454,17 +457,20 @@ export default function BeachCard({
           <div
             className="
             absolute 
-            bottom-3 
-            right-3 
+            bottom-2 
+            right-2 
+            md:bottom-3 
+            md:right-3 
             opacity-0 
             group-hover:opacity-100 
             transition-opacity
             bg-gray-50
-            p-2
+            p-1.5
+            md:p-2
             rounded-full
           "
           >
-            <Eye className="w-5 h-5 text-gray-500" />
+            <Eye className="w-4 h-4 md:w-5 md:h-5 text-gray-500" />
           </div>
         )}
       </div>

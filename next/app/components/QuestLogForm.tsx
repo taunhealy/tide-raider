@@ -3,21 +3,26 @@ import { useState, useEffect } from "react";
 import { Star, Search, X, Upload, Lock } from "lucide-react";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { cn } from "@/app/lib/utils";
-import { beachData } from "@/app/types/beaches";
 import type { Beach } from "@/app/types/beaches";
-import type { CreateLogEntryInput } from "@/app/types/questlogs";
+import type { CreateLogEntryInput, LogEntry } from "@/app/types/questlogs";
 import SurfForecastWidget from "./SurfForecastWidget";
 import confetti from "canvas-confetti";
 import { Button } from "@/app/components/ui/Button";
 import { validateFile, compressImageIfNeeded } from "@/app/lib/file";
-import { LogVisibilityToggle } from "@/app/components/LogVisibilityToggle";
 import { useSubscription } from "@/app/context/SubscriptionContext";
+import { useSession } from "next-auth/react";
+import { Select, SelectItem } from "@/app/components/ui/Select";
+import { useHandleTrial } from "@/app/hooks/useHandleTrial";
+import { useRouter } from "next/navigation";
+import { signIn } from "next-auth/react";
 
 interface QuestLogFormProps {
-  userEmail: string;
-  isOpen: boolean;
-  onClose: () => void;
-  beaches: Beach[];
+  userEmail?: string;
+  isOpen?: boolean;
+  onClose?: () => void;
+  beaches?: Beach[];
+  entry?: LogEntry;
+  isEditing?: boolean;
 }
 
 export function QuestLogForm({
@@ -25,15 +30,22 @@ export function QuestLogForm({
   isOpen,
   onClose,
   beaches,
+  entry,
+  isEditing,
 }: QuestLogFormProps) {
   const queryClient = useQueryClient();
-  const { isSubscribed } = useSubscription();
-  const [selectedDate, setSelectedDate] = useState<string>(
-    new Date().toISOString().split("T")[0]
+  const { isSubscribed, hasActiveTrial } = useSubscription();
+  const { data: session } = useSession();
+  const router = useRouter();
+  const { mutate: handleTrial } = useHandleTrial();
+  const [selectedDate, setSelectedDate] = useState(
+    entry?.date ? new Date(entry.date).toISOString().split("T")[0] : ""
   );
-  const [selectedBeach, setSelectedBeach] = useState<Beach | null>(null);
-  const [surferRating, setSurferRating] = useState<number>(0);
-  const [comments, setComments] = useState<string>("");
+  const [selectedBeach, setSelectedBeach] = useState<Beach | null>(
+    entry?.beachId ? beaches?.find((b) => b.id === entry.beachId) || null : null
+  );
+  const [surferRating, setSurferRating] = useState(entry?.surferRating || 0);
+  const [comments, setComments] = useState(entry?.comments || "");
   const [searchTerm, setSearchTerm] = useState<string>("");
   const [isAnonymous, setIsAnonymous] = useState<boolean>(false);
   const [selectedImage, setSelectedImage] = useState<File | null>(null);
@@ -43,16 +55,23 @@ export function QuestLogForm({
   const [forecast, setForecast] = useState<any>(null);
   const [uploadedImageUrl, setUploadedImageUrl] = useState<string>("");
   const [isHovered, setIsHovered] = useState(false);
+  const [isPrivate, setIsPrivate] = useState<boolean>(
+    entry?.isPrivate || false
+  );
 
   const createLogEntry = useMutation({
     mutationFn: async (newEntry: CreateLogEntryInput) => {
-      const response = await fetch("/api/quest-log", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify(newEntry),
-      });
+      const method = entry?.id ? "PATCH" : "POST";
+      const response = await fetch(
+        `/api/quest-log${entry?.id ? `/${entry.id}` : ""}`,
+        {
+          method,
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify(newEntry),
+        }
+      );
 
       if (!response.ok) {
         throw new Error("Failed to create log entry");
@@ -61,22 +80,14 @@ export function QuestLogForm({
       return response.json();
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["logEntries"] });
-      // Trigger confetti
+      queryClient.invalidateQueries({ queryKey: ["questLogs"] });
       confetti({
         particleCount: 100,
-        spread: 70,
+        spread: 90,
         origin: { y: 0.6 },
       });
-      // Reset form
-      setSelectedDate(new Date().toISOString().split("T")[0]);
-      setSelectedBeach(null);
-      setSurferRating(0);
-      setComments("");
-      // Close modal after 3 seconds
-      setTimeout(() => {
-        onClose();
-      }, 3000);
+      setIsSubmitted(true);
+      router.push("/raidlogs");
     },
   });
 
@@ -99,6 +110,25 @@ export function QuestLogForm({
     e.preventDefault();
     if (!selectedBeach || !selectedDate || !userEmail) return;
 
+    // Debug: Log full forecast state
+    console.log("Form submission forecast data:", {
+      wind: forecast?.wind,
+      swell: forecast?.swell,
+      rawForecast: forecast,
+    });
+
+    if (
+      !forecast?.wind?.speed ||
+      !forecast?.swell?.height ||
+      !forecast?.swell?.period
+    ) {
+      alert(`Missing forecast data. Current checks:
+      Wind speed: ${forecast?.wind?.speed || "missing"}
+      Swell height: ${forecast?.swell?.height || "missing"}
+      Swell period: ${forecast?.swell?.period || "missing"}`);
+      return;
+    }
+
     setIsSubmitting(true);
     try {
       let imageUrl = uploadedImageUrl;
@@ -120,18 +150,21 @@ export function QuestLogForm({
         beachName: selectedBeach.name,
         date: selectedDate,
         surferEmail: userEmail,
-        surferName: isAnonymous ? "Anonymous" : userEmail.split("@")[0],
+        surferName: isAnonymous
+          ? "Anonymous"
+          : (session?.user as { name?: string })?.name ||
+            userEmail.split("@")[0],
         surferRating: surferRating,
         comments,
         imageUrl,
         forecast: forecast, // Use the forecast data from state
-        beach: {
-          continent: selectedBeach.continent,
-          country: selectedBeach.country,
-          region: selectedBeach.region,
-          waveType: selectedBeach.waveType,
-        },
+        continent: selectedBeach.continent,
+        country: selectedBeach.country,
+        region: selectedBeach.region,
+        waveType: selectedBeach.waveType,
         isAnonymous,
+        isPrivate,
+        id: entry?.id,
       };
 
       await createLogEntry.mutateAsync(newEntry);
@@ -154,7 +187,6 @@ export function QuestLogForm({
         setSelectedImage(null);
         setImagePreview(null);
         setUploadedImageUrl("");
-        onClose();
         setIsSubmitting(false);
         setIsSubmitted(false);
       }, 2000);
@@ -165,17 +197,19 @@ export function QuestLogForm({
     }
   };
 
-  const filteredBeaches = beachData.filter((beach) =>
-    beach.name.toLowerCase().includes(searchTerm.toLowerCase())
-  );
+  const filteredBeaches =
+    beaches?.filter((beach) =>
+      beach.name.toLowerCase().includes(searchTerm.toLowerCase())
+    ) || [];
 
   const handleBeachSelect = async (beach: Beach) => {
     setSelectedBeach(beach);
     try {
       // Ensure we're using today's date if the selected date is in the future
-      const today = new Date().toISOString().split("T")[0];
+      const now = new Date();
+      const selected = new Date(selectedDate);
       const formattedDate =
-        new Date(selectedDate) > new Date() ? today : selectedDate;
+        selected > now ? now.toISOString().split("T")[0] : selectedDate;
 
       console.log("Form - Attempting to fetch forecast for:", {
         date: formattedDate,
@@ -229,28 +263,59 @@ export function QuestLogForm({
     }
   };
 
+  // Initialize selected beach when entry changes
+  useEffect(() => {
+    if (!beaches || !entry?.beachName) return;
+
+    const initialBeach = beaches.find((b) => b.name === entry.beachName);
+    setSelectedBeach(initialBeach || null);
+  }, [entry, beaches]);
+
+  const handleSubscriptionAction = () => {
+    if (!session?.user) {
+      signIn("google");
+      return;
+    }
+
+    if (!hasActiveTrial) {
+      handleTrial();
+    } else {
+      router.push("/pricing");
+    }
+  };
+
   return (
     <>
       {isOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center">
           <div className="absolute inset-0 bg-black/50" onClick={onClose} />
           <div className="relative bg-white rounded-lg shadow-xl max-w-[95%] lg:max-w-[1200px] w-full m-4 p-4 lg:p-6 overflow-y-auto max-h-[90vh]">
-            {!isSubscribed && (
+            {!isSubscribed && !hasActiveTrial && (
               <div className="absolute inset-0 bg-gray-100/50 backdrop-blur-[2px] z-10 rounded-lg" />
             )}
 
-            {!isSubscribed && (
-              <div
-                className="absolute inset-0 flex items-center justify-center z-20"
-                onMouseEnter={() => setIsHovered(true)}
-                onMouseLeave={() => setIsHovered(false)}
-              >
-                <Lock className="h-16 w-16 text-gray-400 transition-opacity" />
-                {isHovered && (
-                  <div className="absolute top-1/2 left-1/2 -translate-x-1/2 translate-y-16 bg-gray-800 text-white px-4 py-2 rounded-md text-sm">
-                    Subscribe to log sessions
-                  </div>
-                )}
+            {!isSubscribed && !hasActiveTrial && (
+              <div className="absolute inset-0 flex flex-col items-center justify-center z-20 gap-4">
+                <Lock className="h-16 w-16 text-gray-400" />
+                <div className="text-center px-4">
+                  <h3 className="text-lg font-semibold mb-2">
+                    Start Logging Your Sessions
+                  </h3>
+                  <p className="text-gray-600 mb-4">
+                    Track your surf journey with detailed logs and insights
+                  </p>
+                  <Button
+                    variant="secondary"
+                    onClick={handleSubscriptionAction}
+                    className="font-primary bg-[var(--color-tertiary)] text-white hover:bg-[var(--color-tertiary)]/90"
+                  >
+                    {!session?.user
+                      ? "Sign in to Start"
+                      : hasActiveTrial
+                        ? "Subscribe Now"
+                        : "Start Free Trial"}
+                  </Button>
+                </div>
               </div>
             )}
 
@@ -270,33 +335,21 @@ export function QuestLogForm({
                   <label className="block text-sm font-medium mb-1">
                     Select a Beach
                   </label>
-                  <input
-                    type="text"
-                    placeholder="Search beaches..."
-                    className="w-full p-2 border rounded-lg text-sm sm:text-base"
-                    value={searchTerm}
-                    onChange={(e) => setSearchTerm(e.target.value)}
-                  />
-                  {searchTerm && (
-                    <div className="border rounded-lg mt-2 max-h-48 sm:max-h-60 overflow-y-auto">
-                      {filteredBeaches.map((beach) => (
-                        <button
-                          key={beach.name}
-                          onClick={() => handleBeachSelect(beach)}
-                          className={cn(
-                            "w-full text-left px-4 py-3 hover:bg-gray-50",
-                            selectedBeach?.name === beach.name &&
-                              "bg-[var(--color-tertiary)]"
-                          )}
-                        >
-                          <h3 className="font-medium">{beach.name}</h3>
-                          <p className="text-sm text-gray-600">
-                            {beach.region}
-                          </p>
-                        </button>
-                      ))}
-                    </div>
-                  )}
+                  <Select
+                    value={selectedBeach?.name || ""}
+                    onValueChange={(value) => {
+                      const beach = beaches?.find((b) => b.name === value);
+                      if (beach) {
+                        handleBeachSelect(beach);
+                      }
+                    }}
+                  >
+                    {beaches?.map((beach) => (
+                      <SelectItem key={beach.id} value={beach.name}>
+                        {beach.name}
+                      </SelectItem>
+                    ))}
+                  </Select>
                 </div>
               </div>
 
@@ -395,6 +448,19 @@ export function QuestLogForm({
                     </label>
                   </div>
 
+                  <div className="flex items-center space-x-2">
+                    <input
+                      type="checkbox"
+                      id="private"
+                      checked={isPrivate}
+                      onChange={(e) => setIsPrivate(e.target.checked)}
+                      className="rounded border-gray-300 text-[#1cd9ff] focus:ring-[#1cd9ff]"
+                    />
+                    <label htmlFor="private" className="text-sm text-gray-600">
+                      Keep Private
+                    </label>
+                  </div>
+
                   <div className="mb-4">
                     <label className="block text-sm font-medium mb-1">
                       Session Image
@@ -429,10 +495,12 @@ export function QuestLogForm({
                     variant="secondary"
                     className={cn(
                       "w-full lg:bg-[var(--color-tertiary)] lg:text-white lg:hover:bg-[var(--color-tertiary)]/90",
-                      !isSubscribed && "opacity-50 cursor-not-allowed"
+                      !isSubscribed &&
+                        !hasActiveTrial &&
+                        "opacity-50 cursor-not-allowed"
                     )}
                     disabled={
-                      !isSubscribed ||
+                      (!isSubscribed && !hasActiveTrial) ||
                       !selectedBeach ||
                       !selectedDate ||
                       isSubmitting

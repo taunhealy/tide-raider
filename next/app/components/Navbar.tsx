@@ -167,9 +167,9 @@ export default function Navbar() {
       {/* Mobile Navigation Menu */}
       {isMenuOpen && (
         <>
-          <nav className="md:hidden absolute w-full px-4 py-6 bg-white border-t border-[var(--color-border-light)] z-50">
-            <ul className="space-y-0">
-              <li className="px-4 py-4">
+          <nav className="md:hidden absolute w-full px-4 py-4 bg-white border-t border-[var(--color-border-light)] z-50">
+            <ul className="space-y-2">
+              <li className="px-2 py-3">
                 <RaidLink
                   className={cn(
                     "block font-primary text-[var(--color-text-primary)] hover:text-[var(--color-text-primary)] hover:font-semibold",
@@ -177,13 +177,15 @@ export default function Navbar() {
                     pathname === "/raid" &&
                       "font-semibold text-[var(--color-text-primary)]"
                   )}
+                  onClick={() => setIsMenuOpen(false)}
                 />
-                <div className="border-t border-[var(--color-border-light)] mt-4" />
+                <div className="border-t border-[var(--color-border-light)] mt-3" />
               </li>
-              {NAVIGATION_ITEMS.map((link, index) => (
-                <li key={link.href} className="px-4 py-4">
+              {NAVIGATION_ITEMS.map((link) => (
+                <li key={link.href} className="px-2 py-3">
                   <Link
                     href={link.href}
+                    onClick={() => setIsMenuOpen(false)}
                     className={cn(
                       "block font-primary text-[var(--color-text-primary)] hover:text-[var(--color-text-primary)] hover:font-semibold",
                       "transition-all duration-300",
@@ -193,9 +195,7 @@ export default function Navbar() {
                   >
                     {link.label}
                   </Link>
-                  {index < NAVIGATION_ITEMS.length - 1 && (
-                    <div className="border-t border-[var(--color-border-light)]" />
-                  )}
+                  <div className="border-t border-[var(--color-border-light)] mt-3" />
                 </li>
               ))}
             </ul>

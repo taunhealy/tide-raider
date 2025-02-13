@@ -63,12 +63,13 @@ export interface SortConfig {
 
 export interface FilterConfig {
   beachName: string;
+  regions: string[];
+  countries: string[];
+  beaches: string[];
+  waveTypes: string[];
   surferName: string;
-  minRating: number;
-  dateRange: {
-    start: string;
-    end: string;
-  };
+  minRating: number | null;
+  dateRange: { start: string; end: string };
 }
 
 export interface QuestLogTableColumn {

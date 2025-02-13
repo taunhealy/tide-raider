@@ -32,10 +32,10 @@ export function LogbookRegionFilter({
 
   // Update filters and apply filtering
   const handleRegionChange = (region: string) => {
-    // Single selection for region
+    const newRegions = selectedFilters.regions.includes(region) ? [] : [region];
     onFilterChange({
       ...selectedFilters,
-      regions: [region], // Only allow one region at a time
+      regions: newRegions,
     });
   };
 

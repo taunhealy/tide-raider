@@ -3,6 +3,7 @@ import { X, ChevronDown } from "lucide-react";
 import { cn } from "@/app/lib/utils";
 import { LogEntry } from "../types/questlogs";
 import RegionFilter from "./RegionFilter";
+import { FilterConfig } from "../types/questlogs";
 
 interface Beach {
   id: string;
@@ -24,16 +25,14 @@ interface RegionFilterType {
 
 interface QuestLogFilterProps {
   entries: LogEntry[];
-  onFilterChange: (filters: any) => void;
-  onRegionFilterChange: (filters: RegionFilterType) => void;
+  onFiltersChange: (filters: FilterConfig) => void;
   isOpen: boolean;
   onClose: () => void;
 }
 
 export function QuestLogFilter({
   entries,
-  onFilterChange,
-  onRegionFilterChange,
+  onFiltersChange,
   isOpen,
   onClose,
 }: QuestLogFilterProps) {
@@ -92,13 +91,23 @@ export function QuestLogFilter({
 
   // Update parent component when filters change
   useEffect(() => {
-    // Skip the initial render
     const timeoutId = setTimeout(() => {
-      onFilterChange(filters);
+      // Send all relevant filter parameters
+      onFiltersChange({
+        ...filters,
+        beachName: "",
+        waveTypes: [],
+        surferName: "",
+        regions: filters.regions,
+        beaches: filters.beaches,
+        countries: filters.countries,
+        minRating: filters.minRating,
+        dateRange: filters.dateRange,
+      });
     }, 300);
 
     return () => clearTimeout(timeoutId);
-  }, [filters]); // Remove onFilterChange from dependencies
+  }, [filters, onFiltersChange]);
 
   return (
     <div

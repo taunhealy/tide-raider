@@ -11,14 +11,12 @@ export interface SharkIncident {
   }[];
 }
 
-export type Region = string;
-
 export interface Beach {
   id: string;
   name: string;
   continent: string;
   country: string;
-  region: Region;
+  region: string;
   location: string;
   distanceFromCT: number;
   optimalWindDirections: string[];
@@ -3780,49 +3778,6 @@ export const beachData: Beach[] = [
     coordinates: {
       lat: -34.1234,
       lng: 18.4567,
-    },
-  },
-  {
-    id: "black-rocks",
-    name: "Black Rocks",
-    continent: "Africa",
-    country: "South Africa",
-    region: "Western Cape",
-    location: "Cape Peninsula",
-    distanceFromCT: 40, // Approximate distance, please adjust if needed
-    optimalWindDirections: ["NE"],
-    optimalSwellDirections: {
-      min: 180, // S
-      max: 225, // SW
-      cardinal: "S to SW",
-    },
-    bestSeasons: ["winter"], // Added based on massive swell requirement
-    optimalTide: "Mid to High",
-    description:
-      "World-class reef break offering massive barreling A-frame waves breaking both left and right for up to 100m over shallow rock shelf. Requires huge swell to start working properly - minimum double overhead. Extremely heavy wave with serious consequences. Strong localism - lineup limited to 10 surfers maximum and local knowledge/connections essential. Step-up or gun recommended as size increases. Despite needing massive swell, offers moderate consistency (5/10) when conditions align. Very crowded (8/10) on working days due to limited takeoff zone and strict hierarchy.",
-    difficulty: "Advanced",
-    waveType: "Reef Break",
-    swellSize: {
-      min: 2.0, // Double overhead minimum
-      max: 6.0, // Was 4.0
-    },
-    idealSwellPeriod: {
-      min: 12,
-      max: 18,
-    },
-    waterTemp: {
-      summer: 16,
-      winter: 12,
-    },
-    hazards: ["Rocks", "Heavy waves", "Shallow reef", "Strong localism"],
-    crimeLevel: "Low",
-    sharkAttack: {
-      hasAttack: false,
-    },
-    image: "",
-    coordinates: {
-      lat: -34.1012,
-      lng: 18.4987,
     },
   },
   {

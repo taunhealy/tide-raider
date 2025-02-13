@@ -30,6 +30,10 @@ interface QuestLogsProps {
 const defaultFilters: FilterConfig = {
   beachName: "",
   surferName: "",
+  regions: [],
+  beaches: [],
+  countries: [],
+  waveTypes: [],
   minRating: 0,
   dateRange: {
     start: "",
@@ -62,9 +66,7 @@ export default function QuestLogs({ beaches }: QuestLogsProps) {
   const [selectedRegion, setSelectedRegion] = useState<string | null>(null);
   const router = useRouter();
   const searchParams = useSearchParams();
-  const [showPrivateOnly, setShowPrivateOnly] = useState(
-    searchParams.get("visibility") === "private"
-  );
+  const showPrivateOnly = searchParams.get("visibility") === "private";
   const queryClient = useQueryClient();
 
   const { data: logEntriesData, isLoading } = useQuery({
@@ -123,6 +125,13 @@ export default function QuestLogs({ beaches }: QuestLogsProps) {
     enabled: !!selectedRegion,
   });
 
+  useEffect(() => {
+    queryClient.invalidateQueries({
+      queryKey: ["questLogs"],
+      exact: false,
+    });
+  }, [searchParams.toString()]);
+
   const isLoadingCombined = isLoading || isConditionsLoading;
 
   if (isLoadingCombined) {
@@ -137,44 +146,91 @@ export default function QuestLogs({ beaches }: QuestLogsProps) {
   const handleOpenModal = () => setIsModalOpen(true);
   const handleCloseModal = () => setIsModalOpen(false);
 
-  // Add visibility toggle handler
-  const handleVisibilityChange = (isPrivate: boolean) => {
-    const newParams = new URLSearchParams(searchParams.toString());
+  const handleVisibilityChange = async (isPrivate: boolean) => {
+    console.log("Visibility change started:", { isPrivate });
+    const params = new URLSearchParams(searchParams.toString());
     isPrivate
-      ? newParams.set("visibility", "private")
-      : newParams.delete("visibility");
-    router.replace(`?${newParams.toString()}`, { scroll: false });
-    setShowPrivateOnly(isPrivate);
-    queryClient.invalidateQueries({ queryKey: ["questLogs"] }); // Refresh data
+      ? params.set("visibility", "private")
+      : params.delete("visibility");
+
+    console.log("Updating URL to:", params.toString());
+    try {
+      await router.push(`?${params.toString()}`, { scroll: false });
+      console.log("URL update complete");
+    } catch (error) {
+      console.error("URL update failed:", error);
+    }
+
+    console.log("Invalidating queries...");
+    try {
+      await queryClient.invalidateQueries({
+        queryKey: ["questLogs"],
+        refetchType: "active",
+      });
+      console.log("Query invalidation complete");
+    } catch (error) {
+      console.error("Query invalidation failed:", error);
+    }
+
+    console.log("Resetting queries...");
+    queryClient.resetQueries({ queryKey: ["questLogs"] });
   };
 
   const handleFiltersChange = (filters: FilterConfig) => {
-    const params = new URLSearchParams();
+    // Add this line to update local state
+    setFilters(filters);
 
-    // Handle all filter properties
-    if (filters.regions.length)
-      params.set("regions", filters.regions.join(","));
-    if (filters.beaches.length)
-      params.set("beaches", filters.beaches.join(","));
-    if (filters.countries.length)
-      params.set("countries", filters.countries.join(","));
-    if (filters.waveTypes.length)
-      params.set("waveTypes", filters.waveTypes.join(","));
-    if (filters.minRating)
-      params.set("minRating", filters.minRating.toString());
-    if (filters.surferName) params.set("surferName", filters.surferName);
-    if (filters.beachName) params.set("beachName", filters.beachName);
+    // Start with existing params
+    const params = new URLSearchParams(searchParams.toString());
 
-    // Date range handling
-    if (filters.dateRange.start)
+    // Update filter params
+    params.set("regions", filters.regions.join(","));
+    params.set("beaches", filters.beaches.join(","));
+    params.set("countries", filters.countries.join(","));
+    params.set("waveTypes", filters.waveTypes.join(","));
+    params.set("minRating", (filters.minRating || 0).toString());
+
+    if (filters.surferName) {
+      params.set("surferName", filters.surferName);
+    } else {
+      params.delete("surferName");
+    }
+
+    if (filters.beachName) {
+      params.set("beachName", filters.beachName);
+    } else {
+      params.delete("beachName");
+    }
+
+    // Date handling
+    if (filters.dateRange.start) {
       params.set("startDate", filters.dateRange.start);
-    if (filters.dateRange.end) params.set("endDate", filters.dateRange.end);
+    } else {
+      params.delete("startDate");
+    }
+
+    if (filters.dateRange.end) {
+      params.set("endDate", filters.dateRange.end);
+    } else {
+      params.delete("endDate");
+    }
+
+    // Preserve visibility parameter
+    if (searchParams.get("visibility")) {
+      params.set("visibility", searchParams.get("visibility")!);
+    }
 
     window.history.replaceState(null, "", `?${params.toString()}`);
   };
 
   const filteredEntries =
     logEntriesData?.filter((entry) => {
+      console.log("Filtering entry:", {
+        id: entry.id,
+        isPrivate: entry.isPrivate,
+        showPrivateOnly,
+        matches: showPrivateOnly ? entry.isPrivate : true,
+      });
       const matchesRegion =
         !selectedRegion || entry.beach?.region === selectedRegion;
       const matchesPrivacy = showPrivateOnly ? entry.isPrivate : true;
@@ -236,7 +292,7 @@ export default function QuestLogs({ beaches }: QuestLogsProps) {
               </button>
             </div>
           </div>
-          {filteredEntries?.length === 0 && (
+          {filteredEntries.length === 0 ? (
             <div className="text-center py-12">
               <p className="text-gray-500 mb-4">
                 {isLoading
@@ -249,6 +305,13 @@ export default function QuestLogs({ beaches }: QuestLogsProps) {
                 </Button>
               )}
             </div>
+          ) : (
+            <QuestLogTable
+              entries={filteredEntries}
+              showPrivateOnly={showPrivateOnly}
+              isSubscribed={isSubscribed}
+              key={showPrivateOnly ? "private" : "public"}
+            />
           )}
         </div>
       </div>

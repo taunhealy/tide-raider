@@ -47,9 +47,13 @@ export async function DELETE(
 
     const entry = await prisma.logEntry.findUnique({
       where: { id: params.id },
+      select: {
+        userId: true,
+        surferEmail: true,
+      },
     });
 
-    if (entry?.surferEmail !== session.user.email) {
+    if (entry?.userId !== session.user.id) {
       return new Response("Forbidden", { status: 403 });
     }
 
@@ -74,6 +78,23 @@ export async function PATCH(
       return new Response("Unauthorized", { status: 401 });
 
     const data = await request.json();
+
+    const entry = await prisma.logEntry.findUnique({
+      where: { id: params.id },
+      select: {
+        userId: true,
+        surferEmail: true,
+      },
+    });
+
+    console.log("Session ID:", session.user.id);
+    console.log("Entry User ID:", entry?.userId);
+    console.log("User Email:", session.user.email);
+
+    if (entry?.userId !== session.user.id) {
+      console.error("Authorization failed - ID mismatch");
+      return new Response("Forbidden", { status: 403 });
+    }
 
     const updatedEntry = await prisma.logEntry.update({
       where: { id: params.id },

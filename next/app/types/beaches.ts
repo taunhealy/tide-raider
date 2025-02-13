@@ -1,4 +1,3 @@
-import { url } from "inspector";
 import type { WindData } from "./wind";
 
 export type { WindData };
@@ -10,6 +9,8 @@ export interface SharkIncident {
     details: string;
   }[];
 }
+
+// Or if using type instead of interface:
 
 export interface Beach {
   id: string;
@@ -94,6 +95,7 @@ export interface AdSlot {
   rejectionReason?: string;
 }
 
+// Beach data array should be declared FIRST
 export const beachData: Beach[] = [
   {
     id: "muizenberg-beach",
@@ -7281,3 +7283,9 @@ export const beachData: Beach[] = [
     ],
   },
 ];
+
+export const REGIONS = [
+  ...new Set(beachData.map((beach) => beach.region)),
+] as const;
+
+export type Region = (typeof REGIONS)[number]; // Ensure this line exists and is exported

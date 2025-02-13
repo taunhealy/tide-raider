@@ -35,33 +35,45 @@ function LogEntryDisplay({ entry, isAnonymous }: LogEntryDisplayProps) {
 }
 
 function ForecastInfo({ forecast }: { forecast: LogEntry["forecast"] }) {
-  if (!forecast) return <span className="text-gray-500">No forecast data</span>;
-  if (!forecast.wind || !forecast.swell)
-    return <span className="text-gray-500">Incomplete forecast data</span>;
+  if (!forecast?.wind || !forecast?.swell) {
+    return <span className="text-gray-500">No forecast data</span>;
+  }
+
+  // Handle both backend formats (public/private)
+  const windSpeed = forecast.wind.speed || 0;
+  const windDirection = forecast.wind.direction?.toString() || "";
+
+  const swellHeight = forecast.swell.height || 0;
+  const swellPeriod = forecast.swell.period || 0;
+  const swellDirection =
+    forecast.swell.cardinalDirection ||
+    forecast.swell.direction?.toString() ||
+    "";
 
   return (
     <div className="space-y-1 text-sm">
+      {/* Wind Row */}
       <p className="break-words">
-        <span
-          title={`Wind Speed: ${forecast.wind.speed < 5 ? "Light" : forecast.wind.speed < 12 ? "Moderate" : forecast.wind.speed < 20 ? "Strong" : "Very Strong"}`}
-        >
-          {getWindEmoji(forecast.wind.speed)}
+        <span title={`Wind Speed: ${windSpeed} km/h`}>
+          {getWindEmoji(windSpeed)}
         </span>{" "}
-        {forecast.wind.direction} @ {forecast.wind.speed}km/h
+        {windDirection} @ {windSpeed}km/h
       </p>
+
+      {/* Swell Row */}
       <p className="break-words">
-        <span
-          title={`Swell Height: ${forecast.swell.height < 0.5 ? "Flat" : forecast.swell.height < 1 ? "Small" : forecast.swell.height < 2 ? "Medium" : "Large"}`}
-        >
-          {getSwellEmoji(forecast.swell.height)}
+        <span title={`Swell Height: ${swellHeight}m`}>
+          {getSwellEmoji(swellHeight)}
         </span>{" "}
-        {forecast.swell.height}m @ {forecast.swell.period}s
+        {swellHeight}m @ {swellPeriod}s
       </p>
+
+      {/* Direction Row */}
       <p className="break-words">
-        <span title={`Swell Direction: ${forecast.swell.cardinalDirection}`}>
-          {getDirectionEmoji(parseInt(forecast.swell.direction))}
+        <span title={`Swell Direction: ${swellDirection}`}>
+          {getDirectionEmoji(swellDirection)}
         </span>{" "}
-        {forecast.swell.cardinalDirection}
+        {swellDirection}
       </p>
     </div>
   );
@@ -197,14 +209,13 @@ export function QuestLogTable({
   };
 
   const filteredEntries = entries.filter((entry) => {
+    // Wait until session is fully loaded
+    if (!session) return false;
+
     if (showPrivateOnly) {
-      return entry.isPrivate;
+      return entry.isPrivate && entry.surferEmail === session.user?.email;
     }
-    // Show private entries only if user is the owner
-    if (entry.isPrivate) {
-      return entry.surferEmail === session?.user?.email;
-    }
-    return true;
+    return !entry.isPrivate || entry.surferEmail === session.user?.email;
   });
 
   const actionColumn = {
@@ -297,7 +308,13 @@ export function QuestLogTable({
                 {columnsWithAction.map((column) => (
                   <th
                     key={column.key}
-                    className="px-3 py-3 sm:px-6 sm:py-3 text-xs sm:text-sm text-left text-gray-500 uppercase tracking-wider whitespace-nowrap"
+                    className={cn(
+                      "px-3 py-3 sm:px-6 sm:py-3 text-xs sm:text-sm text-left text-gray-500 uppercase tracking-wider whitespace-nowrap",
+                      column.key === "date"
+                        ? "min-w-[120px] max-w-[200px]"
+                        : "min-w-[160px] max-w-[300px]",
+                      "h-[40px]"
+                    )}
                   >
                     {(column as QuestLogTableColumn).label}
                   </th>
@@ -307,10 +324,10 @@ export function QuestLogTable({
             <tbody className="bg-white divide-y divide-gray-200">
               {filteredEntries.map((entry) => (
                 <tr key={entry.id} className="hover:bg-gray-50">
-                  <td className="px-3 py-4 sm:px-6 whitespace-nowrap text-sm">
+                  <td className="px-3 py-4 sm:px-6 whitespace-nowrap text-sm min-w-[120px] max-w-[200px] h-[60px]">
                     {format(new Date(entry.date), "MMM d, yyyy")}
                   </td>
-                  <td className="px-6 py-4 whitespace-nowrap">
+                  <td className="px-6 py-4 whitespace-nowrap min-w-[160px] max-w-[250px] h-[60px]">
                     {entry.beachName}
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap">

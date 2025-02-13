@@ -3,11 +3,40 @@ import { prisma } from "@/app/lib/prisma";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/app/lib/authOptions";
 import { beachData } from "@/app/types/beaches";
+import { z } from "zod";
 import { Prisma } from "@prisma/client";
 
 function getTodayDate() {
   const date = new Date();
   return date.toISOString().split("T")[0];
+}
+
+// Add Zod validation for input types
+const logEntrySchema = z.object({
+  beachName: z.string(),
+  date: z.string().regex(/^\d{4}-\d{2}-\d{2}$/),
+  surferName: z.string(),
+  surferRating: z.number().min(0).max(5),
+  comments: z.string().optional(),
+  imageUrl: z.string().optional(),
+  isPrivate: z.boolean().optional(),
+  forecast: z.any().optional(),
+  continent: z.string(),
+  country: z.string(),
+  region: z.string(),
+  waveType: z.string(),
+  isAnonymous: z.boolean().optional(),
+  userId: z.string().optional(),
+});
+
+interface Forecast {
+  wind?: { speed: number; direction: string };
+  swell?: {
+    height: number;
+    period: number;
+    direction: string;
+    cardinalDirection: string;
+  };
 }
 
 export async function GET(request: Request) {
@@ -113,12 +142,11 @@ export async function GET(request: Request) {
     }
 
     // Revised WHERE clause construction
-    const where: Prisma.LogEntryWhereInput = {
-      // Only apply email filter if we're not specifically querying a user's public logs
-      ...(userId
-        ? { surferEmail: userId }
-        : { surferEmail: session?.user?.email }),
-      isPrivate: userId ? false : showPrivate, // Force public when viewing others
+    const where: any = {
+      ...(showPrivate && {
+        isPrivate: true,
+        userId: userId || session?.user?.id,
+      }),
     };
 
     // Add filters only if they have values
@@ -138,11 +166,36 @@ export async function GET(request: Request) {
 
     const entries = await prisma.logEntry.findMany({
       where,
+      select: {
+        id: true,
+        date: true,
+        beachName: true,
+        surferName: true,
+        surferEmail: true,
+        surferRating: true,
+        comments: true,
+        imageUrl: true,
+        isPrivate: true,
+        forecast: true,
+        // Add missing top-level fields
+        continent: true,
+        country: true,
+        region: true,
+        waveType: true,
+        isAnonymous: true,
+        createdAt: true,
+        updatedAt: true,
+      },
       orderBy: { date: "desc" },
     });
 
+    const formattedEntries = entries.map((entry) => ({
+      ...entry,
+      forecast: entry.forecast,
+    }));
+
     console.log("Found entries:", entries.length);
-    return NextResponse.json({ entries });
+    return NextResponse.json({ entries: formattedEntries });
   } catch (error) {
     console.error("Error fetching logs:", error);
     return NextResponse.json(
@@ -174,23 +227,54 @@ export async function POST(request: Request) {
       });
     }
 
-    const data = await request.json();
+    const rawData = await request.json();
+    const data = logEntrySchema.parse(rawData);
 
+    // Get the beach data to find region
+    const beach = beachData.find((b) => b.name === data.beachName);
+    if (!beach) throw new Error("Beach not found");
+
+    // Fetch latest conditions for the beach's region on the log date
+    const conditions = await prisma.surfCondition.findFirst({
+      where: {
+        date: data.date,
+        region: beach.region,
+      },
+      orderBy: { timestamp: "desc" },
+    });
+
+    // Add this before creating the entry
+    if (conditions) {
+      if (!conditions.windSpeed || !conditions.swellHeight) {
+        return NextResponse.json(
+          { error: "Incomplete forecast data for this date/region" },
+          { status: 400 }
+        );
+      }
+    }
+
+    // Create entry with verified forecast
     const entry = await prisma.logEntry.create({
       data: {
-        beachName: data.beachName,
-        continent: data.continent,
-        country: data.country,
-        region: data.region,
-        waveType: data.waveType,
+        ...data,
         date: new Date(data.date),
-        surferEmail: session.user.email!,
-        surferName: data.surferName,
-        surferRating: data.surferRating,
-        comments: data.comments,
-        imageUrl: data.imageUrl,
-        forecast: data.forecast,
-        isPrivate: data.isPrivate || false,
+        region: beach.region, // Ensure region is set from beach data
+        forecast: conditions
+          ? {
+              wind: {
+                speed: conditions.windSpeed,
+                direction: conditions.windDirection,
+              },
+              swell: {
+                height: conditions.swellHeight,
+                period: conditions.swellPeriod,
+                direction: conditions.swellDirection,
+                cardinalDirection: conditions.swellDirection,
+              },
+            }
+          : Prisma.JsonNull,
+        imageUrl: data.imageUrl || "",
+        userId: session.user.id,
       },
     });
 
@@ -202,4 +286,11 @@ export async function POST(request: Request) {
       { status: 500 }
     );
   }
+}
+
+// Add conversion helper
+function convertDegreesToCardinal(degrees: number) {
+  const directions = ["N", "NE", "E", "SE", "S", "SW", "W", "NW"];
+  const index = Math.round(degrees / 45) % 8;
+  return directions[index] || "N/A";
 }

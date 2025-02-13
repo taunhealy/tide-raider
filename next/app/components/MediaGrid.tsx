@@ -3,9 +3,7 @@
 import { getMediaGridItems } from "@/app/lib/mediaUtils";
 import { useState, useMemo } from "react";
 import { getVideoThumbnail } from "@/app/lib/videoUtils";
-import { HoverOverlay } from "@/app/components/ui/HoverOverlay";
 import dynamic from "next/dynamic";
-import Link from "next/link";
 import { Beach } from "@/app/types/beaches";
 import { QuestLogModal } from "./QuestLogModal";
 import { useSession } from "next-auth/react";
@@ -17,6 +15,7 @@ import {
   getSwellEmoji,
   getDirectionEmoji,
 } from "@/app/lib/forecastUtils";
+import { LogEntry } from "@/types/questlogs";
 
 interface MediaGridProps {
   videos?: { url: string; title: string; platform: "youtube" | "vimeo" }[];
@@ -66,24 +65,28 @@ function MediaGridBase({ videos, beach, sessions = [] }: MediaGridProps) {
                     <p className="text-sm opacity-90">
                       Logged by {recentSession.surferName}
                     </p>
-                    {recentSession.forecast && (
+                    {recentSession.forecast?.wind && (
                       <div className="text-xs space-y-1 mt-2 opacity-90">
                         <p>
                           {getWindEmoji(recentSession.forecast.wind.speed)}{" "}
                           {recentSession.forecast.wind.direction} @{" "}
                           {recentSession.forecast.wind.speed}km/h
                         </p>
-                        <p>
-                          {getSwellEmoji(recentSession.forecast.swell.height)}{" "}
-                          {recentSession.forecast.swell.height}m @{" "}
-                          {recentSession.forecast.swell.period}s
-                        </p>
-                        <p>
-                          {getDirectionEmoji(
-                            parseInt(recentSession.forecast.swell.direction)
-                          )}{" "}
-                          {recentSession.forecast.swell.cardinalDirection}
-                        </p>
+                        {recentSession.forecast?.swell && (
+                          <p>
+                            {getSwellEmoji(recentSession.forecast.swell.height)}{" "}
+                            {recentSession.forecast.swell.height}m @{" "}
+                            {recentSession.forecast.swell.period}s
+                          </p>
+                        )}
+                        {recentSession.forecast?.swell && (
+                          <>
+                            {getDirectionEmoji(
+                              parseInt(recentSession.forecast.swell.direction)
+                            )}{" "}
+                            {recentSession.forecast.swell.cardinalDirection}
+                          </>
+                        )}
                       </div>
                     )}
                   </div>
@@ -116,24 +119,28 @@ function MediaGridBase({ videos, beach, sessions = [] }: MediaGridProps) {
                     {recentSession.comments || "No comments provided"}
                   </p>
 
-                  {recentSession.forecast && (
+                  {recentSession.forecast?.wind && (
                     <div className="text-xs text-[var(--color-text-secondary)] space-y-1 mb-2 border-t border-[var(--color-border-light)] pt-2">
                       <p>
                         {getWindEmoji(recentSession.forecast.wind.speed)}{" "}
                         {recentSession.forecast.wind.direction} @{" "}
                         {recentSession.forecast.wind.speed}km/h
                       </p>
-                      <p>
-                        {getSwellEmoji(recentSession.forecast.swell.height)}{" "}
-                        {recentSession.forecast.swell.height}m @{" "}
-                        {recentSession.forecast.swell.period}s
-                      </p>
-                      <p>
-                        {getDirectionEmoji(
-                          parseInt(recentSession.forecast.swell.direction)
-                        )}{" "}
-                        {recentSession.forecast.swell.cardinalDirection}
-                      </p>
+                      {recentSession.forecast?.swell && (
+                        <p>
+                          {getSwellEmoji(recentSession.forecast.swell.height)}{" "}
+                          {recentSession.forecast.swell.height}m @{" "}
+                          {recentSession.forecast.swell.period}s
+                        </p>
+                      )}
+                      {recentSession.forecast?.swell && (
+                        <>
+                          {getDirectionEmoji(
+                            parseInt(recentSession.forecast.swell.direction)
+                          )}{" "}
+                          {recentSession.forecast.swell.cardinalDirection}
+                        </>
+                      )}
                     </div>
                   )}
 
@@ -276,32 +283,3 @@ function MediaGridBase({ videos, beach, sessions = [] }: MediaGridProps) {
 export const MediaGrid = dynamic(() => Promise.resolve(MediaGridBase), {
   ssr: false,
 });
-
-export interface LogEntry {
-  id: string;
-  date: Date;
-  surferName: string;
-  surferEmail: string;
-  beachName: string;
-  beachId: string;
-  isPrivate: boolean;
-  beach: any;
-  isAnonymous: boolean;
-  forecast: {
-    wind: {
-      speed: number;
-      direction: string;
-    };
-    swell: {
-      height: number;
-      period: number;
-      direction: string;
-      cardinalDirection: string;
-    };
-  };
-  surferRating: number;
-  comments: string;
-  imageUrl?: string;
-  createdAt: Date;
-  updatedAt: Date;
-}

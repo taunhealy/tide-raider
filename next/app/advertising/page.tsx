@@ -3,10 +3,11 @@
 import { useState } from "react";
 import { AD_CATEGORIES, type AdCategory } from "../lib/constants";
 import type { Region } from "../types/beaches";
+import { useQuery } from "@tanstack/react-query";
 
 export default function AdvertisingPage() {
   const [selectedCategory, setSelectedCategory] = useState<AdCategory | "">("");
-  const [selectedRegion, setSelectedRegion] = useState<Region>("");
+  const [selectedRegion, setSelectedRegion] = useState<string>("");
   const [error, setError] = useState("");
   const [formData, setFormData] = useState({
     title: "",
@@ -15,7 +16,15 @@ export default function AdvertisingPage() {
     region: "",
   });
 
-  const REGIONS: Region[] = ["Western Cape", "Eastern Cape", "Northern Cape"];
+  // Fetch regions from API
+  const { data: regions, isLoading: regionsLoading } = useQuery<Region[]>({
+    queryKey: ["regions"],
+    queryFn: async () => {
+      const response = await fetch("/api/regions");
+      if (!response.ok) throw new Error("Failed to fetch regions");
+      return response.json();
+    },
+  });
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
@@ -26,7 +35,7 @@ export default function AdvertisingPage() {
         submitData.append(key, String(value));
       });
       submitData.append("category", selectedCategory);
-      submitData.append("region", selectedRegion);
+      submitData.append("regionId", selectedRegion);
 
       const submitResponse = await fetch("/api/advertising/submit", {
         method: "POST",
@@ -110,16 +119,18 @@ export default function AdvertisingPage() {
           </label>
           <select
             value={selectedRegion}
-            onChange={(e) => setSelectedRegion(e.target.value as Region)}
+            onChange={(e) => setSelectedRegion(e.target.value)}
             className="w-full p-2 border rounded-md"
             required
+            disabled={regionsLoading}
           >
             <option value="">Select a region</option>
-            {REGIONS.map((region) => (
+            {regions?.map((region) => (
               <option key={region} value={region}>
                 {region}
               </option>
             ))}
+            {regionsLoading && <option>Loading regions...</option>}
           </select>
         </div>
 

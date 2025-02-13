@@ -117,18 +117,6 @@ export function QuestLogForm({
       rawForecast: forecast,
     });
 
-    if (
-      !forecast?.wind?.speed ||
-      !forecast?.swell?.height ||
-      !forecast?.swell?.period
-    ) {
-      alert(`Missing forecast data. Current checks:
-      Wind speed: ${forecast?.wind?.speed || "missing"}
-      Swell height: ${forecast?.swell?.height || "missing"}
-      Swell period: ${forecast?.swell?.period || "missing"}`);
-      return;
-    }
-
     setIsSubmitting(true);
     try {
       let imageUrl = uploadedImageUrl;
@@ -154,6 +142,7 @@ export function QuestLogForm({
           ? "Anonymous"
           : (session?.user as { name?: string })?.name ||
             userEmail.split("@")[0],
+        userId: session!.user.id,
         surferRating: surferRating,
         comments,
         imageUrl,

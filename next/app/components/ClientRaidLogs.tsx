@@ -26,11 +26,7 @@ export function ClientRaidLogs({ beaches }: ClientRaidLogsProps) {
 
   const handleVisibilityChange = (isPrivate: boolean) => {
     const newParams = new URLSearchParams(searchParams.toString());
-    if (isPrivate) {
-      newParams.set("visibility", "private");
-    } else {
-      newParams.delete("visibility");
-    }
+    newParams.set("showPrivate", isPrivate.toString());
     router.replace(`?${newParams.toString()}`);
   };
 

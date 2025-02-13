@@ -1,14 +1,14 @@
-import { NextResponse } from 'next/server';
-import { prisma } from '@/app/lib/prisma';
-import { Resend } from 'resend';
+import { NextResponse } from "next/server";
+import { prisma } from "@/app/lib/prisma";
+import { Resend } from "resend";
 
 const resend = new Resend(process.env.RESEND_API_KEY);
 
 export async function POST(request: Request) {
   try {
     const body = await request.json();
-    console.log('Received body:', body);
-    console.log('Beach name:', body.beach?.name);
+    console.log("Received body:", body);
+    console.log("Beach name:", body.beach?.name);
     const { date, beach, conditions, improvements } = body;
 
     // Save to database
@@ -16,9 +16,9 @@ export async function POST(request: Request) {
       data: {
         date: new Date(date),
         beach: {
-          connect: { 
-            name: beach.name || undefined
-          }
+          connect: {
+            id: beach.id,
+          },
         },
         conditions: conditions,
         improvements,
@@ -28,7 +28,7 @@ export async function POST(request: Request) {
     // Send notification email
     if (process.env.ADMIN_EMAIL) {
       await resend.emails.send({
-        from: 'noreply@yourdomain.com',
+        from: "noreply@yourdomain.com",
         to: process.env.ADMIN_EMAIL,
         subject: `New Feedback for ${beach.name}`,
         text: `
@@ -36,7 +36,7 @@ export async function POST(request: Request) {
           Beach: ${beach.name}
           
           Inaccurate Conditions:
-          ${conditions.map((c: any) => `- ${c.title}`).join('\n')}
+          ${conditions.map((c: any) => `- ${c.title}`).join("\n")}
           
           Improvements:
           ${improvements}
@@ -46,9 +46,9 @@ export async function POST(request: Request) {
 
     return NextResponse.json({ success: true, feedback });
   } catch (error) {
-    console.error('Feedback submission error:', error);
+    console.error("Feedback submission error:", error);
     return NextResponse.json(
-      { error: 'Failed to submit feedback' },
+      { error: "Failed to submit feedback" },
       { status: 500 }
     );
   }

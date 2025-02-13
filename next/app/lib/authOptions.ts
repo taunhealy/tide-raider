@@ -43,30 +43,15 @@ export const authOptions: NextAuthOptions = {
     async session({ session, token }) {
       if (token?.sub && session.user) {
         session.user.id = token.sub;
-
-        // Force fresh user data lookup
-        const dbUser = await prisma.user.findUnique({
-          where: { id: token.sub },
-          select: {
-            lemonSubscriptionId: true,
-            hasActiveTrial: true,
-            image: true,
-            emailVerified: true,
-          },
-        });
-
-        if (dbUser) {
-          session.user.isSubscribed = !!dbUser?.lemonSubscriptionId;
-          session.user.hasActiveTrial = dbUser.hasActiveTrial;
-          session.user.image = dbUser.image ?? undefined;
-          // Add email verification status
-          session.user.emailVerified = dbUser.emailVerified;
-        }
+        session.user.isSubscribed = token.isSubscribed || false;
+        session.user.hasActiveTrial = token.hasActiveTrial || false;
+        session.user.image = token.picture || undefined;
       }
       return session;
     },
     async jwt({ token, user, account }) {
       if (account && user) {
+        token.id = user.id;
         return {
           ...token,
           sub: user.id,

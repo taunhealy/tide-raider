@@ -5,9 +5,12 @@ import {
   getDirectionEmoji,
 } from "../lib/forecastUtils";
 import type { Beach } from "./beaches";
+import { Prisma } from "@prisma/client";
 
 export interface LogEntry {
   id: string;
+  userId?: string;
+  user?: { id: string };
   date: Date;
   sessionDate?: Date;
   surferName: string;
@@ -15,33 +18,51 @@ export interface LogEntry {
   beachName: string;
   beachId: string;
   forecast: {
-    wind: {
+    entries: Array<{
+      wind: {
+        speed: number;
+        direction: string;
+      };
+      swell: {
+        height: number;
+        period: number;
+        direction: string;
+        cardinalDirection: string;
+      };
+      timestamp: string;
+    }>;
+    wind?: {
       speed: number;
       direction: string;
     };
-    swell: {
+    swell?: {
       height: number;
       period: number;
       direction: string;
       cardinalDirection: string;
     };
-  };
+  } | null;
   surferRating: number;
   comments: string;
-  imageUrl?: string;
+  imageUrl: string;
   isPrivate: boolean;
-  createdAt: Date;
-  updatedAt: Date;
+  createdAt: string;
+  updatedAt: string;
   windSpeed?: number;
   windDirection?: number;
   swellHeight?: number;
   swellDirection?: number;
   beach: Beach;
   isAnonymous: boolean;
+  continent: string;
+  country: string;
+  region: string;
+  waveType: string;
 }
 
 export interface CreateLogEntryInput {
   beachName: string;
+  userId: string;
   date: string;
   surferName: string;
   surferRating: number;
@@ -54,6 +75,7 @@ export interface CreateLogEntryInput {
     region: string;
     waveType: string;
   };
+  forecast?: Prisma.InputJsonValue;
 }
 
 export interface SortConfig {
@@ -89,7 +111,7 @@ export const DEFAULT_COLUMNS: QuestLogTableColumn[] = [
     label: "Conditions",
     render: (entry: LogEntry) =>
       entry.forecast
-        ? `${entry.forecast.swell.height || 0}m ${getSwellEmoji(entry.forecast.swell.height || 0)} | ${getWindEmoji(entry.forecast.wind.speed || 0)} ${entry.forecast.wind.speed || 0}km/h | ${getDirectionEmoji(parseInt(String(entry.forecast.swell.direction || 0)))}`
+        ? `${entry.forecast.swell?.height || 0}m ${getSwellEmoji(entry.forecast.swell?.height || 0)} | ${getWindEmoji(entry.forecast.wind?.speed || 0)} ${entry.forecast.wind?.speed || 0}km/h | ${getDirectionEmoji(parseInt(String(entry.forecast.swell?.direction || 0)))}`
         : "No forecast data",
   },
   { key: "comments", label: "Comments" },

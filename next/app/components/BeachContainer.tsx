@@ -40,7 +40,7 @@ import RecentChronicles from "./RecentChronicles";
 import RegionalSidebar from "@/app/components/RegionalSidebar";
 import type { Ad } from "@/app/types/ads";
 import EventsSidebar from "./EventsSidebar";
-import { beachData } from "@/app/types/beaches";
+import { beachData, REGIONS } from "@/app/types/beaches";
 import { format } from "date-fns";
 import QuestLogSidebar from "./QuestLogSidebar";
 import StickyForecastWidget from "./StickyForecastWidget";
@@ -116,8 +116,10 @@ export default function BeachContainer({
           .get("difficulty")
           ?.split(",")
           .filter(Boolean) || []) as Difficulty[],
-        region: (searchParams.get("region")?.split(",").filter(Boolean) ||
-          []) as Region[],
+        region: (searchParams
+          .get("region")
+          ?.split(",")
+          .filter((val) => REGIONS.includes(val)) || []) as Region[],
         crimeLevel: (searchParams
           .get("crimeLevel")
           ?.split(",")
@@ -370,7 +372,7 @@ export default function BeachContainer({
     // Apply region filter only if regions are specifically selected
     if (filters.region.length > 0) {
       filtered = filtered.filter((beach) =>
-        filters.region.includes(beach.region)
+        filters.region.includes(beach.region as any)
       );
     } else {
       // If no region is selected, you might want to include all beaches
@@ -444,7 +446,7 @@ export default function BeachContainer({
 
   const uniqueRegions = Array.from(
     new Set(initialBeaches.map((beach) => beach.region))
-  ).sort() as Region[];
+  ).sort();
   const uniqueContinents = Array.from(
     new Set(initialBeaches.map((beach) => beach.continent))
   ).sort();

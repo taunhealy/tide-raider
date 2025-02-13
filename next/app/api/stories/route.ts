@@ -71,6 +71,15 @@ export async function POST(request: Request) {
         create: {
           id: beachDataEntry.id,
           name: beachDataEntry.name,
+          country: beachDataEntry.country || "Unknown",
+          waveType: beachDataEntry.waveType || "Beachbreak",
+          latitude: 0,
+          longitude: 0,
+          region: {
+            connect: {
+              id: beachDataEntry.region,
+            },
+          },
         },
       });
     }

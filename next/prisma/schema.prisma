@@ -78,6 +78,7 @@ model User {
   trialStartDate    DateTime?
   trialEndDate      DateTime?
   hasActiveTrial    Boolean     @default(false)
+  logEntries        LogEntry[]
 
   // Auth Relations
   accounts      Account[]
@@ -128,26 +129,31 @@ model Event {
 }
 
 model LogEntry {
-  id          String   @id @default(cuid())
-  date        DateTime
-  surferName  String
-  surferEmail String
-  beachName   String
-  forecast    Json
-  surferRating Int
-  comments    String
-  imageUrl    String?
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
-  isPrivate   Boolean @default(false)
-  isAnonymous Boolean @default(false)
-  continent   String?  @db.VarChar(255)
-  country     String?  @db.VarChar(255)
-  region      String?  @db.VarChar(255)
-  waveType    String?  @db.VarChar(255)
-
-  @@index([surferEmail])
-  @@index([date])
+  id              String    @id @default(uuid())
+  date            DateTime
+  region          String?
+  country         String?
+  comments        String?
+  imageUrl        String?
+  waveType        String?
+  beachName       String?
+  continent       String?
+  createdAt       DateTime  @default(now())
+  isPrivate       Boolean   @default(false)
+  updatedAt       DateTime  @updatedAt
+  surferName      String?
+  isAnonymous     Boolean   @default(false)
+  surferEmail     String?
+  surferRating    Float?
+  userId          String?   @map("user_id")
+  user            User?     @relation(fields: [userId], references: [id])
+  
+  // Add JSON forecast field
+  forecast     Json?
+  
+  // Relations
+  beach           Beach?    @relation(fields: [beachId], references: [id])
+  beachId         String?
 }
 
 // Safari Booking Model
@@ -339,15 +345,17 @@ model Review {
 }
 
 model Beach {
-  id          String    @id
-  name        String    @unique
-  stories     Story[]
-  feedback    Feedback[]
-  region      Region?   @relation(fields: [regionId], references: [id])
-  regionId    String?
-  waveType    String
-  latitude    Float
-  longitude   Float
+  id              String   @id @default(uuid())
+  name            String
+  region          Region[]
+  country         String
+  logEntries      LogEntry[]
+  stories         Story[]
+  feedback        Feedback[]
+  regionId        String?
+  waveType        String
+  latitude        Float
+  longitude       Float
 }
 
 model Account {

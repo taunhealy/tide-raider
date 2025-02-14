@@ -401,45 +401,46 @@ export default function HeroProduct() {
                                 <p className="flex items-center gap-2 text-white/90">
                                   <span
                                     className="inline-flex"
-                                    title={`Wind Speed: ${surfData[currentBeach.id].wind.speed < 5 ? "Light" : surfData[currentBeach.id].wind.speed < 12 ? "Moderate" : surfData[currentBeach.id].wind.speed < 20 ? "Strong" : "Very Strong"}`}
+                                    title={`Wind Speed: ${surfData[currentBeach.id].wind?.speed < 5 ? "Light" : surfData[currentBeach.id].wind?.speed < 12 ? "Moderate" : surfData[currentBeach.id].wind?.speed < 20 ? "Strong" : "Very Strong"}`}
                                   >
                                     {getWindEmoji(
-                                      surfData[currentBeach.id].wind.speed
+                                      surfData[currentBeach.id].wind?.speed
                                     )}
                                   </span>
                                   <span className="font-medium font-primary">
-                                    {surfData[currentBeach.id].wind.direction} @{" "}
-                                    {surfData[currentBeach.id].wind.speed}km/h
+                                    {surfData[currentBeach.id].wind?.direction}{" "}
+                                    @ {surfData[currentBeach.id].wind?.speed}
+                                    km/h
                                   </span>
                                 </p>
                                 <p className="flex items-center gap-2 text-white/90 font-primary">
                                   <span
                                     className="inline-flex font-primary"
-                                    title={`Swell Height: ${surfData[currentBeach.id].swell.height < 0.5 ? "Flat" : surfData[currentBeach.id].swell.height < 1 ? "Small" : surfData[currentBeach.id].swell.height < 2 ? "Medium" : "Large"}`}
+                                    title={`Swell Height: ${surfData[currentBeach.id].swell?.height < 0.5 ? "Flat" : surfData[currentBeach.id].swell?.height < 1 ? "Small" : surfData[currentBeach.id].swell?.height < 2 ? "Medium" : "Large"}`}
                                   >
                                     {getSwellEmoji(
-                                      surfData[currentBeach.id].swell.height
+                                      surfData[currentBeach.id].swell?.height
                                     )}
                                   </span>
                                   <span className="font-medium font-primary">
-                                    {surfData[currentBeach.id].swell.height}m @{" "}
-                                    {surfData[currentBeach.id].swell.period}s
+                                    {surfData[currentBeach.id].swell?.height}m @{" "}
+                                    {surfData[currentBeach.id].swell?.period}s
                                   </span>
                                 </p>
                                 <p className="flex items-center gap-2 text-white/90 font-primary">
                                   <span
                                     className="inline-flex font-primary"
-                                    title={`Swell Direction: ${surfData[currentBeach.id].swell.direction}`}
+                                    title={`Swell Direction: ${surfData[currentBeach.id].swell?.direction}`}
                                   >
                                     {getDirectionEmoji(
                                       parseInt(
                                         surfData[currentBeach.id].swell
-                                          .direction
+                                          ?.direction || "0"
                                       )
                                     )}
                                   </span>
                                   <span className="font-medium font-primary">
-                                    {surfData[currentBeach.id].swell.direction}
+                                    {surfData[currentBeach.id].swell?.direction}
                                   </span>
                                 </p>
                               </div>

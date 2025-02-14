@@ -3,7 +3,6 @@ import type { WindData } from "../types/wind";
 import BeachCard from "./BeachCard";
 import { useSubscription } from "../context/SubscriptionContext";
 
-
 interface BeachGridProps {
   beaches: Beach[];
   windData: WindData | null;

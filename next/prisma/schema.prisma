@@ -14,7 +14,7 @@ datasource db {
 
 model BeachGoodRating {
   id          String   @id @default(uuid())
-  date        String   // YYYY-MM-DD format
+  date        DateTime  // Changed from String to DateTime
   beachId     String
   region      String
   score       Int      // 4 or 5
@@ -152,8 +152,14 @@ model LogEntry {
   forecast     Json?
   
   // Relations
-  beach           Beach?    @relation(fields: [beachId], references: [id])
-  beachId         String?
+  beach       Beach?   @relation(fields: [beachId], references: [id], onDelete: SetNull)
+  beachId     String?
+
+  @@index([isPrivate])
+  @@index([userId])
+  @@index([date])
+  @@index([beachId])
+  @@index([surferRating])
 }
 
 // Safari Booking Model
@@ -434,20 +440,14 @@ enum FinType {
 }
 
 model SurfCondition {
-  id            String   @id @default(uuid())
-  date          String   // Store as YYYY-MM-DD
-  windDirection String
-  windSpeed     Float
-  swellHeight   Float
-  swellDirection String
-  swellPeriod   Float
-  timestamp     Float    // Regular timestamp, no need for BigInt
-  createdAt     DateTime @default(now())
-  updatedAt     DateTime @updatedAt
-  region        String   @default("Western Cape")
+  id        String   @id @default(uuid())
+  date      DateTime  // The forecast date (start of day)
+  region    String
+  forecast  Json
+  createdAt DateTime @default(now())  // When record was created
+  updatedAt DateTime @updatedAt       // When record was last updated
 
-  @@index([region])
-  @@index([date])
+  @@unique([date, region], name: "date_region")
 }
 
 model Feedback {

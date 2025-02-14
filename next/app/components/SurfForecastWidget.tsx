@@ -1,70 +1,45 @@
 import { useEffect, useState } from "react";
+import { degreesToCardinal } from "@/app/lib/surfUtils";
 
 interface SurfForecastWidgetProps {
   beachId: string;
   date: string;
-}
-
-interface SurfCondition {
-  wind: {
-    direction: string;
-    speed: number;
+  forecast?: {
+    entries: [
+      {
+        wind: {
+          speed: number;
+          direction: string;
+        };
+        swell: {
+          height: number;
+          direction: string;
+          period: number;
+        };
+        timestamp: number;
+      },
+    ];
   };
-  swell: {
-    height: number;
-    direction: string;
-    period: number;
-    cardinalDirection: string;
-  };
-  timestamp: number;
 }
 
 export default function SurfForecastWidget({
   beachId,
   date,
+  forecast,
 }: SurfForecastWidgetProps) {
-  const [forecast, setForecast] = useState<SurfCondition | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [isFallback, setIsFallback] = useState(false);
 
   useEffect(() => {
-    const fetchForecast = async () => {
-      setLoading(true);
-      setError(null);
-      setIsFallback(false);
-
-      try {
-        const response = await fetch(`/api/surf-conditions?date=${date}`);
-        if (!response.ok) {
-          throw new Error("Failed to fetch forecast");
-        }
-        const data = await response.json();
-
-        if (data) {
-          setForecast(data);
-          // Check if we're using fallback data
-          if (data.region === "Northern Cape") {
-            setIsFallback(true);
-          }
-        } else {
-          setForecast(null);
-        }
-      } catch (error) {
-        console.error("Forecast error:", error);
-        setError("Failed to load forecast");
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    fetchForecast();
-  }, [date]);
+    if (forecast) {
+      setLoading(false);
+    }
+  }, [forecast]);
 
   if (loading) return <div>Loading forecast...</div>;
   if (error) return <div>Error: {error}</div>;
 
-  if (!forecast || !forecast.swell || !forecast.wind) {
+  if (!forecast?.entries?.[0]) {
     return (
       <div className="p-4 bg-yellow-50 rounded-lg text-sm text-yellow-700">
         <span className="font-medium">Forecast Unavailable:</span>
@@ -73,46 +48,62 @@ export default function SurfForecastWidget({
     );
   }
 
+  const currentForecast = forecast.entries[0];
+
+  const {
+    wind: { speed: windSpeed = 0, direction: windDirection = "" } = {},
+    swell: {
+      height: swellHeight = 0,
+      direction: swellDirection = "",
+      period: swellPeriod = 0,
+    } = {},
+    timestamp,
+  } = currentForecast;
+
   return (
     <div className="bg-white p-4 rounded-lg shadow-sm">
-      <h3 className="font-semibold">
-        Surf Forecast for {date}
-        {isFallback && (
-          <span className="text-sm text-gray-500 ml-2">
-            (Using Northern Cape data)
-          </span>
-        )}
-      </h3>
+      <h3 className="font-semibold">Surf Forecast for {date}</h3>
       <div className="space-y-2 text-base">
         <div className="flex justify-between items-center">
           <span className="text-gray-600">Wave Height:</span>
           <span className="font-medium">
-            {forecast.swell.height.toFixed(1)}m
+            {swellHeight ? `${swellHeight.toFixed(1)}m` : "N/A"}
           </span>
         </div>
 
         <div className="flex justify-between items-center">
           <span className="text-gray-600">Wind Direction:</span>
-          <span className="font-medium">{forecast.wind.direction}</span>
+          <span className="font-medium">
+            {windDirection
+              ? `${degreesToCardinal(windDirection)} (${windDirection}°)`
+              : "N/A"}
+          </span>
         </div>
 
         <div className="flex justify-between items-center">
           <span className="text-gray-600">Wind Speed:</span>
-          <span className="font-medium">{forecast.wind.speed} km/h</span>
+          <span className="font-medium">
+            {windSpeed ? `${windSpeed} km/h` : "N/A"}
+          </span>
         </div>
 
         <div className="flex justify-between items-center">
           <span className="text-gray-600">Swell Direction:</span>
-          <span className="font-medium">{forecast.swell.direction}°</span>
+          <span className="font-medium">
+            {swellDirection ? `${swellDirection}°` : "N/A"}
+          </span>
         </div>
 
         <div className="flex justify-between items-center">
           <span className="text-gray-600">Swell Period:</span>
-          <span className="font-medium">{forecast.swell.period}s</span>
+          <span className="font-medium">
+            {swellPeriod ? `${swellPeriod}s` : "N/A"}
+          </span>
         </div>
 
         <div className="text-xs text-gray-500 mt-4">
-          Last updated: {new Date(forecast.timestamp).toLocaleString()}
+          Last updated:{" "}
+          {timestamp ? new Date(timestamp).toLocaleString() : "N/A"}
         </div>
       </div>
     </div>

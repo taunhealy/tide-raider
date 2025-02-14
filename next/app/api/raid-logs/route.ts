@@ -20,13 +20,39 @@ const logEntrySchema = z.object({
   comments: z.string().optional(),
   imageUrl: z.string().optional(),
   isPrivate: z.boolean().optional(),
-  forecast: z.any().optional(),
+  forecast: z.object({
+    wind: z.object({
+      speed: z.number(),
+      direction: z.string(),
+    }),
+    swell: z.object({
+      height: z.number(),
+      period: z.number(),
+      direction: z.string(),
+      cardinalDirection: z.string().optional(),
+    }),
+    timestamp: z.number(),
+  }),
   continent: z.string(),
   country: z.string(),
   region: z.string(),
   waveType: z.string(),
   isAnonymous: z.boolean().optional(),
   userId: z.string().optional(),
+});
+
+const forecastSchema = z.object({
+  wind: z.object({
+    speed: z.number(),
+    direction: z.string(),
+  }),
+  swell: z.object({
+    height: z.number(),
+    period: z.number(),
+    direction: z.string(),
+    cardinalDirection: z.string().optional(),
+  }),
+  timestamp: z.number(),
 });
 
 interface Forecast {
@@ -39,16 +65,73 @@ interface Forecast {
   };
 }
 
-// Public logs endpoint with filters
+// Add this function to handle forecast fetching
+async function getForecast(date: string, region: string) {
+  console.log("Fetching forecast for:", { date, region });
+
+  // Convert the date string to start of day UTC
+  const queryDate = new Date(date);
+  queryDate.setUTCHours(0, 0, 0, 0);
+
+  const conditions = await prisma.surfCondition.findFirst({
+    where: {
+      date: {
+        gte: queryDate,
+        lt: new Date(queryDate.getTime() + 24 * 60 * 60 * 1000), // next day
+      },
+      region: region,
+    },
+    select: {
+      forecast: true,
+    },
+    orderBy: {
+      updatedAt: "desc",
+    },
+  });
+
+  console.log("Query date:", queryDate);
+  console.log("Found conditions:", conditions);
+
+  if (!conditions?.forecast) {
+    console.log("No forecast found for:", { date, region });
+    return null;
+  }
+
+  return conditions.forecast;
+}
+
+// Update the GET endpoint to handle forecast requests
 export async function GET(request: Request) {
+  const { searchParams } = new URL(request.url);
+  const date = searchParams.get("date");
+  const region = searchParams.get("region");
+
+  // If date and region are provided, return forecast
+  if (date && region) {
+    try {
+      const forecast = await getForecast(date, region);
+      if (!forecast) {
+        return NextResponse.json(
+          { error: "No forecast data available" },
+          { status: 404 }
+        );
+      }
+      return NextResponse.json(forecast);
+    } catch (error) {
+      console.error("Error fetching forecast:", error);
+      return NextResponse.json(
+        { error: "Failed to fetch forecast" },
+        { status: 500 }
+      );
+    }
+  }
+
   console.log("[API] Received forecast request with params:", {
     url: request.url,
     searchParams: Object.fromEntries(new URL(request.url).searchParams),
   });
 
   try {
-    const { searchParams } = new URL(request.url);
-
     // Get filter parameters
     const regions = searchParams.get("regions")?.split(",") || [];
     const beaches = searchParams.get("beaches")?.split(",") || [];
@@ -112,60 +195,36 @@ export async function GET(request: Request) {
 }
 
 export async function POST(request: Request) {
-  console.log("[API] Received log submission");
-  const rawData = await request.json();
-  console.log("[API] Raw forecast data:", rawData.forecast);
-
   try {
     const session = await getServerSession(authOptions);
     if (!session?.user) return new Response("Unauthorized", { status: 401 });
 
-    const user = await prisma.user.findUnique({
-      where: { id: session.user.id },
-      select: { lemonSubscriptionId: true, hasActiveTrial: true },
-    });
-
-    if (!user?.lemonSubscriptionId && !user?.hasActiveTrial) {
-      return new Response("Subscription required", { status: 403 });
-    }
-
-    const data = logEntrySchema.parse(rawData);
-    console.log("[API] Parsed forecast data:", data.forecast);
+    const data = await request.json();
     const beach = beachData.find((b) => b.name === data.beachName);
-
     if (!beach) throw new Error("Beach not found");
-
-    // Validate forecast structure
-    if (
-      data.forecast &&
-      (!data.forecast.swell ||
-        !data.forecast.wind ||
-        typeof data.forecast.swell.height !== "number" ||
-        typeof data.forecast.wind.speed !== "number")
-    ) {
-      return NextResponse.json(
-        { error: "Invalid forecast data structure" },
-        { status: 400 }
-      );
-    }
 
     const entry = await prisma.logEntry.create({
       data: {
-        ...data,
         date: new Date(data.date),
+        beachName: data.beachName,
         region: beach.region,
-        userId: session.user.id,
+        country: data.country,
+        continent: data.continent,
+        waveType: data.waveType,
+        surferName: data.surferName,
+        surferRating: data.surferRating,
+        comments: data.comments,
         imageUrl: data.imageUrl || "",
-        forecast: data.forecast
-          ? { entries: [data.forecast] } // Store in entries array format
-          : Prisma.JsonNull,
+        isPrivate: data.isPrivate || false,
+        isAnonymous: data.isAnonymous || false,
+        userId: session.user.id,
+        forecast: data.forecast, // Store the forecast data directly
       },
     });
 
-    console.log("[API] Saved forecast data:", entry.forecast);
     return NextResponse.json(entry);
   } catch (error) {
-    console.error("[API] Error saving forecast:", error);
+    console.error("Error creating log entry:", error);
     return NextResponse.json(
       { error: "Failed to create log entry" },
       { status: 500 }

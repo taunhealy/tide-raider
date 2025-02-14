@@ -38,7 +38,7 @@ export default function DashboardPage() {
   const { data: userLogs } = useQuery({
     queryKey: ["userLogs"],
     queryFn: async () => {
-      const response = await fetch("/api/quest-log/user");
+      const response = await fetch("/api/raid-logs/user");
       if (!response.ok) throw new Error("Failed to fetch logs");
       return response.json();
     },

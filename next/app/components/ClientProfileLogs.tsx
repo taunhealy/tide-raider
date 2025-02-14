@@ -2,7 +2,7 @@
 
 import { useQuery } from "@tanstack/react-query";
 import type { Beach } from "@/app/types/beaches";
-import QuestLogs from "./QuestLogs";
+import { RaidLogsComponent } from "@/app/components/raid-logs/RaidLogsComponent";
 
 interface ClientProfileLogsProps {
   beaches: Beach[];
@@ -22,7 +22,7 @@ export function ClientProfileLogs({ beaches, userId }: ClientProfileLogsProps) {
   return (
     <div className="min-h-screen bg-[var(--color-bg-secondary)]">
       <div className="container mx-auto p-6">
-        <QuestLogs
+        <RaidLogsComponent
           beaches={beaches}
           userId={userId}
           initialFilters={{ isPrivate: false }}

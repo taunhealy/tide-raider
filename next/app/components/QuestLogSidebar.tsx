@@ -10,14 +10,13 @@ import Image from "next/image";
 
 export default function QuestLogSidebar() {
   const { isSubscribed } = useSubscription();
-  const { data, isLoading } = useQuery({
-    queryKey: ["recentQuestEntries"],
+  const { data: recentLogs, isLoading } = useQuery({
+    queryKey: ["recentLogs"],
     queryFn: async () => {
-      const response = await fetch("/api/quest-log?limit=3");
-      if (!response.ok) throw new Error("Failed to fetch recent entries");
-      return response.json();
+      const res = await fetch(`/api/raid-logs?limit=3`);
+      if (!res.ok) throw new Error("Failed to fetch logs");
+      return res.json();
     },
-    staleTime: 1000 * 60 * 5, // 5 minutes
   });
 
   if (isLoading) return <div>Loading...</div>;
@@ -41,7 +40,7 @@ export default function QuestLogSidebar() {
     );
   }
 
-  const highRatedEntries = data?.entries
+  const highRatedEntries = recentLogs?.entries
     .filter((entry: LogEntry) => entry.surferRating >= 4 && entry.imageUrl)
     .slice(0, 3);
 

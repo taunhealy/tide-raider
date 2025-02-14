@@ -1,8 +1,11 @@
+"use client";
+
 import {
   DEFAULT_COLUMNS,
   QuestLogTableColumn,
   LogEntry,
-} from "../types/questlogs";
+} from "@/app/types/questlogs";
+
 import { format } from "date-fns";
 import { Star, Pencil, X } from "lucide-react";
 import { cn } from "@/app/lib/utils";
@@ -10,6 +13,7 @@ import {
   getWindEmoji,
   getSwellEmoji,
   getDirectionEmoji,
+  degreesToCardinal,
 } from "@/app/lib/forecastUtils";
 import Image from "next/image";
 import { useSession } from "next-auth/react";
@@ -23,6 +27,7 @@ interface QuestTableProps {
   isSubscribed?: boolean;
   isLoading?: boolean;
   showPrivateOnly?: boolean;
+  onFilterChange?: () => void;
 }
 
 interface LogEntryDisplayProps {
@@ -35,37 +40,33 @@ function LogEntryDisplay({ entry, isAnonymous }: LogEntryDisplayProps) {
   return displayName;
 }
 
-function ForecastInfo({ forecast }: { forecast: LogEntry["forecast"] }) {
+function ForecastInfo({ forecast }: { forecast: any }) {
   if (!forecast?.wind || !forecast?.swell) {
     return <span className="text-gray-500">No forecast data</span>;
   }
 
-  const { wind, swell } = forecast;
-
   return (
     <div className="space-y-1 text-sm">
-      {/* Wind Row */}
       <p className="break-words">
-        <span title={`Wind Speed: ${wind.speed} km/h`}>
-          {getWindEmoji(wind.speed)}
+        <span title={`Wind Speed: ${forecast.wind.speed} km/h`}>
+          {getWindEmoji(forecast.wind.speed)}
         </span>{" "}
-        {wind.direction} @ {wind.speed}km/h
+        {forecast.wind.direction} @ {forecast.wind.speed}km/h
       </p>
-
-      {/* Swell Row */}
       <p className="break-words">
-        <span title={`Swell Height: ${swell.height}m`}>
-          {getSwellEmoji(swell.height)}
+        <span title={`Swell Height: ${forecast.swell.height}m`}>
+          {getSwellEmoji(forecast.swell.height)}
         </span>{" "}
-        {swell.height}m @ {swell.period}s
+        {forecast.swell.height}m @ {forecast.swell.period}s
       </p>
-
-      {/* Direction Row */}
       <p className="break-words">
-        <span title={`Swell Direction: ${swell.cardinalDirection}`}>
-          {getDirectionEmoji(swell.direction)}
+        <span
+          title={`Swell Direction: ${forecast.swell.cardinalDirection || degreesToCardinal(Number(forecast.swell.direction))}`}
+        >
+          {getDirectionEmoji(forecast.swell.direction)}
         </span>{" "}
-        {swell.cardinalDirection}
+        {forecast.swell.cardinalDirection ||
+          degreesToCardinal(Number(forecast.swell.direction))}
       </p>
     </div>
   );
@@ -157,18 +158,26 @@ function TableSkeleton() {
   );
 }
 
-export function QuestLogTable({
+const normalizeLogEntry = (entry: LogEntry): LogEntry => ({
+  ...entry,
+  date: new Date(entry.date),
+  isPrivate: entry.isPrivate ?? false,
+  isAnonymous: entry.isAnonymous ?? false,
+});
+
+export default function RaidLogTable({
   entries,
   columns = DEFAULT_COLUMNS,
   isSubscribed = false,
   isLoading = false,
   showPrivateOnly = false,
 }: QuestTableProps) {
-  // Memoize the entries to prevent unnecessary re-renders
-  const normalizedEntries = useMemo(
-    () => (Array.isArray(entries) ? entries : [entries]),
-    [entries]
-  );
+  console.log("[RaidLogTable] Received entries:", entries);
+
+  const normalizedEntries = useMemo(() => {
+    console.log("[RaidLogTable] Normalizing entries:", entries);
+    return entries.map(normalizeLogEntry);
+  }, [entries]);
 
   const router = useRouter();
   const queryClient = useQueryClient();
@@ -177,7 +186,7 @@ export function QuestLogTable({
   // Delete mutation
   const deleteMutation = useMutation({
     mutationFn: async (entryId: string) => {
-      const response = await fetch(`/api/quest-log/${entryId}`, {
+      const response = await fetch(`/api/raid-logs/${entryId}`, {
         method: "DELETE",
       });
       if (!response.ok) throw new Error("Delete failed");
@@ -186,11 +195,7 @@ export function QuestLogTable({
     onSuccess: () => {
       // Invalidate all related queries
       queryClient.invalidateQueries({
-        queryKey: ["questLogs"],
-        refetchType: "active",
-      });
-      queryClient.invalidateQueries({
-        queryKey: ["userLogs"],
+        queryKey: ["raidLogs"],
         refetchType: "active",
       });
     },
@@ -207,6 +212,7 @@ export function QuestLogTable({
   };
 
   const filteredEntries = normalizedEntries.filter((entry) => {
+    console.log("[RaidLogTable] Filtering entry:", entry);
     // Wait until session is fully loaded
     if (!session) return false;
 
@@ -215,6 +221,8 @@ export function QuestLogTable({
     }
     return !entry.isPrivate || entry.userId === session.user?.id;
   });
+
+  console.log("[RaidLogTable] Filtered entries:", filteredEntries);
 
   const actionColumn = {
     key: "actions",
@@ -229,13 +237,19 @@ export function QuestLogTable({
       return (
         <div className="flex gap-2">
           <button
-            onClick={() => handleEdit(entry)}
-            className="text-gray-500 hover:text-blue-600"
+            onClick={(e) => {
+              e.stopPropagation();
+              handleEdit(entry);
+            }}
+            className="text-gray-500 hover:text-[var(--brand-tertiary)]"
           >
             <Pencil className="w-4 h-4" />
           </button>
           <button
-            onClick={() => handleDelete(entry.id)}
+            onClick={(e) => {
+              e.stopPropagation();
+              handleDelete(entry.id);
+            }}
             className="text-gray-500 hover:text-red-600"
             disabled={deleteMutation.isPending}
           >
@@ -378,13 +392,19 @@ export function QuestLogTable({
                     <td className="px-6 py-4">
                       <div className="flex gap-2">
                         <button
-                          onClick={() => handleEdit(entry)}
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            handleEdit(entry);
+                          }}
                           className="text-gray-500 hover:text-[var(--brand-tertiary)]"
                         >
                           <Pencil className="w-4 h-4" />
                         </button>
                         <button
-                          onClick={() => handleDelete(entry.id)}
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            handleDelete(entry.id);
+                          }}
                           className="text-gray-500 hover:text-red-600"
                           disabled={deleteMutation.isPending}
                         >

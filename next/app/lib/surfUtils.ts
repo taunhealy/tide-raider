@@ -149,9 +149,11 @@ export function isBeachSuitable(beach: Beach, windData: WindData | null) {
   };
 }
 
-export function degreesToCardinal(degrees: string | number): string {
-  const deg = typeof degrees === "string" ? parseInt(degrees) : degrees;
-  if (isNaN(deg)) return "N/A";
+export function degreesToCardinal(degrees: number | null | string): string {
+  if (degrees === null || degrees === undefined || degrees === "") return "N/A";
+
+  const num = Number(degrees);
+  if (isNaN(num)) return "N/A";
 
   const directions = [
     "N",
@@ -171,8 +173,9 @@ export function degreesToCardinal(degrees: string | number): string {
     "NW",
     "NNW",
   ];
-  const index = Math.round((deg % 360) / 22.5);
-  return directions[index % 16];
+  const index = Math.round((num % 360) / 22.5) % 16;
+
+  return directions[index];
 }
 
 export function getConditionReasons(

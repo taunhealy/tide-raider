@@ -1,6 +1,6 @@
 import type { Beach } from "@/app/types/beaches";
 import type { WindData } from "@/app/types/wind";
-import { useSubscription } from "@/app/context/SubscriptionContext";
+import { useSubscription } from "./next/app/context/SubscriptionContext";
 import {
   isBeachSuitable,
   getScoreDisplay,
@@ -9,9 +9,9 @@ import {
 import { useHandleSubscribe } from "@/app/hooks/useHandleSubscribe";
 import { useState, useEffect, useMemo } from "react";
 import { InfoIcon, Search, Eye } from "lucide-react";
-import BeachDetailsModal from "@/app/components/BeachDetailsModal";
+import BeachDetailsModal from "./next/app/components/BeachDetailsModal";
 import { useRouter, useSearchParams } from "next/navigation";
-import GoogleMapsButton from "@/app/components/GoogleMapsButton";
+import GoogleMapsButton from "./next/app/components/GoogleMapsButton";
 import {} from "@/app/lib/videoUtils";
 import Image from "next/image";
 import {
@@ -21,7 +21,7 @@ import {
   VALID_REGIONS,
   ValidRegion,
 } from "@/app/lib/constants";
-import { MediaGrid } from "@/app/components/MediaGrid";
+import { MediaGrid } from "./next/app/components/MediaGrid";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import type { LogEntry } from "@/app/types/questlogs";
 import Link from "next/link";

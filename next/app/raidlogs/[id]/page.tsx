@@ -2,7 +2,7 @@
 
 import { useQuery } from "@tanstack/react-query";
 import { useSession } from "next-auth/react";
-import { QuestLogForm } from "@/app/components/QuestLogForm";
+import { RaidLogForm } from "@/components/raid-logs/RaidLogForm";
 import { RandomLoader } from "@/app/components/ui/RandomLoader";
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
@@ -23,9 +23,9 @@ export default function RaidLogPage({ params }: { params: { id: string } }) {
   }, []);
 
   const { data: entry, isLoading } = useQuery({
-    queryKey: ["questLog", params.id],
+    queryKey: ["raidLog", params.id],
     queryFn: async () => {
-      const res = await fetch(`/api/quest-log/${params.id}`);
+      const res = await fetch(`/api/raid-logs/${params.id}`);
       if (!res.ok) throw new Error("Failed to fetch log");
       return res.json();
     },
@@ -38,7 +38,7 @@ export default function RaidLogPage({ params }: { params: { id: string } }) {
   return (
     <div className="p-6 max-w-4xl mx-auto">
       {isAuthor ? (
-        <QuestLogForm
+        <RaidLogForm
           isOpen={true}
           onClose={() => router.push("/raidlogs")}
           entry={entry}

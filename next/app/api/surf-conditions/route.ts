@@ -76,29 +76,50 @@ interface ScrapeResult {
   swellHeight: number;
   swellDirection: string;
   swellPeriod: number;
-  timestamp: number;
 }
 
 function getTodayDate() {
   const date = new Date();
-  return date.toISOString().split("T")[0];
+  // Set to start of day in UTC
+  date.setUTCHours(0, 0, 0, 0);
+  return date;
 }
 
 function formatConditionsResponse(conditions: any) {
-  return {
-    wind: {
-      direction: conditions.windDirection,
-      speed: conditions.windSpeed,
-    },
-    swell: {
-      height: conditions.swellHeight,
-      direction: conditions.swellDirection,
-      period: conditions.swellPeriod,
-      cardinalDirection: degreesToCardinal(Number(conditions.swellDirection)),
-    },
-    timestamp: conditions.timestamp,
-    region: conditions.region,
-  };
+  // Add null check for conditions first
+  if (!conditions) {
+    return { entries: [] };
+  }
+
+  // Handle case where conditions is already formatted
+  if (conditions.forecast?.entries) {
+    return conditions.forecast;
+  }
+
+  // Handle scraped data format
+  if (typeof conditions.windSpeed !== "undefined") {
+    return {
+      entries: [
+        {
+          wind: {
+            speed: conditions.windSpeed,
+            direction: conditions.windDirection
+              ? degreesToCardinal(Number(conditions.windDirection))
+              : "N/A",
+          },
+          swell: {
+            height: conditions.swellHeight,
+            period: conditions.swellPeriod,
+            direction: conditions.swellDirection,
+          },
+          timestamp: conditions.timestamp,
+        },
+      ],
+    };
+  }
+
+  // Return empty entries if no valid format is found
+  return { entries: [] };
 }
 
 // Add these constants at the top
@@ -114,7 +135,7 @@ async function scrapeAllRegions(): Promise<ScrapeResult[]> {
     while (retries > 0) {
       try {
         console.log(
-          `Starting scrape for ${config.region} from ${config.url}... (${retries} retries left)`
+          `Starting scrape for ${config.region} from ${config.url}...`
         );
 
         const response = await axios.get(config.url, {
@@ -128,13 +149,15 @@ async function scrapeAllRegions(): Promise<ScrapeResult[]> {
         const html = response.data;
         const $ = cheerio.load(html);
 
-        const windDirection =
-          $(
-            'div[style="display:block; width: 49px; height:20px; line-height:20px;  text-align: center; float:left; vertical-align: middle; background-color: white; border: 0px solid orange; color: black;"]'
-          )
-            .first()
-            .text()
-            .trim() || "N/A";
+        // Updated wind direction selector and parsing
+        const windDirection = $(
+          'div[style="display:block; width: 49px; height:20px; line-height:20px;  text-align: center; float:left; vertical-align: middle; background-color: white; border: 0px solid orange; color: black;"]'
+        )
+          .first()
+          .text()
+          .trim();
+
+        console.log("Raw wind direction:", windDirection); // Debug log
 
         const windSpeed =
           parseFloat(
@@ -182,20 +205,18 @@ async function scrapeAllRegions(): Promise<ScrapeResult[]> {
 
         results.push({
           region: config.region,
-          windDirection,
+          windDirection: windDirection || "0",
           windSpeed,
           swellHeight: waveHeight,
-          swellDirection,
+          swellDirection: swellDirection,
           swellPeriod,
-          timestamp: Date.now(),
         });
 
         console.log(
           `Successfully scraped data for ${config.region}:`,
           results[results.length - 1]
         );
-
-        break; // Success, exit retry loop
+        break;
       } catch (error) {
         retries--;
         console.error(`Scraping error for ${config.region}:`, {
@@ -232,16 +253,19 @@ async function getLatestConditions(
   region: ValidRegion = "Western Cape"
 ) {
   const today = getTodayDate();
+  console.log("Checking for conditions with date:", today);
 
-  // First check if we have today's data for the requested region (usually Western Cape initially)
+  // First check if we have today's data
   if (!forceRefresh) {
     const conditions = await prisma.surfCondition.findFirst({
       where: {
         date: today,
         region: region,
       },
-      orderBy: { timestamp: "desc" },
+      orderBy: { updatedAt: "desc" },
     });
+
+    console.log("Found existing conditions:", conditions);
 
     if (conditions) {
       // After returning Western Cape data, trigger background fetch for other regions
@@ -255,18 +279,30 @@ async function getLatestConditions(
   // If no data exists, fetch Western Cape first
   console.log("🌐 Scraping fresh data for", region);
   const scrapedData = await scrapeAllRegions();
+  console.log("Scraped data:", scrapedData);
 
-  // Store all scraped data
+  // Store scraped data with nested forecast structure
   await prisma.surfCondition.createMany({
     data: scrapedData.map((regionData) => ({
       id: randomUUID(),
-      date: today,
+      date: getTodayDate(),
       region: regionData.region,
-      windDirection: regionData.windDirection,
-      windSpeed: regionData.windSpeed,
-      swellHeight: regionData.swellHeight,
-      swellDirection: regionData.swellDirection,
-      swellPeriod: regionData.swellPeriod,
+      forecast: {
+        entries: [
+          {
+            wind: {
+              speed: regionData.windSpeed,
+              direction: regionData.windDirection,
+            },
+            swell: {
+              height: regionData.swellHeight,
+              period: regionData.swellPeriod,
+              direction: regionData.swellDirection,
+            },
+            timestamp: Date.now(),
+          },
+        ],
+      },
       timestamp: Date.now(),
     })),
   });
@@ -287,22 +323,23 @@ async function getLatestConditions(
 }
 
 // New helper function to fetch other regions in the background
-async function backgroundFetchOtherRegions(today: string) {
+async function backgroundFetchOtherRegions(today: Date) {
   // Check which regions we already have data for
+  const queryDate = new Date(today);
+  queryDate.setUTCHours(0, 0, 0, 0);
+
   const existingRegions = await prisma.surfCondition.findMany({
     where: {
-      date: today,
+      date: queryDate,
     },
     select: {
       region: true,
     },
   });
 
-  const existingRegionNames = existingRegions.map((r) => r.region);
-
   // Find regions we need to fetch
   const regionsToFetch = REGION_CONFIGS.filter(
-    (config) => !existingRegionNames.includes(config.region)
+    (config) => !existingRegions.some((r) => r.region === config.region)
   );
 
   if (regionsToFetch.length === 0) {
@@ -373,15 +410,25 @@ async function backgroundFetchOtherRegions(today: string) {
 
       await prisma.surfCondition.create({
         data: {
-          id: randomUUID(),
-          date: today,
           region: config.region,
-          windDirection,
-          windSpeed: windSpeed,
-          swellHeight: waveHeight,
-          swellDirection,
-          swellPeriod,
-          timestamp: Date.now(),
+          forecast: {
+            entries: [
+              {
+                wind: {
+                  speed: windSpeed,
+                  direction: windDirection,
+                },
+                swell: {
+                  height: waveHeight,
+                  period: swellPeriod,
+                  direction: swellDirection,
+                },
+                timestamp: Date.now(),
+              },
+            ],
+          },
+          date: today,
+          updatedAt: new Date(),
         },
       });
 
@@ -414,153 +461,109 @@ export const dynamic = "force-dynamic";
 
 export async function GET(request: Request) {
   const { searchParams } = new URL(request.url);
-  const date = searchParams.get("date");
-
-  if (!date) {
-    return NextResponse.json(
-      { error: "Date parameter is required" },
-      { status: 400 }
-    );
-  }
+  const region = searchParams.get("region") || "Western Cape";
+  const forceRefresh = searchParams.get("forceRefresh") === "true";
+  const dateParam = searchParams.get("date");
 
   try {
-    const region = searchParams.get("region") || "Western Cape";
+    const date = dateParam ? new Date(dateParam) : getTodayDate();
 
-    // Validate region immediately
-    if (!isValidRegion(region)) {
-      return NextResponse.json(
-        {
-          error: "Unsupported region",
-          message: `Surf forecasts are not yet available for ${region}. Valid regions are: ${VALID_REGIONS.join(", ")}`,
-        },
-        { status: 400 }
-      );
-    }
-
-    // Continue with cache/DB checks only for valid regions
-    console.log("🔍 Checking cache/DB for:", { region, date });
-
-    // Use more specific cache keys
-    const cacheKey = `surf_conditions:${region}:${date}:v1`;
-    const scrapeLockKey = `scrape_lock:${date}:v1`;
-
-    // Try cache first
-    const cachedData = await redis.get(cacheKey);
-    if (cachedData && typeof cachedData === "string") {
-      console.log("📦 Cache hit for:", { region, date });
-      return NextResponse.json(JSON.parse(cachedData));
-    }
-    console.log("❌ Cache miss for:", { region, date });
-
-    // Check database before scraping
-    const conditions = await prisma.surfCondition.findFirst({
+    // Check for existing data first
+    const existingConditions = await prisma.surfCondition.findFirst({
       where: {
         date: date,
         region: region,
       },
-      orderBy: { timestamp: "desc" },
+      orderBy: { updatedAt: "desc" },
     });
 
-    if (conditions) {
-      console.log("💾 DB hit for:", { region, date });
-      const formattedData = formatConditionsResponse(conditions);
-      // Store in cache
-      await redis.setex(
-        cacheKey,
-        CACHE_TIMES.getRedisExpiry(),
-        JSON.stringify(formattedData)
-      );
-      return NextResponse.json(formattedData);
-    }
-    console.log("❌ DB miss for:", { region, date });
-
-    // Implement better lock handling
-    const isLocked = await redis.get(scrapeLockKey);
-    if (isLocked) {
-      console.log("🔒 Scrape already in progress, waiting...");
-      // Wait and retry a few times
-      for (let i = 0; i < 3; i++) {
-        await new Promise((resolve) => setTimeout(resolve, 5000));
-        const recentConditions = await prisma.surfCondition.findFirst({
-          where: {
-            date: date,
-            region: region,
-          },
-          orderBy: { timestamp: "desc" },
-        });
-
-        if (recentConditions) {
-          const formattedData = formatConditionsResponse(recentConditions);
-          await redis.setex(
-            cacheKey,
-            CACHE_TIMES.getRedisExpiry(),
-            JSON.stringify(formattedData)
-          );
-          return NextResponse.json(formattedData);
-        }
-      }
+    if (existingConditions && !forceRefresh) {
+      return NextResponse.json(formatConditionsResponse(existingConditions));
     }
 
-    // Set lock with proper expiry
-    await redis.setex(scrapeLockKey, CACHE_TIMES.SCRAPE_LOCK, "1");
-
-    // 4. Set scrape lock and fetch fresh data
-    console.log("🌊 Scraping fresh data for all regions");
-
+    console.log(
+      "📊 Found conditions:",
+      JSON.stringify(existingConditions, null, 2)
+    );
+    // Only scrape once
     const scrapedData = await scrapeAllRegions();
 
-    if (scrapedData && scrapedData.length > 0) {
-      // Store in database
-      const formattedScrapedData = scrapedData.map((d) => ({
-        ...d,
-        id: randomUUID(),
-        date: date,
-        createdAt: new Date(),
-        updatedAt: new Date(),
-      }));
-
-      await prisma.surfCondition.createMany({
-        data: formattedScrapedData,
+    // Use upsert to prevent duplicates
+    for (const regionData of scrapedData) {
+      await prisma.surfCondition.upsert({
+        where: {
+          // Add a unique constraint if you don't have one
+          date_region: {
+            date: date,
+            region: regionData.region,
+          },
+        },
+        update: {
+          forecast: {
+            entries: [
+              {
+                wind: {
+                  speed: regionData.windSpeed,
+                  direction: regionData.windDirection,
+                },
+                swell: {
+                  height: regionData.swellHeight,
+                  period: regionData.swellPeriod,
+                  direction: regionData.swellDirection,
+                },
+                timestamp: Date.now(),
+              },
+            ],
+          },
+          updatedAt: new Date(),
+        },
+        create: {
+          id: randomUUID(),
+          date: date,
+          region: regionData.region,
+          forecast: {
+            entries: [
+              {
+                wind: {
+                  speed: regionData.windSpeed,
+                  direction: regionData.windDirection,
+                },
+                swell: {
+                  height: regionData.swellHeight,
+                  period: regionData.swellPeriod,
+                  direction: regionData.swellDirection,
+                },
+                timestamp: Date.now(),
+              },
+            ],
+          },
+          updatedAt: new Date(),
+        },
       });
-
-      // Store good beach ratings for each region's conditions
-      console.log("Scraped conditions:", formattedScrapedData);
-      for (const conditions of formattedScrapedData) {
-        console.log("Storing ratings for region:", conditions.region);
-        await storeGoodBeachRatings(conditions, date);
-      }
-
-      // Find and format requested region's data
-      const regionData = scrapedData.find((d) => d.region === region);
-      if (regionData) {
-        const formattedData = formatConditionsResponse(regionData);
-        // Store in cache
-        await redis.setex(
-          cacheKey,
-          CACHE_TIMES.getRedisExpiry(),
-          JSON.stringify(formattedData)
-        );
-        return NextResponse.json(formattedData);
-      }
     }
 
-    return NextResponse.json(
-      { error: `No forecast data available for ${region}` },
-      { status: 404 }
+    const requestedRegionData = scrapedData.find(
+      (data) => data.region === region
     );
+
+    if (!requestedRegionData) {
+      return NextResponse.json(
+        { error: `No data available for region: ${region}` },
+        { status: 404 }
+      );
+    }
+
+    return NextResponse.json(formatConditionsResponse(requestedRegionData));
   } catch (error) {
-    console.error("❌ Error in surf-conditions route:", error);
+    console.error("Error in surf-conditions GET:", error);
     return NextResponse.json(
-      {
-        error: "Failed to fetch surf conditions",
-        details: (error as Error).message,
-      },
+      { error: "Failed to fetch conditions" },
       { status: 500 }
     );
   }
 }
 
-async function storeGoodBeachRatings(conditions: any, date: string) {
+async function storeGoodBeachRatings(conditions: any, date: Date) {
   // Get beaches for this region
   const regionBeaches = beachData.filter(
     (beach) => beach.region === conditions.region

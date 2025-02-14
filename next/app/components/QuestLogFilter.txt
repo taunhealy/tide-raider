@@ -1,17 +1,10 @@
+"use client";
+
 import { useState, useEffect, useCallback } from "react";
 import { X, ChevronDown } from "lucide-react";
 import { cn } from "@/app/lib/utils";
 import { FilterConfig } from "../types/questlogs";
-
-interface Beach {
-  id: string;
-  name: string;
-  location: {
-    country: string;
-    region: string;
-    continent?: string;
-  };
-}
+import type { Beach } from "@/app/types/beaches";
 
 interface RegionFilterType {
   continents: string[];
@@ -22,55 +15,73 @@ interface RegionFilterType {
 }
 
 interface QuestLogFilterProps {
-  filters: FilterConfig;
-  onFiltersChange: (filters: FilterConfig) => void;
+  beaches: Beach[];
+  onFilterChange: (filters: { beaches: string[] }) => void;
+  selectedBeaches?: string[];
   isOpen: boolean;
   onClose: () => void;
 }
 
 export function QuestLogFilter({
-  filters,
-  onFiltersChange,
+  beaches,
+  onFilterChange,
+  selectedBeaches = [],
   isOpen,
   onClose,
 }: QuestLogFilterProps) {
   const [beachSearch, setBeachSearch] = useState("");
+  const [isBeachOpen, setIsBeachOpen] = useState(false);
+
+  const handleBeachToggle = useCallback(
+    (beachName: string) => {
+      const newBeaches = selectedBeaches.includes(beachName)
+        ? selectedBeaches.filter((b) => b !== beachName)
+        : [...selectedBeaches, beachName];
+
+      onFilterChange({ beaches: newBeaches });
+    },
+    [selectedBeaches, onFilterChange]
+  );
+
+  const filteredBeaches = beaches.filter((beach) =>
+    beach.name.toLowerCase().includes(beachSearch.toLowerCase())
+  );
 
   // Get unique values from entries
   const uniqueBeaches = [
     ...new Set(
-      (Array.isArray(filters.entries) ? filters.entries : [])
-        .map((entry) => entry.beachName)
+      (Array.isArray(selectedBeaches) ? selectedBeaches : [])
+        .map((entry) => entry)
         .filter(Boolean)
     ),
   ].sort();
 
   // Add this handler function
   const handleRatingClick = (rating: number) => {
-    onFiltersChange({
-      ...filters,
-      minRating: filters.minRating === rating ? null : rating,
+    onFilterChange({
+      ...selectedBeaches,
+      minRating: selectedBeaches.minRating === rating ? null : rating,
     });
   };
 
   // Update parent component when filters change
   useEffect(() => {
     const timeoutId = setTimeout(() => {
-      onFiltersChange({
-        ...filters,
+      onFilterChange({
+        ...selectedBeaches,
         beachName: "",
         waveTypes: [],
         surferName: "",
-        regions: filters.regions,
-        beaches: filters.beaches,
-        countries: filters.countries,
-        minRating: filters.minRating,
-        dateRange: filters.dateRange,
+        regions: selectedBeaches.regions,
+        beaches: selectedBeaches.beaches,
+        countries: selectedBeaches.countries,
+        minRating: selectedBeaches.minRating,
+        dateRange: selectedBeaches.dateRange,
       });
     }, 300);
 
     return () => clearTimeout(timeoutId);
-  }, [filters, onFiltersChange]);
+  }, [selectedBeaches, onFilterChange]);
 
   return (
     <div
@@ -100,13 +111,13 @@ export function QuestLogFilter({
               </label>
               <input
                 type="date"
-                value={filters.dateRange?.start}
+                value={selectedBeaches.dateRange?.start}
                 onChange={(e) =>
-                  onFiltersChange({
-                    ...filters,
+                  onFilterChange({
+                    ...selectedBeaches,
                     dateRange: {
                       start: e.target.value,
-                      end: filters.dateRange?.end || "",
+                      end: selectedBeaches.dateRange?.end || "",
                     },
                   })
                 }
@@ -119,12 +130,12 @@ export function QuestLogFilter({
               </label>
               <input
                 type="date"
-                value={filters.dateRange?.end || ""}
+                value={selectedBeaches.dateRange?.end || ""}
                 onChange={(e) =>
-                  onFiltersChange({
-                    ...filters,
+                  onFilterChange({
+                    ...selectedBeaches,
                     dateRange: {
-                      start: filters.dateRange?.start || "",
+                      start: selectedBeaches.dateRange?.start || "",
                       end: e.target.value,
                     },
                   })
@@ -135,65 +146,71 @@ export function QuestLogFilter({
           </div>
         </div>
 
-        {/* Beaches */}
-        <div>
-          <h3 className="text-sm font-medium mb-2">Beaches</h3>
-          <div>
-            <input
-              type="text"
-              placeholder="Search beaches..."
-              value={beachSearch}
-              className="w-full p-2 border rounded-md"
-              onChange={(e) => setBeachSearch(e.target.value)}
+        {/* Beach Filter */}
+        <div className="relative">
+          <button
+            onClick={() => setIsBeachOpen(!isBeachOpen)}
+            className="w-full flex justify-between items-center p-2 border rounded-md hover:bg-gray-50"
+          >
+            <span>Beaches ({selectedBeaches.length})</span>
+            <ChevronDown
+              className={`h-4 w-4 transition-transform ${isBeachOpen ? "rotate-180" : ""}`}
             />
-            <div className="mt-2 space-y-1">
-              {filters.beaches?.map((beach) => (
+          </button>
+
+          {isBeachOpen && (
+            <div className="absolute z-10 w-full mt-2 bg-white border rounded-md shadow-lg">
+              <div className="p-2">
+                <input
+                  type="text"
+                  placeholder="Search beaches..."
+                  value={beachSearch}
+                  onChange={(e) => setBeachSearch(e.target.value)}
+                  className="w-full p-2 mb-2 border rounded-md"
+                />
+                <div className="max-h-60 overflow-y-auto">
+                  {filteredBeaches.map((beach) => (
+                    <label
+                      key={beach.id}
+                      className="flex items-center p-2 hover:bg-gray-100 cursor-pointer"
+                    >
+                      <input
+                        type="checkbox"
+                        checked={selectedBeaches.includes(beach.name)}
+                        onChange={() => handleBeachToggle(beach.name)}
+                        className="mr-2"
+                      />
+                      <span className="text-sm">{beach.name}</span>
+                    </label>
+                  ))}
+                </div>
+              </div>
+            </div>
+          )}
+        </div>
+
+        {/* Selected Beaches */}
+        {selectedBeaches.length > 0 && (
+          <div className="space-y-2">
+            <h3 className="text-sm font-medium">Selected Beaches</h3>
+            <div className="flex flex-wrap gap-2">
+              {selectedBeaches.map((beach) => (
                 <div
                   key={beach}
-                  className="flex items-center justify-between bg-gray-100 px-3 py-1 rounded-md"
+                  className="flex items-center bg-gray-100 px-3 py-1 rounded-md text-sm"
                 >
-                  <span className="text-sm">{beach}</span>
+                  {beach}
                   <button
-                    onClick={() =>
-                      onFiltersChange({
-                        ...filters,
-                        beaches: filters.beaches?.filter((b) => b !== beach),
-                      })
-                    }
-                    className="text-gray-500 hover:text-gray-700"
+                    onClick={() => handleBeachToggle(beach)}
+                    className="ml-2 text-gray-500 hover:text-gray-700"
                   >
                     <X className="h-4 w-4" />
                   </button>
                 </div>
               ))}
             </div>
-            {beachSearch && (
-              <div className="w-full mt-1 max-h-40 overflow-y-auto bg-white border rounded-md shadow-lg">
-                {uniqueBeaches
-                  .filter(
-                    (beach) =>
-                      !filters.beaches?.includes(beach) &&
-                      beach.toLowerCase().includes(beachSearch.toLowerCase())
-                  )
-                  .map((beach) => (
-                    <button
-                      key={beach}
-                      className="w-full px-3 py-2 text-left text-sm hover:bg-gray-100"
-                      onClick={() => {
-                        onFiltersChange({
-                          ...filters,
-                          beaches: [...(filters.beaches || []), beach],
-                        });
-                        setBeachSearch("");
-                      }}
-                    >
-                      {beach}
-                    </button>
-                  ))}
-              </div>
-            )}
           </div>
-        </div>
+        )}
 
         {/* Rating */}
         <div>
@@ -204,7 +221,7 @@ export function QuestLogFilter({
                 key={rating}
                 onClick={() => handleRatingClick(rating)}
                 className={`p-2 rounded-md ${
-                  filters.minRating === rating
+                  selectedBeaches.minRating === rating
                     ? "bg-[var(--color-bg-tertiary)] text-white"
                     : "bg-gray-100 hover:bg-gray-200"
                 }`}
@@ -218,8 +235,8 @@ export function QuestLogFilter({
         {/* Reset Filters */}
         <button
           onClick={() =>
-            onFiltersChange({
-              ...filters,
+            onFilterChange({
+              ...selectedBeaches,
               entries: [],
               isPrivate: false,
               beachName: "",

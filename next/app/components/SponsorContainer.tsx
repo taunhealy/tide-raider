@@ -29,7 +29,7 @@ const SponsorContainer = () => {
   const { data: logs } = useQuery({
     queryKey: ["questLogs"],
     queryFn: async () => {
-      const response = await fetch("/api/quest-log");
+      const response = await fetch("/api/raid-logs");
       if (!response.ok) throw new Error("Failed to fetch logs");
       const data = await response.json();
       return data.entries as SurfLog[];

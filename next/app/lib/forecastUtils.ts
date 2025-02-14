@@ -20,3 +20,25 @@ export const getDirectionEmoji = (direction: string | number): string => {
   const dirIndex = Math.round(deg / 45) % 8;
   return ["⬆️", "↗️", "➡️", "↘️", "⬇️", "↙️", "⬅️", "↖️"][dirIndex] || "➿";
 };
+
+export function degreesToCardinal(degrees: number): string {
+  const cardinals = [
+    "N",
+    "NNE",
+    "NE",
+    "ENE",
+    "E",
+    "ESE",
+    "SE",
+    "SSE",
+    "S",
+    "SSW",
+    "SW",
+    "WSW",
+    "W",
+    "WNW",
+    "NW",
+    "NNW",
+  ];
+  return cardinals[Math.round((degrees % 360) / 22.5) % 16];
+}

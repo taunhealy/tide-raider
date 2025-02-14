@@ -14,10 +14,13 @@ export async function GET(request: Request) {
   }
 
   try {
-    // Simply count the entries for the given date and region
+    // Convert date string to DateTime
+    const queryDate = new Date(date);
+    queryDate.setUTCHours(0, 0, 0, 0);
+
     const count = await prisma.beachGoodRating.count({
       where: {
-        date,
+        date: queryDate,
         region,
       },
     });

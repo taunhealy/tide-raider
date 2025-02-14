@@ -17,19 +17,18 @@ export interface LogEntry {
   surferEmail: string;
   beachName: string;
   beachId: string;
-  forecast: {
-    wind: {
-      speed: number;
-      direction: string;
-    };
-    swell: {
-      height: number;
-      period: number;
-      direction: string;
-      cardinalDirection: string;
-    };
-    timestamp: string;
-  } | null;
+  forecast?: {
+    entries?: Array<{
+      wind: { speed: number; direction: string };
+      swell: {
+        height: number;
+        period: number;
+        direction: string;
+        cardinalDirection: string;
+      };
+      timestamp: number;
+    }>;
+  };
   surferRating: number;
   comments: string;
   imageUrl: string;
@@ -122,3 +121,18 @@ export type RegionFilters = {
   beaches: string[];
   waveTypes: string[];
 };
+
+export interface SurfCondition {
+  id: string;
+  date: string;
+  region: string;
+  forecast: {
+    entries: Array<{
+      wind: { speed: number; direction: string };
+      swell: { height: number; period: number; direction: string };
+      timestamp: number;
+    }>;
+  };
+  createdAt: Date;
+  updatedAt: Date;
+}

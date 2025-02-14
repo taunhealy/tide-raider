@@ -1,15 +1,18 @@
-import { getBeaches } from "@/app/lib/data";
-import { ClientRaidLogs } from "@/app/components/ClientRaidLogs";
-import { Suspense } from "react";
-import { RaidLogsSkeleton } from "@/app/components/skeletons/RaidLogsSkeleton";
+"use client";
 
-// Server component (can be async)
-export default async function RaidLogsPage() {
-  const beaches = await getBeaches();
+import { RaidLogsComponent } from "@/app/components/raid-logs/RaidLogsComponent";
+import { useSession } from "next-auth/react";
 
-  return (
-    <Suspense fallback={<RaidLogsSkeleton />}>
-      <ClientRaidLogs beaches={beaches} />
-    </Suspense>
+export default function RaidLogsPage() {
+  const { data: session } = useSession();
+
+  return session?.user?.id ? (
+    <RaidLogsComponent
+      beaches={[]} // Pass actual beaches data here
+      userId={session.user.id} // Now guaranteed to be string
+      initialFilters={{ isPrivate: false }}
+    />
+  ) : (
+    <div>Loading or unauthorized message</div>
   );
 }

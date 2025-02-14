@@ -28,7 +28,9 @@
     "**/*.tsx",
     ".next/types/**/*.ts",
     "tailwind.config.js",
-    "next.config.js"
-, "app/components/WaveAnimation.jsx"  ],
+    "next.config.js",
+    "app/components/WaveAnimation.jsx",
+    "../BeachCard.tsx"
+  ],
   "exclude": ["node_modules"]
 }

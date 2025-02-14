@@ -14,6 +14,7 @@ import {
   calculateBeachScores,
   FREE_BEACH_LIMIT,
   getGatedBeaches,
+  degreesToCardinal,
 } from "@/app/lib/surfUtils";
 import FunFacts from "@/app/components/FunFacts";
 import { cn } from "@/app/lib/utils";
@@ -305,19 +306,29 @@ export default function BeachContainer({
   }, [allWindData, beachScores]);
 
   // Fetch specific region data using the same optimized flow
-  const { data: windData, isLoading } = useQuery({
+  const {
+    data: windData,
+    error: windError,
+    isLoading,
+  } = useQuery({
     queryKey: ["surfConditions", selectedRegion],
     queryFn: async () => {
-      if (!selectedRegion) return null;
-      console.log(
-        `🔄 Fetching data for ${selectedRegion} using optimized flow`
+      console.log("🌊 Fetching surf conditions for region:", selectedRegion);
+      const res = await fetch(
+        `/api/surf-conditions?region=${encodeURIComponent(selectedRegion)}`
       );
-      const response = await fetch(
-        `/api/surf-conditions?region=${selectedRegion}`
-      );
-      if (!response.ok) throw new Error("Failed to fetch conditions");
-      const data = await response.json();
-      console.log("📦 Received region data:", data);
+
+      if (!res.ok) {
+        console.error(
+          "❌ Surf conditions fetch failed:",
+          res.status,
+          res.statusText
+        );
+        throw new Error("Failed to fetch surf conditions");
+      }
+
+      const data = await res.json();
+      console.log("📊 Received surf conditions:", data);
       return data;
     },
     enabled: !!selectedRegion,
@@ -607,6 +618,21 @@ export default function BeachContainer({
       setIsSavingDefaults(false);
     }
   };
+
+  // Update this query
+  const { data: recentLogs } = useQuery({
+    queryKey: ["recentLogs"],
+    queryFn: async () => {
+      const res = await fetch(`/api/raid-logs`); // Removed the limit parameter
+      if (!res.ok) throw new Error("Failed to fetch logs");
+      return res.json();
+    },
+  });
+
+  // If you need only 3 logs, you can slice them in the render:
+  const latestLogs = recentLogs?.entries?.slice(0, 3);
+
+  console.log("Current wind data:", windData);
 
   return (
     <div className="bg-[var(--color-bg-secondary)] p-6 mx-auto relative min-h-[calc(100vh-72px)] flex flex-col">
@@ -985,7 +1011,7 @@ export default function BeachContainer({
                       <div className="flex-1 flex flex-col items-center justify-center">
                         <div className="space-y-2 text-center">
                           <span className="text-xl font-semibold text-gray-800">
-                            {windData?.wind?.direction || "N/A"}
+                            {degreesToCardinal(windData?.wind?.direction)}
                           </span>
                           <span className="block text-sm text-gray-600">
                             {windData?.wind?.speed || "N/A"} km/h

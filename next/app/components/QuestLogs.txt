@@ -75,6 +75,13 @@ const createFilterParams = (filters: FilterConfig) => {
   return params;
 };
 
+const QuestLogFilter = dynamic(() => import("./QuestLogFilter"), {
+  ssr: false,
+  loading: () => (
+    <div className="w-[360px] bg-white fixed right-0 top-0 h-full shadow-lg" />
+  ),
+});
+
 export default function QuestLogs({
   beaches,
   userId,
@@ -170,20 +177,20 @@ export default function QuestLogs({
     staleTime: 60_000,
   });
 
-  const { data: conditions, isLoading: isConditionsLoading } = useQuery({
+  const { data: conditions } = useQuery({
     queryKey: ["surfConditions", selectedRegion],
     queryFn: async () => {
       const response = await fetch(
-        `/api/surf-conditions?region=${selectedRegion || ""}&date=${new Date().toISOString()}`
+        `/api/surf-conditions?region=${selectedRegion || ""}`
       );
       if (!response.ok) throw new Error("Failed to fetch conditions");
       const data = await response.json();
-      return data;
+      return data.entries?.[0];
     },
     enabled: !!selectedRegion,
   });
 
-  const isLoadingCombined = isLoading || isConditionsLoading;
+  const isLoadingCombined = isLoading;
 
   const filteredEntries = useMemo(() => {
     return logEntriesData?.entries || [];
@@ -254,8 +261,9 @@ export default function QuestLogs({
 
       {/* Right Sidebar Filter */}
       <QuestLogFilter
-        filters={filters}
-        onFiltersChange={handleFilterChange}
+        beaches={beaches}
+        selectedBeaches={filters.beaches}
+        onFilterChange={handleFilterChange}
         isOpen={isFilterOpen}
         onClose={() => setIsFilterOpen(false)}
       />

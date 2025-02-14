@@ -5,7 +5,7 @@ import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { cn } from "@/app/lib/utils";
 import type { Beach } from "@/app/types/beaches";
 import type { CreateLogEntryInput, LogEntry } from "@/app/types/questlogs";
-import SurfForecastWidget from "./SurfForecastWidget";
+import SurfForecastWidget from "../SurfForecastWidget";
 import confetti from "canvas-confetti";
 import { Button } from "@/app/components/ui/Button";
 import { validateFile, compressImageIfNeeded } from "@/app/lib/file";
@@ -17,7 +17,7 @@ import { useRouter } from "next/navigation";
 import { signIn } from "next-auth/react";
 import { format } from "date-fns";
 
-interface QuestLogFormProps {
+interface RaidLogFormProps {
   userEmail?: string;
   isOpen?: boolean;
   onClose?: () => void;
@@ -26,14 +26,14 @@ interface QuestLogFormProps {
   isEditing?: boolean;
 }
 
-export function QuestLogForm({
+export function RaidLogForm({
   userEmail,
   isOpen,
   onClose,
   beaches,
   entry,
   isEditing,
-}: QuestLogFormProps) {
+}: RaidLogFormProps) {
   const queryClient = useQueryClient();
   const { isSubscribed, hasActiveTrial } = useSubscription();
   const { data: session } = useSession();
@@ -64,7 +64,7 @@ export function QuestLogForm({
     mutationFn: async (newEntry: CreateLogEntryInput) => {
       const method = entry?.id ? "PATCH" : "POST";
       const response = await fetch(
-        `/api/quest-log${entry?.id ? `/${entry.id}` : ""}`,
+        `/api/raid-logs${entry?.id ? `/${entry.id}` : ""}`,
         {
           method,
           headers: {
@@ -81,7 +81,7 @@ export function QuestLogForm({
       return response.json();
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["questLogs"] });
+      queryClient.invalidateQueries({ queryKey: ["raidLogs"] });
       confetti({
         particleCount: 100,
         spread: 90,
@@ -121,16 +121,16 @@ export function QuestLogForm({
 
     const formattedForecast = {
       wind: {
-        speed: forecast.wind.speed,
-        direction: forecast.wind.direction,
+        speed: forecast.entries[0].wind.speed,
+        direction: forecast.entries[0].wind.direction,
       },
       swell: {
-        height: forecast.swell.height,
-        period: forecast.swell.period,
-        direction: forecast.swell.direction,
-        cardinalDirection: forecast.swell.cardinalDirection,
+        height: forecast.entries[0].swell.height,
+        period: forecast.entries[0].swell.period,
+        direction: forecast.entries[0].swell.direction,
+        cardinalDirection: forecast.entries[0].swell.cardinalDirection,
       },
-      timestamp: forecast.timestamp,
+      timestamp: forecast.entries[0].timestamp,
     };
 
     const newEntry = {
@@ -220,15 +220,29 @@ export function QuestLogForm({
 
   const fetchForecast = async (beach: Beach) => {
     try {
+      console.log("Fetching forecast for:", {
+        date: selectedDate,
+        region: beach.region,
+      });
+
       const response = await fetch(
-        `/api/surf-conditions?date=${selectedDate}&region=${encodeURIComponent(beach.region)}`
+        `/api/raid-logs?date=${selectedDate}&region=${encodeURIComponent(beach.region)}`
       );
-      if (!response.ok) throw new Error("Failed to load forecast");
-      const forecastData = await response.json();
-      setForecast(forecastData);
+
+      if (!response.ok) {
+        throw new Error("Failed to fetch forecast");
+      }
+
+      const data = await response.json();
+
+      if (data && data.entries && data.entries.length > 0) {
+        setForecast(data);
+      } else {
+        setForecast(null);
+      }
     } catch (error) {
-      console.error("Forecast load failed:", error);
-      alert("Forecast unavailable for this location and date");
+      console.error("Error loading forecast:", error);
+      setForecast(null);
     }
   };
 
@@ -261,6 +275,13 @@ export function QuestLogForm({
     const initialBeach = beaches.find((b) => b.name === entry.beachName);
     setSelectedBeach(initialBeach || null);
   }, [entry, beaches]);
+
+  // Update useEffect to use this function
+  useEffect(() => {
+    if (selectedBeach && selectedDate) {
+      fetchForecast(selectedBeach);
+    }
+  }, [selectedBeach, selectedDate]);
 
   const handleSubscriptionAction = () => {
     if (!session?.user) {
@@ -323,7 +344,9 @@ export function QuestLogForm({
               <div className="steps-container space-y-6">
                 {/* Step 1: Date Selection */}
                 <div className="step">
-                  <h3 className="text-lg font-semibold mb-2">1. Select Date</h3>
+                  <h4 className="text-[12px] font-semibold mb-2 font-primary">
+                    1. Select Date
+                  </h4>
                   <input
                     type="date"
                     value={selectedDate}
@@ -336,36 +359,53 @@ export function QuestLogForm({
 
                 {/* Step 2: Beach Selection */}
                 <div className="step">
-                  <h3 className="text-lg font-semibold mb-2">
+                  <h4 className="text-[12px] font-semibold mb-2 font-primary">
                     2. Select Beach
-                  </h3>
-                  <Select
-                    value={selectedBeach?.name || ""}
-                    onValueChange={(value) => {
-                      const beach = beaches?.find((b) => b.name === value);
-                      if (beach) handleBeachSelect(beach);
-                    }}
-                    disabled={!selectedDate}
-                  >
-                    {beaches?.map((beach) => (
-                      <SelectItem key={beach.id} value={beach.name}>
-                        {beach.name}
+                  </h4>
+                  <div className="relative">
+                    <Select
+                      value={selectedBeach?.name || ""}
+                      onValueChange={(value) => {
+                        const beach = beaches?.find((b) => b.name === value);
+                        if (beach) handleBeachSelect(beach);
+                      }}
+                    >
+                      <SelectItem value="" disabled>
+                        Choose a beach...
                       </SelectItem>
-                    ))}
-                  </Select>
+                      {Array.isArray(beaches) && beaches.length > 0 ? (
+                        beaches.map((beach) => (
+                          <SelectItem key={beach.id} value={beach.name}>
+                            {beach.name}
+                          </SelectItem>
+                        ))
+                      ) : (
+                        <SelectItem value="" disabled>
+                          No beaches available ({beaches?.length || 0} beaches)
+                        </SelectItem>
+                      )}
+                    </Select>
+                  </div>
                 </div>
 
                 {/* Step 3: Forecast Display */}
                 {selectedBeach && selectedDate && (
                   <div className="step">
-                    <h3 className="text-lg font-semibold mb-2">
+                    <h4 className="text-[12px] font-semibold mb-2 font-primary">
                       3. Surf Conditions
-                    </h3>
+                    </h4>
                     <div className="border rounded-lg p-4 bg-gray-50">
-                      <SurfForecastWidget
-                        beachId={selectedBeach.id}
-                        date={selectedDate}
-                      />
+                      {forecast &&
+                      forecast.entries &&
+                      forecast.entries.length > 0 ? (
+                        <SurfForecastWidget
+                          beachId={selectedBeach.id}
+                          date={selectedDate}
+                          forecast={forecast}
+                        />
+                      ) : (
+                        <div>Loading forecast data...</div>
+                      )}
                     </div>
                   </div>
                 )}
@@ -457,6 +497,15 @@ export function QuestLogForm({
                 </Button>
               </div>
             </form>
+
+            {forecast && (
+              <div className="p-4 bg-gray-100 rounded-lg mt-4">
+                <h4 className="font-semibold mb-2">Debug Forecast Data</h4>
+                <pre className="text-xs">
+                  {JSON.stringify(forecast, null, 2)}
+                </pre>
+              </div>
+            )}
           </div>
         </div>
       )}

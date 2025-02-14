@@ -42,7 +42,8 @@ export default function ProfilePage() {
       </div>
     );
   }
-  if (error) return <UserNotFound />;
+
+  if (error || !userData) return <UserNotFound />;
 
   const isOwnProfile = session?.user?.id?.toString() === userId;
 

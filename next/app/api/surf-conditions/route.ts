@@ -413,8 +413,17 @@ const CACHE_TIMES = {
 export const dynamic = "force-dynamic";
 
 export async function GET(request: Request) {
+  const { searchParams } = new URL(request.url);
+  const date = searchParams.get("date");
+
+  if (!date) {
+    return NextResponse.json(
+      { error: "Date parameter is required" },
+      { status: 400 }
+    );
+  }
+
   try {
-    const { searchParams } = new URL(request.url);
     const region = searchParams.get("region") || "Western Cape";
 
     // Validate region immediately
@@ -427,8 +436,6 @@ export async function GET(request: Request) {
         { status: 400 }
       );
     }
-
-    const date = searchParams.get("date") || getTodayDate();
 
     // Continue with cache/DB checks only for valid regions
     console.log("🔍 Checking cache/DB for:", { region, date });

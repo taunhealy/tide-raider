@@ -18,29 +18,17 @@ export interface LogEntry {
   beachName: string;
   beachId: string;
   forecast: {
-    entries: Array<{
-      wind: {
-        speed: number;
-        direction: string;
-      };
-      swell: {
-        height: number;
-        period: number;
-        direction: string;
-        cardinalDirection: string;
-      };
-      timestamp: string;
-    }>;
-    wind?: {
+    wind: {
       speed: number;
       direction: string;
     };
-    swell?: {
+    swell: {
       height: number;
       period: number;
       direction: string;
       cardinalDirection: string;
     };
+    timestamp: string;
   } | null;
   surferRating: number;
   comments: string;
@@ -84,14 +72,18 @@ export interface SortConfig {
 }
 
 export interface FilterConfig {
-  beachName: string;
-  regions: string[];
-  countries: string[];
-  beaches: string[];
-  waveTypes: string[];
-  surferName: string;
-  minRating: number | null;
-  dateRange: { start: string; end: string };
+  beachName?: string;
+  regions?: string[];
+  countries?: string[];
+  beaches?: string[];
+  waveTypes?: string[];
+  surferName?: string;
+  minRating?: number | null;
+  dateRange?: { start: string; end: string };
+  isPrivate: boolean;
+  entries?: LogEntry[];
+  surfers?: string[];
+  region?: string;
 }
 
 export interface QuestLogTableColumn {
@@ -109,10 +101,16 @@ export const DEFAULT_COLUMNS: QuestLogTableColumn[] = [
   {
     key: "forecastSummary",
     label: "Conditions",
-    render: (entry: LogEntry) =>
-      entry.forecast
-        ? `${entry.forecast.swell?.height || 0}m ${getSwellEmoji(entry.forecast.swell?.height || 0)} | ${getWindEmoji(entry.forecast.wind?.speed || 0)} ${entry.forecast.wind?.speed || 0}km/h | ${getDirectionEmoji(parseInt(String(entry.forecast.swell?.direction || 0)))}`
-        : "No forecast data",
+    render: (entry: LogEntry) => {
+      const forecastData = entry.forecast;
+      if (!forecastData?.swell || !forecastData?.wind) {
+        return "No forecast data";
+      }
+
+      const { swell, wind } = forecastData;
+
+      return `${swell.height}m ${getSwellEmoji(swell.height)} | ${getWindEmoji(wind.speed)} ${wind.speed}km/h | ${getDirectionEmoji(parseInt(swell.direction))}`;
+    },
   },
   { key: "comments", label: "Comments" },
 ];

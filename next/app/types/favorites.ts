@@ -11,5 +11,4 @@ export interface Favorite {
     id: string;
     image: string | null;
   };
-  description?: string;
 }

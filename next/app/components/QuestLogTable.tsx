@@ -15,6 +15,7 @@ import Image from "next/image";
 import { useSession } from "next-auth/react";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { useRouter } from "next/navigation";
+import { useMemo } from "react";
 
 interface QuestTableProps {
   entries: LogEntry[];
@@ -39,41 +40,32 @@ function ForecastInfo({ forecast }: { forecast: LogEntry["forecast"] }) {
     return <span className="text-gray-500">No forecast data</span>;
   }
 
-  // Handle both backend formats (public/private)
-  const windSpeed = forecast.wind.speed || 0;
-  const windDirection = forecast.wind.direction?.toString() || "";
-
-  const swellHeight = forecast.swell.height || 0;
-  const swellPeriod = forecast.swell.period || 0;
-  const swellDirection =
-    forecast.swell.cardinalDirection ||
-    forecast.swell.direction?.toString() ||
-    "";
+  const { wind, swell } = forecast;
 
   return (
     <div className="space-y-1 text-sm">
       {/* Wind Row */}
       <p className="break-words">
-        <span title={`Wind Speed: ${windSpeed} km/h`}>
-          {getWindEmoji(windSpeed)}
+        <span title={`Wind Speed: ${wind.speed} km/h`}>
+          {getWindEmoji(wind.speed)}
         </span>{" "}
-        {windDirection} @ {windSpeed}km/h
+        {wind.direction} @ {wind.speed}km/h
       </p>
 
       {/* Swell Row */}
       <p className="break-words">
-        <span title={`Swell Height: ${swellHeight}m`}>
-          {getSwellEmoji(swellHeight)}
+        <span title={`Swell Height: ${swell.height}m`}>
+          {getSwellEmoji(swell.height)}
         </span>{" "}
-        {swellHeight}m @ {swellPeriod}s
+        {swell.height}m @ {swell.period}s
       </p>
 
       {/* Direction Row */}
       <p className="break-words">
-        <span title={`Swell Direction: ${swellDirection}`}>
-          {getDirectionEmoji(swellDirection)}
+        <span title={`Swell Direction: ${swell.cardinalDirection}`}>
+          {getDirectionEmoji(swell.direction)}
         </span>{" "}
-        {swellDirection}
+        {swell.cardinalDirection}
       </p>
     </div>
   );
@@ -172,6 +164,12 @@ export function QuestLogTable({
   isLoading = false,
   showPrivateOnly = false,
 }: QuestTableProps) {
+  // Memoize the entries to prevent unnecessary re-renders
+  const normalizedEntries = useMemo(
+    () => (Array.isArray(entries) ? entries : [entries]),
+    [entries]
+  );
+
   const router = useRouter();
   const queryClient = useQueryClient();
   const { data: session } = useSession();
@@ -208,14 +206,14 @@ export function QuestLogTable({
     deleteMutation.mutate(entryId);
   };
 
-  const filteredEntries = entries.filter((entry) => {
+  const filteredEntries = normalizedEntries.filter((entry) => {
     // Wait until session is fully loaded
     if (!session) return false;
 
     if (showPrivateOnly) {
-      return entry.isPrivate && entry.surferEmail === session.user?.email;
+      return entry.isPrivate && entry.userId === session.user?.id;
     }
-    return !entry.isPrivate || entry.surferEmail === session.user?.email;
+    return !entry.isPrivate || entry.userId === session.user?.id;
   });
 
   const actionColumn = {
@@ -262,41 +260,50 @@ export function QuestLogTable({
     <div className="w-full">
       {/* Mobile View - Cards */}
       <div className="md:hidden space-y-4">
-        {filteredEntries.map((entry) => (
-          <div
-            key={entry.id}
-            className="bg-white rounded-lg border border-gray-200 shadow p-4 space-y-3"
-          >
-            <div className="flex justify-between items-start">
-              <div>
-                <h3 className="font-medium">{entry.beachName}</h3>
-                <p className="text-sm text-gray-500">
-                  {format(new Date(entry.date), "MMM d, yyyy")}
+        {filteredEntries.map((entry) => {
+          console.log("[TableDebug] Processing entry:", {
+            id: entry.id,
+            beachName: entry.beachName,
+            forecast: entry.forecast,
+          });
+
+          return (
+            <div
+              key={entry.id}
+              className="bg-white rounded-lg border border-gray-200 shadow p-4 space-y-3"
+            >
+              <div className="flex justify-between items-start">
+                <div>
+                  <h3 className="font-medium">{entry.beachName}</h3>
+                  <p className="text-sm text-gray-500">
+                    {format(new Date(entry.date), "MMM d, yyyy")}
+                  </p>
+                </div>
+                <StarRating rating={entry.surferRating} />
+              </div>
+
+              <div className="text-sm">
+                <p className="text-gray-600">
+                  Logger:{" "}
+                  <LogEntryDisplay
+                    entry={entry}
+                    isAnonymous={entry.isAnonymous ?? false}
+                  />
                 </p>
+                <div className="mt-2">
+                  <ForecastInfo forecast={entry.forecast} />
+                </div>
               </div>
-              <StarRating rating={entry.surferRating} />
-            </div>
 
-            <div className="text-sm">
-              <p className="text-gray-600">
-                Logger:{" "}
-                <LogEntryDisplay
-                  entry={entry}
-                  isAnonymous={entry.isAnonymous ?? false}
-                />
-              </p>
-              <div className="mt-2">
-                <ForecastInfo forecast={entry.forecast} />
-              </div>
+              {entry.comments && (
+                <p className="text-sm text-gray-600 break-words">
+                  <span className="font-medium">Comments:</span>{" "}
+                  {entry.comments}
+                </p>
+              )}
             </div>
-
-            {entry.comments && (
-              <p className="text-sm text-gray-600 break-words">
-                <span className="font-medium">Comments:</span> {entry.comments}
-              </p>
-            )}
-          </div>
-        ))}
+          );
+        })}
       </div>
 
       {/* Desktop View - Table */}
@@ -322,68 +329,76 @@ export function QuestLogTable({
               </tr>
             </thead>
             <tbody className="bg-white divide-y divide-gray-200">
-              {filteredEntries.map((entry) => (
-                <tr key={entry.id} className="hover:bg-gray-50">
-                  <td className="px-3 py-4 sm:px-6 whitespace-nowrap text-sm min-w-[120px] max-w-[200px] h-[60px]">
-                    {format(new Date(entry.date), "MMM d, yyyy")}
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap min-w-[160px] max-w-[250px] h-[60px]">
-                    {entry.beachName}
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap">
-                    <LogEntryDisplay
-                      entry={entry}
-                      isAnonymous={entry.isAnonymous ?? false}
-                    />
-                  </td>
-                  <td className="px-6 py-4">
-                    <StarRating rating={entry.surferRating} />
-                  </td>
-                  <td className="px-4 py-4">
-                    <ForecastInfo forecast={entry.forecast} />
-                  </td>
-                  <td className="px-6 py-4">{entry.comments}</td>
-                  {isSubscribed && entry.imageUrl && (
-                    <td className="px-2 py-2 sm:px-4">
-                      <div className="relative w-[80px] h-[80px] sm:w-[120px] sm:h-[120px]">
-                        <Image
-                          src={entry.imageUrl}
-                          alt="Session photo"
-                          width={80}
-                          height={80}
-                          className="object-cover rounded-md"
-                          unoptimized={process.env.NODE_ENV === "development"}
-                          onError={(e) => {
-                            (e.target as HTMLImageElement).style.display =
-                              "none";
-                          }}
-                        />
+              {filteredEntries.map((entry) => {
+                console.log("[TableDebug] Processing entry:", {
+                  id: entry.id,
+                  beachName: entry.beachName,
+                  forecast: entry.forecast,
+                });
+
+                return (
+                  <tr key={entry.id} className="hover:bg-gray-50">
+                    <td className="px-3 py-4 sm:px-6 whitespace-nowrap text-sm min-w-[120px] max-w-[200px] h-[60px]">
+                      {format(new Date(entry.date), "MMM d, yyyy")}
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap min-w-[160px] max-w-[250px] h-[60px]">
+                      {entry.beachName}
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap">
+                      <LogEntryDisplay
+                        entry={entry}
+                        isAnonymous={entry.isAnonymous ?? false}
+                      />
+                    </td>
+                    <td className="px-6 py-4">
+                      <StarRating rating={entry.surferRating} />
+                    </td>
+                    <td className="px-4 py-4">
+                      <ForecastInfo forecast={entry.forecast} />
+                    </td>
+                    <td className="px-6 py-4">{entry.comments}</td>
+                    {isSubscribed && entry.imageUrl && (
+                      <td className="px-2 py-2 sm:px-4">
+                        <div className="relative w-[80px] h-[80px] sm:w-[120px] sm:h-[120px]">
+                          <Image
+                            src={entry.imageUrl}
+                            alt="Session photo"
+                            width={80}
+                            height={80}
+                            className="object-cover rounded-md"
+                            unoptimized={process.env.NODE_ENV === "development"}
+                            onError={(e) => {
+                              (e.target as HTMLImageElement).style.display =
+                                "none";
+                            }}
+                          />
+                        </div>
+                      </td>
+                    )}
+                    <td className="px-6 py-4">
+                      <div className="flex gap-2">
+                        <button
+                          onClick={() => handleEdit(entry)}
+                          className="text-gray-500 hover:text-[var(--brand-tertiary)]"
+                        >
+                          <Pencil className="w-4 h-4" />
+                        </button>
+                        <button
+                          onClick={() => handleDelete(entry.id)}
+                          className="text-gray-500 hover:text-red-600"
+                          disabled={deleteMutation.isPending}
+                        >
+                          {deleteMutation.isPending ? (
+                            <span className="loading-spinner" />
+                          ) : (
+                            <X className="w-4 h-4" />
+                          )}
+                        </button>
                       </div>
                     </td>
-                  )}
-                  <td className="px-6 py-4">
-                    <div className="flex gap-2">
-                      <button
-                        onClick={() => handleEdit(entry)}
-                        className="text-gray-500 hover:text-[var(--brand-tertiary)]"
-                      >
-                        <Pencil className="w-4 h-4" />
-                      </button>
-                      <button
-                        onClick={() => handleDelete(entry.id)}
-                        className="text-gray-500 hover:text-red-600"
-                        disabled={deleteMutation.isPending}
-                      >
-                        {deleteMutation.isPending ? (
-                          <span className="loading-spinner" />
-                        ) : (
-                          <X className="w-4 h-4" />
-                        )}
-                      </button>
-                    </div>
-                  </td>
-                </tr>
-              ))}
+                  </tr>
+                );
+              })}
             </tbody>
           </table>
         </div>

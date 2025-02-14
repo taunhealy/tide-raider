@@ -15,6 +15,7 @@ import { Select, SelectItem } from "@/app/components/ui/Select";
 import { useHandleTrial } from "@/app/hooks/useHandleTrial";
 import { useRouter } from "next/navigation";
 import { signIn } from "next-auth/react";
+import { format } from "date-fns";
 
 interface QuestLogFormProps {
   userEmail?: string;
@@ -38,8 +39,8 @@ export function QuestLogForm({
   const { data: session } = useSession();
   const router = useRouter();
   const { mutate: handleTrial } = useHandleTrial();
-  const [selectedDate, setSelectedDate] = useState(
-    entry?.date ? new Date(entry.date).toISOString().split("T")[0] : ""
+  const [selectedDate, setSelectedDate] = useState<string>(
+    entry?.date ? format(new Date(entry.date), "yyyy-MM-dd") : ""
   );
   const [selectedBeach, setSelectedBeach] = useState<Beach | null>(
     entry?.beachId ? beaches?.find((b) => b.id === entry.beachId) || null : null
@@ -108,14 +109,54 @@ export function QuestLogForm({
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!selectedBeach || !selectedDate || !userEmail) return;
+    if (!selectedBeach || !selectedDate || !forecast) {
+      console.error("Missing required data:", {
+        selectedBeach,
+        selectedDate,
+        forecast,
+      });
+      alert("Please select a beach and date");
+      return;
+    }
 
-    // Debug: Log full forecast state
-    console.log("Form submission forecast data:", {
-      wind: forecast?.wind,
-      swell: forecast?.swell,
-      rawForecast: forecast,
-    });
+    const formattedForecast = {
+      wind: {
+        speed: forecast.wind.speed,
+        direction: forecast.wind.direction,
+      },
+      swell: {
+        height: forecast.swell.height,
+        period: forecast.swell.period,
+        direction: forecast.swell.direction,
+        cardinalDirection: forecast.swell.cardinalDirection,
+      },
+      timestamp: forecast.timestamp,
+    };
+
+    const newEntry = {
+      beachName: selectedBeach.name,
+      date: selectedDate,
+      surferEmail: userEmail,
+      surferName: isAnonymous
+        ? "Anonymous"
+        : (session?.user as { name?: string })?.name ||
+          userEmail?.split("@")[0] ||
+          "Anonymous Surfer",
+      userId: session!.user.id,
+      surferRating: surferRating,
+      comments,
+      forecast: formattedForecast,
+      continent: selectedBeach.continent,
+      country: selectedBeach.country,
+      region: selectedBeach.region,
+      waveType: selectedBeach.waveType,
+      isAnonymous,
+      isPrivate,
+      id: entry?.id,
+    };
+
+    console.log("[Submission] Forecast data:", formattedForecast);
+    console.log("[Submission] Final Payload:", newEntry);
 
     setIsSubmitting(true);
     try {
@@ -132,29 +173,6 @@ export function QuestLogForm({
           }
         }
       }
-
-      // Use the forecast data we already have in state
-      const newEntry = {
-        beachName: selectedBeach.name,
-        date: selectedDate,
-        surferEmail: userEmail,
-        surferName: isAnonymous
-          ? "Anonymous"
-          : (session?.user as { name?: string })?.name ||
-            userEmail.split("@")[0],
-        userId: session!.user.id,
-        surferRating: surferRating,
-        comments,
-        imageUrl,
-        forecast: forecast, // Use the forecast data from state
-        continent: selectedBeach.continent,
-        country: selectedBeach.country,
-        region: selectedBeach.region,
-        waveType: selectedBeach.waveType,
-        isAnonymous,
-        isPrivate,
-        id: entry?.id,
-      };
 
       await createLogEntry.mutateAsync(newEntry);
       console.log("Log entry created successfully");
@@ -193,40 +211,24 @@ export function QuestLogForm({
 
   const handleBeachSelect = async (beach: Beach) => {
     setSelectedBeach(beach);
+    if (!selectedDate) {
+      alert("Please select a date first");
+      return;
+    }
+    await fetchForecast(beach);
+  };
+
+  const fetchForecast = async (beach: Beach) => {
     try {
-      // Ensure we're using today's date if the selected date is in the future
-      const now = new Date();
-      const selected = new Date(selectedDate);
-      const formattedDate =
-        selected > now ? now.toISOString().split("T")[0] : selectedDate;
-
-      console.log("Form - Attempting to fetch forecast for:", {
-        date: formattedDate,
-        beach: beach.name,
-        region: beach.region,
-      });
-
       const response = await fetch(
-        `/api/quest-log?date=${formattedDate}&beach=${encodeURIComponent(beach.name)}`
+        `/api/surf-conditions?date=${selectedDate}&region=${encodeURIComponent(beach.region)}`
       );
-
-      console.log("Form - Response status:", response.status);
-
-      if (!response.ok) {
-        const errorData = await response.json();
-        console.log("Form - Error data:", errorData);
-        throw new Error(errorData.message || "Failed to fetch forecast data");
-      }
-
+      if (!response.ok) throw new Error("Failed to load forecast");
       const forecastData = await response.json();
-      console.log("Form - Received forecast data:", forecastData);
       setForecast(forecastData);
     } catch (error) {
-      console.error("Form - Error fetching forecast:", error);
-      setForecast(null);
-      alert(
-        error instanceof Error ? error.message : "Unable to load forecast data"
-      );
+      console.error("Forecast load failed:", error);
+      alert("Forecast unavailable for this location and date");
     }
   };
 
@@ -317,21 +319,33 @@ export function QuestLogForm({
 
             <h2 className="text-xl font-semibold mb-4">Log Session</h2>
 
-            <div className="flex flex-col lg:flex-row gap-3 sm:gap-4 lg:gap-6">
-              {/* Left Column - Beach Selection */}
-              <div className="w-full lg:flex-1 mb-4 lg:mb-0">
-                <div>
-                  <label className="block text-sm font-medium mb-1">
-                    Select a Beach
-                  </label>
+            <form onSubmit={handleSubmit} className="space-y-4">
+              <div className="steps-container space-y-6">
+                {/* Step 1: Date Selection */}
+                <div className="step">
+                  <h3 className="text-lg font-semibold mb-2">1. Select Date</h3>
+                  <input
+                    type="date"
+                    value={selectedDate}
+                    onChange={(e) => setSelectedDate(e.target.value)}
+                    max={new Date().toISOString().split("T")[0]}
+                    required
+                    className="p-2 border rounded"
+                  />
+                </div>
+
+                {/* Step 2: Beach Selection */}
+                <div className="step">
+                  <h3 className="text-lg font-semibold mb-2">
+                    2. Select Beach
+                  </h3>
                   <Select
                     value={selectedBeach?.name || ""}
                     onValueChange={(value) => {
                       const beach = beaches?.find((b) => b.name === value);
-                      if (beach) {
-                        handleBeachSelect(beach);
-                      }
+                      if (beach) handleBeachSelect(beach);
                     }}
+                    disabled={!selectedDate}
                   >
                     {beaches?.map((beach) => (
                       <SelectItem key={beach.id} value={beach.name}>
@@ -340,49 +354,28 @@ export function QuestLogForm({
                     ))}
                   </Select>
                 </div>
-              </div>
 
-              {/* Right Column - Form */}
-              <div className="w-full lg:flex-1">
-                <form
-                  onSubmit={handleSubmit}
-                  className="space-y-2 sm:space-y-4"
-                >
-                  <div>
-                    <label className="block text-sm font-medium mb-1">
-                      Date
-                    </label>
-                    <input
-                      type="date"
-                      value={selectedDate}
-                      onChange={(e) => {
-                        const newDate = e.target.value;
-                        // Prevent selecting future dates
-                        if (new Date(newDate) > new Date()) {
-                          alert("Cannot select future dates");
-                          return;
-                        }
-                        setSelectedDate(newDate);
-                      }}
-                      className="w-full p-2 border rounded-lg"
-                      max={new Date().toISOString().split("T")[0]}
-                      required
-                    />
-                  </div>
-
-                  {selectedBeach && (
-                    <div className="border rounded-lg p-2 sm:p-4 bg-gray-50 min-w-[540px]">
+                {/* Step 3: Forecast Display */}
+                {selectedBeach && selectedDate && (
+                  <div className="step">
+                    <h3 className="text-lg font-semibold mb-2">
+                      3. Surf Conditions
+                    </h3>
+                    <div className="border rounded-lg p-4 bg-gray-50">
                       <SurfForecastWidget
                         beachId={selectedBeach.id}
                         date={selectedDate}
                       />
                     </div>
-                  )}
+                  </div>
+                )}
 
-                  <div>
-                    <label className="block text-sm font-medium mb-1">
-                      Rating
-                    </label>
+                {/* Step 4: Rating */}
+                {forecast && (
+                  <div className="step">
+                    <h3 className="text-lg font-semibold mb-2">
+                      4. Rate Your Session
+                    </h3>
                     <div className="flex gap-1">
                       {[1, 2, 3, 4, 5].map((rating) => (
                         <button
@@ -401,11 +394,14 @@ export function QuestLogForm({
                       ))}
                     </div>
                   </div>
+                )}
 
-                  <div>
-                    <label className="block text-sm font-medium mb-1">
-                      Comments
-                    </label>
+                {/* Step 5: Comments */}
+                {surferRating > 0 && (
+                  <div className="step">
+                    <h3 className="text-lg font-semibold mb-2">
+                      5. Add Comments
+                    </h3>
                     <textarea
                       value={comments}
                       onChange={(e) =>
@@ -420,90 +416,47 @@ export function QuestLogForm({
                       Characters remaining: {140 - comments.length}
                     </div>
                   </div>
+                )}
 
-                  <div className="flex items-center space-x-2">
-                    <input
-                      type="checkbox"
-                      id="anonymous"
-                      checked={isAnonymous}
-                      onChange={(e) => setIsAnonymous(e.target.checked)}
-                      className="rounded border-gray-300 text-[#1cd9ff] focus:ring-[#1cd9ff]"
-                    />
-                    <label
-                      htmlFor="anonymous"
-                      className="text-sm text-gray-600"
-                    >
-                      Post Anonymously
-                    </label>
-                  </div>
-
-                  <div className="flex items-center space-x-2">
-                    <input
-                      type="checkbox"
-                      id="private"
-                      checked={isPrivate}
-                      onChange={(e) => setIsPrivate(e.target.checked)}
-                      className="rounded border-gray-300 text-[#1cd9ff] focus:ring-[#1cd9ff]"
-                    />
-                    <label htmlFor="private" className="text-sm text-gray-600">
-                      Keep Private
-                    </label>
-                  </div>
-
-                  <div className="mb-4">
-                    <label className="block text-sm font-medium mb-1">
-                      Session Image
-                    </label>
-                    <div className="mt-1 flex items-center">
-                      <label className="relative cursor-pointer bg-white rounded-md font-medium text-[var(--color-tertiary)] hover:text-[var(--color-tertiary)] focus-within:outline-none focus-within:ring-2 focus-within:ring-offset-2 focus-within:ring-[var(--color-tertiary)]">
-                        <span className="inline-flex items-center px-3 py-2 border border-gray-300 rounded-md shadow-sm text-sm leading-4 font-medium text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[var(--color-tertiary)]">
-                          <Upload className="h-4 w-4 mr-2" />
-                          Upload Image
-                        </span>
-                        <input
-                          type="file"
-                          className="sr-only"
-                          accept="image/*"
-                          onChange={handleFileChange}
-                        />
-                      </label>
+                {/* Optional Steps */}
+                <div className="step">
+                  <h3 className="text-lg font-semibold mb-2">
+                    Additional Options
+                  </h3>
+                  <div className="space-y-2">
+                    <div className="flex items-center space-x-2">
+                      <input
+                        type="checkbox"
+                        id="anonymous"
+                        checked={isAnonymous}
+                        onChange={(e) => setIsAnonymous(e.target.checked)}
+                      />
+                      <label htmlFor="anonymous">Post Anonymously</label>
                     </div>
-                    {imagePreview && (
-                      <div className="mt-2">
-                        <img
-                          src={imagePreview}
-                          alt="Preview"
-                          className="h-32 w-32 object-cover rounded-md"
-                        />
-                      </div>
-                    )}
+                    <div className="flex items-center space-x-2">
+                      <input
+                        type="checkbox"
+                        id="private"
+                        checked={isPrivate}
+                        onChange={(e) => setIsPrivate(e.target.checked)}
+                      />
+                      <label htmlFor="private">Keep Private</label>
+                    </div>
                   </div>
+                </div>
 
-                  <Button
-                    type="submit"
-                    variant="secondary"
-                    className={cn(
-                      "w-full lg:bg-[var(--color-tertiary)] lg:text-white lg:hover:bg-[var(--color-tertiary)]/90",
-                      !isSubscribed &&
-                        !hasActiveTrial &&
-                        "opacity-50 cursor-not-allowed"
-                    )}
-                    disabled={
-                      (!isSubscribed && !hasActiveTrial) ||
-                      !selectedBeach ||
-                      !selectedDate ||
-                      isSubmitting
-                    }
-                  >
-                    {isSubmitting
-                      ? "Submitting..."
-                      : isSubmitted
-                        ? "Submitted!"
-                        : "Log Session"}
-                  </Button>
-                </form>
+                {/* Submit Button */}
+                <Button
+                  type="submit"
+                  disabled={
+                    !forecast || !selectedBeach || !selectedDate || isSubmitting
+                  }
+                  className="w-full bg-[var(--color-tertiary)] text-white"
+                >
+                  {isSubmitting ? "Submitting..." : "Log Session"}
+                </Button>
               </div>
-            </div>
+            </form>
           </div>
         </div>
       )}

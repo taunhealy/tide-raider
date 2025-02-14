@@ -1,8 +1,6 @@
 import { useState, useEffect, useCallback } from "react";
 import { X, ChevronDown } from "lucide-react";
 import { cn } from "@/app/lib/utils";
-import { LogEntry } from "../types/questlogs";
-import RegionFilter from "./RegionFilter";
 import { FilterConfig } from "../types/questlogs";
 
 interface Beach {
@@ -24,75 +22,40 @@ interface RegionFilterType {
 }
 
 interface QuestLogFilterProps {
-  entries: LogEntry[];
+  filters: FilterConfig;
   onFiltersChange: (filters: FilterConfig) => void;
   isOpen: boolean;
   onClose: () => void;
 }
 
 export function QuestLogFilter({
-  entries,
+  filters,
   onFiltersChange,
   isOpen,
   onClose,
 }: QuestLogFilterProps) {
-  const [filters, setFilters] = useState({
-    dateRange: {
-      start: "",
-      end: "",
-    },
-    beaches: [] as string[],
-    surfers: [] as string[],
-    countries: [] as string[],
-    regions: [] as string[],
-    minRating: null as number | null,
-    isPrivate: false,
-  });
-
   const [beachSearch, setBeachSearch] = useState("");
 
   // Get unique values from entries
   const uniqueBeaches = [
     ...new Set(
-      (Array.isArray(entries) ? entries : [])
+      (Array.isArray(filters.entries) ? filters.entries : [])
         .map((entry) => entry.beachName)
-        .filter(Boolean)
-    ),
-  ].sort();
-  const uniqueSurfers = [
-    ...new Set(
-      (Array.isArray(entries) ? entries : [])
-        .map((entry) => entry.surferName)
-        .filter(Boolean)
-    ),
-  ].sort();
-  const uniqueCountries = [
-    ...new Set(
-      (Array.isArray(entries) ? entries : [])
-        .map((entry) => entry.beach?.country)
-        .filter(Boolean)
-    ),
-  ].sort();
-  const uniqueRegions = [
-    ...new Set(
-      (Array.isArray(entries) ? entries : [])
-        .map((entry) => entry.beach?.region)
         .filter(Boolean)
     ),
   ].sort();
 
   // Add this handler function
   const handleRatingClick = (rating: number) => {
-    setFilters((prev) => ({
-      ...prev,
-      minRating: prev.minRating === rating ? null : rating,
-    }));
+    onFiltersChange({
+      ...filters,
+      minRating: filters.minRating === rating ? null : rating,
+    });
   };
 
   // Update parent component when filters change
   useEffect(() => {
     const timeoutId = setTimeout(() => {
-      // Send all relevant filter parameters
       onFiltersChange({
         ...filters,
         beachName: "",
@@ -137,12 +100,15 @@ export function QuestLogFilter({
               </label>
               <input
                 type="date"
-                value={filters.dateRange.start}
+                value={filters.dateRange?.start}
                 onChange={(e) =>
-                  setFilters((prev) => ({
-                    ...prev,
-                    dateRange: { ...prev.dateRange, start: e.target.value },
-                  }))
+                  onFiltersChange({
+                    ...filters,
+                    dateRange: {
+                      start: e.target.value,
+                      end: filters.dateRange?.end || "",
+                    },
+                  })
                 }
                 className="mt-1 block w-full rounded-md border-gray-300 shadow-sm text-sm font-primary py-2 px-3"
               />
@@ -153,12 +119,15 @@ export function QuestLogFilter({
               </label>
               <input
                 type="date"
-                value={filters.dateRange.end}
+                value={filters.dateRange?.end || ""}
                 onChange={(e) =>
-                  setFilters((prev) => ({
-                    ...prev,
-                    dateRange: { ...prev.dateRange, end: e.target.value },
-                  }))
+                  onFiltersChange({
+                    ...filters,
+                    dateRange: {
+                      start: filters.dateRange?.start || "",
+                      end: e.target.value,
+                    },
+                  })
                 }
                 className="mt-1 block w-full rounded-md border-gray-300 shadow-sm text-sm font-primary py-2 px-3"
               />
@@ -178,7 +147,7 @@ export function QuestLogFilter({
               onChange={(e) => setBeachSearch(e.target.value)}
             />
             <div className="mt-2 space-y-1">
-              {filters.beaches.map((beach) => (
+              {filters.beaches?.map((beach) => (
                 <div
                   key={beach}
                   className="flex items-center justify-between bg-gray-100 px-3 py-1 rounded-md"
@@ -186,10 +155,10 @@ export function QuestLogFilter({
                   <span className="text-sm">{beach}</span>
                   <button
                     onClick={() =>
-                      setFilters((prev) => ({
-                        ...prev,
-                        beaches: prev.beaches.filter((b) => b !== beach),
-                      }))
+                      onFiltersChange({
+                        ...filters,
+                        beaches: filters.beaches?.filter((b) => b !== beach),
+                      })
                     }
                     className="text-gray-500 hover:text-gray-700"
                   >
@@ -203,7 +172,7 @@ export function QuestLogFilter({
                 {uniqueBeaches
                   .filter(
                     (beach) =>
-                      !filters.beaches.includes(beach) &&
+                      !filters.beaches?.includes(beach) &&
                       beach.toLowerCase().includes(beachSearch.toLowerCase())
                   )
                   .map((beach) => (
@@ -211,10 +180,10 @@ export function QuestLogFilter({
                       key={beach}
                       className="w-full px-3 py-2 text-left text-sm hover:bg-gray-100"
                       onClick={() => {
-                        setFilters((prev) => ({
-                          ...prev,
-                          beaches: [...prev.beaches, beach],
-                        }));
+                        onFiltersChange({
+                          ...filters,
+                          beaches: [...(filters.beaches || []), beach],
+                        });
                         setBeachSearch("");
                       }}
                     >
@@ -249,14 +218,13 @@ export function QuestLogFilter({
         {/* Reset Filters */}
         <button
           onClick={() =>
-            setFilters({
-              dateRange: { start: "", end: "" },
-              beaches: [],
-              surfers: [],
-              countries: [],
-              regions: [],
-              minRating: null,
+            onFiltersChange({
+              ...filters,
+              entries: [],
               isPrivate: false,
+              beachName: "",
+              surferName: "",
+              waveTypes: [],
             })
           }
           className="w-full px-4 py-2 text-sm font-medium text-gray-600 bg-gray-100 rounded-lg hover:bg-gray-200"

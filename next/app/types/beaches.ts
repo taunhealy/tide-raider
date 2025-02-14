@@ -5069,7 +5069,7 @@ export const beachData: Beach[] = [
     name: "Kanon",
     continent: "Africa",
     country: "South Africa",
-    region: "Western Cape",
+    region: "Overberg",
     location: "Overberg",
     distanceFromCT: 330, // Approximate distance based on region
     optimalWindDirections: ["WNW"],

@@ -22,7 +22,11 @@ export function ClientProfileLogs({ beaches, userId }: ClientProfileLogsProps) {
   return (
     <div className="min-h-screen bg-[var(--color-bg-secondary)]">
       <div className="container mx-auto p-6">
-        <QuestLogs beaches={beaches} userId={userId} />
+        <QuestLogs
+          beaches={beaches}
+          userId={userId}
+          initialFilters={{ isPrivate: false }}
+        />
       </div>
     </div>
   );

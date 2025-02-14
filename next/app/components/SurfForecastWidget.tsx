@@ -33,7 +33,7 @@ export default function SurfForecastWidget({
       setLoading(true);
       setError(null);
       setIsFallback(false);
-      
+
       try {
         const response = await fetch(`/api/surf-conditions?date=${date}`);
         if (!response.ok) {
@@ -64,50 +64,57 @@ export default function SurfForecastWidget({
   if (loading) return <div>Loading forecast...</div>;
   if (error) return <div>Error: {error}</div>;
 
+  if (!forecast || !forecast.swell || !forecast.wind) {
+    return (
+      <div className="p-4 bg-yellow-50 rounded-lg text-sm text-yellow-700">
+        <span className="font-medium">Forecast Unavailable:</span>
+        <p>No surf conditions data for this location and date</p>
+      </div>
+    );
+  }
+
   return (
     <div className="bg-white p-4 rounded-lg shadow-sm">
       <h3 className="font-semibold">
         Surf Forecast for {date}
         {isFallback && (
-          <span className="text-sm text-gray-500 ml-2">(Using Northern Cape data)</span>
+          <span className="text-sm text-gray-500 ml-2">
+            (Using Northern Cape data)
+          </span>
         )}
       </h3>
-      {forecast ? (
-        <div className="space-y-2 text-base">
-          <div className="flex justify-between items-center">
-            <span className="text-gray-600">Wave Height:</span>
-            <span className="font-medium">
-              {forecast.swell.height.toFixed(1)}m
-            </span>
-          </div>
-
-          <div className="flex justify-between items-center">
-            <span className="text-gray-600">Wind Direction:</span>
-            <span className="font-medium">{forecast.wind.direction}</span>
-          </div>
-
-          <div className="flex justify-between items-center">
-            <span className="text-gray-600">Wind Speed:</span>
-            <span className="font-medium">{forecast.wind.speed} km/h</span>
-          </div>
-
-          <div className="flex justify-between items-center">
-            <span className="text-gray-600">Swell Direction:</span>
-            <span className="font-medium">{forecast.swell.direction}°</span>
-          </div>
-
-          <div className="flex justify-between items-center">
-            <span className="text-gray-600">Swell Period:</span>
-            <span className="font-medium">{forecast.swell.period}s</span>
-          </div>
-
-          <div className="text-xs text-gray-500 mt-4">
-            Last updated: {new Date(forecast.timestamp).toLocaleString()}
-          </div>
+      <div className="space-y-2 text-base">
+        <div className="flex justify-between items-center">
+          <span className="text-gray-600">Wave Height:</span>
+          <span className="font-medium">
+            {forecast.swell.height.toFixed(1)}m
+          </span>
         </div>
-      ) : (
-        <p>No forecast available for this date</p>
-      )}
+
+        <div className="flex justify-between items-center">
+          <span className="text-gray-600">Wind Direction:</span>
+          <span className="font-medium">{forecast.wind.direction}</span>
+        </div>
+
+        <div className="flex justify-between items-center">
+          <span className="text-gray-600">Wind Speed:</span>
+          <span className="font-medium">{forecast.wind.speed} km/h</span>
+        </div>
+
+        <div className="flex justify-between items-center">
+          <span className="text-gray-600">Swell Direction:</span>
+          <span className="font-medium">{forecast.swell.direction}°</span>
+        </div>
+
+        <div className="flex justify-between items-center">
+          <span className="text-gray-600">Swell Period:</span>
+          <span className="font-medium">{forecast.swell.period}s</span>
+        </div>
+
+        <div className="text-xs text-gray-500 mt-4">
+          Last updated: {new Date(forecast.timestamp).toLocaleString()}
+        </div>
+      </div>
     </div>
   );
 }

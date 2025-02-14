@@ -294,11 +294,6 @@ export default function FavouriteSurfVideosSidebar({
                     "Anonymous"
                   )}
                 </p>
-                {selectedFavorite.description && (
-                  <p className="text-sm font-primary text-gray-800">
-                    {selectedFavorite.description}
-                  </p>
-                )}
               </div>
             </div>
           </div>

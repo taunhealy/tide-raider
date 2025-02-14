@@ -39,16 +39,17 @@ interface Forecast {
   };
 }
 
+// Public logs endpoint with filters
 export async function GET(request: Request) {
+  console.log("[API] Received forecast request with params:", {
+    url: request.url,
+    searchParams: Object.fromEntries(new URL(request.url).searchParams),
+  });
+
   try {
     const { searchParams } = new URL(request.url);
-    const date = searchParams.get("date");
-    const beachName = searchParams.get("beach");
-    const userId = searchParams.get("userId");
-    const showPrivate = searchParams.get("showPrivate") === "true";
-    const session = await getServerSession(authOptions);
 
-    // Add filter parameters
+    // Get filter parameters
     const regions = searchParams.get("regions")?.split(",") || [];
     const beaches = searchParams.get("beaches")?.split(",") || [];
     const countries = searchParams.get("countries")?.split(",") || [];
@@ -57,147 +58,52 @@ export async function GET(request: Request) {
     const startDate = searchParams.get("startDate");
     const endDate = searchParams.get("endDate");
 
-    console.log("Session user:", session?.user);
-    console.log("Filter parameters:", {
-      regions,
-      beaches,
-      countries,
-      waveTypes,
-      minRating,
-      startDate,
-      endDate,
-      userId,
-      showPrivate,
-    });
-
-    if (date && beachName) {
-      // Find beach from beachData instead of database
-      const beach = beachData.find((b) => b.name === beachName);
-
-      if (!beach) {
-        return NextResponse.json(
-          {
-            error: "Beach not found",
-          },
-          { status: 404 }
-        );
-      }
-
-      // Get conditions for the beach's region
-      const conditions = await prisma.surfCondition.findFirst({
-        where: {
-          date: date,
-          region: beach.region,
-          windSpeed: { gt: 0 },
-          swellHeight: { gt: 0 },
-        },
-        orderBy: { timestamp: "desc" },
-      });
-
-      const forecast = conditions
-        ? {
-            wind: {
-              speed: conditions.windSpeed ? Number(conditions.windSpeed) : null,
-              direction: conditions.windDirection || "N/A",
-            },
-            swell: {
-              height: conditions.swellHeight
-                ? Number(conditions.swellHeight)
-                : null,
-              period: conditions.swellPeriod
-                ? Number(conditions.swellPeriod)
-                : null,
-              direction: conditions.swellDirection || "N/A",
-              cardinalDirection: conditions.swellDirection || "N/A",
-            },
-            timestamp: conditions.timestamp,
-          }
-        : null;
-
-      // Add validation before returning forecast
-      if (forecast && (!forecast.wind.speed || !forecast.swell.height)) {
-        return NextResponse.json(
-          { error: "Incomplete forecast data from provider" },
-          { status: 500 }
-        );
-      }
-
-      console.log("Surf conditions query results:", {
-        dateUsed: date,
-        regionUsed: beach.region,
-        conditionsFound: conditions,
-      });
-
-      return NextResponse.json(
-        forecast || {
-          error: `No forecast data available for ${beach.region} on ${date}`,
-        }
-      );
-    }
-
-    // Modified authentication check
-    if (!session?.user?.email && !userId) {
-      console.log("No session and no userId provided");
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-    }
-
-    // Revised WHERE clause construction
-    const where: any = {
-      ...(showPrivate && {
-        isPrivate: true,
-        userId: userId || session?.user?.id,
-      }),
-    };
-
-    // Add filters only if they have values
-    if (regions.length) where.region = { in: regions };
-    if (beaches.length) where.beachName = { in: beaches };
-    if (countries.length) where.country = { in: countries };
-    if (waveTypes.length) where.waveType = { in: waveTypes };
-    if (minRating > 0) where.surferRating = { gte: minRating };
-    if (startDate && endDate) {
-      where.date = {
-        gte: new Date(startDate),
-        lte: new Date(endDate),
-      };
-    }
-
-    console.log("Final WHERE clause:", JSON.stringify(where, null, 2));
-
     const entries = await prisma.logEntry.findMany({
-      where,
+      where: {
+        isPrivate: false,
+        ...(regions.length && { region: { in: regions } }),
+        ...(beaches.length && { beachName: { in: beaches } }),
+        ...(countries.length && { country: { in: countries } }),
+        ...(waveTypes.length && { waveType: { in: waveTypes } }),
+        ...(minRating > 0 && { surferRating: { gte: minRating } }),
+        ...(startDate &&
+          endDate && {
+            date: {
+              gte: new Date(startDate),
+              lte: new Date(endDate),
+            },
+          }),
+      },
       select: {
         id: true,
         date: true,
         beachName: true,
-        surferName: true,
-        surferEmail: true,
         surferRating: true,
         comments: true,
         imageUrl: true,
-        isPrivate: true,
-        forecast: true,
-        // Add missing top-level fields
-        continent: true,
-        country: true,
         region: true,
+        country: true,
         waveType: true,
-        isAnonymous: true,
         createdAt: true,
-        updatedAt: true,
+        forecast: true,
       },
       orderBy: { date: "desc" },
+      take: 50,
     });
 
-    const formattedEntries = entries.map((entry) => ({
+    // Add forecast transformation
+    const transformedEntries = entries.map((entry) => ({
       ...entry,
-      forecast: entry.forecast,
+      forecast:
+        entry.forecast && typeof entry.forecast === "object"
+          ? entry.forecast
+          : null,
     }));
 
-    console.log("Found entries:", entries.length);
-    return NextResponse.json({ entries: formattedEntries });
+    console.log("[API] Returning forecast data:", transformedEntries);
+    return NextResponse.json({ entries: transformedEntries });
   } catch (error) {
-    console.error("Error fetching logs:", error);
+    console.error("Error fetching public logs:", error);
     return NextResponse.json(
       { error: "Failed to fetch logs" },
       { status: 500 }
@@ -206,83 +112,62 @@ export async function GET(request: Request) {
 }
 
 export async function POST(request: Request) {
+  console.log("[API] Received log submission");
+  const rawData = await request.json();
+  console.log("[API] Raw forecast data:", rawData.forecast);
+
   try {
     const session = await getServerSession(authOptions);
     if (!session?.user) return new Response("Unauthorized", { status: 401 });
 
-    // Direct subscription check
     const user = await prisma.user.findUnique({
       where: { id: session.user.id },
-      select: {
-        lemonSubscriptionId: true,
-        hasActiveTrial: true,
-      },
+      select: { lemonSubscriptionId: true, hasActiveTrial: true },
     });
 
-    const isAllowed = !!user?.lemonSubscriptionId || user?.hasActiveTrial;
-
-    if (!isAllowed) {
-      return new Response("Subscription required to create logs", {
-        status: 403,
-      });
+    if (!user?.lemonSubscriptionId && !user?.hasActiveTrial) {
+      return new Response("Subscription required", { status: 403 });
     }
 
-    const rawData = await request.json();
     const data = logEntrySchema.parse(rawData);
-
-    // Get the beach data to find region
+    console.log("[API] Parsed forecast data:", data.forecast);
     const beach = beachData.find((b) => b.name === data.beachName);
+
     if (!beach) throw new Error("Beach not found");
 
-    // Fetch latest conditions for the beach's region on the log date
-    const conditions = await prisma.surfCondition.findFirst({
-      where: {
-        date: data.date,
-        region: beach.region,
-      },
-      orderBy: { timestamp: "desc" },
-    });
-
-    // Add this before creating the entry
-    if (conditions) {
-      if (!conditions.windSpeed || !conditions.swellHeight) {
-        return NextResponse.json(
-          { error: "Incomplete forecast data for this date/region" },
-          { status: 400 }
-        );
-      }
+    // Validate forecast structure
+    if (
+      data.forecast &&
+      (!data.forecast.swell ||
+        !data.forecast.wind ||
+        typeof data.forecast.swell.height !== "number" ||
+        typeof data.forecast.wind.speed !== "number")
+    ) {
+      return NextResponse.json(
+        { error: "Invalid forecast data structure" },
+        { status: 400 }
+      );
     }
 
-    // Create entry with verified forecast
     const entry = await prisma.logEntry.create({
       data: {
         ...data,
         date: new Date(data.date),
-        region: beach.region, // Ensure region is set from beach data
-        forecast: conditions
-          ? {
-              wind: {
-                speed: conditions.windSpeed,
-                direction: conditions.windDirection,
-              },
-              swell: {
-                height: conditions.swellHeight,
-                period: conditions.swellPeriod,
-                direction: conditions.swellDirection,
-                cardinalDirection: conditions.swellDirection,
-              },
-            }
-          : Prisma.JsonNull,
-        imageUrl: data.imageUrl || "",
+        region: beach.region,
         userId: session.user.id,
+        imageUrl: data.imageUrl || "",
+        forecast: data.forecast
+          ? { entries: [data.forecast] } // Store in entries array format
+          : Prisma.JsonNull,
       },
     });
 
+    console.log("[API] Saved forecast data:", entry.forecast);
     return NextResponse.json(entry);
   } catch (error) {
-    console.error("Error creating quest entry:", error);
+    console.error("[API] Error saving forecast:", error);
     return NextResponse.json(
-      { error: "Failed to create quest entry" },
+      { error: "Failed to create log entry" },
       { status: 500 }
     );
   }

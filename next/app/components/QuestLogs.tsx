@@ -1,8 +1,14 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React, {
+  useState,
+  useEffect,
+  useCallback,
+  useMemo,
+  useRef,
+} from "react";
 import { QuestLogForm } from "./QuestLogForm";
-import { useSession, signIn } from "next-auth/react";
+import { useSession } from "next-auth/react";
 import { useQuery } from "@tanstack/react-query";
 import { QuestLogTable } from "./QuestLogTable";
 import { QuestLogFilter } from "./QuestLogFilter";
@@ -15,16 +21,18 @@ import type { Beach } from "@/app/types/beaches";
 
 import { useSubscription } from "@/app/context/SubscriptionContext";
 import { LogVisibilityToggle } from "@/app/components/LogVisibilityToggle";
-import { useSearchParams, useRouter } from "next/navigation";
+import { useSearchParams, useRouter, usePathname } from "next/navigation";
 import RippleLoader from "./ui/RippleLoader";
 import dynamic from "next/dynamic";
 import { Button } from "@/app/components/ui/Button";
 import { RandomLoader } from "./ui/RandomLoader";
 import { useQueryClient } from "@tanstack/react-query";
+import { debounce } from "lodash";
 
 interface QuestLogsProps {
   beaches: Beach[];
   userId: string;
+  initialFilters: FilterConfig;
 }
 
 const defaultFilters: FilterConfig = {
@@ -39,6 +47,9 @@ const defaultFilters: FilterConfig = {
     start: "",
     end: "",
   },
+  isPrivate: false,
+  entries: [],
+  surfers: [],
 };
 
 const defaultRegionFilters: RegionFilters = {
@@ -49,67 +60,114 @@ const defaultRegionFilters: RegionFilters = {
   waveTypes: [],
 };
 
-const FireFlies = dynamic(() => import("@/app/components/ui/FireFlies"), {
-  ssr: false,
-  loading: () => null,
-});
+const createFilterParams = (filters: FilterConfig) => {
+  const params = new URLSearchParams();
+  if (filters.regions?.length) params.set("regions", filters.regions.join(","));
+  if (filters.beaches?.length) params.set("beaches", filters.beaches.join(","));
+  if (filters.countries?.length)
+    params.set("countries", filters.countries.join(","));
+  if (filters.waveTypes?.length)
+    params.set("waveTypes", filters.waveTypes.join(","));
+  if (filters.minRating) params.set("minRating", filters.minRating.toString());
+  if (filters.dateRange?.start)
+    params.set("startDate", filters.dateRange.start);
+  if (filters.dateRange?.end) params.set("endDate", filters.dateRange.end);
+  return params;
+};
 
-export default function QuestLogs({ beaches }: QuestLogsProps) {
-  const { data: session, status: authStatus } = useSession();
+export default function QuestLogs({
+  beaches,
+  userId,
+  initialFilters,
+}: QuestLogsProps) {
+  const { data: session, status } = useSession();
   const { isSubscribed } = useSubscription();
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [activeTab, setActiveTab] = useState<"logs" | "new">("logs");
   const [isFilterOpen, setIsFilterOpen] = useState(false);
-  const [filters, setFilters] = useState<FilterConfig>(defaultFilters);
+  const [filters, setFilters] = useState<FilterConfig>({
+    ...defaultFilters,
+    surfers: [],
+  });
   const [regionFilters, setRegionFilters] =
     useState<RegionFilters>(defaultRegionFilters);
   const [selectedRegion, setSelectedRegion] = useState<string | null>(null);
   const router = useRouter();
+  const pathname = usePathname();
   const searchParams = useSearchParams();
-  const showPrivateOnly = searchParams.get("visibility") === "private";
   const queryClient = useQueryClient();
 
-  const { data: logEntriesData, isLoading } = useQuery({
-    queryKey: ["questLogs", showPrivateOnly, selectedRegion, filters],
-    queryFn: async () => {
-      const params = new URLSearchParams({
-        showPrivate: showPrivateOnly.toString(),
-        ...(selectedRegion && { region: selectedRegion }),
-        ...(filters.regions.length && { regions: filters.regions.join(",") }),
-        ...(filters.beaches.length && { beaches: filters.beaches.join(",") }),
-        ...(filters.countries.length && {
-          countries: filters.countries.join(","),
-        }),
-        ...(filters.waveTypes.length && {
-          waveTypes: filters.waveTypes.join(","),
-        }),
-        ...(filters.minRating && { minRating: filters.minRating.toString() }),
-        ...(filters.dateRange.start && {
-          startDate: new Date(filters.dateRange.start).toISOString(),
-        }),
-        ...(filters.dateRange.end && {
-          endDate: new Date(filters.dateRange.end).toISOString(),
-        }),
-      });
+  // Replace URL param usage with local state
+  const [isPrivate, setIsPrivate] = useState(
+    initialFilters?.isPrivate || false
+  );
 
-      const response = await fetch(`/api/quest-log?${params.toString()}`);
+  // Simplified toggle handler
+  const handlePrivateToggle = () => {
+    setIsPrivate((prev) => !prev);
+  };
 
-      if (!response.ok) throw new Error("Failed to fetch logs");
-
-      const data = await response.json();
-      return data.entries.map((entry: any) => ({
-        ...entry,
-        sessionDate: new Date(entry.date),
-        beachName: entry.beachName,
-        surferName: entry.surferName,
-        surferEmail: entry.surferEmail,
-        surferRating: entry.surferRating,
-        comments: entry.comments,
-        imageUrl: entry.imageUrl,
-        isPrivate: entry.isPrivate,
-      })) as LogEntry[];
+  const handleFilterChange = useCallback(
+    (newFilters: FilterConfig) => {
+      setFilters((prev) => ({
+        ...prev,
+        ...newFilters,
+      }));
+      const params = createFilterParams(newFilters);
+      router.push(`?${params.toString()}`, { scroll: false });
     },
-    staleTime: 5 * 60 * 1000,
+    [router]
+  );
+
+  const renderTabs = () => (
+    <div className="mb-6 sm:mb-12">
+      <div className="flex flex-col sm:flex-row items-center justify-start overflow-x-auto no-scrollbar border-b border-gray-200">
+        <button
+          onClick={() => setActiveTab("logs")}
+          className={`px-4 py-3 sm:px-6 sm:py-4 text-small font-primary transition-colors duration-200 ${
+            activeTab === "logs"
+              ? "text-[var(--color-text-primary)]"
+              : "text-[var(--color-text-secondary)] hover:text-[var(--color-text-primary)] hover:bg-gray-50"
+          }`}
+        >
+          <span className="whitespace-nowrap">Logged Sessions</span>
+        </button>
+        <button
+          onClick={() => {
+            setActiveTab("new");
+            setIsModalOpen(true);
+          }}
+          className={`px-4 py-3 sm:px-6 sm:py-4 text-small font-primary transition-colors duration-200 ${
+            activeTab === "new"
+              ? "text-[var(--color-text-primary)]"
+              : "text-[var(--color-text-secondary)] hover:text-[var(--color-text-primary)] hover:bg-gray-50"
+          }`}
+        >
+          <span className="whitespace-nowrap">Log A Session</span>
+        </button>
+      </div>
+    </div>
+  );
+
+  // Prevent unnecessary re-renders
+  const queryKey = useMemo(
+    () => ["questLogs", session?.user?.id, filters],
+    [session?.user?.id, filters]
+  );
+
+  // Update API query to use local state
+  const { data: logEntriesData, isLoading } = useQuery({
+    queryKey: ["questLogs", session?.user?.id, filters],
+    queryFn: async () => {
+      const params = createFilterParams(filters);
+      const response = await fetch(
+        `/api/quest-log/user/${session?.user.id}?${params.toString()}`
+      );
+      return response.json();
+    },
+    enabled: !!session?.user?.id,
+    refetchOnWindowFocus: false,
+    staleTime: 60_000,
   });
 
   const { data: conditions, isLoading: isConditionsLoading } = useQuery({
@@ -125,14 +183,11 @@ export default function QuestLogs({ beaches }: QuestLogsProps) {
     enabled: !!selectedRegion,
   });
 
-  useEffect(() => {
-    queryClient.invalidateQueries({
-      queryKey: ["questLogs"],
-      exact: false,
-    });
-  }, [searchParams.toString()]);
-
   const isLoadingCombined = isLoading || isConditionsLoading;
+
+  const filteredEntries = useMemo(() => {
+    return logEntriesData?.entries || [];
+  }, [logEntriesData]);
 
   if (isLoadingCombined) {
     return <RandomLoader isLoading={true} />;
@@ -143,133 +198,15 @@ export default function QuestLogs({ beaches }: QuestLogsProps) {
     // Apply region filters...
   };
 
-  const handleOpenModal = () => setIsModalOpen(true);
-  const handleCloseModal = () => setIsModalOpen(false);
-
-  const handleVisibilityChange = async (isPrivate: boolean) => {
-    console.log("Visibility change started:", { isPrivate });
-    const params = new URLSearchParams(searchParams.toString());
-    isPrivate
-      ? params.set("visibility", "private")
-      : params.delete("visibility");
-
-    console.log("Updating URL to:", params.toString());
-    try {
-      await router.push(`?${params.toString()}`, { scroll: false });
-      console.log("URL update complete");
-    } catch (error) {
-      console.error("URL update failed:", error);
-    }
-
-    console.log("Invalidating queries...");
-    try {
-      await queryClient.invalidateQueries({
-        queryKey: ["questLogs"],
-        refetchType: "active",
-      });
-      console.log("Query invalidation complete");
-    } catch (error) {
-      console.error("Query invalidation failed:", error);
-    }
-
-    console.log("Resetting queries...");
-    queryClient.resetQueries({ queryKey: ["questLogs"] });
+  const handleModalState = (isOpen: boolean, newTab?: "logs" | "new") => {
+    setIsModalOpen(isOpen);
+    if (newTab) setActiveTab(newTab);
   };
-
-  const handleFiltersChange = (filters: FilterConfig) => {
-    // Add this line to update local state
-    setFilters(filters);
-
-    // Start with existing params
-    const params = new URLSearchParams(searchParams.toString());
-
-    // Update filter params
-    params.set("regions", filters.regions.join(","));
-    params.set("beaches", filters.beaches.join(","));
-    params.set("countries", filters.countries.join(","));
-    params.set("waveTypes", filters.waveTypes.join(","));
-    params.set("minRating", (filters.minRating || 0).toString());
-
-    if (filters.surferName) {
-      params.set("surferName", filters.surferName);
-    } else {
-      params.delete("surferName");
-    }
-
-    if (filters.beachName) {
-      params.set("beachName", filters.beachName);
-    } else {
-      params.delete("beachName");
-    }
-
-    // Date handling
-    if (filters.dateRange.start) {
-      params.set("startDate", filters.dateRange.start);
-    } else {
-      params.delete("startDate");
-    }
-
-    if (filters.dateRange.end) {
-      params.set("endDate", filters.dateRange.end);
-    } else {
-      params.delete("endDate");
-    }
-
-    // Preserve visibility parameter
-    if (searchParams.get("visibility")) {
-      params.set("visibility", searchParams.get("visibility")!);
-    }
-
-    window.history.replaceState(null, "", `?${params.toString()}`);
-  };
-
-  const filteredEntries =
-    logEntriesData?.filter((entry) => {
-      console.log("Filtering entry:", {
-        id: entry.id,
-        isPrivate: entry.isPrivate,
-        showPrivateOnly,
-        matches: showPrivateOnly ? entry.isPrivate : true,
-      });
-      const matchesRegion =
-        !selectedRegion || entry.beach?.region === selectedRegion;
-      const matchesPrivacy = showPrivateOnly ? entry.isPrivate : true;
-      return matchesRegion && matchesPrivacy;
-    }) || [];
 
   return (
     <div className="min-h-screen bg-[var(--color-bg-secondary)] p-9 font-primary relative">
-      <FireFlies />
-
       <div className="max-w-[1600px] mx-auto relative z-10">
-        {/* Tabs */}
-        <div className="mb-6 sm:mb-12">
-          <div className="flex flex-col sm:flex-row items-center justify-start overflow-x-auto no-scrollbar border-b border-gray-200">
-            <button
-              onClick={() => setActiveTab("logs")}
-              className={`px-4 py-3 sm:px-6 sm:py-4 text-small font-primary transition-colors duration-200 ${
-                activeTab === "logs"
-                  ? "text-[var(--color-text-primary)]"
-                  : "text-[var(--color-text-secondary)] hover:text-[var(--color-text-primary)] hover:bg-gray-50"
-              }`}
-            >
-              <span className="whitespace-nowrap">Logged Sessions</span>
-            </button>
-            <button
-              onClick={() => {
-                setActiveTab("new");
-                setIsModalOpen(true);
-              }}
-              className={`px-4 py-3 sm:px-6 sm:py-4 text-small font-primary transition-colors duration-200 ${
-                activeTab === "new"
-                  ? "text-[var(--color-text-primary)]"
-                  : "text-[var(--color-text-secondary)] hover:text-[var(--color-text-primary)] hover:bg-gray-50"
-              }`}
-            >
-              <span className="whitespace-nowrap">Log A Session</span>
-            </button>
-          </div>
-        </div>
+        {renderTabs()}
 
         {/* Main Content */}
         <div className="bg-white rounded-lg shadow-sm p-4 sm:p-9">
@@ -281,8 +218,8 @@ export default function QuestLogs({ beaches }: QuestLogsProps) {
             </div>
             <div className="flex gap-4 items-center">
               <LogVisibilityToggle
-                isPrivate={showPrivateOnly}
-                onChange={handleVisibilityChange}
+                isPrivate={isPrivate}
+                onChange={handlePrivateToggle}
               />
               <button
                 onClick={() => setIsFilterOpen(true)}
@@ -308,9 +245,8 @@ export default function QuestLogs({ beaches }: QuestLogsProps) {
           ) : (
             <QuestLogTable
               entries={filteredEntries}
-              showPrivateOnly={showPrivateOnly}
+              showPrivateOnly={isPrivate}
               isSubscribed={isSubscribed}
-              key={showPrivateOnly ? "private" : "public"}
             />
           )}
         </div>
@@ -318,8 +254,8 @@ export default function QuestLogs({ beaches }: QuestLogsProps) {
 
       {/* Right Sidebar Filter */}
       <QuestLogFilter
-        entries={filteredEntries || []}
-        onFiltersChange={handleFiltersChange}
+        filters={filters}
+        onFiltersChange={handleFilterChange}
         isOpen={isFilterOpen}
         onClose={() => setIsFilterOpen(false)}
       />
@@ -329,7 +265,7 @@ export default function QuestLogs({ beaches }: QuestLogsProps) {
         <QuestLogForm
           userEmail={session?.user?.email || ""}
           isOpen={isModalOpen}
-          onClose={handleCloseModal}
+          onClose={() => handleModalState(false)}
           beaches={beaches}
         />
       )}

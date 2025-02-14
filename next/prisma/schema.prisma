@@ -345,17 +345,13 @@ model Review {
 }
 
 model Beach {
-  id              String   @id @default(uuid())
-  name            String
-  region          Region[]
-  country         String
-  logEntries      LogEntry[]
-  stories         Story[]
-  feedback        Feedback[]
-  regionId        String?
-  waveType        String
-  latitude        Float
-  longitude       Float
+  id       String  @id
+  regionId String
+  region   Region  @relation(fields: [regionId], references: [id])
+  feedbacks Feedback[]
+  stories     Story[]
+  logEntries  LogEntry[]
+  name        String
 }
 
 model Account {
@@ -510,11 +506,7 @@ model UserFavorite {
 }
 
 model Region {
-  id        String   @id @default(cuid())
-  date      String
-  name      String
-  forecast  Json
-  continent String
-  country   String
-  beaches   Beach[]
+  id    String  @id
+  name  String
+  beaches Beach[]
 }

@@ -3,7 +3,6 @@ import { getServerSession } from "next-auth";
 import { authOptions } from "@/app/lib/authOptions";
 import { prisma } from "@/app/lib/prisma";
 import { beachData } from "@/app/types/beaches";
-import { Region } from "@/app/types/beaches";
 export async function GET() {
   try {
     const stories = await prisma.story.findMany({
@@ -44,6 +43,16 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
+  // Add user existence check
+  const author = await prisma.user.findUnique({
+    where: { id: session.user.id },
+    select: { id: true },
+  });
+
+  if (!author) {
+    return NextResponse.json({ error: "User not found" }, { status: 404 });
+  }
+
   try {
     const formData = await request.formData();
     const title = formData.get("title") as string;
@@ -64,6 +73,16 @@ export async function POST(request: Request) {
         );
       }
 
+      // Create the region record if it doesn't exist
+      await prisma.region.upsert({
+        where: { id: beachDataEntry.region },
+        update: {},
+        create: {
+          id: beachDataEntry.region,
+          name: beachDataEntry.region,
+        },
+      });
+
       // Create the beach record if it doesn't exist
       await prisma.beach.upsert({
         where: { id: beach },
@@ -71,13 +90,13 @@ export async function POST(request: Request) {
         create: {
           id: beachDataEntry.id,
           name: beachDataEntry.name,
-          country: beachDataEntry.country || "Unknown",
-          waveType: beachDataEntry.waveType || "Beachbreak",
-          latitude: 0,
-          longitude: 0,
           region: {
-            connect: {
-              id: beachDataEntry.region,
+            connectOrCreate: {
+              where: { id: beachDataEntry.region },
+              create: {
+                id: beachDataEntry.region,
+                name: beachDataEntry.region,
+              },
             },
           },
         },
@@ -93,7 +112,7 @@ export async function POST(request: Request) {
         category,
         link: link || null,
         author: {
-          connect: { email: session?.user?.email ?? "" },
+          connect: { id: author.id },
         },
         ...(!isCustomBeach &&
           beach !== "other" && {

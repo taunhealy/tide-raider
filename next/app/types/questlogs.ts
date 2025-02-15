@@ -101,7 +101,7 @@ export const DEFAULT_COLUMNS: QuestLogTableColumn[] = [
     key: "forecastSummary",
     label: "Conditions",
     render: (entry: LogEntry) => {
-      const forecastData = entry.forecast;
+      const forecastData = entry.forecast?.entries?.[0];
       if (!forecastData?.swell || !forecastData?.wind) {
         return "No forecast data";
       }

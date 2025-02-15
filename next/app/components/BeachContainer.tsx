@@ -53,6 +53,8 @@ import { toast } from "sonner";
 import Link from "next/link";
 import SponsorContainer from "./SponsorContainer";
 import FavouriteSurfVideosSidebar from "@/app/components/FavouriteSurfVideosSidebar";
+import { useSurfConditions } from "@/app/hooks/useSurfConditions";
+import { RandomLoader } from "./ui/RandomLoader";
 
 interface BeachContainerProps {
   initialBeaches: Beach[];
@@ -310,30 +312,7 @@ export default function BeachContainer({
     data: windData,
     error: windError,
     isLoading,
-  } = useQuery({
-    queryKey: ["surfConditions", selectedRegion],
-    queryFn: async () => {
-      console.log("🌊 Fetching surf conditions for region:", selectedRegion);
-      const res = await fetch(
-        `/api/surf-conditions?region=${encodeURIComponent(selectedRegion)}`
-      );
-
-      if (!res.ok) {
-        console.error(
-          "❌ Surf conditions fetch failed:",
-          res.status,
-          res.statusText
-        );
-        throw new Error("Failed to fetch surf conditions");
-      }
-
-      const data = await res.json();
-      console.log("📊 Received surf conditions:", data);
-      return data;
-    },
-    enabled: !!selectedRegion,
-    staleTime: 1000 * 60 * 5,
-  });
+  } = useSurfConditions(selectedRegion);
 
   // Compute filtered beaches based on windData
   const filteredBeaches = useMemo(() => {
@@ -987,9 +966,7 @@ export default function BeachContainer({
               <div className="grid grid-cols-2 gap-4">
                 {isLoading ? (
                   <div className="col-span-2 flex items-center justify-center p-8">
-                    <span className="text-gray-600">
-                      Loading forecast data...
-                    </span>
+                    <RandomLoader isLoading={isLoading} />
                   </div>
                 ) : !windData ? (
                   <div className="col-span-2 flex items-center justify-center p-8">
@@ -1011,7 +988,7 @@ export default function BeachContainer({
                       <div className="flex-1 flex flex-col items-center justify-center">
                         <div className="space-y-2 text-center">
                           <span className="text-xl font-semibold text-gray-800">
-                            {degreesToCardinal(windData?.wind?.direction)}
+                            {windData?.wind?.direction || "N/A"}
                           </span>
                           <span className="block text-sm text-gray-600">
                             {windData?.wind?.speed || "N/A"} km/h
@@ -1067,7 +1044,9 @@ export default function BeachContainer({
                             {windData?.swell?.direction || "N/A"}°
                           </span>
                           <span className="block text-sm text-gray-600">
-                            {windData?.swell?.cardinalDirection || "N/A"}
+                            {degreesToCardinal(
+                              Number(windData?.swell?.direction)
+                            ) || "N/A"}
                           </span>
                         </div>
                       </div>

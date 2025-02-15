@@ -281,7 +281,7 @@ export default function BeachCard({
                 ) : (
                   <>
                     <div>
-                      <h4 className="text-base sm:text-lg font-semibold text-[var(--color-text-primary)] flex items-center gap-2">
+                      <h4 className="text-base sm:text-[21px] font-primary font-semibold text-[var(--color-text-primary)] flex items-center gap-2">
                         {beach.name}
                         {windData?.wind?.speed && windData.wind.speed > 25 && (
                           <span title="Strong winds">🌪️</span>
@@ -299,9 +299,9 @@ export default function BeachCard({
                           </span>
                         )}
                       </h4>
-                      <h5 className="text-sm sm:text-base font-secondary text-[var(--color-text-secondary)]">
+                      <h6 className="text-[12px] sm:text-[12px] font-primary text-[var(--color-text-secondary)]">
                         {beach.region}
-                      </h5>
+                      </h6>
                     </div>
                   </>
                 )}
@@ -360,7 +360,7 @@ export default function BeachCard({
 
                   {/* Current Conditions */}
                   <div className="text-sm flex flex-col gap-1 md:gap-2">
-                    <h6 className="text-sm md:text-base">
+                    <h6 className="text-sm md:text-base font-primary">
                       Current Conditions:
                     </h6>
                     <ul className="space-y-2">
@@ -415,10 +415,10 @@ export default function BeachCard({
                                 : "text-gray-500"
                             }`}
                           >
-                            <span className="font-medium md:font-semibold">
+                            <span className="font-medium md:font-semibold font-primary">
                               {condition.text.split(":")[0]}:
                             </span>{" "}
-                            <span className="font-normal">
+                            <span className="font-normal font-primary">
                               {condition.text.split(":")[1]}
                             </span>
                           </span>
@@ -430,25 +430,33 @@ export default function BeachCard({
               ) : (
                 // Show optimal conditions when no windData is available
                 <div className="text-sm flex flex-col gap-1 md:gap-2">
-                  <p className="text-sm md:text-base font-semibold">
+                  <p className="text-sm md:text-base font-semibold font-primary">
                     Optimal Conditions:
                   </p>
                   <ul className="space-y-1">
-                    <li className="text-main flex items-center font-secondary gap-2 text-gray-600 text-main mb-1">
-                      <span className="font-medium">Wind Direction:</span>{" "}
+                    <li className="text-main flex items-center font-primary gap-2 text-gray-600 text-main mb-1">
+                      <span className="font-medium font-primary">
+                        Wind Direction:
+                      </span>{" "}
                       {beach.optimalWindDirections.join(", ")}
                     </li>
-                    <li className="text-main flex items-center font-secondary gap-2 text-gray-600 text-main mb-1">
-                      <span className="font-medium">Swell Direction:</span>{" "}
+                    <li className="text-main flex items-center font-primary gap-2 text-gray-600 text-main mb-1">
+                      <span className="font-medium font-primary">
+                        Swell Direction:
+                      </span>{" "}
                       {beach.optimalSwellDirections.min}° -{" "}
                       {beach.optimalSwellDirections.max}°
                     </li>
-                    <li className="text-main flex items-center gap-2 font-secondary text-gray-600 text-main mb-1">
-                      <span className="font-medium">Wave Size:</span>{" "}
+                    <li className="text-main flex items-center gap-2 font-primary text-gray-600 text-main mb-1">
+                      <span className="font-medium font-primary">
+                        Wave Size:
+                      </span>{" "}
                       {beach.swellSize.min}m - {beach.swellSize.max}m
                     </li>
-                    <li className="text-main flex items-center gap-2 font-secondary text-gray-600 text-main mb-1">
-                      <span className="font-medium">Swell Period:</span>{" "}
+                    <li className="text-main flex items-center gap-2 font-primary text-gray-600 text-main mb-1">
+                      <span className="font-medium font-primary">
+                        Swell Period:
+                      </span>{" "}
                       {beach.idealSwellPeriod.min}s -{" "}
                       {beach.idealSwellPeriod.max}s
                     </li>

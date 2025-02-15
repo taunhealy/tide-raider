@@ -65,26 +65,36 @@ function MediaGridBase({ videos, beach, sessions = [] }: MediaGridProps) {
                     <p className="text-sm opacity-90">
                       Logged by {recentSession.surferName}
                     </p>
-                    {recentSession.forecast?.wind && (
+                    {recentSession.forecast?.entries?.[0] && (
                       <div className="text-xs space-y-1 mt-2 opacity-90">
                         <p>
-                          {getWindEmoji(recentSession.forecast.wind.speed)}{" "}
-                          {recentSession.forecast.wind.direction} @{" "}
-                          {recentSession.forecast.wind.speed}km/h
+                          {getWindEmoji(
+                            recentSession.forecast.entries[0].wind.speed
+                          )}{" "}
+                          {recentSession.forecast.entries[0].wind.direction} @{" "}
+                          {recentSession.forecast.entries[0].wind.speed}km/h
                         </p>
-                        {recentSession.forecast?.swell && (
+                        {recentSession.forecast.entries[0].swell && (
                           <p>
-                            {getSwellEmoji(recentSession.forecast.swell.height)}{" "}
-                            {recentSession.forecast.swell.height}m @{" "}
-                            {recentSession.forecast.swell.period}s
+                            {getSwellEmoji(
+                              recentSession.forecast.entries[0].swell.height
+                            )}{" "}
+                            {recentSession.forecast.entries[0].swell.height}m @{" "}
+                            {recentSession.forecast.entries[0].swell.period}s
                           </p>
                         )}
-                        {recentSession.forecast?.swell && (
+                        {recentSession.forecast.entries[0].swell && (
                           <>
                             {getDirectionEmoji(
-                              parseInt(recentSession.forecast.swell.direction)
+                              parseInt(
+                                recentSession.forecast.entries[0].swell
+                                  .direction
+                              )
                             )}{" "}
-                            {recentSession.forecast.swell.cardinalDirection}
+                            {
+                              recentSession.forecast.entries[0].swell
+                                .cardinalDirection
+                            }
                           </>
                         )}
                       </div>
@@ -119,26 +129,35 @@ function MediaGridBase({ videos, beach, sessions = [] }: MediaGridProps) {
                     {recentSession.comments || "No comments provided"}
                   </p>
 
-                  {recentSession.forecast?.wind && (
+                  {recentSession.forecast?.entries?.[0] && (
                     <div className="text-xs text-[var(--color-text-secondary)] space-y-1 mb-2 border-t border-[var(--color-border-light)] pt-2">
                       <p>
-                        {getWindEmoji(recentSession.forecast.wind.speed)}{" "}
-                        {recentSession.forecast.wind.direction} @{" "}
-                        {recentSession.forecast.wind.speed}km/h
+                        {getWindEmoji(
+                          recentSession.forecast.entries[0].wind.speed
+                        )}{" "}
+                        {recentSession.forecast.entries[0].wind.direction} @{" "}
+                        {recentSession.forecast.entries[0].wind.speed}km/h
                       </p>
-                      {recentSession.forecast?.swell && (
+                      {recentSession.forecast.entries[0].swell && (
                         <p>
-                          {getSwellEmoji(recentSession.forecast.swell.height)}{" "}
-                          {recentSession.forecast.swell.height}m @{" "}
-                          {recentSession.forecast.swell.period}s
+                          {getSwellEmoji(
+                            recentSession.forecast.entries[0].swell.height
+                          )}{" "}
+                          {recentSession.forecast.entries[0].swell.height}m @{" "}
+                          {recentSession.forecast.entries[0].swell.period}s
                         </p>
                       )}
-                      {recentSession.forecast?.swell && (
+                      {recentSession.forecast.entries[0].swell && (
                         <>
                           {getDirectionEmoji(
-                            parseInt(recentSession.forecast.swell.direction)
+                            parseInt(
+                              recentSession.forecast.entries[0].swell.direction
+                            )
                           )}{" "}
-                          {recentSession.forecast.swell.cardinalDirection}
+                          {
+                            recentSession.forecast.entries[0].swell
+                              .cardinalDirection
+                          }
                         </>
                       )}
                     </div>

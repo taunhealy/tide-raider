@@ -314,6 +314,14 @@ export default function BeachContainer({
     isLoading,
   } = useSurfConditions(selectedRegion);
 
+  // Debug logging
+  useEffect(() => {
+    if (windError) {
+      console.error("Wind data fetch error:", windError);
+    }
+    console.log("Current wind data:", windData);
+  }, [windData, windError]);
+
   // Compute filtered beaches based on windData
   const filteredBeaches = useMemo(() => {
     let filtered = initialBeaches;
@@ -611,8 +619,6 @@ export default function BeachContainer({
   // If you need only 3 logs, you can slice them in the render:
   const latestLogs = recentLogs?.entries?.slice(0, 3);
 
-  console.log("Current wind data:", windData);
-
   return (
     <div className="bg-[var(--color-bg-secondary)] p-6 mx-auto relative min-h-[calc(100vh-72px)] flex flex-col">
       {/* Main Layout */}
@@ -812,15 +818,58 @@ export default function BeachContainer({
                         <div className="h-5 bg-gray-200 rounded w-3/4"></div>
                       </div>
                     ) : (
-                      !windData && (
-                        <div className="mb-6 p-4 bg-yellow-50 border border-yellow-200 rounded-lg">
-                          <p className="text-yellow-800 font-primary">
-                            No forecast data available for {selectedRegion}.
-                            Showing beaches with their optimal conditions.
+                      windError && (
+                        <div className="mb-6 p-4 bg-red-50 border border-red-200 rounded-lg">
+                          <p className="text-red-800">
+                            Error loading forecast data. Please try again later.
                           </p>
                         </div>
                       )
                     )}
+
+                    {/* Forecast Widget */}
+                    <div data-forecast-widget>
+                      {isLoading ? (
+                        <RandomLoader isLoading={isLoading} />
+                      ) : windError ? (
+                        <div className="p-4 bg-red-50 border border-red-200 rounded-lg">
+                          <p className="text-red-800">
+                            Error loading forecast data. Please try again later.
+                          </p>
+                        </div>
+                      ) : !windData ? (
+                        <div className="p-4 bg-yellow-50 border border-yellow-200 rounded-lg">
+                          <p className="text-yellow-800">
+                            No forecast data available for {selectedRegion}.
+                            Please try again later.
+                          </p>
+                        </div>
+                      ) : (
+                        <div className="grid grid-cols-2 gap-4">
+                          {/* Wind Data */}
+                          <div className="bg-gray-50 p-4 rounded-lg">
+                            <span className="text-gray-600 block mb-1">
+                              Wind
+                            </span>
+                            <div className="font-medium">
+                              {windData.wind.direction} @ {windData.wind.speed}
+                              km/h
+                            </div>
+                          </div>
+
+                          {/* Swell Data */}
+                          <div className="bg-gray-50 p-4 rounded-lg">
+                            <span className="text-gray-600 block mb-1">
+                              Swell
+                            </span>
+                            <div className="font-medium">
+                              {windData.swell.height}m @ {windData.swell.period}
+                              s
+                            </div>
+                          </div>
+                        </div>
+                      )}
+                    </div>
 
                     {/* Beach Grid */}
                     <BeachGrid

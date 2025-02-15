@@ -4,9 +4,9 @@ import { NextResponse } from "next/server";
 export async function GET(request: Request) {
   const { searchParams } = new URL(request.url);
   const region = searchParams.get("region");
-  const date = searchParams.get("date");
+  const dateStr = searchParams.get("date");
 
-  if (!region || !date) {
+  if (!region || !dateStr) {
     return NextResponse.json(
       { error: "Missing required parameters" },
       { status: 400 }
@@ -14,79 +14,32 @@ export async function GET(request: Request) {
   }
 
   try {
-    // Convert date string to DateTime
-    const queryDate = new Date(date);
-    queryDate.setUTCHours(0, 0, 0, 0);
+    console.log(`Fetching good beach count for ${region} on ${dateStr}`);
 
-    const count = await prisma.beachGoodRating.count({
+    // Convert date string to timestamp format
+    const date = new Date(dateStr);
+    date.setUTCHours(0, 0, 0, 0);
+
+    // Count beaches with good ratings for the region and date
+    const goodBeachCount = await prisma.beachGoodRating.count({
       where: {
-        date: queryDate,
-        region,
+        date: date, // Use the Date object that matches our DB timestamp
+        region: region,
+        score: {
+          gte: 4, // Matches our "good" threshold from isBeachSuitable
+        },
       },
     });
 
-    return NextResponse.json({ count });
+    console.log(
+      `Found ${goodBeachCount} good beaches for ${region} on ${dateStr}`
+    );
+    return NextResponse.json({ count: goodBeachCount });
   } catch (error) {
-    console.error("Error fetching beach counts:", error);
+    console.error(`Error getting beach count:`, error);
     return NextResponse.json(
-      { error: "Failed to fetch beach counts" },
+      { error: "Failed to get beach count" },
       { status: 500 }
     );
   }
-}
-
-function isBeachSuitable(beach: any, conditions: any) {
-  let score = 0;
-
-  // Check wind direction compatibility with penalty
-  if (beach.optimalWindDirections.includes(conditions.windDirection)) {
-    score += 2;
-  } else {
-    score = Math.max(0, score - 0.5);
-  }
-
-  // Add penalty for strong winds unless beach is sheltered
-  if (
-    conditions.windSpeed >= 15 &&
-    conditions.windSpeed > 25 &&
-    !beach.sheltered
-  ) {
-    score = Math.max(0, score - 0.5);
-  }
-
-  // Check swell direction with graduated penalties
-  const swellDeg = parseInt(conditions.swellDirection);
-  const minSwellDiff = Math.abs(swellDeg - beach.optimalSwellDirections.min);
-  const maxSwellDiff = Math.abs(swellDeg - beach.optimalSwellDirections.max);
-  const swellDirDiff = Math.min(minSwellDiff, maxSwellDiff);
-
-  if (
-    swellDeg >= beach.optimalSwellDirections.min &&
-    swellDeg <= beach.optimalSwellDirections.max
-  ) {
-    score += 2;
-  } else if (swellDirDiff <= 10) {
-    score = Math.max(0, score - 1);
-  } else if (swellDirDiff <= 20) {
-    score = Math.max(0, score - 2);
-  } else if (swellDirDiff <= 30) {
-    score = Math.max(0, score - 3);
-  } else {
-    score = Math.max(0, score - 4);
-  }
-
-  // Check swell height
-  const hasGoodSwellHeight =
-    conditions.swellHeight >= beach.swellSize.min &&
-    conditions.swellHeight <= beach.swellSize.max;
-  if (hasGoodSwellHeight) {
-    score += 1;
-  } else {
-    score = Math.max(0, score - 3);
-  }
-
-  return {
-    suitable: score > 2,
-    score: score,
-  };
 }

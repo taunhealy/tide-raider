@@ -6,8 +6,9 @@ import { randomUUID } from "crypto";
 import { degreesToCardinal, isBeachSuitable } from "@/app/lib/surfUtils";
 
 import { redis } from "@/app/lib/redis";
-import { beachData } from "@/app/types/beaches";
+import { beachData, WindData } from "@/app/types/beaches";
 import { VALID_REGIONS, ValidRegion } from "@/app/lib/constants";
+import { isValidWindData } from "@/app/types/wind";
 
 interface RegionScrapeConfig {
   url: string;
@@ -85,41 +86,31 @@ function getTodayDate() {
   return date;
 }
 
-function formatConditionsResponse(conditions: any) {
-  // Add null check for conditions first
-  if (!conditions) {
-    return { entries: [] };
+function formatConditionsResponse(conditions: any): WindData | null {
+  console.log("🎯 Formatting conditions:", JSON.stringify(conditions, null, 2));
+
+  if (!conditions?.forecast?.wind || !conditions?.forecast?.swell) {
+    console.log("❌ Invalid conditions structure");
+    return null;
   }
 
-  // Handle case where conditions is already formatted
-  if (conditions.forecast?.entries) {
-    return conditions.forecast;
-  }
+  const { wind, swell } = conditions.forecast;
 
-  // Handle scraped data format
-  if (typeof conditions.windSpeed !== "undefined") {
-    return {
-      entries: [
-        {
-          wind: {
-            speed: conditions.windSpeed,
-            direction: conditions.windDirection
-              ? degreesToCardinal(Number(conditions.windDirection))
-              : "N/A",
-          },
-          swell: {
-            height: conditions.swellHeight,
-            period: conditions.swellPeriod,
-            direction: conditions.swellDirection,
-          },
-          timestamp: conditions.timestamp,
-        },
-      ],
-    };
-  }
+  const formattedData = {
+    wind: {
+      speed: Number(wind.speed),
+      direction: wind.direction,
+    },
+    swell: {
+      height: Number(swell.height),
+      period: Number(swell.period),
+      direction: Number(swell.direction),
+    },
+    timestamp: Date.now(),
+  };
 
-  // Return empty entries if no valid format is found
-  return { entries: [] };
+  console.log("✅ Formatted data:", JSON.stringify(formattedData, null, 2));
+  return formattedData;
 }
 
 // Add these constants at the top
@@ -253,73 +244,67 @@ async function getLatestConditions(
   region: ValidRegion = "Western Cape"
 ) {
   const today = getTodayDate();
-  console.log("Checking for conditions with date:", today);
+  console.log("🔍 Checking conditions for", region, "on", today);
 
-  // First check if we have today's data
-  if (!forceRefresh) {
-    const conditions = await prisma.surfCondition.findFirst({
-      where: {
-        date: today,
-        region: region,
-      },
-      orderBy: { updatedAt: "desc" },
-    });
+  // 1. Check database first
+  const existingConditions = await prisma.surfCondition.findFirst({
+    where: {
+      date: today,
+      region: region,
+    },
+    orderBy: { updatedAt: "desc" },
+  });
 
-    console.log("Found existing conditions:", conditions);
+  console.log("📊 Database check result:", existingConditions);
 
-    if (conditions) {
-      // After returning Western Cape data, trigger background fetch for other regions
-      if (region === "Western Cape") {
-        backgroundFetchOtherRegions(today).catch(console.error);
-      }
-      return formatConditionsResponse(conditions);
-    }
+  if (existingConditions) {
+    // Store good beach ratings if they don't exist
+    await storeGoodBeachRatingsAsync(existingConditions, today);
+    return formatConditionsResponse(existingConditions);
   }
 
-  // If no data exists, fetch Western Cape first
-  console.log("🌐 Scraping fresh data for", region);
+  // 2. If no data exists, scrape
+  console.log("🌐 No data found, scraping fresh data for", region);
   const scrapedData = await scrapeAllRegions();
-  console.log("Scraped data:", scrapedData);
+  console.log("📥 Scraped data:", scrapedData);
 
-  // Store scraped data with nested forecast structure
+  if (!scrapedData?.length) {
+    console.log("❌ No data scraped");
+    return null;
+  }
+
+  // 3. Store scraped data
   await prisma.surfCondition.createMany({
     data: scrapedData.map((regionData) => ({
       id: randomUUID(),
-      date: getTodayDate(),
+      date: today,
       region: regionData.region,
       forecast: {
-        entries: [
-          {
-            wind: {
-              speed: regionData.windSpeed,
-              direction: regionData.windDirection,
-            },
-            swell: {
-              height: regionData.swellHeight,
-              period: regionData.swellPeriod,
-              direction: regionData.swellDirection,
-            },
-            timestamp: Date.now(),
-          },
-        ],
+        wind: {
+          speed: regionData.windSpeed,
+          direction: regionData.windDirection,
+        },
+        swell: {
+          height: regionData.swellHeight,
+          period: regionData.swellPeriod,
+          direction: regionData.swellDirection,
+        },
       },
-      timestamp: Date.now(),
     })),
   });
 
-  // Store good beach ratings for each region's conditions
+  // 4. Store good beach ratings for each region
   for (const conditions of scrapedData) {
-    await storeGoodBeachRatings(conditions, today);
+    await storeGoodBeachRatingsAsync(conditions, today);
   }
 
   const requestedRegionData = scrapedData.find(
     (data) => data.region === region
   );
-  if (!requestedRegionData) {
-    throw new Error(`No data available for region: ${region}`);
-  }
 
-  return formatConditionsResponse(requestedRegionData);
+  return requestedRegionData
+    ? formatConditionsResponse(requestedRegionData)
+    : null;
 }
 
 // New helper function to fetch other regions in the background
@@ -412,20 +397,15 @@ async function backgroundFetchOtherRegions(today: Date) {
         data: {
           region: config.region,
           forecast: {
-            entries: [
-              {
-                wind: {
-                  speed: windSpeed,
-                  direction: windDirection,
-                },
-                swell: {
-                  height: waveHeight,
-                  period: swellPeriod,
-                  direction: swellDirection,
-                },
-                timestamp: Date.now(),
-              },
-            ],
+            wind: {
+              speed: windSpeed,
+              direction: windDirection,
+            },
+            swell: {
+              height: waveHeight,
+              period: swellPeriod,
+              direction: swellDirection,
+            },
           },
           date: today,
           updatedAt: new Date(),
@@ -462,100 +442,143 @@ export const dynamic = "force-dynamic";
 export async function GET(request: Request) {
   const { searchParams } = new URL(request.url);
   const region = searchParams.get("region") || "Western Cape";
-  const forceRefresh = searchParams.get("forceRefresh") === "true";
-  const dateParam = searchParams.get("date");
+  const date =
+    searchParams.get("date") || new Date().toISOString().split("T")[0];
+
+  console.log(`🌊 Fetching conditions for ${region} on ${date}`);
 
   try {
-    const date = dateParam ? new Date(dateParam) : getTodayDate();
+    // 1. Check Redis cache first
+    const cacheKey = `surf-conditions:${region}:${date}`;
+    const cachedData = await redis.get(cacheKey);
 
-    // Check for existing data first
+    if (cachedData) {
+      try {
+        const parsedData = JSON.parse(cachedData);
+        console.log(`📦 Cache hit for ${region}:`, parsedData);
+        return NextResponse.json(parsedData);
+      } catch (error) {
+        console.error(`❌ Error parsing cached data for ${region}:`, error);
+        await redis.del(cacheKey); // Clear invalid cache
+      }
+    }
+
+    console.log(`🔍 No cache found, checking database for ${region}`);
+
+    // 2. Check database if not in cache
     const existingConditions = await prisma.surfCondition.findFirst({
       where: {
-        date: date,
+        date: new Date(date),
         region: region,
       },
       orderBy: { updatedAt: "desc" },
     });
 
-    if (existingConditions && !forceRefresh) {
-      return NextResponse.json(formatConditionsResponse(existingConditions));
+    if (existingConditions?.forecast) {
+      console.log(`💾 Found in database for ${region}`);
+      const formattedData = formatConditionsResponse(existingConditions);
+
+      if (formattedData) {
+        // Cache the formatted data
+        await redis.set(cacheKey, JSON.stringify(formattedData), {
+          ex: 3600, // 1 hour
+        });
+
+        // Store good beach ratings asynchronously
+        storeGoodBeachRatingsAsync(existingConditions, new Date(date)).catch(
+          console.error
+        );
+
+        return NextResponse.json(formattedData);
+      }
     }
 
-    console.log(
-      "📊 Found conditions:",
-      JSON.stringify(existingConditions, null, 2)
-    );
-    // Only scrape once
-    const scrapedData = await scrapeAllRegions();
+    console.log(`🌐 No database entry, scraping fresh data for ${region}`);
 
-    // Use upsert to prevent duplicates
-    for (const regionData of scrapedData) {
-      await prisma.surfCondition.upsert({
-        where: {
-          // Add a unique constraint if you don't have one
-          date_region: {
-            date: date,
+    // 3. Scrape new data if not in database
+    const scrapeLockKey = `scrape-lock:${region}`;
+    const isLocked = await redis.get(scrapeLockKey);
+
+    if (isLocked) {
+      console.log(`🔒 Scraping already in progress for ${region}`);
+      return NextResponse.json(null);
+    }
+
+    // Set scrape lock
+    await redis.set(scrapeLockKey, "1", {
+      ex: 60 * 10, // 10 minute lock
+    });
+
+    try {
+      const scrapedData = await scrapeAllRegions();
+      console.log(`📥 Scraped new data for ${region}`);
+
+      if (scrapedData?.length) {
+        // Store scraped data
+        await prisma.surfCondition.createMany({
+          data: scrapedData.map((regionData) => ({
+            id: randomUUID(),
+            date: new Date(date),
             region: regionData.region,
-          },
-        },
-        update: {
-          forecast: {
-            entries: [
-              {
-                wind: {
-                  speed: regionData.windSpeed,
-                  direction: regionData.windDirection,
-                },
-                swell: {
-                  height: regionData.swellHeight,
-                  period: regionData.swellPeriod,
-                  direction: regionData.swellDirection,
-                },
-                timestamp: Date.now(),
+            forecast: {
+              wind: {
+                speed: regionData.windSpeed,
+                direction: regionData.windDirection,
               },
-            ],
-          },
-          updatedAt: new Date(),
-        },
-        create: {
-          id: randomUUID(),
-          date: date,
-          region: regionData.region,
-          forecast: {
-            entries: [
-              {
-                wind: {
-                  speed: regionData.windSpeed,
-                  direction: regionData.windDirection,
-                },
-                swell: {
-                  height: regionData.swellHeight,
-                  period: regionData.swellPeriod,
-                  direction: regionData.swellDirection,
-                },
-                timestamp: Date.now(),
+              swell: {
+                height: regionData.swellHeight,
+                period: regionData.swellPeriod,
+                direction: regionData.swellDirection,
               },
-            ],
-          },
-          updatedAt: new Date(),
-        },
-      });
+            },
+          })),
+        });
+
+        // Get the requested region's data
+        const requestedRegionData = scrapedData.find(
+          (data) => data.region === region
+        );
+
+        if (requestedRegionData) {
+          const formattedData = formatConditionsResponse({
+            forecast: {
+              wind: {
+                speed: requestedRegionData.windSpeed,
+                direction: requestedRegionData.windDirection,
+              },
+              swell: {
+                height: requestedRegionData.swellHeight,
+                period: requestedRegionData.swellPeriod,
+                direction: requestedRegionData.swellDirection,
+              },
+            },
+          });
+
+          if (formattedData) {
+            // Cache the formatted data
+            await redis.set(cacheKey, JSON.stringify(formattedData), {
+              ex: 3600,
+            });
+
+            // Store good beach ratings asynchronously
+            storeGoodBeachRatingsAsync(
+              requestedRegionData,
+              new Date(date)
+            ).catch(console.error);
+
+            return NextResponse.json(formattedData);
+          }
+        }
+      }
+    } finally {
+      // Clean up scrape lock
+      await redis.del(scrapeLockKey);
     }
 
-    const requestedRegionData = scrapedData.find(
-      (data) => data.region === region
-    );
-
-    if (!requestedRegionData) {
-      return NextResponse.json(
-        { error: `No data available for region: ${region}` },
-        { status: 404 }
-      );
-    }
-
-    return NextResponse.json(formatConditionsResponse(requestedRegionData));
+    console.log(`❌ No data available for ${region}`);
+    return NextResponse.json(null);
   } catch (error) {
-    console.error("Error in surf-conditions GET:", error);
+    console.error(`🚨 Error fetching ${region}:`, error);
     return NextResponse.json(
       { error: "Failed to fetch conditions" },
       { status: 500 }
@@ -563,34 +586,38 @@ export async function GET(request: Request) {
   }
 }
 
-async function storeGoodBeachRatings(conditions: any, date: Date) {
-  // Get beaches for this region
-  const regionBeaches = beachData.filter(
-    (beach) => beach.region === conditions.region
-  );
-
-  // Calculate scores and store good ones
-  const goodBeaches = regionBeaches
-    .map((beach) => {
-      const { score } = isBeachSuitable(
-        beach,
-        formatConditionsResponse(conditions)
+async function storeGoodBeachRatingsAsync(conditions: any, date: Date) {
+  setTimeout(async () => {
+    try {
+      const regionBeaches = beachData.filter(
+        (beach) => beach.region === conditions.region
       );
-      return { beach, score };
-    })
-    .filter(({ score }) => score >= 4);
 
-  // Store in database
-  if (goodBeaches.length > 0) {
-    await prisma.beachGoodRating.createMany({
-      data: goodBeaches.map(({ beach, score }) => ({
-        date,
-        beachId: beach.id,
-        region: beach.region,
-        score,
-        conditions: conditions, // Store conditions that made it good
-      })),
-      skipDuplicates: true,
-    });
-  }
+      const goodBeaches = regionBeaches
+        .map((beach) => {
+          const { score } = isBeachSuitable(beach, conditions.forecast);
+          return { beach, score };
+        })
+        .filter(({ score }) => score >= 4);
+
+      if (goodBeaches.length > 0) {
+        await prisma.beachGoodRating.createMany({
+          data: goodBeaches.map(({ beach, score }) => ({
+            id: randomUUID(), // Add unique ID
+            date,
+            beachId: beach.id,
+            region: beach.region,
+            score,
+            conditions: conditions.forecast, // Store just the forecast part
+          })),
+          skipDuplicates: true,
+        });
+        console.log(
+          `Stored ${goodBeaches.length} good beach ratings for ${conditions.region}`
+        );
+      }
+    } catch (error) {
+      console.error("Background beach rating storage error:", error);
+    }
+  }, 0);
 }

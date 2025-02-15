@@ -13,7 +13,6 @@ async function QuestContent() {
       "https://www.tideraider.com";
     const date = new Date().toISOString().split("T")[0];
 
-    // Add error handling for each Promise
     const [windResponse, blogData, activeAds] = await Promise.all([
       fetch(`${baseUrl}/api/surf-conditions?region=Western Cape&date=${date}`, {
         headers: {
@@ -22,9 +21,10 @@ async function QuestContent() {
       }).then(async (res) => {
         if (!res.ok) {
           console.error(`Wind API error: ${res.status} ${res.statusText}`);
-          return { data: [] }; // Fallback data
+          return null;
         }
-        return res.json();
+        const data = await res.json();
+        return data;
       }),
       client.fetch(blogListingQuery).catch((error) => {
         console.error("Blog fetch error:", error);
@@ -61,12 +61,11 @@ async function QuestContent() {
         }),
     ]);
 
-    // Add response validation
     if (!windResponse || !blogData || !activeAds) {
       throw new Error("Failed to fetch required data");
     }
 
-    const { data: windData } = windResponse;
+    const windData = windResponse;
 
     return (
       <div className="min-h-screen bg-[var(--color-bg-secondary)]">

@@ -395,9 +395,7 @@ export function RaidLogForm({
                       3. Surf Conditions
                     </h4>
                     <div className="border rounded-lg p-4 bg-gray-50">
-                      {forecast &&
-                      forecast.entries &&
-                      forecast.entries.length > 0 ? (
+                      {forecast ? (
                         <SurfForecastWidget
                           beachId={selectedBeach.id}
                           date={selectedDate}

@@ -1,22 +1,17 @@
-import { useEffect, useState } from "react";
 import { degreesToCardinal } from "@/app/lib/surfUtils";
-import { SurfForecast } from "@/app/types/wind";
-import { useSurfConditions } from "@/app/hooks/useSurfConditions";
+import { WindData } from "@/app/types/wind";
 
 interface SurfForecastWidgetProps {
   beachId: string;
   date: string;
-  forecast?: SurfForecast;
+  forecast: WindData;
 }
 
 export default function SurfForecastWidget({
-  beachId,
-  date,
+  forecast,
 }: SurfForecastWidgetProps) {
-  const { data: forecastData } = useSurfConditions(beachId);
-
-  if (!forecastData) {
-    return <div>No forecast data available</div>;
+  if (!forecast) {
+    return <div>Sorry, no forecast data rendered. Please refresh.</div>;
   }
 
   const {
@@ -26,8 +21,7 @@ export default function SurfForecastWidget({
       direction: swellDirection,
       period: swellPeriod,
     },
-    timestamp,
-  } = forecastData;
+  } = forecast;
 
   return (
     <div className="bg-white p-4 rounded-lg shadow-sm">
@@ -36,7 +30,7 @@ export default function SurfForecastWidget({
         <div className="flex justify-between items-center">
           <span className="text-gray-600">Wind</span>
           <span className="font-medium">
-            {windDirection || "hi"}
+            {windDirection}
             <br />
             {windSpeed ? `${windSpeed} km/h` : "N/A"}
           </span>

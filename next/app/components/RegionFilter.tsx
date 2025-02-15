@@ -3,11 +3,13 @@
 import { Beach } from "@/app/types/beaches";
 import { WindData } from "@/app/types/wind";
 import { FilterButton } from "@/app/components/ui/FilterButton";
-import { useEffect, useState, memo } from "react";
+import { useEffect, useState, memo, useMemo } from "react";
 import { useSession } from "next-auth/react";
 import { toast } from "sonner";
 import { ChevronDown } from "lucide-react";
 import { Region } from "@/app/types/beaches";
+import { cn } from "@/lib/utils";
+import { useQuery } from "@tanstack/react-query";
 
 interface SavedFilters {
   continents: string[];
@@ -76,14 +78,17 @@ const RegionFilter = memo(function RegionFilter({
   isPro = false,
   initialSavedFilters,
   selectedRegion,
+  onRegionChange,
   getGoodBeachCount,
   BeachCountBadge,
   allWindData,
-  onRegionChange,
+  isLoading,
 }: RegionFilterProps) {
   const { data: session } = useSession();
   const [isOpen, setIsOpen] = useState(true);
   const [count, setCount] = useState<number>(0);
+  const [regionCounts, setRegionCounts] = useState<Record<string, number>>({});
+  const [isLoadingCounts, setIsLoadingCounts] = useState(true);
 
   useEffect(() => {
     if (isPro && initialSavedFilters) {
@@ -96,6 +101,35 @@ const RegionFilter = memo(function RegionFilter({
   useEffect(() => {
     getGoodBeachCount(selectedRegion).then(setCount);
   }, [selectedRegion, getGoodBeachCount]);
+
+  const { data: regionCount, isLoading: isCountLoading } = useQuery({
+    queryKey: ["beachCount", selectedRegion],
+    queryFn: async () => {
+      const today = new Date().toISOString().split("T")[0];
+      console.log(`Fetching count for region: ${selectedRegion}`);
+
+      const response = await fetch(
+        `/api/beach-counts?region=${encodeURIComponent(selectedRegion)}&date=${today}`
+      );
+
+      if (!response.ok) {
+        throw new Error("Failed to fetch count");
+      }
+
+      const data = await response.json();
+      return data.count;
+    },
+    enabled: !!selectedRegion,
+    staleTime: 1000 * 60 * 5, // Cache for 5 minutes
+    gcTime: 1000 * 60 * 30, // Keep in cache for 30 minutes
+    refetchOnWindowFocus: false, // Prevent refetch on window focus
+    refetchOnMount: false, // Prevent refetch on component mount
+    refetchOnReconnect: false, // Prevent refetch on reconnect
+  });
+
+  useEffect(() => {
+    console.log(`Region count for ${selectedRegion}:`, regionCount);
+  }, [selectedRegion, regionCount]);
 
   const handleSaveFilters = async () => {
     if (!session?.user) return;
@@ -163,6 +197,38 @@ const RegionFilter = memo(function RegionFilter({
     onRegionChange(region);
   };
 
+  // Memoize the region buttons to prevent unnecessary re-renders
+  const regionButtons = useMemo(() => {
+    return visibleRegions.map((region) => (
+      <button
+        key={region}
+        onClick={() => onRegionChange(region)}
+        className={cn(
+          "flex items-center justify-between w-full px-4 py-2 text-left rounded-lg transition-colors",
+          selectedRegion === region
+            ? "bg-[var(--color-bg-tertiary)] text-white"
+            : "hover:bg-gray-100"
+        )}
+      >
+        <span>{region}</span>
+        {region === selectedRegion &&
+          (isCountLoading ? (
+            <div className="w-6 h-6 animate-pulse bg-gray-200 rounded-full" />
+          ) : (
+            <span className="inline-flex items-center justify-center w-6 h-6 text-sm text-white bg-[var(--color-bg-tertiary)] rounded-full">
+              {regionCount ?? 0}
+            </span>
+          ))}
+      </button>
+    ));
+  }, [
+    visibleRegions,
+    selectedRegion,
+    regionCount,
+    isCountLoading,
+    onRegionChange,
+  ]);
+
   return (
     <div className="space-y-4">
       <div
@@ -225,17 +291,7 @@ const RegionFilter = memo(function RegionFilter({
           {/* Regions */}
           {visibleRegions.length > 0 && (
             <div className="flex items-center gap-2 overflow-x-auto pb-2 flex-wrap">
-              {visibleRegions.map((region) => {
-                return (
-                  <FilterButton
-                    key={region}
-                    label={region}
-                    isSelected={selectedRegions.includes(region)}
-                    onClick={() => handleRegionClick(region)}
-                    variant="region"
-                  />
-                );
-              })}
+              {regionButtons}
             </div>
           )}
 
@@ -246,4 +302,4 @@ const RegionFilter = memo(function RegionFilter({
   );
 });
 
-export default RegionFilter;
+export default memo(RegionFilter);

@@ -8,13 +8,11 @@ import {
 } from "@/app/lib/forecastUtils";
 import { cn } from "@/app/lib/utils";
 
-interface StickyForecastWidgetProps {
-  windData: WindData | null;
-}
-
 export default function StickyForecastWidget({
   windData,
-}: StickyForecastWidgetProps) {
+}: {
+  windData: WindData | null;
+}) {
   const [isVisible, setIsVisible] = useState(false);
 
   useEffect(() => {
@@ -36,15 +34,10 @@ export default function StickyForecastWidget({
     return () => window.removeEventListener("scroll", handleScroll);
   }, []);
 
-  // Enhanced null check for all required properties
-  if (
-    !windData?.wind?.speed ||
-    !windData?.wind?.direction ||
-    !windData?.swell?.height ||
-    !windData?.swell?.period ||
-    !windData?.swell?.direction
-  )
+  // Return null after the hooks
+  if (!windData) {
     return null;
+  }
 
   return (
     <div
@@ -72,9 +65,7 @@ export default function StickyForecastWidget({
             <div className="font-medium">
               {getSwellEmoji(windData.swell.height)} {windData.swell.height}m @{" "}
               {windData.swell.period}s{" "}
-              {getDirectionEmoji(
-                (parseInt(windData.swell.direction) + 180) % 360
-              )}
+              {getDirectionEmoji((windData.swell.direction + 180) % 360)}
             </div>
           </div>
         </div>

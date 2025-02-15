@@ -2,6 +2,7 @@ import type { Beach } from "@/app/types/beaches";
 import type { WindData } from "@/app/types/wind";
 import { prisma } from "@/app/lib/prisma";
 import { beachData } from "@/app/types/beaches";
+import { randomUUID } from "crypto";
 
 export const FREE_BEACH_LIMIT = 7;
 
@@ -90,7 +91,7 @@ export function isBeachSuitable(beach: Beach, windData: WindData | null) {
   }
 
   // Check swell direction with graduated penalties
-  const swellDeg = parseInt(windData.swell.direction);
+  const swellDeg = windData.swell.direction;
   const minSwellDiff = Math.abs(swellDeg - beach.optimalSwellDirections.min);
   const maxSwellDiff = Math.abs(swellDeg - beach.optimalSwellDirections.max);
   const swellDirDiff = Math.min(minSwellDiff, maxSwellDiff);
@@ -227,7 +228,7 @@ export function getConditionReasons(
   }
 
   // Check swell direction
-  const swellDeg = parseInt(windData.swell.direction);
+  const swellDeg = windData.swell.direction;
   const minSwellDiff = Math.abs(swellDeg - beach.optimalSwellDirections.min);
   const maxSwellDiff = Math.abs(swellDeg - beach.optimalSwellDirections.max);
   const swellDirDiff = Math.min(minSwellDiff, maxSwellDiff);
@@ -405,48 +406,40 @@ export function calculateBeachScores(
   return counts;
 }
 
-export async function storeGoodBeachRatings(conditions: any, date: string) {
-  console.log("Starting storeGoodBeachRatings:", { conditions, date });
-
-  // Log all regions we have conditions for
-  console.log("Processing region:", conditions.region);
+export async function storeGoodBeachRatings(conditions: any, date: Date) {
+  console.log("🏖️ Starting beach ratings for:", conditions.region);
 
   const regionBeaches = beachData.filter(
     (beach) => beach.region === conditions.region
   );
 
-  // Log beach scores for debugging
+  // Calculate scores for all beaches
   const beachScores = regionBeaches.map((beach) => {
-    const { score } = isBeachSuitable(
-      beach,
-      formatConditionsResponse(conditions)
-    );
-    return { name: beach.name, score };
+    const { score } = isBeachSuitable(beach, conditions.forecast);
+    return { beach, score };
   });
-  console.log("Beach scores:", beachScores);
 
-  const goodBeaches = regionBeaches
-    .map((beach) => {
-      const { score } = isBeachSuitable(
-        beach,
-        formatConditionsResponse(conditions)
-      );
-      return { beach, score };
-    })
-    .filter(({ score }) => score >= 4);
-  console.log("Good beaches found:", goodBeaches.length);
+  // Filter good beaches (score >= 4)
+  const goodBeaches = beachScores.filter(({ score }) => score >= 4);
 
   if (goodBeaches.length > 0) {
-    const result = await prisma.beachGoodRating.createMany({
-      data: goodBeaches.map(({ beach, score }) => ({
-        date,
-        beachId: beach.id,
-        region: beach.region,
-        score,
-        conditions: conditions,
-      })),
-      skipDuplicates: true,
-    });
-    console.log("Storage result:", result);
+    try {
+      // Use createMany with skipDuplicates
+      const result = await prisma.beachGoodRating.createMany({
+        data: goodBeaches.map(({ beach, score }) => ({
+          id: randomUUID(),
+          date,
+          beachId: beach.id,
+          region: beach.region,
+          score,
+          conditions: conditions.forecast,
+        })),
+        skipDuplicates: true, // This will skip any duplicates based on the unique constraint
+      });
+
+      console.log(`✅ Stored ${result.count} beach ratings`);
+    } catch (error) {
+      console.error("❌ Error storing beach ratings:", error);
+    }
   }
 }

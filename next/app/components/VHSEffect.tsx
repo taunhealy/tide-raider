@@ -56,18 +56,18 @@ export default function VHSEffect() {
         void main() {
           vec2 uv = vUv;
           
-          // Enhanced distortion
-          uv.x += sin(uv.y * 20.0 + time * 2.0) * 0.02;
-          uv.y += sin(time * 1.5) * 0.002;
+          // Reduced distortion intensity
+          uv.x += sin(uv.y * 20.0 + time * 2.0) * 0.01;
+          uv.y += sin(time * 1.5) * 0.001;
           
-          // Yellow tracking line effect
-          float yellowLine = smoothstep(0.998, 0.999, sin(uv.y * 100.0 + time * 3.0)) * 0.3;
-          yellowLine *= smoothstep(0.4, 0.6, rand(vec2(time * 0.1, floor(uv.y * 50.0))));
+          // Softer yellow tracking line
+          float yellowLine = smoothstep(0.997, 0.999, sin(uv.y * 100.0 + time * 3.0)) * 0.2;
+          yellowLine *= smoothstep(0.4, 0.6, rand(vec2(time * 0.1, floor(uv.y * 50.0)))) * vignette;
           
-          // Intensified scanlines
+          // Subtler scanlines
           float scanPos = fract(uv.y * 1.5 + time * 0.2);
-          float scanline = smoothstep(0.4, 0.6, sin(scanPos * 3.1415 * 2.0)) * 0.08;
-          scanline += rand(vec2(uv.y * 100.0, time * 0.1)) * 0.1;
+          float scanline = smoothstep(0.4, 0.6, sin(scanPos * 3.1415 * 2.0)) * 0.05;
+          scanline += rand(vec2(uv.y * 100.0, time * 0.1)) * 0.06;
           
           // Vertical noise interference
           float verticalNoise = smoothstep(0.95, 0.99, rand(vec2(uv.x * 50.0, floor(time * 2.0)))) * 0.2;

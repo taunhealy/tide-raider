@@ -12,7 +12,7 @@ import { Button } from "@/app/components/ui/Button";
 import Link from "next/link";
 import type { Beach } from "@/app/types/beaches";
 import { toast } from "sonner";
-import { signIn } from "next-auth/react";
+import { handleSignIn } from "@/app/lib/auth-utils";
 
 // Add filter config types similar to QuestLogs
 type FilterConfig = {
@@ -87,7 +87,7 @@ export const RaidLogsComponent: React.FC<RaidLogsComponentProps> = ({
       toast.error("Please sign in to view private logs", {
         action: {
           label: "Sign In",
-          onClick: () => signIn(),
+          onClick: () => handleSignIn(window.location.pathname),
         },
       });
       return;
@@ -133,7 +133,7 @@ export const RaidLogsComponent: React.FC<RaidLogsComponentProps> = ({
         toast.error("Please sign in to view private logs", {
           action: {
             label: "Sign In",
-            onClick: () => signIn(),
+            onClick: () => handleSignIn(window.location.pathname),
           },
         });
         return { entries: [] };
@@ -176,11 +176,19 @@ export const RaidLogsComponent: React.FC<RaidLogsComponentProps> = ({
                 onChange={handlePrivateToggle}
               />
 
-              <Link href="/raidlogs/new" className="flex">
-                <Button size="sm" className="whitespace-nowrap">
-                  Post
-                </Button>
-              </Link>
+              <Button
+                size="sm"
+                className="whitespace-nowrap"
+                onClick={() => {
+                  if (!session?.user) {
+                    handleSignIn("/raidlogs/new");
+                  } else {
+                    router.push("/raidlogs/new");
+                  }
+                }}
+              >
+                Post
+              </Button>
 
               <Button
                 onClick={() => setIsFilterOpen(true)}

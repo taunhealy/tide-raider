@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/app/lib/prisma";
+import { createHmac } from "crypto";
 
 // Add export config to mark this as dynamic route
 export const dynamic = "force-dynamic";
@@ -8,40 +9,54 @@ export async function POST(request: Request) {
   try {
     const body = await request.text();
     const payload = JSON.parse(body);
+    const signature = request.headers.get("X-Signature");
 
-    // Log only once at the start
-    console.log("Processing webhook:", {
-      event: payload.meta.event_name,
-      adId: payload.meta.custom_data[0],
-    });
+    // Verify webhook signature
+    const secret = process.env.LEMON_SQUEEZY_WEBHOOK_SECRET!;
+    const hmac = createHmac("sha256", secret);
+    const digest = hmac.update(body).digest("hex");
 
-    const adId = payload.meta.custom_data[0];
-    const status = payload.data.attributes.status;
-    const cancelled = payload.data.attributes.cancelled;
+    if (signature !== digest) {
+      console.error("Invalid webhook signature");
+      return NextResponse.json({ error: "Invalid signature" }, { status: 401 });
+    }
 
-    const updatedAd = await prisma.adRequest.update({
-      where: { id: adId },
-      data: {
-        status: cancelled
-          ? "cancelled"
-          : status === "active"
-            ? "active"
-            : "inactive",
-        lemonSubscriptionId: payload.data.id,
-        variantId: payload.data.attributes.variant_id,
-      },
-    });
+    const eventType = payload.meta.event_name;
+    const userEmail = payload.data.attributes.user_email;
+    const subscriptionId = payload.data.id;
 
-    // Log success and return
-    console.log("Webhook processed successfully for ad:", adId);
-    return NextResponse.json({ success: true, updatedAd });
+    console.log(`Processing ${eventType} for ${userEmail}`);
+
+    // Handle different event types
+    switch (eventType) {
+      case "subscription_created":
+      case "subscription_updated":
+        // Update user subscription
+        await prisma.user.update({
+          where: { email: userEmail },
+          data: {
+            lemonSubscriptionId: subscriptionId,
+            hasActiveTrial: false,
+          },
+        });
+        break;
+
+      case "subscription_cancelled":
+        await prisma.user.update({
+          where: { email: userEmail },
+          data: { lemonSubscriptionId: null },
+        });
+        break;
+
+      default:
+        console.warn(`Unhandled event type: ${eventType}`);
+    }
+
+    return NextResponse.json({ success: true });
   } catch (error) {
-    console.error(
-      "Webhook error:",
-      error instanceof Error ? error.message : "Unknown error"
-    );
+    console.error("Webhook processing error:", error);
     return NextResponse.json(
-      { error: "Webhook processing failed" },
+      { error: "Failed to process webhook" },
       { status: 500 }
     );
   }

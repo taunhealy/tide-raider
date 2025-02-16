@@ -1,5 +1,5 @@
 import type { Beach } from "@/app/types/beaches";
-import type { WindData } from "@/app/types/wind";
+import type { WindData, WindDataProp } from "@/app/types/wind";
 import { useSubscription } from "@/app/context/SubscriptionContext";
 import {
   isBeachSuitable,
@@ -30,7 +30,7 @@ import { cn } from "@/lib/utils";
 
 interface BeachCardProps {
   beach: Beach;
-  windData: WindData | null;
+  windData: WindDataProp;
   isFirst?: boolean;
   isLocked?: boolean;
   isLoading?: boolean;

@@ -4,13 +4,23 @@ import { WindData } from "@/app/types/wind";
 interface SurfForecastWidgetProps {
   beachId: string;
   date: string;
-  forecast: WindData;
+  forecast: {
+    wind: {
+      speed: number;
+      direction: string;
+    };
+    swell: {
+      height: number;
+      period: number;
+      direction: string;
+    };
+  };
 }
 
 export default function SurfForecastWidget({
   forecast,
 }: SurfForecastWidgetProps) {
-  if (!forecast) {
+  if (!forecast?.wind || !forecast?.swell) {
     return <div>Sorry, no forecast data rendered. Please refresh.</div>;
   }
 
@@ -24,37 +34,40 @@ export default function SurfForecastWidget({
   } = forecast;
 
   return (
-    <div className="bg-white p-4 rounded-lg shadow-sm">
-      <h3 className="font-semibold">Today's Forecast</h3>
-      <div className="space-y-2 text-base">
-        <div className="flex justify-between items-center">
-          <span className="text-gray-600">Wind</span>
-          <span className="font-medium">
-            {windDirection}
-            <br />
-            {windSpeed ? `${windSpeed} km/h` : "N/A"}
-          </span>
+    <div className="bg-white p-6 rounded-lg shadow-md border border-gray-100">
+      <h3 className="text-lg font-semibold mb-4 font-primary text-gray-800">
+        Today's Forecast
+      </h3>
+      <div className="grid gap-4">
+        <div className="p-3 bg-gray-50 rounded-lg">
+          <div className="flex justify-between items-center">
+            <span className="text-gray-600 font-primary">Wind</span>
+            <div className="text-right">
+              <span className="font-primary text-gray-900">
+                {windDirection}
+              </span>
+              <div className="text-sm font-primary text-gray-700">
+                {windSpeed ? `${windSpeed} km/h` : "N/A"}
+              </div>
+            </div>
+          </div>
         </div>
 
-        <div className="flex justify-between items-center">
-          <span className="text-gray-600">Swell Height</span>
-          <span className="font-medium">
-            {swellHeight ? `${swellHeight}m` : "N/A"}
-          </span>
-        </div>
-
-        <div className="flex justify-between items-center">
-          <span className="text-gray-600">Swell Period</span>
-          <span className="font-medium">
-            {swellPeriod ? `${swellPeriod}s` : "N/A"}
-          </span>
-        </div>
-
-        <div className="flex justify-between items-center">
-          <span className="text-gray-600">Swell Direction</span>
-          <span className="font-medium">
-            {swellDirection ? `${swellDirection}°` : "N/A"}
-          </span>
+        <div className="p-3 bg-gray-50 rounded-lg">
+          <div className="flex justify-between items-center">
+            <span className="text-gray-600 font-primary">Swell</span>
+            <div className="text-right">
+              <span className="font-primary text-gray-900">
+                {swellHeight ? `${swellHeight}m` : "N/A"}
+              </span>
+              <div className="text-sm font-primary text-gray-700">
+                {swellPeriod ? `${swellPeriod}s period` : "N/A"}
+              </div>
+              <div className="text-sm font-primary text-gray-700">
+                {swellDirection ? `${swellDirection}°` : "N/A"}
+              </div>
+            </div>
+          </div>
         </div>
       </div>
     </div>

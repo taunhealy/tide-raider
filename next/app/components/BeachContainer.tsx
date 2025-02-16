@@ -2,7 +2,6 @@
 
 import { useState, useEffect, useMemo, useCallback } from "react";
 import type { Beach, Region } from "@/app/types/beaches";
-import type { WindData } from "@/app/types/wind";
 import SidebarFilter from "./SidebarFilter";
 import BeachGrid from "./BeachGrid";
 import Map from "./Map";
@@ -11,7 +10,6 @@ import { useSubscription } from "../context/SubscriptionContext";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import {
   isBeachSuitable,
-  calculateBeachScores,
   FREE_BEACH_LIMIT,
   getGatedBeaches,
   degreesToCardinal,
@@ -36,8 +34,6 @@ import { useSearchParams } from "next/navigation";
 import BlogPostsSidebar from "./BlogPostsSidebar";
 import GoldSeeker from "./GoldSeeker";
 import BeachFeedback from "./BeachFeedback";
-import QuestSidebar from "./QuestLogSidebar";
-import RecentChronicles from "./RecentChronicles";
 import RegionalSidebar from "@/app/components/RegionalSidebar";
 import type { Ad } from "@/app/types/ads";
 import EventsSidebar from "./EventsSidebar";
@@ -45,16 +41,13 @@ import { beachData, REGIONS } from "@/app/types/beaches";
 import { format } from "date-fns";
 import QuestLogSidebar from "./QuestLogSidebar";
 import StickyForecastWidget from "./StickyForecastWidget";
-import { getCachedBeachCounts, cacheBeachCounts } from "@/app/lib/redis";
-import { prisma } from "@/app/lib/prisma";
-import { storeGoodBeachRatings } from "@/app/lib/surfUtils";
-import StickyRegionFilter from "./StickyRegionFilter";
 import { toast } from "sonner";
 import Link from "next/link";
 import SponsorContainer from "./SponsorContainer";
 import FavouriteSurfVideosSidebar from "@/app/components/FavouriteSurfVideosSidebar";
 import { useSurfConditions } from "@/app/hooks/useSurfConditions";
 import { RandomLoader } from "./ui/RandomLoader";
+import { WindData } from "@/app/types/wind";
 
 interface BeachContainerProps {
   initialBeaches: Beach[];
@@ -429,7 +422,7 @@ export default function BeachContainer({
   // Modify the pagination to respect subscription status
   const { visibleBeaches, lockedBeaches } = getGatedBeaches(
     filteredBeaches,
-    windData,
+    windData || null,
     isSubscribed,
     hasActiveTrial
   );
@@ -646,9 +639,7 @@ export default function BeachContainer({
             {/* Header Section - Moved inside main content */}
             <div className="flex flex-col gap-6 mb-9">
               <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
-                <h3
-                  className={` sm:text-2xl font-semi-bold text-[var(--color-text-primary)] font-primary`}
-                >
+                <h3 className="sm:text-2xl font-semi-bold text-[var(--color-text-primary)] font-primary">
                   This Morning's Recommendations
                 </h3>
               </div>
@@ -679,6 +670,7 @@ export default function BeachContainer({
                   value={searchQuery}
                   onChange={setSearchQuery}
                   placeholder="Search by name, region or description..."
+                  className="font-primary"
                 />
 
                 {/* View Toggle */}
@@ -717,7 +709,7 @@ export default function BeachContainer({
                     selectedCountries={filters.country}
                     selectedRegions={filters.region}
                     beaches={initialBeaches}
-                    windData={windData}
+                    windData={windData || null}
                     onContinentClick={(continent) =>
                       updateFilters("continent", continent)
                     }
@@ -820,7 +812,7 @@ export default function BeachContainer({
                     ) : (
                       windError && (
                         <div className="mb-6 p-4 bg-red-50 border border-red-200 rounded-lg">
-                          <p className="text-red-800">
+                          <p className="text-red-800 font-primary">
                             Error loading forecast data. Please try again later.
                           </p>
                         </div>
@@ -833,13 +825,13 @@ export default function BeachContainer({
                         <RandomLoader isLoading={isLoading} />
                       ) : windError ? (
                         <div className="p-4 bg-red-50 border border-red-200 rounded-lg">
-                          <p className="text-red-800">
+                          <p className="text-red-800 font-primary">
                             Error loading forecast data. Please try again later.
                           </p>
                         </div>
                       ) : !windData ? (
                         <div className="p-4 bg-yellow-50 border border-yellow-200 rounded-lg">
-                          <p className="text-yellow-800">
+                          <p className="text-yellow-800 font-primary">
                             No forecast data available for {selectedRegion}.
                             Please try again later.
                           </p>
@@ -848,10 +840,10 @@ export default function BeachContainer({
                         <div className="grid grid-cols-2 gap-4">
                           {/* Wind Data */}
                           <div className="bg-gray-50 p-4 rounded-lg">
-                            <span className="text-gray-600 block mb-1">
+                            <span className="text-gray-600 block mb-1 font-primary">
                               Wind
                             </span>
-                            <div className="font-medium">
+                            <div className="font-medium font-primary">
                               {windData.wind.direction} @ {windData.wind.speed}
                               km/h
                             </div>
@@ -859,10 +851,10 @@ export default function BeachContainer({
 
                           {/* Swell Data */}
                           <div className="bg-gray-50 p-4 rounded-lg">
-                            <span className="text-gray-600 block mb-1">
+                            <span className="text-gray-600 block mb-1 font-primary">
                               Swell
                             </span>
-                            <div className="font-medium">
+                            <div className="font-medium font-primary">
                               {windData.swell.height}m @ {windData.swell.period}
                               s
                             </div>
@@ -884,7 +876,7 @@ export default function BeachContainer({
                       filteredBeaches.length > FREE_BEACH_LIMIT && (
                         <div className="mt-8 p-6 bg-[var(--color-bg-tertiary)] rounded-lg text-white shadow-lg">
                           <div className="flex flex-col items-center text-center space-y-4">
-                            <h3 className="text-xl md: font-primary font-semibold">
+                            <h3 className="text-xl font-semibold font-primary">
                               Unlock {filteredBeaches.length - FREE_BEACH_LIMIT}{" "}
                               More Surf Breaks In This Region
                             </h3>
@@ -993,7 +985,7 @@ export default function BeachContainer({
               data-forecast-widget
             >
               <div className="flex items-center justify-between mb-6">
-                <h3 className={`text-[21px] heading-6 text-gray-800`}>
+                <h3 className="text-[21px] heading-6 text-gray-800 font-primary">
                   Today's Forecast
                 </h3>
                 <div
@@ -1019,7 +1011,7 @@ export default function BeachContainer({
                   </div>
                 ) : !windData ? (
                   <div className="col-span-2 flex items-center justify-center p-8">
-                    <span className="text-gray-600">
+                    <span className="text-gray-600 font-primary">
                       No forecast data available
                     </span>
                   </div>
@@ -1029,17 +1021,17 @@ export default function BeachContainer({
                     <div className="bg-gray-50 p-4 rounded-lg border border-gray-100 aspect-square flex flex-col">
                       <label
                         className={cn(
-                          "text-sm text-gray-500 uppercase tracking-wide mb-2"
+                          "text-sm text-gray-500 uppercase tracking-wide mb-2 font-primary"
                         )}
                       >
                         Wind
                       </label>
                       <div className="flex-1 flex flex-col items-center justify-center">
                         <div className="space-y-2 text-center">
-                          <span className="text-xl font-semibold text-gray-800">
+                          <span className="text-xl font-semibold text-gray-800 font-primary">
                             {windData?.wind?.direction || "N/A"}
                           </span>
-                          <span className="block text-sm text-gray-600">
+                          <span className="block text-sm text-gray-600 font-primary">
                             {windData?.wind?.speed || "N/A"} km/h
                           </span>
                         </div>
@@ -1056,7 +1048,7 @@ export default function BeachContainer({
                         Swell Height
                       </label>
                       <div className="flex-1 flex flex-col items-center justify-center">
-                        <span className="text-xl font-semibold text-gray-800">
+                        <span className="text-xl font-semibold text-gray-800 font-primary">
                           {windData?.swell?.height || "N/A"}m
                         </span>
                       </div>
@@ -1072,7 +1064,7 @@ export default function BeachContainer({
                         Swell Period
                       </label>
                       <div className="flex-1 flex flex-col items-center justify-center">
-                        <span className="text-xl font-semibold text-gray-800">
+                        <span className="text-xl font-semibold text-gray-800 font-primary">
                           {windData?.swell?.period || "N/A"}s
                         </span>
                       </div>
@@ -1089,10 +1081,10 @@ export default function BeachContainer({
                       </label>
                       <div className="flex-1 flex flex-col items-center justify-center">
                         <div className="space-y-2 text-center">
-                          <span className="text-xl font-semibold text-gray-800">
+                          <span className="text-xl font-semibold text-gray-800 font-primary">
                             {windData?.swell?.direction || "N/A"}°
                           </span>
-                          <span className="block text-sm text-gray-600">
+                          <span className="block text-sm text-gray-600 font-primary">
                             {degreesToCardinal(
                               Number(windData?.swell?.direction)
                             ) || "N/A"}
@@ -1126,10 +1118,10 @@ export default function BeachContainer({
         `}
       >
         <div className="flex justify-between items-center p-4 sm:p-6 border-b border-gray-200">
-          <h2 className="text-lg font-semibold">Filters</h2>
+          <h2 className="text-lg font-semibold font-primary">Filters</h2>
           <button
             onClick={() => setIsSidebarOpen(false)}
-            className="p-2 hover:bg-gray-100 rounded-full transition-colors"
+            className="p-2 hover:bg-gray-100 rounded-full transition-colors font-primary"
           >
             <X className="h-5 w-5" />
           </button>
@@ -1162,7 +1154,7 @@ export default function BeachContainer({
       )}
 
       {/* Sticky Forecast Widget */}
-      <StickyForecastWidget windData={windData} />
+      <StickyForecastWidget windData={windData || null} />
 
       {/* Add Sponsor Container */}
       <SponsorContainer />

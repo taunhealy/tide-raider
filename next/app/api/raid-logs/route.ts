@@ -2,9 +2,8 @@ import { NextResponse } from "next/server";
 import { prisma } from "@/app/lib/prisma";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/app/lib/authOptions";
-import { beachData } from "@/app/types/beaches";
+
 import { z } from "zod";
-import { Prisma } from "@prisma/client";
 
 function getTodayDate() {
   const date = new Date();
@@ -65,10 +64,8 @@ interface Forecast {
   };
 }
 
-// Add this function to handle forecast fetching
+// Add this helper function at the top
 async function getForecast(date: string, region: string) {
-  console.log("Fetching forecast for:", { date, region });
-
   // Convert the date string to start of day UTC
   const queryDate = new Date(date);
   queryDate.setUTCHours(0, 0, 0, 0);
@@ -89,78 +86,71 @@ async function getForecast(date: string, region: string) {
     },
   });
 
-  console.log("Query date:", queryDate);
-  console.log("Found conditions:", conditions);
-
-  if (!conditions?.forecast) {
-    console.log("No forecast found for:", { date, region });
-    return null;
-  }
-
-  return conditions.forecast;
+  return conditions?.forecast || null;
 }
 
 // Update the GET endpoint to handle forecast requests
 export async function GET(request: Request) {
   const { searchParams } = new URL(request.url);
-  const date = searchParams.get("date");
-  const region = searchParams.get("region");
+  console.log("🔍 Fetching raid logs with params:", searchParams.toString());
 
-  // If date and region are provided, return forecast
-  if (date && region) {
-    try {
-      const forecast = await getForecast(date, region);
-      if (!forecast) {
-        return NextResponse.json(
-          { error: "No forecast data available" },
-          { status: 404 }
-        );
-      }
-      return NextResponse.json(forecast);
-    } catch (error) {
-      console.error("Error fetching forecast:", error);
-      return NextResponse.json(
-        { error: "Failed to fetch forecast" },
-        { status: 500 }
-      );
-    }
+  // Extract all filter parameters
+  const beaches = searchParams.get("beaches")?.split(",").filter(Boolean) || [];
+  const regions = searchParams.get("regions")?.split(",").filter(Boolean) || [];
+  const countries =
+    searchParams.get("countries")?.split(",").filter(Boolean) || [];
+  const minRating = Number(searchParams.get("minRating")) || 0;
+  const isPrivate = searchParams.get("isPrivate") === "true";
+
+  const session = await getServerSession(authOptions);
+  console.log("👤 Session state:", session ? "Authenticated" : "Public");
+
+  // Check for private logs access
+  if (isPrivate && !session?.user?.id) {
+    return NextResponse.json(
+      { error: "Authentication required for private logs" },
+      { status: 401 }
+    );
   }
 
-  console.log("[API] Received forecast request with params:", {
-    url: request.url,
-    searchParams: Object.fromEntries(new URL(request.url).searchParams),
-  });
-
   try {
-    // Get filter parameters
-    const regions = searchParams.get("regions")?.split(",") || [];
-    const beaches = searchParams.get("beaches")?.split(",") || [];
-    const countries = searchParams.get("countries")?.split(",") || [];
-    const waveTypes = searchParams.get("waveTypes")?.split(",") || [];
-    const minRating = Number(searchParams.get("minRating")) || 0;
-    const startDate = searchParams.get("startDate");
-    const endDate = searchParams.get("endDate");
+    // Build dynamic where clause
+    const whereClause: any = {
+      // Handle private/public filtering
+      ...(isPrivate
+        ? {
+            isPrivate: true,
+            userId: session!.user.id,
+          }
+        : {
+            OR: [
+              { isPrivate: false }, // Show all public logs
+              ...(session?.user?.id ? [{ userId: session.user.id }] : []), // Show user's private logs if logged in
+            ],
+          }),
+
+      // Add filter conditions only if they exist
+      ...(beaches.length > 0 && {
+        beachName: { in: beaches },
+      }),
+      ...(regions.length > 0 && {
+        region: { in: regions },
+      }),
+      ...(countries.length > 0 && {
+        country: { in: countries },
+      }),
+      ...(minRating > 0 && {
+        surferRating: { gte: minRating },
+      }),
+    };
 
     const entries = await prisma.logEntry.findMany({
-      where: {
-        isPrivate: false,
-        ...(regions.length && { region: { in: regions } }),
-        ...(beaches.length && { beachName: { in: beaches } }),
-        ...(countries.length && { country: { in: countries } }),
-        ...(waveTypes.length && { waveType: { in: waveTypes } }),
-        ...(minRating > 0 && { surferRating: { gte: minRating } }),
-        ...(startDate &&
-          endDate && {
-            date: {
-              gte: new Date(startDate),
-              lte: new Date(endDate),
-            },
-          }),
-      },
+      where: whereClause,
       select: {
         id: true,
         date: true,
         beachName: true,
+        surferName: true,
         surferRating: true,
         comments: true,
         imageUrl: true,
@@ -169,24 +159,18 @@ export async function GET(request: Request) {
         waveType: true,
         createdAt: true,
         forecast: true,
+        isAnonymous: true,
+        isPrivate: true,
+        userId: true,
       },
       orderBy: { date: "desc" },
       take: 50,
     });
 
-    // Add forecast transformation
-    const transformedEntries = entries.map((entry) => ({
-      ...entry,
-      forecast:
-        entry.forecast && typeof entry.forecast === "object"
-          ? entry.forecast
-          : null,
-    }));
-
-    console.log("[API] Returning forecast data:", transformedEntries);
-    return NextResponse.json({ entries: transformedEntries });
+    console.log(`📊 Found ${entries.length} entries`);
+    return NextResponse.json({ entries });
   } catch (error) {
-    console.error("Error fetching public logs:", error);
+    console.error("❌ Error in raid logs:", error);
     return NextResponse.json(
       { error: "Failed to fetch logs" },
       { status: 500 }
@@ -200,25 +184,16 @@ export async function POST(request: Request) {
     if (!session?.user) return new Response("Unauthorized", { status: 401 });
 
     const data = await request.json();
-    const beach = beachData.find((b) => b.name === data.beachName);
-    if (!beach) throw new Error("Beach not found");
+
+    // Fetch forecast data
+    const forecast = await getForecast(data.date, data.region);
 
     const entry = await prisma.logEntry.create({
       data: {
+        ...data,
         date: new Date(data.date),
-        beachName: data.beachName,
-        region: beach.region,
-        country: data.country,
-        continent: data.continent,
-        waveType: data.waveType,
-        surferName: data.surferName,
-        surferRating: data.surferRating,
-        comments: data.comments,
-        imageUrl: data.imageUrl || "",
-        isPrivate: data.isPrivate || false,
-        isAnonymous: data.isAnonymous || false,
         userId: session.user.id,
-        forecast: data.forecast, // Store the forecast data directly
+        forecast: forecast, // Add the forecast data
       },
     });
 

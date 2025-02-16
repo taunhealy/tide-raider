@@ -11,10 +11,14 @@ import { LogVisibilityToggle } from "@/app/components/LogVisibilityToggle";
 import { Button } from "@/app/components/ui/Button";
 import Link from "next/link";
 import type { Beach } from "@/app/types/beaches";
+import { toast } from "sonner";
+import { signIn } from "next-auth/react";
 
 // Add filter config types similar to QuestLogs
 type FilterConfig = {
   beaches: string[];
+  regions: string[];
+  countries: string[];
   minRating: number;
   dateRange: { start: string; end: string };
   isPrivate: boolean;
@@ -22,6 +26,8 @@ type FilterConfig = {
 
 const defaultFilters: FilterConfig = {
   beaches: [],
+  regions: [],
+  countries: [],
   minRating: 0,
   dateRange: { start: "", end: "" },
   isPrivate: false,
@@ -29,7 +35,7 @@ const defaultFilters: FilterConfig = {
 
 interface RaidLogsComponentProps {
   beaches: Beach[];
-  userId: string;
+  userId?: string;
   initialFilters?: { isPrivate: boolean };
 }
 
@@ -44,36 +50,102 @@ export const RaidLogsComponent: React.FC<RaidLogsComponentProps> = ({
   const searchParams = useSearchParams();
   const [isFilterOpen, setIsFilterOpen] = useState(false);
   const [filters, setFilters] = useState<FilterConfig>(defaultFilters);
-  const [isPrivate, setIsPrivate] = useState(false);
+  const [isPrivate, setIsPrivate] = useState(
+    initialFilters?.isPrivate ?? false
+  );
   const [isFormOpen, setIsFormOpen] = useState(false);
+
+  const handleFilterChange = useCallback(
+    (newFilters: Partial<FilterConfig>) => {
+      setFilters((prev) => ({ ...prev, ...newFilters }));
+
+      // Update URL params
+      const params = new URLSearchParams(searchParams);
+
+      // Update each filter type in the URL
+      Object.entries(newFilters).forEach(([key, value]) => {
+        if (Array.isArray(value)) {
+          if (value.length > 0) {
+            params.set(key, value.join(","));
+          } else {
+            params.delete(key);
+          }
+        } else if (typeof value === "number" && value > 0) {
+          params.set(key, value.toString());
+        } else {
+          params.delete(key);
+        }
+      });
+
+      router.push(`${pathname}?${params.toString()}`, { scroll: false });
+    },
+    [router, pathname, searchParams]
+  );
+
+  const handlePrivateToggle = () => {
+    if (!session?.user) {
+      toast.error("Please sign in to view private logs", {
+        action: {
+          label: "Sign In",
+          onClick: () => signIn(),
+        },
+      });
+      return;
+    }
+    setIsPrivate((prev) => !prev);
+    setFilters((prev) => ({ ...prev, isPrivate: !isPrivate }));
+  };
 
   const {
     data: logEntriesData,
     isLoading,
     error,
   } = useQuery({
-    queryKey: ["raidLogs", filters],
+    queryKey: ["raidLogs", filters, isPrivate],
     queryFn: async () => {
-      const res = await fetch(
-        `/api/raid-logs?filters=${JSON.stringify(filters)}`
-      );
+      const params = new URLSearchParams();
+
+      // Add all filter parameters
+      if (filters.beaches.length) {
+        params.set("beaches", filters.beaches.join(","));
+      }
+      if (filters.regions.length) {
+        params.set("regions", filters.regions.join(","));
+      }
+      if (filters.countries.length) {
+        params.set("countries", filters.countries.join(","));
+      }
+      if (filters.minRating > 0) {
+        params.set("minRating", filters.minRating.toString());
+      }
+      if (isPrivate) {
+        params.set("isPrivate", "true");
+      }
+
+      const res = await fetch(`/api/raid-logs?${params.toString()}`);
+
+      if (res.status === 401) {
+        toast.error("Please sign in to view private logs", {
+          action: {
+            label: "Sign In",
+            onClick: () => signIn(),
+          },
+        });
+        return { entries: [] };
+      }
+
+      if (res.status === 403) {
+        toast.error("You can only view your own private logs");
+        return { entries: [] };
+      }
+
+      if (!res.ok) {
+        throw new Error("Failed to fetch logs");
+      }
+
       return res.json();
     },
   });
-
-  const handleFilterChange = useCallback(
-    (newFilters: Partial<FilterConfig>) => {
-      setFilters((prev) => ({ ...prev, ...newFilters }));
-      // Update URL params similar to QuestLogs
-      const params = new URLSearchParams(searchParams);
-      if (newFilters.beaches)
-        params.set("beaches", newFilters.beaches.join(","));
-      router.push(`?${params.toString()}`, { scroll: false });
-    },
-    [router, searchParams]
-  );
-
-  const handlePrivateToggle = () => setIsPrivate((prev) => !prev);
 
   const filteredEntries = useMemo(() => {
     if (error) {
@@ -100,7 +172,7 @@ export const RaidLogsComponent: React.FC<RaidLogsComponentProps> = ({
               />
 
               <Link href="/raidlogs/new">
-                <Button size="sm">Create Log</Button>
+                <Button size="sm">Post</Button>
               </Link>
 
               <Button

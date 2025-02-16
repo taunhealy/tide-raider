@@ -2,17 +2,22 @@
 
 import { RaidLogsComponent } from "@/app/components/raid-logs/RaidLogsComponent";
 import { useSession } from "next-auth/react";
+import { beachData } from "@/app/types/beaches"; // Import beach data
+import { RandomLoader } from "@/components/ui/RandomLoader";
 
 export default function RaidLogsPage() {
-  const { data: session } = useSession();
+  const { data: session, status } = useSession();
 
-  return session?.user?.id ? (
+  if (status === "loading") {
+    return <RandomLoader isLoading={true} />;
+  }
+
+  // Allow access even without session
+  return (
     <RaidLogsComponent
-      beaches={[]} // Pass actual beaches data here
-      userId={session.user.id} // Now guaranteed to be string
+      beaches={beachData} // Pass the beach data from our types
+      userId={session?.user?.id} // Pass undefined if no session
       initialFilters={{ isPrivate: false }}
     />
-  ) : (
-    <div>Loading or unauthorized message</div>
   );
 }

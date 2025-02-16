@@ -28,5 +28,8 @@ export function isValidWindData(data: any): data is WindData {
 
 export interface BeachContainerProps {
   initialBeaches: Beach[];
-  windData: WindData | null;
+  windData: WindData | null | undefined;
 }
+
+// Also add a reusable type for components that use windData
+export type WindDataProp = WindData | null | undefined;

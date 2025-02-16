@@ -1,5 +1,5 @@
 import type { Beach } from "@/app/types/beaches";
-import type { WindData } from "@/app/types/wind";
+import type { WindData, WindDataProp } from "@/app/types/wind";
 import { prisma } from "@/app/lib/prisma";
 import { beachData } from "@/app/types/beaches";
 import { randomUUID } from "crypto";
@@ -13,12 +13,12 @@ interface ScoreDisplay {
 }
 
 export function getScoreDisplay(score: number): ScoreDisplay {
-  // Convert score to nearest integer to handle floating point values
-  const roundedScore = Math.round(score);
+  // Use floor instead of round to prevent 3.5 → 4
+  const flooredScore = Math.floor(score);
 
   const getStars = (count: number) => "⭐".repeat(count);
 
-  switch (roundedScore) {
+  switch (flooredScore) {
     case 5:
       return {
         description: "Yeeeew!",
@@ -64,8 +64,15 @@ export function getScoreDisplay(score: number): ScoreDisplay {
   }
 }
 
-export function isBeachSuitable(beach: Beach, windData: WindData | null) {
-  if (!windData?.wind?.direction || !windData?.swell?.direction) {
+export function isBeachSuitable(
+  beach: Beach,
+  conditions: WindDataProp
+): { suitable: boolean; score: number } {
+  if (!conditions) {
+    return { suitable: false, score: 0 };
+  }
+
+  if (!conditions?.wind?.direction || !conditions?.swell?.direction) {
     return {
       suitable: false,
       score: 0,
@@ -75,7 +82,7 @@ export function isBeachSuitable(beach: Beach, windData: WindData | null) {
   let score = 0;
 
   // Check wind direction compatibility with penalty
-  if (beach.optimalWindDirections.includes(windData.wind.direction)) {
+  if (beach.optimalWindDirections.includes(conditions.wind.direction)) {
     score += 2;
   } else {
     score = Math.max(0, score - 0.5);
@@ -83,15 +90,15 @@ export function isBeachSuitable(beach: Beach, windData: WindData | null) {
 
   // Add penalty for strong winds unless beach is sheltered
   if (
-    windData.wind.speed >= 15 &&
-    windData.wind.speed > 25 &&
+    conditions.wind.speed >= 15 &&
+    conditions.wind.speed > 25 &&
     !beach.sheltered
   ) {
-    score = Math.max(0, score - 0.5);
+    score = Math.max(0, score - 0);
   }
 
   // Check swell direction with graduated penalties
-  const swellDeg = windData.swell.direction;
+  const swellDeg = conditions.swell.direction;
   const minSwellDiff = Math.abs(swellDeg - beach.optimalSwellDirections.min);
   const maxSwellDiff = Math.abs(swellDeg - beach.optimalSwellDirections.max);
   const swellDirDiff = Math.min(minSwellDiff, maxSwellDiff);
@@ -113,8 +120,8 @@ export function isBeachSuitable(beach: Beach, windData: WindData | null) {
 
   // Check swell height with harsh penalty for wrong size
   const hasGoodSwellHeight =
-    windData.swell.height >= beach.swellSize.min &&
-    windData.swell.height <= beach.swellSize.max;
+    conditions.swell.height >= beach.swellSize.min &&
+    conditions.swell.height <= beach.swellSize.max;
 
   if (hasGoodSwellHeight) {
     score += 1;
@@ -124,13 +131,13 @@ export function isBeachSuitable(beach: Beach, windData: WindData | null) {
 
   // Check swell period with graduated scoring
   const periodDiff = Math.min(
-    Math.abs(windData.swell.period - beach.idealSwellPeriod.min),
-    Math.abs(windData.swell.period - beach.idealSwellPeriod.max)
+    Math.abs(conditions.swell.period - beach.idealSwellPeriod.min),
+    Math.abs(conditions.swell.period - beach.idealSwellPeriod.max)
   );
 
   if (
-    windData.swell.period >= beach.idealSwellPeriod.min &&
-    windData.swell.period <= beach.idealSwellPeriod.max
+    conditions.swell.period >= beach.idealSwellPeriod.min &&
+    conditions.swell.period <= beach.idealSwellPeriod.max
   ) {
     // Within optimal range - no penalty
   } else if (periodDiff <= 2) {
@@ -144,9 +151,10 @@ export function isBeachSuitable(beach: Beach, windData: WindData | null) {
     score = Math.max(0, score - 2);
   }
 
+  // Use exact score for suitability check
   return {
-    suitable: score > 2,
     score: score,
+    suitable: score >= 4, // Not rounded
   };
 }
 
@@ -353,93 +361,4 @@ export function formatConditionsResponse(conditions: any) {
     timestamp: conditions.timestamp,
     region: conditions.region,
   };
-}
-
-export function calculateInitialScores(
-  beaches: Beach[],
-  windData: WindData | null,
-  selectedRegion: string
-) {
-  const scores: Record<string, number> = {};
-
-  if (!windData) return scores;
-
-  beaches.forEach((beach) => {
-    if (beach.region === selectedRegion) {
-      const { score } = isBeachSuitable(beach, windData);
-      if (score >= 4) {
-        scores[beach.region] = (scores[beach.region] || 0) + 1;
-        scores[beach.country] = (scores[beach.country] || 0) + 1;
-        scores[beach.continent] = (scores[beach.continent] || 0) + 1;
-      }
-    }
-  });
-
-  return scores;
-}
-
-export function calculateBeachScores(
-  beaches: Beach[],
-  windData: WindData | null
-) {
-  if (!windData) return {};
-
-  const counts: Record<string, number> = {};
-
-  // Group beaches by their region and calculate scores
-  beaches.forEach((beach) => {
-    const { score } = isBeachSuitable(beach, windData);
-    if (score >= 4) {
-      // Only increment counters for the beach's specific region/country/continent
-      counts[beach.region] = (counts[beach.region] || 0) + 1;
-
-      // Only count for parent regions if the beach is actually in that region
-      if (beach.country === beach.region) {
-        counts[beach.country] = (counts[beach.country] || 0) + 1;
-      }
-      if (beach.continent === beach.region) {
-        counts[beach.continent] = (counts[beach.continent] || 0) + 1;
-      }
-    }
-  });
-
-  return counts;
-}
-
-export async function storeGoodBeachRatings(conditions: any, date: Date) {
-  console.log("🏖️ Starting beach ratings for:", conditions.region);
-
-  const regionBeaches = beachData.filter(
-    (beach) => beach.region === conditions.region
-  );
-
-  // Calculate scores for all beaches
-  const beachScores = regionBeaches.map((beach) => {
-    const { score } = isBeachSuitable(beach, conditions.forecast);
-    return { beach, score };
-  });
-
-  // Filter good beaches (score >= 4)
-  const goodBeaches = beachScores.filter(({ score }) => score >= 4);
-
-  if (goodBeaches.length > 0) {
-    try {
-      // Use createMany with skipDuplicates
-      const result = await prisma.beachGoodRating.createMany({
-        data: goodBeaches.map(({ beach, score }) => ({
-          id: randomUUID(),
-          date,
-          beachId: beach.id,
-          region: beach.region,
-          score,
-          conditions: conditions.forecast,
-        })),
-        skipDuplicates: true, // This will skip any duplicates based on the unique constraint
-      });
-
-      console.log(`✅ Stored ${result.count} beach ratings`);
-    } catch (error) {
-      console.error("❌ Error storing beach ratings:", error);
-    }
-  }
 }

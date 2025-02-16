@@ -93,8 +93,9 @@ export interface QuestLogTableColumn {
 }
 
 export const DEFAULT_COLUMNS: QuestLogTableColumn[] = [
-  { key: "date", label: "Quest Date", sortable: true },
+  { key: "date", label: "Date", sortable: true },
   { key: "beachName", label: "Location", sortable: true },
+  { key: "region", label: "Region", sortable: true },
   { key: "surferName", label: "Adventurer", sortable: true },
   { key: "surferRating", label: "Wave Rating", sortable: true },
   {

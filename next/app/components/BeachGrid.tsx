@@ -1,14 +1,14 @@
 import type { Beach } from "../types/beaches";
-import type { WindData } from "../types/wind";
+import { WindDataProp } from "@/app/types/wind";
 import BeachCard from "./BeachCard";
 import { useSubscription } from "../context/SubscriptionContext";
 
 interface BeachGridProps {
   beaches: Beach[];
-  windData: WindData | null;
+  windData: WindDataProp;
   isBeachSuitable: (
     beach: Beach,
-    conditions: WindData
+    conditions: WindDataProp
   ) => {
     suitable: boolean;
     score: number;

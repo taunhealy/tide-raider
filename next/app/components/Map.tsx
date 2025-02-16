@@ -2,7 +2,7 @@
 
 import { useEffect, useState, useRef } from "react";
 import { Beach, Region } from "@/app/types/beaches";
-import { WindData } from "@/app/types/wind";
+import { WindData, WindDataProp } from "@/app/types/wind";
 import {
   isBeachSuitable,
   getScoreDisplay,
@@ -28,9 +28,9 @@ const inter = Inter({ subsets: ["latin"] });
 
 interface MapProps {
   beaches: Beach[];
-  windData: WindData | null;
-  regions: Region[];
-  selectedRegions: any;
+  windData: WindDataProp;
+  regions: string[];
+  selectedRegions: string[];
   onRegionClick: any;
   filters: any;
   hasActiveTrial: boolean;
@@ -47,7 +47,7 @@ export default function Map({ beaches, windData, hasActiveTrial }: MapProps) {
   // Apply gating to beaches before processing
   const { visibleBeaches } = getGatedBeaches(
     beaches,
-    windData,
+    windData || null,
     isSubscribed,
     hasActiveTrial
   );

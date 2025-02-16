@@ -204,7 +204,7 @@ const RegionFilter = memo(function RegionFilter({
         key={region}
         onClick={() => onRegionChange(region)}
         className={cn(
-          "flex items-center justify-between w-full px-4 py-2 text-left rounded-lg transition-colors",
+          "flex items-center justify-between px-4 py-2 text-left rounded-lg transition-colors font-primary",
           selectedRegion === region
             ? "bg-[var(--color-bg-tertiary)] text-white"
             : "hover:bg-gray-100"
@@ -213,9 +213,9 @@ const RegionFilter = memo(function RegionFilter({
         <span>{region}</span>
         {region === selectedRegion &&
           (isCountLoading ? (
-            <div className="w-6 h-6 animate-pulse bg-gray-200 rounded-full" />
+            <div className="w-6 h-6 animate-pulse bg-[var(--color-brand-tertiary)]/20 rounded-full" />
           ) : (
-            <span className="inline-flex items-center justify-center w-6 h-6 text-sm text-white bg-[var(--color-bg-tertiary)] rounded-full">
+            <span className="inline-flex items-center justify-center w-6 h-6 text-sm bg-white rounded-full text-black font-primary">
               {regionCount ?? 0}
             </span>
           ))}
@@ -290,7 +290,7 @@ const RegionFilter = memo(function RegionFilter({
 
           {/* Regions */}
           {visibleRegions.length > 0 && (
-            <div className="flex items-center gap-2 overflow-x-auto pb-2 flex-wrap">
+            <div className="flex flex-col gap-3 w-[210px] min-w-[210px]">
               {regionButtons}
             </div>
           )}

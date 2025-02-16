@@ -13,7 +13,7 @@ export const Select = forwardRef<ElementRef<"select">, SelectProps>(
       ref={ref}
       value={value}
       onChange={(e) => onValueChange?.(e.target.value)}
-      className="w-full p-2 border rounded-lg bg-white"
+      className="w-full p-2 border rounded-lg bg-white font-primary"
       {...props}
     >
       {children}

@@ -37,7 +37,7 @@ interface LogEntryDisplayProps {
 
 function LogEntryDisplay({ entry, isAnonymous }: LogEntryDisplayProps) {
   const displayName = isAnonymous ? "Anonymous" : entry.surferName;
-  return displayName;
+  return <span className="font-primary text-gray-900">{displayName}</span>;
 }
 
 function ForecastInfo({ forecast }: { forecast: any }) {
@@ -213,9 +213,13 @@ export default function RaidLogTable({
 
   const filteredEntries = normalizedEntries.filter((entry) => {
     console.log("[RaidLogTable] Filtering entry:", entry);
-    // Wait until session is fully loaded
-    if (!session) return false;
 
+    // For public viewing (no session)
+    if (!session) {
+      return !entry.isPrivate;
+    }
+
+    // For authenticated users
     if (showPrivateOnly) {
       return entry.isPrivate && entry.userId === session.user?.id;
     }
@@ -292,6 +296,7 @@ export default function RaidLogTable({
                   <p className="text-sm text-gray-500">
                     {format(new Date(entry.date), "MMM d, yyyy")}
                   </p>
+                  <p className="text-sm text-gray-500">{entry.region}</p>
                 </div>
                 <StarRating rating={entry.surferRating} />
               </div>
@@ -358,7 +363,10 @@ export default function RaidLogTable({
                     <td className="px-6 py-4 whitespace-nowrap min-w-[160px] max-w-[250px] h-[60px]">
                       {entry.beachName}
                     </td>
-                    <td className="px-6 py-4 whitespace-nowrap">
+                    <td className="px-6 py-4 whitespace-nowrap min-w-[160px] max-w-[250px] h-[60px]">
+                      {entry.region}
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap font-primary">
                       <LogEntryDisplay
                         entry={entry}
                         isAnonymous={entry.isAnonymous ?? false}

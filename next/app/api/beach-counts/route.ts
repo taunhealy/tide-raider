@@ -1,5 +1,7 @@
 import { prisma } from "@/app/lib/prisma";
 import { NextResponse } from "next/server";
+import { beachData } from "@/app/types/beaches";
+import { isBeachSuitable } from "@/app/lib/surfUtils";
 
 export async function GET(request: Request) {
   const { searchParams } = new URL(request.url);
@@ -14,22 +16,27 @@ export async function GET(request: Request) {
   }
 
   try {
-    console.log(`Fetching good beach count for ${region} on ${dateStr}`);
-
-    // Convert date string to timestamp format
-    const date = new Date(dateStr);
-    date.setUTCHours(0, 0, 0, 0);
-
-    // Count beaches with good ratings for the region and date
-    const goodBeachCount = await prisma.beachGoodRating.count({
+    // Get the surf conditions for this region and date
+    const conditions = await prisma.surfCondition.findFirst({
       where: {
-        date: date, // Use the Date object that matches our DB timestamp
         region: region,
-        score: {
-          gte: 4, // Matches our "good" threshold from isBeachSuitable
-        },
+        date: new Date(dateStr),
       },
+      orderBy: { updatedAt: "desc" },
     });
+
+    if (!conditions?.forecast) {
+      console.log(`No conditions found for ${region} on ${dateStr}`);
+      return NextResponse.json({ count: 0 });
+    }
+
+    // Use the same scoring logic as BeachContainer
+    const regionBeaches = beachData.filter((beach) => beach.region === region);
+    const goodBeachCount = regionBeaches.filter((beach) => {
+      const { score } = isBeachSuitable(beach, conditions.forecast);
+      console.log(`${beach.name}: Score ${score}/5`); // Debug log
+      return score >= 4;
+    }).length;
 
     console.log(
       `Found ${goodBeachCount} good beaches for ${region} on ${dateStr}`

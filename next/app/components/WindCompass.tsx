@@ -4,7 +4,7 @@ import { degreesToCardinal } from "@/app/lib/surfUtils";
 interface WindCompassProps {
   windDirection: string;
   windSpeed: number;
-  swellDirection: string;
+  swellDirection: number;
   swellHeight: number;
 }
 

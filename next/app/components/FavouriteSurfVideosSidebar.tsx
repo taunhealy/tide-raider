@@ -95,6 +95,11 @@ export default function FavouriteSurfVideosSidebar({
     }
   };
 
+  const truncateString = (str: string, maxLength: number) => {
+    if (str.length <= maxLength) return str;
+    return str.slice(0, maxLength) + "...";
+  };
+
   return (
     <div className="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden max-w-[540px]">
       <div className="p-6 border-b border-gray-200 ">
@@ -135,7 +140,7 @@ export default function FavouriteSurfVideosSidebar({
                   className="group relative hover:bg-gray-50 cursor-pointer font-primary"
                   onClick={() => setSelectedFavorite(favorite)}
                 >
-                  <td className="p-4 text-sm text-gray-600">
+                  <td className="p-4 text-sm text-gray-600 w-[140px]">
                     <div className="flex items-center gap-2">
                       {favorite.user?.image ? (
                         <Image
@@ -162,13 +167,13 @@ export default function FavouriteSurfVideosSidebar({
                       )}
                     </div>
                   </td>
-                  <td className="p-4">
-                    <span className="text-[var(--color-primary)] font=primary text-sm font-primary">
-                      {favorite.title}
+                  <td className="p-4 pl-6">
+                    <span className="text-[var(--color-primary)] font-primary text-sm">
+                      {truncateString(favorite.title, 70)}
                     </span>
                   </td>
                   {session?.user?.id === favorite.userId && (
-                    <td className="p-4 flex items-center gap-2">
+                    <td className="p-4 w-[100px] flex items-center gap-2">
                       <button
                         onClick={(e) => {
                           e.stopPropagation();

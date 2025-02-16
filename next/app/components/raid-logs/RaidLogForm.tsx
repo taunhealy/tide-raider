@@ -64,7 +64,7 @@ export function RaidLogForm({
     mutationFn: async (newEntry: CreateLogEntryInput) => {
       const method = entry?.id ? "PATCH" : "POST";
       const response = await fetch(
-        `/api/raid-logs${entry?.id ? `/${entry.id}` : ""}`,
+        `/api/raid-logs/forecast/?date=${selectedDate}&region=${encodeURIComponent(selectedBeach!.region)}`,
         {
           method,
           headers: {
@@ -119,20 +119,6 @@ export function RaidLogForm({
       return;
     }
 
-    const formattedForecast = {
-      wind: {
-        speed: forecast.entries[0].wind.speed,
-        direction: forecast.entries[0].wind.direction,
-      },
-      swell: {
-        height: forecast.entries[0].swell.height,
-        period: forecast.entries[0].swell.period,
-        direction: forecast.entries[0].swell.direction,
-        cardinalDirection: forecast.entries[0].swell.cardinalDirection,
-      },
-      timestamp: forecast.entries[0].timestamp,
-    };
-
     const newEntry = {
       beachName: selectedBeach.name,
       date: selectedDate,
@@ -145,7 +131,7 @@ export function RaidLogForm({
       userId: session!.user.id,
       surferRating: surferRating,
       comments,
-      forecast: formattedForecast,
+      forecast: forecast,
       continent: selectedBeach.continent,
       country: selectedBeach.country,
       region: selectedBeach.region,
@@ -155,7 +141,6 @@ export function RaidLogForm({
       id: entry?.id,
     };
 
-    console.log("[Submission] Forecast data:", formattedForecast);
     console.log("[Submission] Final Payload:", newEntry);
 
     setIsSubmitting(true);
@@ -226,7 +211,7 @@ export function RaidLogForm({
       });
 
       const response = await fetch(
-        `/api/raid-logs?date=${selectedDate}&region=${encodeURIComponent(beach.region)}`
+        `/api/raid-logs/forecast?date=${selectedDate}&region=${encodeURIComponent(beach.region)}`
       );
 
       if (!response.ok) {
@@ -234,10 +219,12 @@ export function RaidLogForm({
       }
 
       const data = await response.json();
+      console.log("Raw forecast data:", data);
 
-      if (data && data.entries && data.entries.length > 0) {
+      if (data && data.wind && data.swell) {
         setForecast(data);
       } else {
+        console.log("Invalid forecast data structure:", data);
         setForecast(null);
       }
     } catch (error) {
@@ -301,7 +288,7 @@ export function RaidLogForm({
       {isOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center">
           <div className="absolute inset-0 bg-black/50" onClick={onClose} />
-          <div className="relative bg-white rounded-lg shadow-xl max-w-[95%] lg:max-w-[1200px] w-full m-4 p-4 lg:p-6 overflow-y-auto max-h-[90vh]">
+          <div className="relative bg-white rounded-lg shadow-xl max-w-[500px] lg:max-w-[500px] w-[500px] m-4 p-4 lg:p-6 overflow-y-auto max-h-[90vh]">
             {!isSubscribed && !hasActiveTrial && (
               <div className="absolute inset-0 bg-gray-100/50 backdrop-blur-[2px] z-10 rounded-lg" />
             )}
@@ -310,10 +297,10 @@ export function RaidLogForm({
               <div className="absolute inset-0 flex flex-col items-center justify-center z-20 gap-4">
                 <Lock className="h-16 w-16 text-gray-400" />
                 <div className="text-center px-4">
-                  <h3 className="text-lg font-semibold mb-2">
+                  <h3 className="text-lg font-semibold mb-2 font-primary">
                     Start Logging Your Sessions
                   </h3>
-                  <p className="text-gray-600 mb-4">
+                  <p className="text-gray-600 mb-4 font-primary">
                     Track your surf journey with detailed logs and insights
                   </p>
                   <Button
@@ -338,7 +325,9 @@ export function RaidLogForm({
               <X className="h-6 w-6" />
             </button>
 
-            <h2 className="text-xl font-semibold mb-4">Log Session</h2>
+            <h2 className="text-xl font-semibold mb-4 font-primary">
+              Log Session
+            </h2>
 
             <form onSubmit={handleSubmit} className="space-y-4">
               <div className="steps-container space-y-6">
@@ -402,7 +391,9 @@ export function RaidLogForm({
                           forecast={forecast}
                         />
                       ) : (
-                        <div>Loading forecast data...</div>
+                        <div className="text-red-600 font-primary">
+                          Error loading forecast data. Please try again later.
+                        </div>
                       )}
                     </div>
                   </div>
@@ -411,7 +402,7 @@ export function RaidLogForm({
                 {/* Step 4: Rating */}
                 {forecast && (
                   <div className="step">
-                    <h3 className="text-lg font-semibold mb-2">
+                    <h3 className="text-lg font-semibold mb-2 font-primary">
                       4. Rate Your Session
                     </h3>
                     <div className="flex gap-1">
@@ -437,7 +428,7 @@ export function RaidLogForm({
                 {/* Step 5: Comments */}
                 {surferRating > 0 && (
                   <div className="step">
-                    <h3 className="text-lg font-semibold mb-2">
+                    <h3 className="text-lg font-semibold mb-2 font-primary">
                       5. Add Comments
                     </h3>
                     <textarea
@@ -450,7 +441,7 @@ export function RaidLogForm({
                       placeholder="How was your session?"
                       maxLength={140}
                     />
-                    <div className="text-sm text-gray-500 mt-1">
+                    <div className="text-sm text-gray-500 mt-1 font-primary">
                       Characters remaining: {140 - comments.length}
                     </div>
                   </div>
@@ -458,7 +449,7 @@ export function RaidLogForm({
 
                 {/* Optional Steps */}
                 <div className="step">
-                  <h3 className="text-lg font-semibold mb-2">
+                  <h3 className="text-lg font-semibold mb-2 font-primary">
                     Additional Options
                   </h3>
                   <div className="space-y-2">
@@ -469,7 +460,9 @@ export function RaidLogForm({
                         checked={isAnonymous}
                         onChange={(e) => setIsAnonymous(e.target.checked)}
                       />
-                      <label htmlFor="anonymous">Post Anonymously</label>
+                      <label htmlFor="anonymous" className="font-primary">
+                        Post Anonymously
+                      </label>
                     </div>
                     <div className="flex items-center space-x-2">
                       <input
@@ -478,7 +471,9 @@ export function RaidLogForm({
                         checked={isPrivate}
                         onChange={(e) => setIsPrivate(e.target.checked)}
                       />
-                      <label htmlFor="private">Keep Private</label>
+                      <label htmlFor="private" className="font-primary">
+                        Keep Private
+                      </label>
                     </div>
                   </div>
                 </div>
@@ -498,7 +493,9 @@ export function RaidLogForm({
 
             {forecast && (
               <div className="p-4 bg-gray-100 rounded-lg mt-4">
-                <h4 className="font-semibold mb-2">Debug Forecast Data</h4>
+                <h4 className="font-semibold mb-2 font-primary">
+                  Debug Forecast Data
+                </h4>
                 <pre className="text-xs">
                   {JSON.stringify(forecast, null, 2)}
                 </pre>

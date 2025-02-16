@@ -433,10 +433,8 @@ export default function HeroProduct() {
                                     title={`Swell Direction: ${surfData[currentBeach.id].swell?.direction}`}
                                   >
                                     {getDirectionEmoji(
-                                      parseInt(
-                                        surfData[currentBeach.id].swell
-                                          ?.direction || "0"
-                                      )
+                                      surfData[currentBeach.id].swell
+                                        ?.direction || 0
                                     )}
                                   </span>
                                   <span className="font-medium font-primary">

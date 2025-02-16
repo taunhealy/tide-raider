@@ -80,32 +80,32 @@ export default function DashboardPage() {
   };
 
   return (
-    <div className="container mx-auto p-6 font-primary">
-      <h1 className="text-3xl font-bold mb-8">Dashboard</h1>
+    <div className="container mx-auto p-4 sm:p-6 font-primary">
+      <h1 className="text-2xl sm:text-3xl font-bold mb-6">Dashboard</h1>
 
-      <div className="flex gap-4 mb-6 font-primary">
+      <div className="flex flex-row sm:flex-row gap-2 sm:gap-4 mb-6">
         <Button
           variant={activeTab === "account" ? "default" : "outline"}
           onClick={() => setActiveTab("account")}
+          className="w-full sm:w-auto"
         >
           Account
         </Button>
         <Button
           variant={activeTab === "billing" ? "default" : "outline"}
           onClick={() => setActiveTab("billing")}
+          className="w-full sm:w-auto"
         >
           Billing
         </Button>
       </div>
 
-      <div className="min-h-[400px] min-w-[500px] max-w-[500px]">
+      <div className="min-h-[400px] w-full max-w-full sm:min-w-[500px] sm:max-w-[500px]">
         {activeTab === "account" && (
           <div className="space-y-4">
             <div>
-              <label className="block text-sm font-medium mb-2 font-primary">
-                Username
-              </label>
-              <div className="flex gap-2">
+              <label className="block text-sm font-medium mb-2">Username</label>
+              <div className="flex flex-col sm:flex-row gap-2 space-y-2 sm:space-y-0">
                 <input
                   type="text"
                   value={username}
@@ -113,14 +113,19 @@ export default function DashboardPage() {
                     setUsername(e.target.value);
                     setError(null);
                   }}
-                  className="flex-1 p-2 border rounded-md"
+                  className="w-full p-2 border rounded-md"
                 />
-                <Button onClick={handleUsernameUpdate} disabled={isLoading}>
+                <Button
+                  onClick={handleUsernameUpdate}
+                  disabled={isLoading}
+                  variant="outline"
+                  className="max-w-[320px] sm:max-w-[540px]"
+                >
                   {isLoading ? "Updating..." : "Update"}
                 </Button>
               </div>
-              <div className="mt-2">
-                <label className="block text-sm font-medium mb-2 font-primary">
+              <div className="mt-4">
+                <label className="block text-sm font-medium mb-2">
                   User ID
                 </label>
                 <input
@@ -137,22 +142,22 @@ export default function DashboardPage() {
 
         {activeTab === "billing" && (
           <div className="space-y-4">
-            <h2 className="text-xl font-semibold font-primary">
+            <h2 className="text-lg sm:text-xl font-semibold">
               Subscription Status
             </h2>
             {isSubscribed ? (
-              <div className="p-4 border rounded-md bg-green-50">
+              <div className="p-2 sm:p-4 border rounded-md bg-green-50">
                 <p className="font-medium">Active Subscription</p>
                 <Button
                   variant="destructive"
-                  className="mt-2"
+                  className="w-full sm:w-auto mt-2"
                   onClick={() => handleUnsubscribe()}
                 >
                   Unsubscribe
                 </Button>
               </div>
             ) : (
-              <div className="p-4 border rounded-md bg-yellow-50">
+              <div className="p-2 sm:p-4 border rounded-md bg-yellow-50">
                 <p className="mb-2">
                   {hasActiveTrial
                     ? "Your free trial is active. 🐟🐟🐟 "
@@ -160,6 +165,7 @@ export default function DashboardPage() {
                 </p>
                 <Button
                   variant="outline"
+                  className="w-full sm:w-auto"
                   onClick={() =>
                     hasActiveTrial
                       ? (window.location.href = "/pricing")

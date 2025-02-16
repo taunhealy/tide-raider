@@ -47,7 +47,6 @@ export function useSurfConditions(region: string) {
             period: Number(data.swell.period),
             direction: Number(data.swell.direction),
           },
-          timestamp: Date.now(),
         };
 
         if (!isValidWindData(windData)) {

@@ -66,7 +66,8 @@ export default function BioSection({
   });
 
   return (
-    <div className="space-y-4 font-primary max-w-[540px]">
+    <div className="space-y-2 max-w-[540px]">
+      <h3 className="text-lg font-semibold font-primary mb-2">About</h3>
       {isOwnProfile ? (
         <Textarea
           value={initialBio}
@@ -76,13 +77,14 @@ export default function BioSection({
               bio: e.target.value,
             }))
           }
-          placeholder="Something about yoU..."
+          placeholder="Something about you..."
           className="min-h-[120px]"
         />
       ) : (
         <p className="text-gray-600">{initialBio || "No bio yet"}</p>
       )}
 
+      <h3 className="text-lg font-semibold font-primary mb-2">Website</h3>
       {isOwnProfile ? (
         <Input
           type="url"

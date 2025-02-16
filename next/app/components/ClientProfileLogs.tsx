@@ -25,7 +25,7 @@ export function ClientProfileLogs({ beaches, userId }: ClientProfileLogsProps) {
         <RaidLogsComponent
           beaches={beaches}
           userId={userId}
-          initialFilters={{ isPrivate: false }}
+          initialFilters={{ isPrivate: false, userId: userId }}
         />
       </div>
     </div>

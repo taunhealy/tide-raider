@@ -1,6 +1,6 @@
 import { Beach } from "./beaches";
 
-export interface WindData {
+export type WindData = {
   wind: {
     speed: number; // Wind speed in km/h (e.g., 35)
     direction: string; // Cardinal direction (e.g., "SSE", "NW")
@@ -10,8 +10,7 @@ export interface WindData {
     period: number; // Swell period in seconds (e.g., 13)
     direction: number; // Swell direction in degrees (e.g., 219)
   };
-  timestamp: number; // Unix timestamp in milliseconds
-}
+};
 
 // Helper type guard to validate WindData
 export function isValidWindData(data: any): data is WindData {
@@ -21,8 +20,7 @@ export function isValidWindData(data: any): data is WindData {
     typeof data.wind?.direction === "string" &&
     typeof data.swell?.height === "number" &&
     typeof data.swell?.period === "number" &&
-    typeof data.swell?.direction === "number" &&
-    typeof data.timestamp === "number"
+    typeof data.swell?.direction === "number"
   );
 }
 

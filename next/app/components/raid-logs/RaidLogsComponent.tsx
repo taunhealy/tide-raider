@@ -36,7 +36,7 @@ const defaultFilters: FilterConfig = {
 interface RaidLogsComponentProps {
   beaches: Beach[];
   userId?: string;
-  initialFilters?: { isPrivate: boolean };
+  initialFilters?: { isPrivate: boolean; userId?: string };
 }
 
 export const RaidLogsComponent: React.FC<RaidLogsComponentProps> = ({
@@ -101,9 +101,14 @@ export const RaidLogsComponent: React.FC<RaidLogsComponentProps> = ({
     isLoading,
     error,
   } = useQuery({
-    queryKey: ["raidLogs", filters, isPrivate],
+    queryKey: ["raidLogs", filters, isPrivate, userId],
     queryFn: async () => {
       const params = new URLSearchParams();
+
+      // Add user filter if userId is provided
+      if (userId) {
+        params.set("userId", userId);
+      }
 
       // Add all filter parameters
       if (filters.beaches.length) {
@@ -156,29 +161,32 @@ export const RaidLogsComponent: React.FC<RaidLogsComponentProps> = ({
   }, [logEntriesData?.entries, error]);
 
   return (
-    <div className="min-h-screen bg-[var(--color-bg-secondary)] p-9 font-primary relative">
+    <div className="min-h-screen bg-[var(--color-bg-secondary)] p-4 sm:p-6 lg:p-9 font-primary relative">
       <div className="max-w-[1600px] mx-auto relative z-10">
-        <div className="bg-white rounded-lg shadow-sm p-4 sm:p-9">
-          <div className="flex flex-col sm:flex-row justify-between items-start mb-6 w-full">
-            <div className="w-full border-b border-gray-200 pb-3 mb-6">
-              <h2 className="text-lg sm:text-xl font-semibold font-primary">
+        <div className="bg-white rounded-lg shadow-sm p-4 sm:p-6 lg:p-9">
+          <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-6 w-full">
+            <div className="w-full border-b border-gray-200 pb-3 md:border-0 md:pb-0">
+              <h2 className="text-xl sm:text-2xl font-semibold font-primary">
                 Raid Sessions
               </h2>
             </div>
-            <div className="flex gap-4 items-center">
+            <div className="flex flex-wrap gap-3 md:gap-4 items-center w-full md:w-full">
               <LogVisibilityToggle
                 isPrivate={isPrivate}
                 onChange={handlePrivateToggle}
               />
 
-              <Link href="/raidlogs/new">
-                <Button size="sm">Post</Button>
+              <Link href="/raidlogs/new" className="flex">
+                <Button size="sm" className="whitespace-nowrap">
+                  Post
+                </Button>
               </Link>
 
               <Button
                 onClick={() => setIsFilterOpen(true)}
                 variant="outline"
                 size="sm"
+                className="hidden sm:inline-flex"
               >
                 Filter
               </Button>
@@ -186,7 +194,7 @@ export const RaidLogsComponent: React.FC<RaidLogsComponentProps> = ({
           </div>
 
           {filteredEntries.length === 0 ? (
-            <div className="text-center py-12">
+            <div className="text-center py-8 md:py-12">
               <p className="text-gray-500 mb-4">
                 {isLoading
                   ? "Loading sessions..."

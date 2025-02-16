@@ -138,6 +138,17 @@ export default function Navbar() {
 
         {/* Mobile Navigation */}
         <div className="md:hidden flex items-center gap-4">
+          {session && (
+            <div className="flex items-center gap-2">
+              <Image
+                src={session.user?.image || "/default-avatar.png"}
+                alt="Profile"
+                width={32}
+                height={32}
+                className="rounded-full"
+              />
+            </div>
+          )}
           {session ? (
             <Button
               variant="outline"
@@ -169,6 +180,51 @@ export default function Navbar() {
         <>
           <nav className="md:hidden absolute w-full px-4 py-4 bg-white border-t border-[var(--color-border-light)] z-50">
             <ul className="space-y-2">
+              {session && (
+                <>
+                  <li className="px-2 py-3">
+                    <div className="flex items-center gap-3 mb-4">
+                      <Image
+                        src={session.user?.image || "/default-avatar.png"}
+                        alt="Profile"
+                        width={40}
+                        height={40}
+                        className="rounded-full"
+                      />
+                      <span className="font-primary text-[var(--color-text-primary)]">
+                        {session.user?.name}
+                      </span>
+                    </div>
+                    <div className="border-t border-[var(--color-border-light)] mt-3" />
+                  </li>
+                  <li className="px-2 py-3">
+                    <Link
+                      href="/dashboard"
+                      onClick={() => setIsMenuOpen(false)}
+                      className={cn(
+                        "block font-primary text-[var(--color-text-primary)] hover:text-[var(--color-text-primary)] hover:font-semibold",
+                        "transition-all duration-300"
+                      )}
+                    >
+                      Dashboard
+                    </Link>
+                    <div className="border-t border-[var(--color-border-light)] mt-3" />
+                  </li>
+                  <li className="px-2 py-3">
+                    <Link
+                      href={`/profile/${session.user.id}`}
+                      onClick={() => setIsMenuOpen(false)}
+                      className={cn(
+                        "block font-primary text-[var(--color-text-primary)] hover:text-[var(--color-text-primary)] hover:font-semibold",
+                        "transition-all duration-300"
+                      )}
+                    >
+                      Profile
+                    </Link>
+                    <div className="border-t border-[var(--color-border-light)] mt-3" />
+                  </li>
+                </>
+              )}
               <li className="px-2 py-3">
                 <RaidLink
                   className={cn(

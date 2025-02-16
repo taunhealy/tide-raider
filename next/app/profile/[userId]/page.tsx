@@ -93,11 +93,15 @@ export default function ProfilePage() {
         )}
 
         {activeTab === "logs" && (
-          <ClientProfileLogs beaches={[]} userId={userId} />
+          <div className="w-full overflow-x-auto px-4">
+            <ClientProfileLogs beaches={[]} userId={userId} />
+          </div>
         )}
 
         {activeTab === "chronicles" && (
-          <StoriesContainer beaches={[]} userId={userId} />
+          <div className="w-full overflow-x-auto px-4">
+            <StoriesContainer beaches={[]} userId={userId} />
+          </div>
         )}
       </div>
     </div>

@@ -2,6 +2,7 @@ import { prisma } from "@/app/lib/prisma";
 import { NextResponse } from "next/server";
 import { beachData } from "@/app/types/beaches";
 import { isBeachSuitable } from "@/app/lib/surfUtils";
+import { WindData } from "@/app/types/beaches";
 
 export async function GET(request: Request) {
   const { searchParams } = new URL(request.url);
@@ -33,7 +34,7 @@ export async function GET(request: Request) {
     // Use the same scoring logic as BeachContainer
     const regionBeaches = beachData.filter((beach) => beach.region === region);
     const goodBeachCount = regionBeaches.filter((beach) => {
-      const { score } = isBeachSuitable(beach, conditions.forecast);
+      const { score } = isBeachSuitable(beach, conditions.forecast as WindData);
       console.log(`${beach.name}: Score ${score}/5`); // Debug log
       return score >= 4;
     }).length;

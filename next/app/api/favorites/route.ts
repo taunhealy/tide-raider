@@ -4,32 +4,31 @@ import { prisma } from "@/app/lib/prisma";
 import { authOptions } from "@/app/lib/authOptions";
 
 export async function GET(req: Request) {
+  const session = await getServerSession(authOptions);
   const { searchParams } = new URL(req.url);
   const userId = searchParams.get("userId");
 
-  try {
+  // Handle authenticated requests (own favorites)
+  if (!userId && session?.user?.id) {
     const favorites = await prisma.userFavorite.findMany({
-      where: userId ? { userId } : undefined,
-      include: {
-        user: {
-          select: {
-            id: true,
-            name: true,
-            image: true,
-            createdAt: true,
-          },
-        },
-      },
+      where: { userId: session.user.id }, // All favorites for logged-in user
+      include: { user: true },
       orderBy: { createdAt: "desc" },
     });
-
     return NextResponse.json(favorites);
-  } catch (error) {
-    return NextResponse.json(
-      { error: "Failed to fetch favorites" },
-      { status: 500 }
-    );
   }
+
+  // Handle public requests (other users' favorites)
+  if (userId) {
+    const favorites = await prisma.userFavorite.findMany({
+      where: { userId },
+      include: { user: true },
+      orderBy: { createdAt: "desc" },
+    });
+    return NextResponse.json(favorites);
+  }
+
+  return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 }
 
 export async function POST(req: Request) {

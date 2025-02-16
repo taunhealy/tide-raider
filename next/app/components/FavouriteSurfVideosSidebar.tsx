@@ -26,10 +26,7 @@ export default function FavouriteSurfVideosSidebar({
   useEffect(() => {
     const fetchFavorites = async () => {
       try {
-        const url = userId
-          ? `/api/favorites?userId=${encodeURIComponent(userId)}`
-          : "/api/favorites/me";
-
+        const url = `/api/favorites${userId ? `?userId=${userId}` : ""}`;
         const response = await fetch(url);
         if (!response.ok) throw new Error("Failed to fetch");
         const data = await response.json();
@@ -104,7 +101,7 @@ export default function FavouriteSurfVideosSidebar({
     <div className="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden max-w-[540px]">
       <div className="p-6 border-b border-gray-200 ">
         <div className="flex justify-between items-left ">
-          <h6 className="heading-6 text-gray-900 max-w-[32ch]">
+          <h6 className="text-base font-medium text-gray-900 font-primary max-w-[32ch]">
             Favourite Surf Travel Vids
           </h6>
           <Link

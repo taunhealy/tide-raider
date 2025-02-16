@@ -37,7 +37,10 @@ const defaultFilters: Filters = {
   },
 };
 
-export default function WildStoriesContainer({ beaches }: WildStoriesProps) {
+export default function WildStoriesContainer({
+  beaches,
+  userId,
+}: WildStoriesProps) {
   const { data: session, status } = useSession();
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
   const [isFilterOpen, setIsFilterOpen] = useState(false);
@@ -45,9 +48,10 @@ export default function WildStoriesContainer({ beaches }: WildStoriesProps) {
   const [searchQuery, setSearchQuery] = useState("");
 
   const { data: stories = [], isLoading } = useQuery<Story[]>({
-    queryKey: ["stories"],
+    queryKey: ["stories", userId],
     queryFn: async () => {
-      const response = await fetch("/api/stories");
+      const url = userId ? `/api/stories?userId=${userId}` : "/api/stories";
+      const response = await fetch(url);
       if (!response.ok) throw new Error("Failed to fetch stories");
       return response.json();
     },

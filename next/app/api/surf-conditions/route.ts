@@ -76,7 +76,7 @@ interface ScrapeResult {
   windDirection: string;
   windSpeed: number;
   swellHeight: number;
-  swellDirection: string;
+  swellDirection: number;
   swellPeriod: number;
 }
 
@@ -185,22 +185,24 @@ async function scrapeAllRegions(): Promise<ScrapeResult[]> {
               .trim()
           ) || 0;
 
-        const swellDirection =
-          $('div[style*="width: 49px"][style*="height:20px"]')
+        const swellDirection = parseInt(
+          $('div[style*="width: 49px"]')
             .filter((_, el) => $(el).text().includes("°"))
             .first()
             .text()
             .trim()
             .split("\n")
             .pop()
-            ?.replace("°", "") || "N/A";
+            ?.replace("°", "") || "0",
+          10
+        );
 
         results.push({
           region: config.region,
           windDirection: windDirection || "0",
           windSpeed,
           swellHeight: waveHeight,
-          swellDirection: swellDirection,
+          swellDirection,
           swellPeriod,
         });
 
@@ -260,7 +262,13 @@ async function getLatestConditions(
 
   if (existingConditions) {
     // Store good beach ratings if they don't exist
-    await storeGoodBeachRatings(existingConditions.forecast, region, today);
+    if (existingConditions?.forecast) {
+      await storeGoodBeachRatings(
+        existingConditions.forecast as WindData,
+        region,
+        today
+      );
+    }
     return formatConditionsResponse(existingConditions);
   }
 
@@ -278,7 +286,7 @@ async function getLatestConditions(
   await prisma.surfCondition.createMany({
     data: scrapedData.map((regionData) => ({
       id: randomUUID(),
-      date: today,
+      date: getTodayDate(),
       region: regionData.region,
       forecast: {
         wind: {
@@ -296,7 +304,21 @@ async function getLatestConditions(
 
   // 4. Store good beach ratings for each region
   for (const conditions of scrapedData) {
-    await storeGoodBeachRatings(conditions.forecast, conditions.region, today);
+    await storeGoodBeachRatings(
+      {
+        wind: {
+          speed: conditions.windSpeed,
+          direction: conditions.windDirection,
+        },
+        swell: {
+          height: conditions.swellHeight,
+          period: conditions.swellPeriod,
+          direction: conditions.swellDirection,
+        },
+      },
+      conditions.region,
+      today
+    );
   }
 
   const requestedRegionData = scrapedData.find(
@@ -384,15 +406,17 @@ async function backgroundFetchOtherRegions(today: Date) {
             .trim()
         ) || 0;
 
-      const swellDirection =
-        $('div[style*="width: 49px"][style*="height:20px"]')
+      const swellDirection = parseInt(
+        $('div[style*="width: 49px"]')
           .filter((_, el) => $(el).text().includes("°"))
           .first()
           .text()
           .trim()
           .split("\n")
           .pop()
-          ?.replace("°", "") || "N/A";
+          ?.replace("°", "") || "0",
+        10
+      );
 
       await prisma.surfCondition.create({
         data: {
@@ -499,8 +523,8 @@ export async function GET(request: Request) {
 
         // Store good beach ratings asynchronously
         await storeGoodBeachRatings(
-          existingConditions.forecast,
-          existingConditions.region,
+          existingConditions.forecast as WindData,
+          region,
           new Date(date)
         );
 
@@ -530,15 +554,42 @@ export async function GET(request: Request) {
 
       if (scrapedData?.length) {
         // Store conditions
-        await prisma.surfCondition.createMany({ data: scrapedData });
+        await prisma.surfCondition.createMany({
+          data: scrapedData.map((regionData) => ({
+            id: randomUUID(),
+            date: getTodayDate(),
+            region: regionData.region,
+            forecast: {
+              wind: {
+                speed: regionData.windSpeed,
+                direction: regionData.windDirection,
+              },
+              swell: {
+                height: regionData.swellHeight,
+                period: regionData.swellPeriod,
+                direction: regionData.swellDirection,
+              },
+            },
+          })),
+        });
 
         // Store ratings - single call per region
         await Promise.all(
           scrapedData.map((regionData) =>
             storeGoodBeachRatings(
-              regionData.forecast,
+              {
+                wind: {
+                  speed: regionData.windSpeed,
+                  direction: regionData.windDirection,
+                },
+                swell: {
+                  height: regionData.swellHeight,
+                  period: regionData.swellPeriod,
+                  direction: regionData.swellDirection,
+                },
+              },
               regionData.region,
-              new Date(date)
+              getTodayDate()
             )
           )
         );
@@ -603,81 +654,23 @@ async function ensureGoodRatings(region: string, date: Date, conditions: any) {
       console.log(
         `🔄 No ratings found for ${region} on ${date}, regenerating...`
       );
-      await storeGoodBeachRatings(conditions.forecast, region, date);
+      await storeGoodBeachRatings(
+        {
+          wind: {
+            speed: conditions.forecast.wind.speed,
+            direction: conditions.forecast.wind.direction,
+          },
+          swell: {
+            height: conditions.forecast.swell.height,
+            period: conditions.forecast.swell.period,
+            direction: conditions.forecast.swell.direction,
+          },
+        },
+        region,
+        date
+      );
     }
   } catch (error) {
     console.error("Rating ensure check failed:", error);
   }
-}
-
-async function storeGoodBeachRatingsNow(conditions: any, date: Date) {
-  try {
-    console.log(`📊 Starting rating calculation for ${conditions.region}...`);
-
-    const regionBeaches = beachData.filter(
-      (beach) => beach.region === conditions.region
-    );
-    console.log(
-      `Found ${regionBeaches.length} beaches in ${conditions.region}`
-    );
-
-    const goodBeaches = regionBeaches
-      .map((beach) => {
-        const { score, isSuitable } = isBeachSuitable(
-          beach,
-          conditions.forecast
-        );
-        console.log(
-          `${beach.name}: Score ${score}/5 (${isSuitable ? "✅" : "❌"})`
-        );
-        return { beach, score };
-      })
-      .filter(({ score }) => score >= 4);
-
-    console.log(`Found ${goodBeaches.length} good beaches with score >= 4`);
-
-    if (goodBeaches.length > 0) {
-      const ratingData = goodBeaches.map(({ beach, score }) => ({
-        id: randomUUID(),
-        date,
-        beachId: beach.id,
-        region: beach.region,
-        score,
-        conditions: conditions.forecast,
-      }));
-
-      console.log(
-        "Attempting to store ratings:",
-        JSON.stringify(ratingData, null, 2)
-      );
-
-      await prisma.beachGoodRating.createMany({
-        data: ratingData,
-        skipDuplicates: true,
-      });
-
-      console.log(
-        `✅ Successfully stored ${goodBeaches.length} ratings for ${conditions.region}`
-      );
-    } else {
-      console.log(
-        `ℹ️ No beaches met the rating threshold for ${conditions.region}`
-      );
-    }
-  } catch (error) {
-    console.error("❌ Rating regeneration error:", error);
-    // Log the full error details
-    if (error instanceof Error) {
-      console.error({
-        message: error.message,
-        stack: error.stack,
-        name: error.name,
-      });
-    }
-  }
-}
-
-async function storeGoodBeachRatingsAsync(conditions: any, date: Date) {
-  // Keep original async behavior but use reliable version
-  setTimeout(() => storeGoodBeachRatingsNow(conditions, date), 0);
 }

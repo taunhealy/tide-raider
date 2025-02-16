@@ -3,14 +3,14 @@ import { prisma } from "@/app/lib/prisma";
 import { beachData } from "@/app/types/beaches";
 import { isBeachSuitable } from "@/app/lib/surfUtils";
 import { randomUUID } from "crypto";
-import { storeGoodBeachRatings } from "@/app/lib/beachRatings";
+import { storeGoodBeachRatings } from "@/lib/beachRatings";
 import type { WindDataProp } from "@/app/types/wind";
 
 export async function POST(request: Request) {
   const { searchParams } = new URL(request.url);
   const region = searchParams.get("region");
   const dateStr = searchParams.get("date");
-  const conditions = await request.json() as WindDataProp;
+  const conditions = (await request.json()) as WindDataProp;
 
   if (!region || !dateStr || !conditions) {
     return NextResponse.json(
@@ -25,7 +25,7 @@ export async function POST(request: Request) {
       region,
       new Date(dateStr)
     );
-    
+
     return NextResponse.json({ count });
   } catch (error) {
     console.error(`Error storing beach ratings:`, error);

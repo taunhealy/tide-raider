@@ -2,10 +2,10 @@ import { prisma } from "@/app/lib/prisma";
 import { beachData } from "@/app/types/beaches";
 import { isBeachSuitable } from "./surfUtils";
 import { randomUUID } from "crypto";
-import type { WindDataProp } from "@/app/types/wind";
+import type { WindData } from "@/app/types/wind";
 
 export async function storeGoodBeachRatings(
-  conditions: WindDataProp,
+  conditions: WindData,
   region: string,
   date: Date
 ) {
@@ -57,7 +57,7 @@ export async function storeGoodBeachRatings(
 
 export function getGoodBeachCount(
   region: string,
-  conditions: WindDataProp
+  conditions: WindData
 ): number {
   return beachData.filter(
     (beach) =>
@@ -65,7 +65,7 @@ export function getGoodBeachCount(
   ).length;
 }
 
-export function getRegionScores(conditions: WindDataProp, region: string) {
+export function getRegionScores(conditions: WindData, region: string) {
   const scores: Record<string, number> = {};
 
   beachData

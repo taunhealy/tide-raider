@@ -45,7 +45,9 @@ export interface RouteReference {
 
 export interface Trip {
   title: string;
-  destination: string;
+  country: string;
+  region?: string;
+  destination: string; // Keep existing for backward compatibility
   days: TripDay[];
   idealMonth?: string;
 }
@@ -75,7 +77,7 @@ export interface Post {
   title: string;
   slug: string;
   mainImage: any;
-  publishedAt: string;
+  publishedAt?: string | null;
   description: string;
   categories?: Category[];
   sidebarWidgets: Widget[];

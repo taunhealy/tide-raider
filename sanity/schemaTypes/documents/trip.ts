@@ -12,10 +12,24 @@ export default defineType({
       validation: (Rule) => Rule.required(),
     }),
     defineField({
-      name: 'destination',
-      title: 'Destination',
+      name: 'country',
+      title: 'Country',
       type: 'string',
-      validation: (Rule) => Rule.required(),
+      validation: (Rule) => Rule.required().error('Country is required'),
+    }),
+    defineField({
+      name: 'region',
+      title: 'Region',
+      type: 'string',
+      description: 'State/Province/Administrative region',
+    }),
+    defineField({
+      name: 'destination',
+      title: 'Display Destination',
+      type: 'string',
+      description: 'Auto-generated from country + region',
+      readOnly: true,
+      initialValue: ({country, region}) => [region, country].filter(Boolean).join(', '),
     }),
     defineField({
       name: 'idealMonth',

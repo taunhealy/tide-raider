@@ -89,7 +89,6 @@ export const blogListingQuery = groq`{
   "posts": *[_type == "post"] | order(publishedAt desc) {
     _id,
     title,
-    "hasSlug": defined(slug.current),
     "slug": slug.current,
     mainImage {
       ...,
@@ -100,6 +99,12 @@ export const blogListingQuery = groq`{
     categories[]-> {
       title,
       "slug": slug.current
+    },
+    "trip": trip->{
+      title,
+      country,
+      region,
+      destination
     }
   },
   "categories": *[_type == "postCategory"] | order(order asc) {
@@ -129,6 +134,8 @@ export const postQuery = groq`*[_type == "post" && defined(slug.current) && slug
   },
   "trip": *[_type == "trip" && _id == ^.trip._ref][0]{
     title,
+    country,
+    region,
     destination,
     "days": days[]{
       dayNumber,

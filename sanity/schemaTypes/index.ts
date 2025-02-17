@@ -19,6 +19,8 @@ import {
 import trip from './documents/trip'
 import accommodation from './documents/accommodation'
 import {youTube} from './objects/youtube'
+import dashboard from './documents/dashboard'
+import profile from './documents/profile'
 
 export const schemaTypes = [
   // Documents
@@ -30,6 +32,7 @@ export const schemaTypes = [
   pricing,
   trip,
   accommodation,
+  profile,
   // Widgets
   relatedPostsWidget,
   locationMapWidget,

@@ -1,7 +1,7 @@
 "use client";
 
 import { urlForImage } from "@/app/lib/urlForImage";
-import { FormattedDate } from "../FormattedDate";
+import FormattedDate from "../FormattedDate";
 import Link from "next/link";
 import { Post } from "@/app/types/blog";
 
@@ -57,9 +57,13 @@ export default function RelatedPostsWidget({
                 <p className="text-xs text-gray-500 line-clamp-2">
                   {post.description}
                 </p>
-                <div className="mt-1 text-xs text-gray-400">
-                  <FormattedDate date={new Date(post.publishedAt)} />
-                </div>
+                {post.publishedAt && (
+                  <div className="mt-1 text-xs text-gray-400">
+                    <FormattedDate
+                      date={new Date(post.publishedAt).getTime()}
+                    />
+                  </div>
+                )}
               </div>
             </article>
           </Link>

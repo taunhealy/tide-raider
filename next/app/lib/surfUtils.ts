@@ -68,33 +68,46 @@ export function isBeachSuitable(
   beach: Beach,
   conditions: WindDataProp
 ): { suitable: boolean; score: number } {
-  if (!conditions) {
+  if (!conditions?.wind?.direction || !conditions?.swell?.direction) {
     return { suitable: false, score: 0 };
   }
 
-  if (!conditions?.wind?.direction || !conditions?.swell?.direction) {
-    return {
-      suitable: false,
-      score: 0,
-    };
+  let score = 10; // Start with perfect score
+
+  // Check wind direction first
+  if (!beach.optimalWindDirections.includes(conditions.wind.direction)) {
+    score = Math.max(0, score - 4); // Wrong wind direction
   }
 
-  let score = 0;
-
-  // Check wind direction compatibility with penalty
-  if (beach.optimalWindDirections.includes(conditions.wind.direction)) {
-    score += 2;
-  } else {
-    score = Math.max(0, score - 0.5);
+  // Check wind strength separately
+  if (!beach.sheltered) {
+    if (conditions.wind.speed > 35) {
+      score = Math.max(0, score - 4); // Very strong winds
+    } else if (conditions.wind.speed > 25) {
+      score = Math.max(0, score - 3); // Strong winds
+    } else if (conditions.wind.speed > 15) {
+      score = Math.max(0, score - 2); // Moderate winds
+    }
   }
 
-  // Add penalty for strong winds unless beach is sheltered
+  // Check wave size with significant penalties
   if (
-    conditions.wind.speed >= 15 &&
-    conditions.wind.speed > 25 &&
-    !beach.sheltered
+    !(
+      conditions.swell.height >= beach.swellSize.min &&
+      conditions.swell.height <= beach.swellSize.max
+    )
   ) {
-    score = Math.max(0, score - 0);
+    const heightDiff = Math.min(
+      Math.abs(conditions.swell.height - beach.swellSize.min),
+      Math.abs(conditions.swell.height - beach.swellSize.max)
+    );
+    if (heightDiff <= 0.5) {
+      score = Math.max(0, score - 4); // Just outside range
+    } else if (heightDiff <= 1) {
+      score = Math.max(0, score - 6); // Significantly off
+    } else {
+      score = Math.max(0, score - 8); // Way too big/small
+    }
   }
 
   // Check swell direction with graduated penalties
@@ -104,57 +117,52 @@ export function isBeachSuitable(
   const swellDirDiff = Math.min(minSwellDiff, maxSwellDiff);
 
   if (
-    swellDeg >= beach.optimalSwellDirections.min &&
-    swellDeg <= beach.optimalSwellDirections.max
+    !(
+      swellDeg >= beach.optimalSwellDirections.min &&
+      swellDeg <= beach.optimalSwellDirections.max
+    )
   ) {
-    score += 2; // Optimal direction
-  } else if (swellDirDiff <= 10) {
-    score = Math.max(0, score - 1); // Slightly off optimal (-1)
-  } else if (swellDirDiff <= 20) {
-    score = Math.max(0, score - 2); // Moderately off optimal (-2)
-  } else if (swellDirDiff <= 30) {
-    score = Math.max(0, score - 3); // Significantly off optimal (-3)
-  } else {
-    score = Math.max(0, score - 4); // Completely wrong direction (-4)
+    if (swellDirDiff <= 10) {
+      score = Math.max(0, score - 2);
+    } else if (swellDirDiff <= 20) {
+      score = Math.max(0, score - 4);
+    } else if (swellDirDiff <= 30) {
+      score = Math.max(0, score - 6);
+    } else {
+      score = Math.max(0, score - 8);
+    }
   }
 
-  // Check swell height with harsh penalty for wrong size
-  const hasGoodSwellHeight =
-    conditions.swell.height >= beach.swellSize.min &&
-    conditions.swell.height <= beach.swellSize.max;
-
-  if (hasGoodSwellHeight) {
-    score += 1;
-  } else {
-    score = Math.max(0, score - 3); // Apply -3 penalty for wrong wave size
-  }
-
-  // Check swell period with graduated scoring
+  // Check swell period with graduated penalties
   const periodDiff = Math.min(
     Math.abs(conditions.swell.period - beach.idealSwellPeriod.min),
     Math.abs(conditions.swell.period - beach.idealSwellPeriod.max)
   );
 
   if (
-    conditions.swell.period >= beach.idealSwellPeriod.min &&
-    conditions.swell.period <= beach.idealSwellPeriod.max
+    !(
+      conditions.swell.period >= beach.idealSwellPeriod.min &&
+      conditions.swell.period <= beach.idealSwellPeriod.max
+    )
   ) {
-    // Within optimal range - no penalty
-  } else if (periodDiff <= 2) {
-    // Just outside optimal range (within 2 seconds)
-    score = Math.max(0, score - 1);
-  } else if (periodDiff <= 4) {
-    // Moderately outside optimal range (2-4 seconds)
-    score = Math.max(0, score - 2);
-  } else {
-    // Significantly outside optimal range
-    score = Math.max(0, score - 2);
+    if (periodDiff <= 2) {
+      score = Math.max(0, score - 2);
+    } else if (periodDiff <= 4) {
+      score = Math.max(0, score - 4);
+    } else {
+      score = Math.max(0, score - 6);
+    }
   }
 
-  // Use exact score for suitability check
+  // Normalize score to 5-point scale
+  const normalizedScore = Math.min(
+    5,
+    Math.round((Math.max(0, score) / 10) * 5)
+  );
+
   return {
-    score: score,
-    suitable: score >= 4, // Not rounded
+    score: normalizedScore,
+    suitable: normalizedScore >= 4, // Requires at least 4 stars to be considered suitable
   };
 }
 

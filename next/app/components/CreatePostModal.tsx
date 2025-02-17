@@ -215,7 +215,7 @@ export function CreatePostModal({
                   setFormData({ ...formData, details: e.target.value })
                 }
                 rows={6}
-                className="w-full px-3 py-2 bg-[var(--color-bg-secondary)] border border-[var(--color-border-light)] rounded-md focus:ring-[var(--color-tertiary)]"
+                className="font-primary w-full px-3 py-2 bg-[var(--color-bg-secondary)] border border-[var(--color-border-light)] rounded-md focus:ring-[var(--color-tertiary)]"
                 placeholder="Share your wild story..."
               />
             </div>
@@ -235,7 +235,7 @@ export function CreatePostModal({
                   onChange={(e) =>
                     setFormData({ ...formData, link: e.target.value })
                   }
-                  className="w-full pl-10 px-3 py-2 bg-[var(--color-bg-secondary)] border border-[var(--color-border-light)] rounded-md focus:outline-none focus:ring-2 focus:ring-[var(--color-tertiary)]"
+                  className="font-primary w-full pl-10 px-3 py-2 bg-[var(--color-bg-secondary)] border border-[var(--color-border-light)] rounded-md focus:outline-none focus:ring-2 focus:ring-[var(--color-tertiary)]"
                   placeholder="https://example.com"
                 />
               </div>
@@ -252,7 +252,7 @@ export function CreatePostModal({
               <button
                 type="button"
                 onClick={onClose}
-                className="px-4 py-2 text-sm font-medium text-[var(--color-text-primary)] bg-[var(--color-bg-secondary)] border border-[var(--color-border-light)] rounded-md"
+                className="font-primary px-4 py-2 text-sm font-medium text-[var(--color-text-primary)] bg-[var(--color-bg-secondary)] border border-[var(--color-border-light)] rounded-md"
               >
                 Cancel
               </button>

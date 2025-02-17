@@ -64,7 +64,7 @@ export function RaidLogForm({
     mutationFn: async (newEntry: CreateLogEntryInput) => {
       const method = entry?.id ? "PATCH" : "POST";
       const response = await fetch(
-        `/api/raid-logs/forecast/?date=${selectedDate}&region=${encodeURIComponent(selectedBeach!.region)}`,
+        `/api/raid-logs${entry?.id ? `/${entry.id}` : ""}`,
         {
           method,
           headers: {
@@ -75,7 +75,8 @@ export function RaidLogForm({
       );
 
       if (!response.ok) {
-        throw new Error("Failed to create log entry");
+        const errorData = await response.json();
+        throw new Error(errorData.error || "Failed to submit log entry");
       }
 
       return response.json();
@@ -109,82 +110,54 @@ export function RaidLogForm({
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!selectedBeach || !selectedDate || !forecast) {
-      console.error("Missing required data:", {
-        selectedBeach,
-        selectedDate,
-        forecast,
-      });
+
+    if (!selectedBeach || !selectedDate) {
       alert("Please select a beach and date");
       return;
     }
 
-    const newEntry = {
-      beachName: selectedBeach.name,
-      date: selectedDate,
-      surferEmail: userEmail,
-      surferName: isAnonymous
-        ? "Anonymous"
-        : (session?.user as { name?: string })?.name ||
-          userEmail?.split("@")[0] ||
-          "Anonymous Surfer",
-      userId: session!.user.id,
-      surferRating: surferRating,
-      comments,
-      forecast: forecast,
-      continent: selectedBeach.continent,
-      country: selectedBeach.country,
-      region: selectedBeach.region,
-      waveType: selectedBeach.waveType,
-      isAnonymous,
-      isPrivate,
-      id: entry?.id,
-    };
-
-    console.log("[Submission] Final Payload:", newEntry);
-
     setIsSubmitting(true);
+
     try {
-      let imageUrl = uploadedImageUrl;
-      if (!imageUrl) {
-        if (selectedImage) {
-          try {
-            imageUrl = await handleImageUpload(selectedImage);
-          } catch (uploadError) {
-            console.error("Image upload failed:", uploadError);
-            alert("Failed to upload image");
-            setIsSubmitting(false);
-            return;
-          }
-        }
+      // First, ensure we have the forecast data
+      if (!forecast) {
+        console.log("Fetching forecast before submission...");
+        await fetchForecast(selectedBeach);
+        // Add a small delay to ensure forecast is set
+        await new Promise((resolve) => setTimeout(resolve, 1000));
       }
 
+      if (!forecast) {
+        throw new Error("Failed to fetch forecast data");
+      }
+
+      const newEntry = {
+        beachName: selectedBeach.name,
+        date: selectedDate,
+        surferEmail: userEmail,
+        surferName: isAnonymous
+          ? "Anonymous"
+          : (session?.user as { name?: string })?.name ||
+            userEmail?.split("@")[0] ||
+            "Anonymous Surfer",
+        userId: session!.user.id,
+        surferRating: surferRating,
+        comments,
+        forecast: forecast,
+        continent: selectedBeach.continent,
+        country: selectedBeach.country,
+        region: selectedBeach.region,
+        waveType: selectedBeach.waveType,
+        isAnonymous,
+        isPrivate,
+        id: entry?.id,
+      };
+
       await createLogEntry.mutateAsync(newEntry);
-      console.log("Log entry created successfully");
-
-      // Success handling
-      setIsSubmitted(true);
-      confetti({
-        particleCount: 100,
-        spread: 70,
-        origin: { y: 0.6 },
-      });
-
-      // Reset form
-      setTimeout(() => {
-        setSelectedDate(new Date().toISOString().split("T")[0]);
-        setSelectedBeach(null);
-        setSurferRating(0);
-        setComments("");
-        setSelectedImage(null);
-        setImagePreview(null);
-        setUploadedImageUrl("");
-        setIsSubmitting(false);
-        setIsSubmitted(false);
-      }, 2000);
     } catch (error) {
       console.error("Form submission error:", error);
-      alert("Failed to submit log entry");
+      alert("Failed to submit log entry: " + (error as Error).message);
+    } finally {
       setIsSubmitting(false);
     }
   };
@@ -205,30 +178,39 @@ export function RaidLogForm({
 
   const fetchForecast = async (beach: Beach) => {
     try {
+      if (!selectedDate || !beach.region) {
+        console.error("Missing required data for forecast");
+        return;
+      }
+
+      const formattedDate = new Date(selectedDate).toISOString().split("T")[0];
+
       console.log("Fetching forecast for:", {
-        date: selectedDate,
+        date: formattedDate,
         region: beach.region,
       });
 
       const response = await fetch(
-        `/api/raid-logs/forecast?date=${selectedDate}&region=${encodeURIComponent(beach.region)}`
+        `/api/raid-logs/forecast?` +
+          new URLSearchParams({
+            date: formattedDate,
+            region: beach.region,
+          })
       );
 
       if (!response.ok) {
-        throw new Error("Failed to fetch forecast");
+        console.error(`HTTP error! status: ${response.status}`);
+        // Don't throw error here, just return and keep forecast as undefined
+        return;
       }
 
       const data = await response.json();
-      console.log("Raw forecast data:", data);
-
-      if (data && data.wind && data.swell) {
-        setForecast(data);
-      } else {
-        console.log("Invalid forecast data structure:", data);
-        setForecast(null);
-      }
+      console.log("Received forecast data:", data);
+      setForecast(data);
+      return data;
     } catch (error) {
       console.error("Error loading forecast:", error);
+      // Only set forecast to null for network/parsing errors
       setForecast(null);
     }
   };
@@ -384,16 +366,20 @@ export function RaidLogForm({
                       3. Surf Conditions
                     </h4>
                     <div className="border rounded-lg p-4 bg-gray-50">
-                      {forecast ? (
+                      {forecast === null ? (
+                        <div className="text-black font-primary">
+                          Loading...
+                        </div>
+                      ) : !forecast ? (
+                        <div className="text-gray-600 font-primary">
+                          Loading forecast data...
+                        </div>
+                      ) : (
                         <SurfForecastWidget
                           beachId={selectedBeach.id}
                           date={selectedDate}
                           forecast={forecast}
                         />
-                      ) : (
-                        <div className="text-red-600 font-primary">
-                          Error loading forecast data. Please try again later.
-                        </div>
                       )}
                     </div>
                   </div>
@@ -484,7 +470,7 @@ export function RaidLogForm({
                   disabled={
                     !forecast || !selectedBeach || !selectedDate || isSubmitting
                   }
-                  className="w-full bg-[var(--color-tertiary)] text-white"
+                  className="w-full bg-[var(--color-tertiary)] text-white font-primary"
                 >
                   {isSubmitting ? "Submitting..." : "Log Session"}
                 </Button>

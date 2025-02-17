@@ -1,25 +1,36 @@
+"use client";
+
 import { urlForImage } from "@/app/lib/urlForImage";
-import { FormattedDate } from "./FormattedDate";
 import Link from "next/link";
-import { Post } from "@/app/types/blog";
+import type { Post } from "@/app/types/blog";
+import FormattedDate from "@/app/components/FormattedDate";
+import type { Trip } from "@/app/types/blog";
 
 interface BlogPostsSidebarProps {
-  posts: Post[];
+  posts: {
+    posts: Post[];
+    trip: Trip;
+    categories: { title: string; slug: string }[];
+  };
 }
 
 export default function BlogPostsSidebar({ posts }: BlogPostsSidebarProps) {
-  // Filter posts with Travel category
-  const travelPosts = posts.filter(
-    (post) =>
-      post.categories &&
-      Array.isArray(post.categories) &&
-      post.categories.some(
-        (category) =>
-          category &&
-          typeof category === "object" &&
-          category.title === "Travel"
-      )
-  );
+  console.log("1. Full posts object:", posts);
+
+  // Access the posts array from the posts object
+  const postsArray = posts?.posts || [];
+  console.log("2. Posts array:", postsArray);
+
+  const travelPosts = postsArray.filter((post) => {
+    console.log("3. Checking post categories:", post.categories);
+    return post.categories?.some((category) => category.title === "Travel");
+  });
+
+  console.log("4. Travel posts found:", travelPosts);
+
+  if (!travelPosts.length) {
+    return null;
+  }
 
   return (
     <div className="bg-[var(--color-bg-primary)] p-6 rounded-lg shadow-sm">
@@ -44,15 +55,11 @@ export default function BlogPostsSidebar({ posts }: BlogPostsSidebarProps) {
               {post.mainImage && (
                 <div className="relative w-20 h-20 flex-shrink-0 overflow-hidden rounded-lg">
                   <img
-                    src={
-                      post.mainImage
-                        ? urlForImage(post.mainImage)
-                            ?.width(80)
-                            ?.height(80)
-                            ?.url() || ""
-                        : ""
-                    }
-                    alt={post?.title || "Post title"}
+                    src={urlForImage(post.mainImage)
+                      ?.width(80)
+                      .height(80)
+                      .url()}
+                    alt={post.title || "Post title"}
                     className="object-cover w-full h-full group-hover:scale-105 transition-transform duration-300"
                   />
                 </div>
@@ -61,12 +68,18 @@ export default function BlogPostsSidebar({ posts }: BlogPostsSidebarProps) {
                 <h4 className="heading-7 mb-1 truncate group-hover:text-[var(--color-text-secondary)] transition-colors">
                   {post.title}
                 </h4>
-                <p className="text-main text-[12px] line-clamp-2">
-                  {post.description}
-                </p>
-                <div className="mt-1 text-main text-[12px] text-[var(--color-text-tertiary)]">
-                  <FormattedDate date={new Date(post.publishedAt)} />
-                </div>
+                {post.description && (
+                  <p className="text-main text-[12px] line-clamp-2">
+                    {post.description}
+                  </p>
+                )}
+                {post.trip && (
+                  <div className="mt-1 text-main text-[12px] text-[var(--color-text-tertiary)]">
+                    {[post.trip.region, post.trip.country]
+                      .filter(Boolean)
+                      .join(" • ")}
+                  </div>
+                )}
               </div>
             </article>
           </Link>

@@ -76,7 +76,7 @@ export default function BeachDetailsModal({
                 className="object-cover"
               />
             </div>
-            <DialogTitle className="text-2xl font-bold">
+            <DialogTitle className="text-lg font-semibold font-primary">
               {beach.name}
             </DialogTitle>
           </div>
@@ -114,10 +114,9 @@ export default function BeachDetailsModal({
             <DetailItem
               label="Optimal Tide"
               value={
-                
-                  <span aria-label={`Optimal Tide: ${beach.optimalTide}`}>
-                    {getTideIcon(beach.optimalTide)} {beach.optimalTide}
-                  </span>
+                <span aria-label={`Optimal Tide: ${beach.optimalTide}`}>
+                  {getTideIcon(beach.optimalTide)} {beach.optimalTide}
+                </span>
               }
             />
           </div>
@@ -174,8 +173,12 @@ export default function BeachDetailsModal({
 
         {/* Description Section */}
         <div className="mt-2 pt-4 mb-5">
-          <h4 className="font-semibold text-lg mb-2 mt-2">Description</h4>
-          <p className="text-gray-700 text-sm mt-2">{beach.description}</p>
+          <h4 className="font-medium text-base mb-3 font-primary">
+            Description
+          </h4>
+          <p className="text-gray-600 text-sm leading-relaxed font-primary">
+            {beach.description}
+          </p>
         </div>
       </DialogContent>
     </Dialog>
@@ -191,8 +194,10 @@ function DetailItem({
 }) {
   return (
     <div mb-4>
-      <span className=" text-black">{label}:</span>{" "}
-      <span className="text-gray-400">{value}</span>
+      <span className="text-gray-500 text-sm uppercase tracking-tight font-primary">
+        {label}
+      </span>
+      <div className="text-gray-900 font-medium font-primary mt-1">{value}</div>
     </div>
   );
 }

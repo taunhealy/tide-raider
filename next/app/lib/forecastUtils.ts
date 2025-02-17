@@ -17,7 +17,8 @@ export const getSwellEmoji = (height: number): string => {
 export const getDirectionEmoji = (direction: string | number): string => {
   const deg =
     typeof direction === "string" ? parseInt(direction) || 0 : direction;
-  const dirIndex = Math.round(deg / 45) % 8;
+  const reversedDeg = (deg + 180) % 360;
+  const dirIndex = Math.round(reversedDeg / 45) % 8;
   return ["⬆️", "↗️", "➡️", "↘️", "⬇️", "↙️", "⬅️", "↖️"][dirIndex] || "➿";
 };
 

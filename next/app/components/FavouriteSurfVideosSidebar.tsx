@@ -137,37 +137,39 @@ export default function FavouriteSurfVideosSidebar({
                   className="group relative hover:bg-gray-50 cursor-pointer font-primary"
                   onClick={() => setSelectedFavorite(favorite)}
                 >
-                  <td className="p-4 text-sm text-gray-600 w-[140px]">
-                    <div className="flex items-center gap-2">
-                      {favorite.user?.image ? (
-                        <Image
-                          src={favorite.user.image}
-                          alt={favorite.user.name || "User avatar"}
-                          width={24}
-                          height={24}
-                          className="rounded-full w-6 h-6 object-cover"
-                        />
-                      ) : (
-                        <div className="w-6 h-6 rounded-full bg-gray-100 flex items-center justify-center">
-                          <span className="text-xs text-gray-400">?</span>
-                        </div>
-                      )}
-                      {favorite.user?.name ? (
-                        <Link
-                          href={`/profile/${favorite.userId}`}
-                          className="hover:text-[var(--color-bg-tertiary)] transition-colors"
-                        >
-                          {favorite.user.name}
-                        </Link>
-                      ) : (
-                        <span className="text-gray-400">Anonymous</span>
-                      )}
+                  <td className="p-4 text-sm text-gray-600 w-full">
+                    <div className="flex flex-col gap-1">
+                      <div className="flex items-center gap-2">
+                        {favorite.user?.image ? (
+                          <Image
+                            src={favorite.user.image}
+                            alt={favorite.user?.name || "User avatar"}
+                            width={24}
+                            height={24}
+                            className="rounded-full w-6 h-6 object-cover"
+                          />
+                        ) : (
+                          <div className="w-6 h-6 rounded-full bg-gray-100 flex items-center justify-center">
+                            <span className="text-xs text-gray-400">?</span>
+                          </div>
+                        )}
+                        {favorite.user?.name ? (
+                          <Link
+                            href={`/profile/${favorite.userId}`}
+                            className="hover:text-[var(--color-bg-tertiary)] transition-colors text-xs font-medium"
+                          >
+                            {favorite.user.name}
+                          </Link>
+                        ) : (
+                          <span className="text-gray-400 text-xs">
+                            Anonymous
+                          </span>
+                        )}
+                      </div>
+                      <span className="text-[var(--color-primary)] font-medium font-primary text-[12px] font-regular leading-tight max-w-[80ch]">
+                        {truncateString(favorite.title, 120)}
+                      </span>
                     </div>
-                  </td>
-                  <td className="p-4 pl-6">
-                    <span className="text-[var(--color-primary)] font-primary text-sm">
-                      {truncateString(favorite.title, 70)}
-                    </span>
                   </td>
                   {session?.user?.id === favorite.userId && (
                     <td className="p-4 w-[100px] flex items-center gap-2">

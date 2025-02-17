@@ -246,8 +246,8 @@ export const beachData: Beach[] = [
     difficulty: "Advanced",
     waveType: "Beach Break",
     swellSize: {
-      min: 1.5,
-      max: 2.5,
+      min: 1.3,
+      max: 4,
     },
     idealSwellPeriod: {
       min: 13,
@@ -303,8 +303,8 @@ export const beachData: Beach[] = [
     difficulty: "Intermediate",
     waveType: "Beach Break",
     swellSize: {
-      min: 0.3,
-      max: 0.6,
+      min: 1.2,
+      max: 4,
     },
     idealSwellPeriod: {
       min: 12,
@@ -555,8 +555,8 @@ export const beachData: Beach[] = [
     difficulty: "Intermediate",
     waveType: "Beach Break",
     swellSize: {
-      min: 0.3,
-      max: 0.6,
+      min: 1.6,
+      max: 4,
     },
     idealSwellPeriod: {
       min: 12,
@@ -795,7 +795,7 @@ export const beachData: Beach[] = [
     region: "Western Cape",
     location: "Elands Bay",
     distanceFromCT: 220,
-    optimalWindDirections: ["SE", "E", "NE"],
+    optimalWindDirections: ["SE"],
     optimalSwellDirections: {
       min: 225,
       max: 270,
@@ -1727,6 +1727,13 @@ export const beachData: Beach[] = [
       lat: -34.1123,
       lng: 18.4876,
     },
+    videos: [
+      {
+        url: "https://www.youtube.com/watch?v=4rUJTyOOkE8&ab_channel=CAMPBELLTV",
+        title: "SURFING ON THE WILDSIDE OF BUFFELSBAY (Vlog 02)",
+        platform: "youtube",
+      },
+    ],
   },
   {
     id: "hawston",
@@ -3539,7 +3546,8 @@ export const beachData: Beach[] = [
     optimalWindDirections: ["E"], // Best wind direction is from the east
     optimalSwellDirections: {
       min: 240, // WSW swell direction
-      max: 270,
+      max: 270, // Changed from 220 to 240 (S)
+      cardinal: "S/SE", // Changed from "SSW" to "S/SE"
     },
     bestSeasons: ["winter"], // Best in winter, particularly July
     optimalTide: "All", // No specific tide mentioned, assuming works at all tides
@@ -4505,14 +4513,59 @@ export const beachData: Beach[] = [
     },
     videos: [
       {
-        url: "https://www.youtube.com/watch?v=pyGKFdswk_k&ab_channel=KulumaTv",
-        title: "Surfing South of Durban 9th April 2016 Big Swell",
-        platform: "youtube",
-      },
-      {
         url: "https://www.youtube.com/watch?v=sDGlPLtHhk0",
         title:
           "Finding waves in KwaZulu-Natal, South Africa. Billabong team riders Emma Smith, Zoe Steyn, Crystal Hulett and Tanika Hoffman show us life on their side of the pond in South Africa. ",
+        platform: "youtube",
+      },
+    ],
+  },
+  {
+    id: "north-beach",
+    name: "North Beach",
+    continent: "Africa",
+    country: "South Africa",
+    region: "KwaZulu-Natal",
+    location: "Durban South",
+    distanceFromCT: 1600,
+    optimalWindDirections: ["W"], // Changed from NE to W based on new info
+    optimalSwellDirections: {
+      min: 112.5, // SE is approximately 112.5°
+      max: 135, // SE is 135°
+      cardinal: "SE", // Changed from S to SE based on new info
+    },
+    bestSeasons: ["winter"],
+    optimalTide: "All",
+    description:
+      "North Beach in Durban is an exposed beach and pier break known for its reliable surf conditions. The ideal wind direction is from the west, with swells coming equally from windswells and groundswells. The optimal swell direction is from the southeast. The beach features right-hand breaks, and when the waves are good, the area can become crowded with surfers. Be cautious of potential hazards such as sharks, rocks, and jellyfish. Additionally, North Beach is a popular spot for both locals and tourists, offering a vibrant atmosphere with nearby amenities such as restaurants, shops, and lifeguard services. It's a great destination for surfers of varying skill levels, though beginners should be mindful of the crowd and potential hazards. The beach is also well-maintained, making it a pleasant place to relax when you're not in the water. Always check local surf reports and conditions before heading out, and respect the lineup etiquette to ensure a safe and enjoyable experience for everyone.",
+    difficulty: "All Levels",
+    waveType: "Beach Break",
+    swellSize: {
+      min: 1.6,
+      max: 5.5,
+    },
+    idealSwellPeriod: {
+      min: 10,
+      max: 14,
+    },
+    waterTemp: {
+      summer: 26, // Updated based on current reading of 26.2°C
+      winter: 20,
+    },
+    hazards: ["Rocks", "Sharks", "Strong currents"],
+    crimeLevel: "Medium",
+    sharkAttack: {
+      hasAttack: false,
+    },
+    image: "",
+    coordinates: {
+      lat: -29.8584,
+      lng: 31.0384,
+    },
+    videos: [
+      {
+        url: "https://www.youtube.com/watch?v=aI-hU1md3vk&ab_channel=ESCAPESCOUT",
+        title: "Surfing Durban's North Coast",
         platform: "youtube",
       },
     ],
@@ -7136,7 +7189,7 @@ export const beachData: Beach[] = [
       lng: 32.5522,
     },
   },
-  
+
   {
     id: "ambinanibe",
     name: "Ambinanibe",
@@ -7232,6 +7285,1101 @@ export const beachData: Beach[] = [
       {
         url: "https://www.youtube.com/watch?v=ZppVg6OlcoA&ab_channel=madagascarsurf",
         title: "perfect set @flameballs ~ Surf Madagascar 2012",
+        platform: "youtube",
+      },
+    ],
+  },
+  {
+    id: "wedge",
+    name: "Wedge",
+    continent: "Africa",
+    country: "South Africa",
+    region: "KwaZulu-Natal",
+    location: "Durban",
+    distanceFromCT: 1600,
+    optimalWindDirections: ["WSW"],
+    optimalSwellDirections: {
+      min: 112.5, // ESE
+      max: 122.5, // ESE
+      cardinal: "ESE",
+    },
+    bestSeasons: ["winter"], // Added based on typical patterns
+    optimalTide: "Low to Mid",
+    description:
+      "Consistent beach and pier break rated 4/5, offering reliable waves throughout the year. Performs best with East-southeast swell combined with West-southwest offshore winds. Wave quality benefits from both local wind swells and distant groundswells. Multiple peaks provide both left and right options. Despite quality waves, spot typically remains uncrowded. Protected location near pier creates unique wave characteristics. Best surfed on rising tide from low. Watch for marine life including sharks and jellyfish, plus scattered rocks near pier structure.",
+    difficulty: "Intermediate",
+    waveType: "Beach Break",
+    swellSize: {
+      min: 1.6,
+      max: 5.0,
+    },
+    idealSwellPeriod: {
+      min: 10,
+      max: 14,
+    },
+    waterTemp: {
+      summer: 26, // Based on current reading of 26.2°C
+      winter: 20,
+    },
+    hazards: ["Sharks", "Rocks", "Jellyfish"],
+    crimeLevel: "Medium",
+    sharkAttack: {
+      hasAttack: false, // Protected by shark nets
+    },
+    image: "",
+    coordinates: {
+      lat: -29.8584, // Using Durban coordinates
+      lng: 31.0384,
+    },
+  },
+  {
+    id: "dairy-beach",
+    name: "Dairy Beach (New Pier)",
+    continent: "Africa",
+    country: "South Africa",
+    region: "KwaZulu-Natal",
+    location: "Durban",
+    distanceFromCT: 1600,
+    optimalWindDirections: ["SW"],
+    optimalSwellDirections: {
+      min: 90, // E
+      max: 100, // E
+      cardinal: "E",
+    },
+    bestSeasons: ["winter"], // Added based on typical patterns
+    optimalTide: "Low",
+    description:
+      "Exposed beach and pier break rated 4/5, known for its consistent wave conditions. Peak performance comes from East swell with Southwest offshore winds. Wave quality benefits from mixed groundswell and windswell combinations. Multiple peaks around pier structure offer both left and right options. Popular surf spot that draws regular crowds during good conditions. Protected by shark nets but remain alert for marine life. Iconic Durban surf spot with reliable year-round waves. Best surfed at low tide for optimal wave shape.",
+    difficulty: "Intermediate",
+    waveType: "Beach Break",
+    swellSize: {
+      min: 1.6,
+      max: 5.0,
+    },
+    idealSwellPeriod: {
+      min: 10,
+      max: 14,
+    },
+    waterTemp: {
+      summer: 26, // Based on current reading of 26.2°C
+      winter: 20,
+    },
+    hazards: ["Sharks", "Jellyfish", "Crowds"],
+    crimeLevel: "Medium",
+    sharkAttack: {
+      hasAttack: false, // Protected by shark nets
+    },
+    image: "",
+    coordinates: {
+      lat: -29.8584, // Using Durban coordinates
+      lng: 31.0384,
+    },
+  },
+  {
+    id: "addington-south-beach",
+    name: "Addington (South Beach)",
+    continent: "Africa",
+    country: "South Africa",
+    region: "KwaZulu-Natal",
+    location: "Durban",
+    distanceFromCT: 1600,
+    optimalWindDirections: ["SW"],
+    optimalSwellDirections: {
+      min: 112.5, // ESE
+      max: 135, // SE
+      cardinal: "ESE",
+    },
+    bestSeasons: ["winter"],
+    optimalTide: "Low to Mid",
+    description:
+      "Sheltered beach break rated 4/5, offering reliable waves in Durban's South Beach area. Performs best with East-southeast swell and Southwest offshore winds. Combines groundswell consistency with windswell accessibility for year-round surf potential. Multiple peaks provide both left and right options along the shoreline. Popular with local surfers, particularly during rising low tide when wave shape peaks. Protected by shark nets but maintain awareness of marine life. Facilities include nearby parking and lifeguard stations.",
+    difficulty: "Intermediate",
+    waveType: "Beach Break",
+    swellSize: {
+      min: 1.6,
+      max: 5.0,
+    },
+    idealSwellPeriod: {
+      min: 10,
+      max: 14,
+    },
+    waterTemp: {
+      summer: 26,
+      winter: 20,
+    },
+    hazards: ["Sharks", "Jellyfish", "Crowds"],
+    crimeLevel: "Medium",
+    sharkAttack: {
+      hasAttack: false,
+    },
+    image: "",
+    coordinates: {
+      lat: -29.8584,
+      lng: 31.0384,
+    },
+  },
+  {
+    id: "bay-of-plenty",
+    name: "Bay of Plenty",
+    continent: "Africa",
+    country: "South Africa",
+    region: "KwaZulu-Natal",
+    location: "Durban",
+    distanceFromCT: 1600,
+    optimalWindDirections: ["WNW"],
+    optimalSwellDirections: {
+      min: 135, // SE
+      max: 145, // Narrow SE range
+      cardinal: "SE",
+    },
+    bestSeasons: ["winter"],
+    optimalTide: "All",
+    description:
+      "Exposed beach and jetty break rated 4/5, offering reliable surf conditions year-round. Peak performance requires Southeast swell with West-northwest offshore winds. Combines both local windswells and distant groundswells for consistent wave energy. Multiple peaks around jetty structure create both left and right options. Winter months provide optimal conditions with larger swells. Protected by shark nets but remain vigilant for marine life. Can experience moderate crowds during peak swells. Rocky areas near jetty require careful navigation.",
+    difficulty: "Intermediate",
+    waveType: "Beach Break",
+    swellSize: {
+      min: 1.6,
+      max: 5.0,
+    },
+    idealSwellPeriod: {
+      min: 10,
+      max: 14,
+    },
+    waterTemp: {
+      summer: 26,
+      winter: 20,
+    },
+    hazards: ["Sharks", "Rocks", "Jellyfish"],
+    crimeLevel: "Medium",
+    sharkAttack: {
+      hasAttack: false, // Protected by shark nets
+    },
+    image: "",
+    coordinates: {
+      lat: -29.8584, // Using Durban coordinates
+      lng: 31.0384,
+    },
+  },
+  {
+    id: "snake-park",
+    name: "Snake Park",
+    continent: "Africa",
+    country: "South Africa",
+    region: "KwaZulu-Natal",
+    location: "Durban",
+    distanceFromCT: 1600,
+    optimalWindDirections: ["WNW"],
+    optimalSwellDirections: {
+      min: 135, // SE
+      max: 157.5, // SSE
+      cardinal: "SE",
+    },
+    bestSeasons: ["winter"],
+    optimalTide: "All",
+    description:
+      "Exposed beach break rated 4/5, offering quality waves when conditions align despite inconsistent reliability. Requires precise combination of Southeast swell and West-northwest offshore winds for optimal performance. Winter months see most consistent swells from both wind and ground sources. Multiple peaks provide left and right options along the shoreline. Popular among locals during swell events, leading to crowded lineups. Protected by shark nets but maintain awareness of marine hazards. Best for experienced surfers who can capitalize on brief optimal windows.",
+    difficulty: "Intermediate",
+    waveType: "Beach Break",
+    swellSize: {
+      min: 1.6,
+      max: 5.0,
+    },
+    idealSwellPeriod: {
+      min: 10,
+      max: 14,
+    },
+    waterTemp: {
+      summer: 26,
+      winter: 20,
+    },
+    hazards: ["Sharks", "Jellyfish", "Crowds"],
+    crimeLevel: "Medium",
+    sharkAttack: {
+      hasAttack: false, // Protected by shark nets
+    },
+    image: "",
+    coordinates: {
+      lat: -29.8584, // Using Durban coordinates
+      lng: 31.0384,
+    },
+  },
+  {
+    id: "alkantstrand",
+    name: "Alkantstrand",
+    continent: "Africa",
+    country: "South Africa",
+    region: "KwaZulu-Natal",
+    location: "Richards Bay",
+    distanceFromCT: 1800,
+    optimalWindDirections: ["SW"],
+    optimalSwellDirections: {
+      min: 135, // SE
+      max: 157.5, // SSE
+      cardinal: "SE",
+    },
+    bestSeasons: ["summer"],
+    optimalTide: "All",
+    description:
+      "Exposed beach break rated 3/5, characterized by reliable groundswell conditions. Distinctive right-hand waves perform best with Southeast swell and Southwest offshore winds. Summer months provide optimal conditions, unlike many South African spots that favor winter swells. Wave quality benefits primarily from groundswell energy rather than mixed swell patterns. Moderate crowd levels during good conditions. Located in Richards Bay area with typical subtropical water temperatures. Exercise standard shark safety protocols.",
+    difficulty: "Intermediate",
+    waveType: "Beach Break",
+    swellSize: {
+      min: 1.6,
+      max: 4.5,
+    },
+    idealSwellPeriod: {
+      min: 10,
+      max: 14,
+    },
+    waterTemp: {
+      summer: 27, // Rounded from 26.9°C
+      winter: 21,
+    },
+    hazards: ["Sharks", "Crowds"],
+    crimeLevel: "Medium",
+    sharkAttack: {
+      hasAttack: false,
+    },
+    image: "",
+    coordinates: {
+      lat: -28.7806, // Richards Bay coordinates
+      lng: 32.0878,
+    },
+  },
+  {
+    id: "cape-infanta",
+    name: "Cape Infanta",
+    continent: "Africa",
+    country: "South Africa",
+    region: "Western Cape",
+    location: "Boland and Southern Cape",
+    distanceFromCT: 280, // Approximate distance from Cape Town
+    optimalWindDirections: ["W"],
+    optimalSwellDirections: {
+      min: 135, // SE
+      max: 157.5, // SSE
+      cardinal: "SE",
+    },
+    bestSeasons: ["summer", "winter"], // No particular seasonal pattern
+    optimalTide: "All",
+    description:
+      "Quite exposed beach and point break combination rated 3/5. Despite inconsistent surf conditions, offers quality waves when Southeast swell meets West offshore winds. Primarily receives distant groundswells, creating both left and right options at the beach break sections. No distinct seasonal pattern, making it suitable year-round when conditions align. Point break adds variety to wave options. Popular spot that can draw crowds during good swells. Navigate carefully around rock formations and watch for strong rip currents.",
+    difficulty: "Intermediate",
+    waveType: "Beach Break", // Primary characteristic, though it has point sections
+    swellSize: {
+      min: 1.2,
+      max: 4.0,
+    },
+    idealSwellPeriod: {
+      min: 12,
+      max: 16,
+    },
+    waterTemp: {
+      summer: 23, // Based on current reading of 22.8°C
+      winter: 19,
+    },
+    hazards: ["Rocks", "Rip currents", "Crowds"],
+    crimeLevel: "Low",
+    sharkAttack: {
+      hasAttack: false,
+    },
+    image: "",
+    coordinates: {
+      lat: -34.4167, // Cape Infanta coordinates
+      lng: 20.85,
+    },
+  },
+  {
+    id: "vleesbaai",
+    name: "Vleesbaai",
+    continent: "Africa",
+    country: "South Africa",
+    region: "Western Cape",
+    location: "Boland",
+    distanceFromCT: 400, // Approximate distance from Cape Town
+    optimalWindDirections: ["WNW"],
+    optimalSwellDirections: {
+      min: 135, // SE
+      max: 157.5, // SSE
+      cardinal: "SE",
+    },
+    bestSeasons: ["winter"],
+    optimalTide: "All",
+    description:
+      "Exposed reef and point break rated 5/5, though rarely breaking. When conditions align, offers exceptional right-hand waves powered by Southeast groundswells and West-northwest offshore winds. Winter months provide optimal conditions with more consistent groundswells. Despite the high-quality waves, spot remains relatively uncrowded even on good days. Point and reef combination creates powerful wave formations. Watch for marine hazards including sharks and sea urchins.",
+    difficulty: "Advanced",
+    waveType: "Reef Break", // Primary characteristic with point break sections
+    swellSize: {
+      min: 1.5,
+      max: 4.0,
+    },
+    idealSwellPeriod: {
+      min: 12,
+      max: 16,
+    },
+    waterTemp: {
+      summer: 23, // Based on current reading of 23.2°C
+      winter: 19,
+    },
+    hazards: ["Sharks", "Sea urchins"],
+    crimeLevel: "Low",
+    sharkAttack: {
+      hasAttack: false,
+    },
+    image: "",
+    coordinates: {
+      lat: -34.25, // Vleesbaai coordinates
+      lng: 21.9167,
+    },
+  },
+  {
+    id: "outer-pool",
+    name: "Outer Pool",
+    continent: "Africa",
+    country: "South Africa",
+    region: "Western Cape",
+    location: "Mossel Bay, Garden Route",
+    distanceFromCT: 450, // Approximate distance from Cape Town
+    optimalWindDirections: ["W"],
+    optimalSwellDirections: {
+      min: 157.5, // SSE
+      max: 167.5, // SSE
+      cardinal: "SSE",
+    },
+    bestSeasons: ["winter", "autumn", "spring"], // Summer noted as mostly flat
+    optimalTide: "Low to Mid",
+    description:
+      "Fairly exposed reef and point break rated 4/5, known for reliable surf outside summer months. Right-hand reef break performs best with South-southeast groundswell and West offshore winds. Predominantly groundswell-driven spot with minimal windswell influence. Best conditions occur during rising tide from low. Despite consistent waves and quality rating, spot typically remains uncrowded. Located along Garden Route with good wave consistency in winter, autumn, and spring. Navigate carefully around reef sections with multiple hazards.",
+    difficulty: "Advanced",
+    waveType: "Reef Break",
+    swellSize: {
+      min: 1.4,
+      max: 4.0,
+    },
+    idealSwellPeriod: {
+      min: 12,
+      max: 16,
+    },
+    waterTemp: {
+      summer: 23, // Based on current reading of 23.1°C
+      winter: 19,
+    },
+    hazards: ["Sea urchins", "Rocks", "Rip currents"],
+    crimeLevel: "Low",
+    sharkAttack: {
+      hasAttack: false,
+    },
+    image: "",
+    coordinates: {
+      lat: -34.05, // Approximate Garden Route coordinates
+      lng: 23.0,
+    },
+  },
+  {
+    id: "santos-reef",
+    name: "Santos Reef",
+    continent: "Africa",
+    country: "South Africa",
+    region: "Western Cape",
+    location: "Mossel Bay, Garden Route",
+    distanceFromCT: 450, // Approximate distance from Cape Town
+    optimalWindDirections: ["SW"],
+    optimalSwellDirections: {
+      min: 135, // SE
+      max: 157.5, // SSE
+      cardinal: "SE",
+    },
+    bestSeasons: ["winter"],
+    optimalTide: "Low to Mid",
+    description:
+      "Sheltered reef break rated 4/5, offering reliable winter surf conditions. Protected location provides clean waves when Southeast groundswell meets Southwest offshore winds. Both left and right options available off the reef. Wave quality peaks during rising tide from low. Predominantly groundswell-driven spot with minimal windswell influence. Despite consistent conditions, spot typically remains uncrowded. Located in Mossel Bay's Garden Route area. Navigate carefully around reef sections.",
+    difficulty: "Advanced",
+    waveType: "Reef Break",
+    swellSize: {
+      min: 1.2,
+      max: 3.5,
+    },
+    idealSwellPeriod: {
+      min: 12,
+      max: 16,
+    },
+    waterTemp: {
+      summer: 23, // Based on current reading of 23.1°C
+      winter: 19,
+    },
+    hazards: ["Rocks"],
+    crimeLevel: "Low",
+    sharkAttack: {
+      hasAttack: false,
+    },
+    image: "",
+    coordinates: {
+      lat: -34.1833, // Mossel Bay coordinates
+      lng: 22.1333,
+    },
+  },
+  {
+    id: "dias-beach",
+    name: "Dias Beach",
+    continent: "Africa",
+    country: "South Africa",
+    region: "Western Cape",
+    location: "Mossel Bay, Garden Route",
+    distanceFromCT: 450, // Approximate distance from Cape Town
+    optimalWindDirections: ["WNW"],
+    optimalSwellDirections: {
+      min: 135, // SE
+      max: 157.5, // SSE
+      cardinal: "SE",
+    },
+    bestSeasons: ["winter", "autumn"], // Added based on typical groundswell patterns
+    optimalTide: "Low",
+    description:
+      "Exposed beach break rated 4/5 despite inconsistent conditions. Clean groundswells create quality waves when Southeast swell meets West-northwest offshore winds. Multiple peaks offer both left and right options along the beach. Wave quality peaks at low tide. Strong rip currents present significant challenge but help maintain uncrowded lineup even during optimal conditions. Located in Mossel Bay's Garden Route area with good access. Exercise extreme caution with powerful rips.",
+    difficulty: "Intermediate",
+    waveType: "Beach Break",
+    swellSize: {
+      min: 1.2,
+      max: 4.0,
+    },
+    idealSwellPeriod: {
+      min: 12,
+      max: 16,
+    },
+    waterTemp: {
+      summer: 23, // Based on current reading of 23.1°C
+      winter: 19,
+    },
+    hazards: ["Strong rip currents"],
+    crimeLevel: "Low",
+    sharkAttack: {
+      hasAttack: false,
+    },
+    image: "",
+    coordinates: {
+      lat: -34.1833, // Mossel Bay coordinates
+      lng: 22.1333,
+    },
+  },
+  {
+    id: "groenvlei",
+    name: "Groenvlei",
+    continent: "Africa",
+    country: "South Africa",
+    region: "Western Cape",
+    location: "George",
+    distanceFromCT: 430, // Approximate distance from Cape Town
+    optimalWindDirections: ["NW"],
+    optimalSwellDirections: {
+      min: 180, // S
+      max: 190, // S with slight variation
+      cardinal: "S",
+    },
+    bestSeasons: ["summer", "winter"], // Works year-round
+    optimalTide: "All",
+    description:
+      "Exposed beach break rated 3/5 with consistent year-round waves. Predominantly left-hand peeling waves work best with South groundswell and Northwest offshore winds. Groundswell-dominant spot offering reliable conditions regardless of tide state. Unique in the region for its left-hand tendency and year-round consistency. Despite reliable conditions, spot typically remains uncrowded. Located in George area with good accessibility. Strong rip currents require attention despite generally favorable conditions.",
+    difficulty: "Intermediate",
+    waveType: "Beach Break",
+    swellSize: {
+      min: 1.2,
+      max: 3.5,
+    },
+    idealSwellPeriod: {
+      min: 12,
+      max: 16,
+    },
+    waterTemp: {
+      summer: 23, // Based on current reading of 23.1°C
+      winter: 19,
+    },
+    hazards: ["Strong rip currents"],
+    crimeLevel: "Low",
+    sharkAttack: {
+      hasAttack: false,
+    },
+    image: "",
+    coordinates: {
+      lat: -34.05, // George area coordinates
+      lng: 22.45,
+    },
+  },
+  {
+    id: "gerickes-point",
+    name: "Gerickes Point",
+    continent: "Africa",
+    country: "South Africa",
+    region: "Western Cape",
+    location: "Garden Route",
+    distanceFromCT: 450, // Approximate distance from Cape Town
+    optimalWindDirections: ["E"],
+    optimalSwellDirections: {
+      min: 180, // S
+      max: 190, // S with slight variation
+      cardinal: "S",
+    },
+    bestSeasons: ["spring", "summer"], // Unique seasonal preference
+    optimalTide: "All",
+    description:
+      "Exposed point break rated 5/5, distinguished by its unique wind requirements. Premium left-hand waves form when South groundswells meet East offshore winds. Remarkably tolerant of light onshore conditions, adding to spot reliability. Spring and summer provide optimal conditions, contrasting with typical winter preference of nearby breaks. Primarily receives distant groundswells, creating consistent quality waves. Despite exceptional rating, typically maintains uncrowded lineup. Navigate carefully around point's rock formations.",
+    difficulty: "Advanced",
+    waveType: "Point Break",
+    swellSize: {
+      min: 1.4,
+      max: 4.0,
+    },
+    idealSwellPeriod: {
+      min: 12,
+      max: 16,
+    },
+    waterTemp: {
+      summer: 23, // Based on current reading of 23.1°C
+      winter: 19,
+    },
+    hazards: ["Rocks"],
+    crimeLevel: "Low",
+    sharkAttack: {
+      hasAttack: false,
+    },
+    image: "",
+    coordinates: {
+      lat: -34.05, // Garden Route coordinates
+      lng: 23.0,
+    },
+  },
+  {
+    id: "goukamma-river-mouth",
+    name: "Goukamma River Mouth",
+    continent: "Africa",
+    country: "South Africa",
+    region: "Western Cape",
+    location: "Garden Route",
+    distanceFromCT: 450, // Approximate distance from Cape Town
+    optimalWindDirections: ["N"],
+    optimalSwellDirections: {
+      min: 180, // S
+      max: 190, // S with slight variation
+      cardinal: "S",
+    },
+    bestSeasons: ["summer", "winter"], // Works year-round
+    optimalTide: "All",
+    description:
+      "Exposed river break rated 5/5, offering unique wave characteristics at the river mouth. Performs exceptionally with South groundswells meeting North offshore winds. Year-round consistency powered by distant groundswells. River mouth dynamics create both left and right options. Wave quality maintains across all tide states. Distinctive river break setup rare in the region. Popular spot that can draw crowds during optimal conditions. Exercise caution with river mouth rip currents.",
+    difficulty: "Advanced",
+    waveType: "Beach Break",
+    swellSize: {
+      min: 1.4,
+      max: 4.0,
+    },
+    idealSwellPeriod: {
+      min: 12,
+      max: 16,
+    },
+    waterTemp: {
+      summer: 23, // Based on current reading of 22.9°C
+      winter: 19,
+    },
+    hazards: ["Strong rip currents", "Crowds"],
+    crimeLevel: "Low",
+    sharkAttack: {
+      hasAttack: false,
+    },
+    image: "",
+    coordinates: {
+      lat: -34.05, // Garden Route coordinates
+      lng: 22.95,
+    },
+  },
+  {
+    id: "murphys-buffalo-bay",
+    name: "Murphys (Buffalo Bay Beach)",
+    continent: "Africa",
+    country: "South Africa",
+    region: "Western Cape",
+    location: "Knsyna, Garden Route",
+    distanceFromCT: 450, // Approximate distance from Cape Town
+    optimalWindDirections: ["W"],
+    optimalSwellDirections: {
+      min: 135, // SE
+      max: 157.5, // SSE
+      cardinal: "SE",
+    },
+    bestSeasons: ["winter", "autumn", "spring"], // Summer noted as flat
+    optimalTide: "All",
+    description:
+      "Exposed beach break rated 2/5, offering consistent waves outside summer months. Works best with Southeast distant groundswells and West offshore winds. Multiple peaks provide both left and right options along the beach. Despite modest rating, maintains regular wave frequency making it popular among locals. Located in Buffalo Bay with good accessibility. Multiple hazards require attention, particularly during larger swells. Wave quality varies but reliability makes it a regular option for area surfers.",
+    difficulty: "Intermediate",
+    waveType: "Beach Break",
+    swellSize: {
+      min: 1.2,
+      max: 3.5,
+    },
+    idealSwellPeriod: {
+      min: 12,
+      max: 16,
+    },
+    waterTemp: {
+      summer: 23, // Based on current reading of 22.9°C
+      winter: 19,
+    },
+    hazards: ["Rocks", "Sharks", "Strong rip currents", "Crowds"],
+    crimeLevel: "Low",
+    sharkAttack: {
+      hasAttack: false, // No specific incidents mentioned
+    },
+    image: "",
+    coordinates: {
+      lat: -34.0667, // Buffalo Bay coordinates
+      lng: 22.9833,
+    },
+  },
+  {
+    id: "the-heads",
+    name: "The Heads",
+    continent: "Africa",
+    country: "South Africa",
+    region: "Western Cape",
+    location: "Knysna, Garden Route",
+    distanceFromCT: 450, // Approximate distance from Cape Town
+    optimalWindDirections: ["N"],
+    optimalSwellDirections: {
+      min: 157.5, // SSE
+      max: 167.5, // SSE
+      cardinal: "SSE",
+    },
+    bestSeasons: ["winter", "autumn", "spring"], // Summer noted as flat
+    optimalTide: "All",
+    description:
+      "Reasonably exposed sandbar break rated 2/5, offering fairly consistent waves outside summer months. Works best with South-southeast groundswells meeting North offshore winds. Sandbar formations create both left and right options. Despite modest rating, draws regular crowds when conditions align. Located at Knysna's iconic Heads with distinctive channel dynamics. Strong rip currents present significant challenge. Wave quality varies but location's unique setup maintains regular interest.",
+    difficulty: "Intermediate",
+    waveType: "Beach Break", // Though sandbar type, categorized as beach break
+    swellSize: {
+      min: 1.2,
+      max: 3.5,
+    },
+    idealSwellPeriod: {
+      min: 12,
+      max: 16,
+    },
+    waterTemp: {
+      summer: 23, // Based on current reading of 22.9°C
+      winter: 19,
+    },
+    hazards: ["Strong rip currents", "Crowds"],
+    crimeLevel: "Low",
+    sharkAttack: {
+      hasAttack: false,
+    },
+    image: "",
+    videos: [
+      {
+        url: "https://www.youtube.com/watch?v=UrdfhKy0mYs&ab_channel=YOUREXPLORER-4K",
+        title: "The HEADS - Knysna , Garden Route , South Africa",
+        platform: "youtube",
+      },
+    ],
+    coordinates: {
+      lat: -34.0833, // Knysna Heads coordinates
+      lng: 23.0589,
+    },
+  },
+  {
+    id: "oyster-bay",
+    name: "Oyster Bay",
+    continent: "Africa",
+    country: "South Africa",
+    region: "Eastern Cape",
+    location: "Jeffreys Bay Coast",
+    distanceFromCT: 650, // Approximate distance from Cape Town
+    optimalWindDirections: ["NNE"],
+    optimalSwellDirections: {
+      min: 135, // SE
+      max: 157.5, // SSE
+      cardinal: "SE",
+    },
+    bestSeasons: ["winter"], // Based on typical groundswell patterns
+    optimalTide: "All",
+    description:
+      "Exposed beach break rated 2/5, characterized by inconsistent conditions despite clean groundswells. Performs best with Southeast swell meeting North-northeast offshore winds. Particularly sensitive to wind conditions, with poor performance in light onshore breezes. Multiple peaks offer both left and right options when working. Wave quality highly dependent on sandbar formations. Despite infrequent optimal conditions, can draw crowds when working. Multiple hazards require vigilance.",
+    difficulty: "Intermediate",
+    waveType: "Beach Break", // Though sandbar type, categorized as beach break
+    swellSize: {
+      min: 1.2,
+      max: 3.5,
+    },
+    idealSwellPeriod: {
+      min: 12,
+      max: 16,
+    },
+    waterTemp: {
+      summer: 21, // Adjusted for colder region
+      winter: 19,
+    },
+    hazards: ["Strong rip currents", "Rocks", "Sharks", "Crowds"],
+    crimeLevel: "Low",
+    sharkAttack: {
+      hasAttack: false, // No specific incidents mentioned
+    },
+    image: "",
+    coordinates: {
+      lat: -34.1667, // Oyster Bay coordinates
+      lng: 24.65,
+    },
+  },
+  {
+    id: "hullets-reef",
+    name: "Hullets Reef",
+    continent: "Africa",
+    country: "South Africa",
+    region: "Eastern Cape",
+    location: "Jeffreys Bay Coast",
+    distanceFromCT: 650, // Approximate distance from Cape Town
+    optimalWindDirections: ["SW"],
+    optimalSwellDirections: {
+      min: 135, // SE
+      max: 157.5, // SSE
+      cardinal: "SE",
+    },
+    bestSeasons: ["summer", "winter"], // Works year-round
+    optimalTide: "All",
+    description:
+      "Reasonably exposed reef break rated 4/5, offering consistent year-round potential. Distinguished by its left-hand reef break that performs best with Southeast groundswells and Southwest offshore winds. Primarily receives distant groundswells, creating reliable quality waves. Year-round consistency unusual for the region. Popular spot that can draw significant crowds during optimal conditions. Located along Jeffreys Bay Coast with characteristic Eastern Cape conditions. Shark presence requires standard safety protocols.",
+    difficulty: "Advanced",
+    waveType: "Reef Break",
+    swellSize: {
+      min: 1.4,
+      max: 4.0,
+    },
+    idealSwellPeriod: {
+      min: 12,
+      max: 16,
+    },
+    waterTemp: {
+      summer: 21, // Adjusted for Eastern Cape region
+      winter: 19,
+    },
+    hazards: ["Sharks", "Crowds"],
+    crimeLevel: "Low",
+    sharkAttack: {
+      hasAttack: false, // No specific incidents mentioned
+    },
+    image: "",
+    coordinates: {
+      lat: -34.05, // Jeffreys Bay Coast coordinates
+      lng: 24.9167,
+    },
+  },
+  {
+    id: "claptons-coils",
+    name: "Claptons Coils",
+    continent: "Africa",
+    country: "South Africa",
+    region: "Eastern Cape",
+    location: "Jeffreys Bay Coast",
+    distanceFromCT: 650, // Consistent with Eastern Cape locations
+    optimalWindDirections: ["NW"],
+    optimalSwellDirections: {
+      min: 80, // E
+      max: 100, // E with variation
+      cardinal: "E",
+    },
+    bestSeasons: ["autumn", "winter", "spring"], // Summer excluded
+    optimalTide: "All",
+    description:
+      "Exposed point break rated 4/5 with inconsistent conditions. Rare left-hand point break requiring precise East groundswells and Northwest offshore winds. Summer months often flat despite favorable winds. Clean groundswells create quality left-hand walls when conditions align. Typically remains uncrowded even during rare good swells. Located along Jeffreys Bay Coast's rugged shoreline. Exercise caution around submerged rocks and potential shark activity.",
+    difficulty: "Advanced",
+    waveType: "Point Break",
+    swellSize: {
+      min: 1.5,
+      max: 4.0,
+    },
+    idealSwellPeriod: {
+      min: 12,
+      max: 16,
+    },
+    waterTemp: {
+      summer: 21, // Eastern Cape pattern
+      winter: 19,
+    },
+    hazards: ["Sharks", "Rocks"],
+    crimeLevel: "Low",
+    sharkAttack: {
+      hasAttack: false, // No specific incidents
+    },
+    image: "",
+    coordinates: {
+      lat: -34.1, // Jeffreys Bay area
+      lng: 24.8,
+    },
+  },
+  {
+    id: "kitchen-windows",
+    name: "Kitchen Windows",
+    continent: "Africa",
+    country: "South Africa",
+    region: "Eastern Cape",
+    location: "Jeffreys Bay Coast",
+    distanceFromCT: 650, // Consistent with J-Bay locations
+    optimalWindDirections: ["WNW"],
+    optimalSwellDirections: {
+      min: 135, // SE
+      max: 157.5, // SSE
+      cardinal: "SE",
+    },
+    bestSeasons: ["autumn", "winter", "spring"], // Summer excluded
+    optimalTide: "All",
+    description:
+      "Exposed beach and reef break rated 4/5, offering consistent surf outside summer months. Combines beach break versatility with reef break quality when Southeast groundswells meet West-northwest offshore winds. Distant groundswells create powerful waves that attract crowds during peak conditions. Unique seabed features including mussel beds add to local hazards. Located along Jeffreys Bay's renowned coast, providing both left and right options across different sections. Exercise caution around sharp reef formations and marine life.",
+    difficulty: "Advanced",
+    waveType: "Beach and Reef Break",
+    swellSize: {
+      min: 1.5,
+      max: 4.0,
+    },
+    idealSwellPeriod: {
+      min: 12,
+      max: 16,
+    },
+    waterTemp: {
+      summer: 21, // Eastern Cape pattern
+      winter: 19,
+    },
+    hazards: ["Sharks", "Rocks", "Mussel shells", "Crowds"],
+    crimeLevel: "Low",
+    sharkAttack: {
+      hasAttack: false,
+    },
+    image: "",
+    coordinates: {
+      lat: -34.0833, // Jeffreys Bay coordinates
+      lng: 24.8833,
+    },
+  },
+  {
+    id: "magna-tubes",
+    name: "Magna Tubes",
+    continent: "Africa",
+    country: "South Africa",
+    region: "Eastern Cape",
+    location: "Jeffreys Bay Coast",
+    distanceFromCT: 650,
+    optimalWindDirections: ["WNW"],
+    optimalSwellDirections: {
+      min: 135,
+      max: 157.5,
+      cardinal: "SE",
+    },
+    bestSeasons: ["autumn", "winter", "spring"],
+    optimalTide: "All",
+    description:
+      "Exposed reef break rated 4/5, delivering consistent quality waves. Thrives with Southeast groundswells and West-northwest offshore winds. Features both left and right reef breaks with powerful tube formations. Clean groundswells create premium barrel opportunities. Popular spot that draws crowds during good conditions. Unique seabed composition with mussel beds adds to hazards. Located along Jeffreys Bay's famous reef systems. Exercise caution around sharp reef structures and marine life.",
+    difficulty: "Advanced",
+    waveType: "Reef Break",
+    swellSize: {
+      min: 1.5,
+      max: 4.0,
+    },
+    idealSwellPeriod: {
+      min: 12,
+      max: 16,
+    },
+    waterTemp: {
+      summer: 21,
+      winter: 19,
+    },
+    hazards: ["Sharks", "Rocks", "Mussel shells", "Crowds"],
+    crimeLevel: "Low",
+    sharkAttack: {
+      hasAttack: false,
+    },
+    image: "",
+    coordinates: {
+      lat: -34.0833,
+      lng: 24.9,
+    },
+  },
+  {
+    id: "super-tubes",
+    name: "Super Tubes",
+    continent: "Africa",
+    country: "South Africa",
+    region: "Eastern Cape",
+    location: "Jeffreys Bay Coast",
+    distanceFromCT: 650,
+    optimalWindDirections: ["WSW"],
+    optimalSwellDirections: {
+      min: 225, // SW
+      max: 247.5, // WSW
+      cardinal: "SW",
+    },
+    bestSeasons: ["autumn", "winter", "spring"], // Summer excluded
+    optimalTide: "All",
+    description:
+      "Exposed reef and point break rated 4/5, renowned for consistent powerful tubes. Thrives with Southwest groundswells and West-southwest offshore winds. Combines reef's power with point break's length, creating world-class right-hand rides. Summer flat spells contrast with reliable winter/autumn conditions. Premium barrel opportunities attract crowds despite hazards. Part of Jeffreys Bay's legendary reef system. Exercise extreme caution around shallow reef sections and marine life.",
+    difficulty: "Advanced",
+    waveType: "Reef Break",
+    swellSize: {
+      min: 1.6,
+      max: 4.5,
+    },
+    idealSwellPeriod: {
+      min: 14,
+      max: 18,
+    },
+    waterTemp: {
+      summer: 21,
+      winter: 19,
+    },
+    hazards: ["Sharks", "Rocks", "Crowds"],
+    crimeLevel: "Low",
+    sharkAttack: {
+      hasAttack: false,
+    },
+    image: "",
+    coordinates: {
+      lat: -34.0833,
+      lng: 24.9167,
+    },
+  },
+  {
+    id: "salad-bowls",
+    name: "Salad Bowls",
+    continent: "Africa",
+    country: "South Africa",
+    region: "Eastern Cape",
+    location: "Jeffreys Bay Coast",
+    distanceFromCT: 650,
+    optimalWindDirections: ["WSW"],
+    optimalSwellDirections: {
+      min: 225, // SW
+      max: 247.5, // WSW
+      cardinal: "SW",
+    },
+    bestSeasons: ["autumn", "winter", "spring"],
+    optimalTide: "Mid to High",
+    description:
+      "Exposed point break rated 4/5, renowned for consistent right-hand walls. Thrives with powerful Southwest groundswells and West-southwest offshore winds. Forms world-class mechanical waves that peel down the rocky point. Summer flat periods contrast with reliable autumn/winter conditions. Premium performance waves attract experienced surfers, often creating crowded lineups. Part of Jeffreys Bay's legendary reef system. Exercise extreme caution around shallow bottom and marine life.",
+    difficulty: "Advanced",
+    waveType: "Point Break",
+    swellSize: {
+      min: 1.7,
+      max: 4.2,
+    },
+    idealSwellPeriod: {
+      min: 14,
+      max: 18,
+    },
+    waterTemp: {
+      summer: 21,
+      winter: 19,
+    },
+    hazards: ["Sharks", "Rocks", "Crowds"],
+    crimeLevel: "Low",
+    sharkAttack: {
+      hasAttack: false,
+    },
+    image: "",
+    coordinates: {
+      lat: -34.09,
+      lng: 24.91,
+    },
+  },
+  {
+    id: "albatross",
+    name: "Albatross",
+    continent: "Africa",
+    country: "South Africa",
+    region: "Eastern Cape",
+    location: "Jeffreys Bay Coast",
+    distanceFromCT: 650,
+    optimalWindDirections: ["SW"],
+    optimalSwellDirections: {
+      min: 202.5, // SSW
+      max: 213.75, // SSW
+      cardinal: "SSW",
+    },
+    bestSeasons: ["autumn", "winter", "spring"],
+    optimalTide: "Mid",
+    description:
+      "Exposed beach and reef break rated 4/5, offering powerful consistent waves. Combines beach break accessibility with reef-generated power when South-southwest groundswells meet Southwest offshore winds. Produces both left and right-hand waves with intense barrel sections. Maintains reliability outside summer months despite exposed location. Popular among experienced surfers, often crowded during peak swells. Part of Jeffreys Bay's extended reef system. Exercise caution around submerged reef structures and marine life.",
+    difficulty: "Advanced",
+    waveType: "Beach and Reef Break",
+    swellSize: {
+      min: 1.6,
+      max: 4.2,
+    },
+    idealSwellPeriod: {
+      min: 14,
+      max: 18,
+    },
+    waterTemp: {
+      summer: 21,
+      winter: 19,
+    },
+    hazards: ["Rocks", "Sharks", "Crowds"],
+    crimeLevel: "Low",
+    sharkAttack: {
+      hasAttack: false,
+    },
+    image: "",
+    coordinates: {
+      lat: -34.095,
+      lng: 24.875,
+    },
+  },
+  {
+    id: "noncom-cape-recife",
+    name: "Noncom (Cape Recife)",
+    continent: "Africa",
+    country: "South Africa",
+    region: "Eastern Cape",
+    location: "Eastern Cape (South)",
+    distanceFromCT: 700, // Further east than J-Bay locations
+    optimalWindDirections: ["NNW"],
+    optimalSwellDirections: {
+      min: 202.5, // SSW
+      max: 213.75, // SSW
+      cardinal: "SSW",
+    },
+    bestSeasons: ["autumn", "winter", "spring"], // Summer excluded
+    optimalTide: "Mid",
+    description:
+      "Exposed sandbar break rated 4/5, renowned for consistent powerful waves. Thrives with South-southwest groundswells meeting North-northwest offshore winds. Sandbar formations create clean left-hand walls with intense tube sections. Maintains reliability outside summer months despite exposed location. Rarely crowded despite wave quality. Part of Cape Recife's expansive sandbar system. Exercise extreme caution with strong rip currents and potential shark activity.",
+    difficulty: "Advanced",
+    waveType: "Beach Break",  
+    swellSize: {
+      min: 1.4,
+      max: 4.0,
+    },
+    idealSwellPeriod: {
+      min: 14,
+      max: 18,
+    },
+    waterTemp: {
+      summer: 21, // Slightly warmer than J-Bay
+      winter: 18,
+    },
+    hazards: ["Strong rip currents", "Sharks"],
+    crimeLevel: "Low",
+    sharkAttack: {
+      hasAttack: false,
+    },
+    image: "",
+    coordinates: {
+      lat: -34.0167, // Cape Recife coordinates
+      lng: 25.4167,
+    },
+    videos: [
+      {
+        url: "https://www.youtube.com/watch?v=Tx36W5WpxSE&ab_channel=DawidMocke",
+        title:
+          "The World's longest wave on a surfski - Cape Recife, 5 Capes 2016",
+        platform: "youtube",
+      },
+      {
+        url: "https://www.youtube.com/watch?v=snHORxNCMp0&ab_channel=Zach%26Jerry",
+        title: "Cape Recife Wave Runners",
         platform: "youtube",
       },
     ],

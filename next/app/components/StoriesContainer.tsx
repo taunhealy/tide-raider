@@ -167,16 +167,16 @@ export default function WildStoriesContainer({
                   placeholder="Search stories..."
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
-                  className="w-full xs:w-[300px] md:w-[540px] px-4 py-2 rounded-lg border border-gray-200 focus:outline-none focus:ring-2 focus:ring-[var(--color-bg-tertiary)]"
+                  className="font-primary w-full xs:w-[300px] md:w-[540px] px-4 py-2 rounded-lg border border-gray-200 focus:outline-none focus:ring-2 focus:ring-[var(--color-bg-tertiary)]"
                 />
                 {session ? (
                   <button
                     onClick={() => setIsCreateModalOpen(true)}
                     className="flex-shrink-0 flex items-center justify-center gap-2 px-4 py-2 bg-[var(--color-bg-tertiary)] text-white rounded-lg hover:bg-opacity-90 transition-colors"
                   >
-                    <Plus className="w-4 h-4" />
-                    <span className="md:hidden">Share Story</span>
-                    <span className="hidden md:inline">Share</span>
+                    <Plus className="w-4 h-4 font-primary" />
+                    <span className="md:hidden font-primary">Share Story</span>
+                    <span className="hidden md:inline font-primary">Share</span>
                   </button>
                 ) : (
                   <button
@@ -189,7 +189,7 @@ export default function WildStoriesContainer({
                 <button
                   onClick={toggleAllFilters}
                   className={cn(
-                    inter.className,
+                    "font-primary",
                     "text-black font-semibold",
                     "bg-white border border-gray-200",
                     "px-4 py-2",
@@ -202,7 +202,7 @@ export default function WildStoriesContainer({
                   {Object.values(filters).some((f) =>
                     Array.isArray(f) ? f.length > 0 : f.start || f.end
                   ) && (
-                    <span className="w-2 h-2 rounded-full bg-[var(--color-bg-tertiary)]" />
+                    <span className="font-primary w-2 h-2 rounded-full bg-[var(--color-bg-tertiary)]" />
                   )}
                 </button>
               </div>
@@ -223,7 +223,7 @@ export default function WildStoriesContainer({
                       setFilters({ ...filters, categories: newCategories });
                     }}
                     className={cn(
-                      "px-3 md:px-4 py-1.5 md:py-2 rounded-full text-xs md:text-sm font-medium whitespace-nowrap transition-colors",
+                      "px-3 md:px-4 py-1.5 md:py-2 rounded-full text-xs md:text-sm font-medium whitespace-nowrap transition-colors font-primary",
                       filters.categories.includes(category)
                         ? "bg-[var(--color-bg-tertiary)] text-white"
                         : "bg-white border border-gray-200 text-gray-700 hover:bg-gray-50"
@@ -281,7 +281,7 @@ export default function WildStoriesContainer({
           </div>
         ) : (
           <div className="text-center py-8 bg-slate-200 rounded-md">
-            <p>No stories found. Share your story.</p>
+            <p className="font-primary">No stories found. Share your story.</p>
           </div>
         )}
       </div>

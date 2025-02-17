@@ -25,7 +25,7 @@ export default function VHSEffect() {
     renderer.domElement.style.position = "fixed";
     renderer.domElement.style.top = "0";
     renderer.domElement.style.left = "0";
-    renderer.domElement.style.zIndex = "1";
+    renderer.domElement.style.zIndex = "9999";
     renderer.setSize(window.innerWidth, window.innerHeight);
     mountRef.current.appendChild(renderer.domElement);
 
@@ -100,7 +100,7 @@ export default function VHSEffect() {
             finalColor.r * (1.0 - rOffset),
             finalColor.g * (1.0 - gOffset),
             finalColor.b * (1.0 - bOffset),
-            0.3
+            0.5
           );
         }
       `,
@@ -153,8 +153,8 @@ export default function VHSEffect() {
   return (
     <div
       ref={mountRef}
-      className="fixed inset-0 w-full h-full pointer-events-none mix-blend-overlay"
-      style={{ zIndex: 9999 }} // Force highest z-index
+      className="fixed inset-0 w-full h-full pointer-events-none mix-blend-screen"
+      style={{ zIndex: -1 }}
     />
   );
 }

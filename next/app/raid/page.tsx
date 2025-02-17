@@ -61,11 +61,9 @@ async function QuestContent() {
         }),
     ]);
 
-    if (!windResponse || !blogData || !activeAds) {
-      throw new Error("Failed to fetch required data");
-    }
-
-    const windData = windResponse;
+    const windData = windResponse || {};
+    const blogs = blogData || [];
+    const ads = activeAds || [];
 
     return (
       <div className="min-h-screen bg-[var(--color-bg-secondary)]">
@@ -75,8 +73,8 @@ async function QuestContent() {
               <BeachContainer
                 initialBeaches={beachData}
                 windData={windData}
-                blogPosts={blogData.posts}
-                availableAds={activeAds}
+                blogPosts={blogs}
+                availableAds={ads}
               />
             </div>
           </div>

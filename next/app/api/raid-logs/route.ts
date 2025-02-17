@@ -185,6 +185,12 @@ export async function POST(request: Request) {
 
     const data = await request.json();
 
+    // Fetch user data from database
+    const user = await prisma.user.findUnique({
+      where: { id: session.user.id },
+      select: { name: true },
+    });
+
     // Fetch forecast data
     const forecast = await getForecast(data.date, data.region);
 
@@ -193,7 +199,8 @@ export async function POST(request: Request) {
         ...data,
         date: new Date(data.date),
         userId: session.user.id,
-        forecast: forecast, // Add the forecast data
+        surferName: user?.name || session.user.name || "Anonymous Surfer", // Use database name, fallback to session name
+        forecast: forecast,
       },
     });
 

@@ -4,6 +4,7 @@ import HeroBlogSection from "@/app/sections/HeroBlog";
 import HeroSection from "./sections/Hero";
 import HeroImage from "./sections/HeroImage";
 import HeroProduct from "./sections/HeroProduct";
+import VHSEffect from "@/app/components/VHSEffect";
 
 export const revalidate = 0;
 
@@ -34,6 +35,7 @@ export default async function HomePage() {
 
   return (
     <main>
+      <VHSEffect />
       <HeroSection data={content.hero} />
       <HeroProduct />
       <HeroBlogSection data={content.blog} />

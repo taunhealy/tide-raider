@@ -101,8 +101,11 @@ export default function TripDetails({ trip }: TripDetailsProps) {
         <div className="mb-8">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <div className="bg-white p-4 rounded-lg shadow-sm">
-              <h4 className="font-semibold mb-2">Destination</h4>
-              <p>{trip.destination}</p>
+              <h4 className="font-semibold mb-2">Location</h4>
+              <div className="space-y-1">
+                {trip.country && <p>Country: {trip.country}</p>}
+                {trip.region && <p>Region: {trip.region}</p>}
+              </div>
             </div>
             {trip.idealMonth && (
               <div className="bg-white p-4 rounded-lg shadow-sm">

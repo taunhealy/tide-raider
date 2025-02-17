@@ -12,6 +12,10 @@ import { ClientProfileLogs } from "@/app/components/ClientProfileLogs";
 import StoriesContainer from "@/app/components/StoriesContainer";
 import ProfileHeader from "@/app/components/profile/ProfileHeader";
 import RippleLoader from "@/app/components/ui/RippleLoader";
+import Image from "next/image";
+import { urlForImage } from "@/app/lib/urlForImage";
+import { groq } from "next-sanity";
+import { client } from "@/lib/sanity";
 
 // Server component
 export default function ProfilePage() {
@@ -35,6 +39,18 @@ export default function ProfilePage() {
     },
   });
 
+  const { data } = useQuery({
+    queryKey: ["profile"],
+    queryFn: async () => {
+      return client.fetch(groq`*[_type == "profile"][0] {
+        heroImage {
+          image { ..., asset-> },
+          alt
+        }
+      }`);
+    },
+  });
+
   if (isLoading) {
     return (
       <div className="min-h-[calc(100vh-160px)] flex items-center justify-center">
@@ -49,58 +65,77 @@ export default function ProfilePage() {
 
   return (
     <div className="container mx-auto p-6 font-primary">
-      <ProfileHeader userData={userData} isOwnProfile={isOwnProfile} />
+      <div className="flex flex-col sm:flex-row gap-6">
+        <div className="flex-1">
+          <ProfileHeader userData={userData} isOwnProfile={isOwnProfile} />
 
-      <div className="flex gap-4 mb-6">
-        <Button
-          variant={activeTab === "account" ? "default" : "outline"}
-          onClick={() => setActiveTab("account")}
-        >
-          Profile
-        </Button>
-        <Button
-          variant={activeTab === "favourites" ? "default" : "outline"}
-          onClick={() => setActiveTab("favourites")}
-        >
-          Favourites
-        </Button>
-        <Button
-          variant={activeTab === "logs" ? "default" : "outline"}
-          onClick={() => setActiveTab("logs")}
-        >
-          Logs
-        </Button>
-        <Button
-          variant={activeTab === "chronicles" ? "default" : "outline"}
-          onClick={() => setActiveTab("chronicles")}
-        >
-          Chronicles
-        </Button>
-      </div>
-
-      <div className="min-h-[500px] min-w-full overflow-auto">
-        {activeTab === "account" && (
-          <BioSection
-            initialBio={userData?.bio}
-            initialLink={userData?.link}
-            isOwnProfile={isOwnProfile}
-            userId={userId}
-          />
-        )}
-
-        {activeTab === "favourites" && (
-          <FavouriteSurfVideosSidebar userId={userId} />
-        )}
-
-        {activeTab === "logs" && (
-          <div className="w-full overflow-x-auto px-4">
-            <ClientProfileLogs beaches={[]} userId={userId} />
+          <div className="flex gap-4 mb-6">
+            <Button
+              variant={activeTab === "account" ? "default" : "outline"}
+              onClick={() => setActiveTab("account")}
+            >
+              Profile
+            </Button>
+            <Button
+              variant={activeTab === "favourites" ? "default" : "outline"}
+              onClick={() => setActiveTab("favourites")}
+            >
+              Favourites
+            </Button>
+            <Button
+              variant={activeTab === "logs" ? "default" : "outline"}
+              onClick={() => setActiveTab("logs")}
+            >
+              Logs
+            </Button>
+            <Button
+              variant={activeTab === "chronicles" ? "default" : "outline"}
+              onClick={() => setActiveTab("chronicles")}
+            >
+              Chronicles
+            </Button>
           </div>
-        )}
 
-        {activeTab === "chronicles" && (
-          <div className="w-full overflow-x-auto px-4">
-            <StoriesContainer beaches={[]} userId={userId} />
+          <div className="min-h-[400px] w-full overflow-auto">
+            {activeTab === "account" && (
+              <BioSection
+                initialBio={userData?.bio}
+                initialLink={userData?.link}
+                isOwnProfile={isOwnProfile}
+                userId={userId}
+              />
+            )}
+
+            {activeTab === "favourites" && (
+              <FavouriteSurfVideosSidebar userId={userId} />
+            )}
+
+            {activeTab === "logs" && (
+              <div className="w-full overflow-x-auto px-4">
+                <ClientProfileLogs beaches={[]} userId={userId} />
+              </div>
+            )}
+
+            {activeTab === "chronicles" && (
+              <div className="w-full overflow-x-auto px-4">
+                <StoriesContainer beaches={[]} userId={userId} />
+              </div>
+            )}
+          </div>
+        </div>
+
+        {/* Image Column - Only show for Profile and Favourites tabs */}
+        {["account", "favourites"].includes(activeTab) && (
+          <div className="flex-none w-full sm:w-[800px] relative h-[600px]">
+            <div className="absolute inset-0 overflow-hidden rounded-md">
+              <Image
+                src={urlForImage(data?.heroImage?.image)?.url() || ""}
+                alt={data?.heroImage?.alt || "Profile background"}
+                fill
+                className="object-cover"
+                sizes="(max-width: 768px) 100vw, 500px"
+              />
+            </div>
           </div>
         )}
       </div>

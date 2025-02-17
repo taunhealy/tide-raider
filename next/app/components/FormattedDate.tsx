@@ -1,15 +1,17 @@
-interface FormattedDateProps {
-  date: Date;
-}
+import { format } from "date-fns";
 
-export function FormattedDate({ date }: FormattedDateProps) {
+export default function FormattedDate({ date }: { date?: number | null }) {
+  if (!date) return null; // Handle null/undefined
+
+  const dateObj = new Date(date);
+  if (isNaN(dateObj.getTime())) return null; // Handle invalid dates
+
   return (
-    <time dateTime={date.toISOString()}>
-      {date.toLocaleDateString('en-US', {
-        year: 'numeric',
-        month: 'long',
-        day: 'numeric'
-      })}
+    <time
+      dateTime={dateObj.toISOString()}
+      className="font-primary text-gray-600"
+    >
+      {format(dateObj, "dd/MM/yyyy")}
     </time>
   );
-} 
+}

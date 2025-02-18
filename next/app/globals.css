@@ -403,22 +403,19 @@
 }
 
 @keyframes neon-pulse {
-  0% {
-    transform: scale(1);
-    opacity: 0.3;
-  }
-  20% {
-    transform: scale(1.02);
+  0%,
+  100% {
+    filter: drop-shadow(0 0 3px currentColor);
     opacity: 0.5;
   }
-  100% {
-    transform: scale(1);
-    opacity: 0.3;
+  30% {
+    filter: drop-shadow(0 0 5px currentColor);
+    opacity: 1;
   }
 }
 
 .animate-neon-glow {
-  animation: neon-glow 1.2s ease-in-out infinite;
+  animation: neon-glow 2s ease-in-out infinite;
 }
 
 .animate-neon-pulse {
@@ -428,8 +425,8 @@
 /* Add this below existing neon-text styles */
 .subtle-text-glow {
   text-shadow:
-    0 0 2px rgba(255, 255, 255, 0.3),
-    0 0 5px rgba(28, 217, 255, 0.2);
+    0 0 1px rgba(255, 255, 255, 0.3),
+    0 0 2px rgba(28, 217, 255, 0.2);
 }
 
 canvas {

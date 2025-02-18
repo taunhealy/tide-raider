@@ -8,6 +8,7 @@ import { ScrollTrigger } from "gsap/ScrollTrigger";
 
 import Link from "next/link";
 import VHSEffect from "@/app/components/VHSEffect";
+import { Heart } from "lucide-react";
 
 interface HeroProps {
   data: {
@@ -99,7 +100,21 @@ export default function HeroSection({ data }: HeroProps) {
       ref={sectionRef}
       className="relative w-full h-screen min-h-[600px] overflow-hidden"
     >
-      <div className="relative w-full h-full">
+      <div className="relative w-full h-full z-99">
+        {/* Neon Hearts */}
+        <div className="absolute top-8 right-8 flex space-x-4 z-20">
+          {[1, 2, 3].map((i) => (
+            <Heart
+              key={i}
+              className="w-4 h-4 md:w-6 md:h-6 text-brand-3 animate-neon-pulse"
+              style={{ animationDelay: `${i * 100}ms` }}
+              stroke="currentColor"
+              strokeWidth={2.5}
+              fill="none"
+            />
+          ))}
+        </div>
+
         {/* Background image */}
         <div className="absolute inset-0">
           <Image
@@ -127,12 +142,9 @@ export default function HeroSection({ data }: HeroProps) {
         </div>
 
         {/* Arcade Button */}
-        <div className="absolute top-1/2 right-4 sm:right-auto sm:left-1/2 -translate-y-1/2 sm:-translate-x-1/2 h-16 sm:h-20 md:h-24 w-64 sm:w-80 md:w-96">
-          <Link
-            href="/raid"
-            className="arcade-button group relative bg-transparent z-10"
-          >
-            <span className="relative z-20 text-xl sm:text-2xl md:text-3xl lg:text-4xl font-primary font-semibold tracking-wider text-white px-8 sm:px-12 md:px-16 py-2 sm:py-3 md:py-4 inline-block transform perspective-[400px] rotate-x-[10deg]">
+        <div className="absolute top-1/2 right-8 sm:right-12 md:right-16 -translate-y-1/2 h-16 sm:h-20 md:h-24 w-64 sm:w-80 md:w-96">
+          <Link href="/raid" className="group relative bg-transparent z-10">
+            <span className="relative z-20 text-xl sm:text-2xl md:text-3xl lg:text-4xl font-primary font-semibold tracking-wider text-white px-8 sm:px-12 md:px-16 py-2 sm:py-3 md:py-4 inline-block transform perspective-[400px] rotate-x-[10deg] neon-text animate-neon-pulse">
               START
             </span>
           </Link>

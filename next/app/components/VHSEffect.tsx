@@ -3,7 +3,11 @@
 import { useRef, useEffect } from "react";
 import * as THREE from "three";
 
-export default function VHSEffect() {
+interface VHSEffectProps {
+  className?: string;
+}
+
+export default function VHSEffect({ className }: VHSEffectProps) {
   const mountRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -150,11 +154,5 @@ export default function VHSEffect() {
     };
   }, []);
 
-  return (
-    <div
-      ref={mountRef}
-      className="fixed inset-0 w-full h-full pointer-events-none mix-blend-screen"
-      style={{ zIndex: -1 }}
-    />
-  );
+  return <div ref={mountRef} className={className} style={{ zIndex: -1 }} />;
 }

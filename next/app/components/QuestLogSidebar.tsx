@@ -44,6 +44,10 @@ export default function QuestLogSidebar() {
     .filter((entry: LogEntry) => entry.surferRating >= 4 && entry.imageUrl)
     .slice(0, 3);
 
+  if (!highRatedEntries || highRatedEntries.length === 0) {
+    return null;
+  }
+
   return (
     <div className="bg-[var(--color-bg-primary)] p-6 rounded-lg shadow-sm border border-gray-200">
       <div className="flex items-center justify-between mb-6">

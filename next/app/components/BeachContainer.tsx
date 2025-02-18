@@ -804,28 +804,13 @@ export default function BeachContainer({
                   </div>
                 ) : (
                   <>
-                    {/* Loading/No Data States */}
-                    {isLoading ? (
-                      <div className="mb-6 p-4 bg-gray-50 border border-gray-200 rounded-lg animate-pulse">
-                        <div className="h-5 bg-gray-200 rounded w-3/4"></div>
-                      </div>
-                    ) : (
-                      windError && (
-                        <div className="mb-6 p-4 bg-red-50 border border-red-200 rounded-lg">
-                          <p className="text-red-800 font-primary">
-                            Error loading forecast data. Please try again later.
-                          </p>
-                        </div>
-                      )
-                    )}
-
                     {/* Forecast Widget */}
                     <div data-forecast-widget>
                       {isLoading ? (
                         <RandomLoader isLoading={isLoading} />
                       ) : windError ? (
-                        <div className="p-4 bg-red-50 border border-red-200 rounded-lg">
-                          <p className="text-red-800 font-primary">
+                        <div className="mb-6 p-4 bg-red-50 border border-red-200 rounded-lg">
+                          <p className="text-red-800 font-primary mb-2">
                             Error loading forecast data. Please try again later.
                           </p>
                         </div>

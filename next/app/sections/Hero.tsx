@@ -5,9 +5,9 @@ import Image from "next/image";
 import { useState, useEffect, useRef } from "react";
 import gsap from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
-import ArcadeFX from "@/app/components/ArcadeFX";
+
 import Link from "next/link";
-import ArcadeScreen from "@/app/components/ArcadeScreen";
+import VHSEffect from "@/app/components/VHSEffect";
 
 interface HeroProps {
   data: {
@@ -97,9 +97,9 @@ export default function HeroSection({ data }: HeroProps) {
   return (
     <section
       ref={sectionRef}
-      className="relative w-full h-[60vh] md:h-[90vh] overflow-hidden"
+      className="relative w-full h-screen min-h-[600px] overflow-hidden"
     >
-      <ArcadeScreen>
+      <div className="relative w-full h-full">
         {/* Background image */}
         <div className="absolute inset-0">
           <Image
@@ -111,36 +111,33 @@ export default function HeroSection({ data }: HeroProps) {
           />
         </div>
 
-        {/* ArcadeFX Overlay */}
-        <ArcadeFX />
-
         {/* Left sidebar text */}
         <div
           ref={textRef}
-          className="absolute left-[40px] top-1/2 -translate-y-1/2 pr-4"
+          className="absolute left-[20px] sm:left-[30px] md:left-[40px] top-1/2 -translate-y-1/2 pr-2 sm:pr-3 md:pr-4"
         >
-          <div className="writing-mode-vertical-rl rotate-270 space-y-4">
-            <h2 className="font-primary font-bold text-[64px] leading-none tracking-tighter text-white">
+          <div className="writing-mode-vertical-rl rotate-270 space-y-2 sm:space-y-3 md:space-y-4">
+            <h2 className="font-primary font-bold text-3xl sm:text-4xl md:text-5xl lg:text-[64px] leading-none tracking-tighter text-white">
               {data?.heroHeading}
             </h2>
-            <p className="font-primary font-medium text-[20px] leading-none tracking-tight text-white">
+            <p className="font-primary font-medium text-sm sm:text-base md:text-lg lg:text-[20px] leading-none tracking-tight text-white">
               For kicks.
             </p>
           </div>
         </div>
 
         {/* Arcade Button */}
-        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 h-24 w-96">
+        <div className="absolute top-1/2 right-4 sm:right-auto sm:left-1/2 -translate-y-1/2 sm:-translate-x-1/2 h-16 sm:h-20 md:h-24 w-64 sm:w-80 md:w-96">
           <Link
             href="/raid"
             className="arcade-button group relative bg-transparent z-10"
           >
-            <span className="relative z-20 text-4xl font-primary font-semibold tracking-wider text-white px-16 py-4 inline-block">
+            <span className="relative z-20 text-xl sm:text-2xl md:text-3xl lg:text-4xl font-primary font-semibold tracking-wider text-white px-8 sm:px-12 md:px-16 py-2 sm:py-3 md:py-4 inline-block transform perspective-[400px] rotate-x-[10deg]">
               START
             </span>
           </Link>
         </div>
-      </ArcadeScreen>
+      </div>
     </section>
   );
 }

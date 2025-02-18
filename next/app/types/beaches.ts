@@ -7234,8 +7234,8 @@ export const beachData: Beach[] = [
     },
   },
   {
-    id: "flameballs",
-    name: "Flameballs",
+    id: "flamebowls",
+    name: "Flame Bowls",
     continent: "Africa",
     country: "Madagascar",
     region: "Madagascar West",
@@ -8347,7 +8347,7 @@ export const beachData: Beach[] = [
     description:
       "Exposed sandbar break rated 4/5, renowned for consistent powerful waves. Thrives with South-southwest groundswells meeting North-northwest offshore winds. Sandbar formations create clean left-hand walls with intense tube sections. Maintains reliability outside summer months despite exposed location. Rarely crowded despite wave quality. Part of Cape Recife's expansive sandbar system. Exercise extreme caution with strong rip currents and potential shark activity.",
     difficulty: "Advanced",
-    waveType: "Beach Break",  
+    waveType: "Beach Break",
     swellSize: {
       min: 1.4,
       max: 4.0,

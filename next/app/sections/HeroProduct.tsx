@@ -32,6 +32,7 @@ export default function HeroProduct() {
   const [surfData, setSurfData] = useState<{ [key: string]: WindData }>({});
   const [sliderIndex, setSliderIndex] = useState(0);
   const [isLoading, setIsLoading] = useState(true);
+  const [cardsPerView, setCardsPerView] = useState(1);
 
   const beaches = beachData.filter((beach) =>
     FEATURED_BEACHES.includes(beach.id)
@@ -96,12 +97,20 @@ export default function HeroProduct() {
     }
   }, [currentBeach]); // Re-run when beach changes
 
+  useEffect(() => {
+    const updateCardsPerView = () => {
+      setCardsPerView(window.innerWidth < 768 ? 1 : 3);
+    };
+    updateCardsPerView();
+    window.addEventListener("resize", updateCardsPerView);
+    return () => window.removeEventListener("resize", updateCardsPerView);
+  }, []);
+
   const getBeachScore = (beach: typeof currentBeach) => {
     if (!beach || !surfData[beach.id]) return null;
     return isBeachSuitable(beach, surfData[beach.id]);
   };
 
-  const cardsPerView = 3;
   const maxIndex = Math.max(0, beaches.length - cardsPerView);
 
   const handlePrevious = () => {
@@ -136,14 +145,13 @@ export default function HeroProduct() {
                 </div>
               ) : (
                 <div className="flex items-center">
-                  {/* Previous Button */}
+                  {/* Previous Button - Made larger for mobile */}
                   <button
                     onClick={handlePrevious}
-                    disabled={sliderIndex === 0}
-                    className="p-1 rounded-full bg-white/10 hover:bg-white/20 disabled:opacity-50 disabled:cursor-not-allowed"
+                    className="p-2 md:p-1 rounded-full bg-white/10 hover:bg-white/20 disabled:opacity-50"
                   >
                     <svg
-                      className="w-4 h-4"
+                      className="w-6 h-6 md:w-4 md:h-4"
                       fill="none"
                       stroke="currentColor"
                       viewBox="0 0 24 24"
@@ -157,10 +165,10 @@ export default function HeroProduct() {
                     </svg>
                   </button>
 
-                  {/* Cards Container */}
-                  <div className="flex-1 overflow-hidden mx-2">
+                  {/* Cards Container - Adjusted spacing */}
+                  <div className="flex-1 overflow-hidden mx-1 md:mx-2">
                     <div
-                      className="flex gap-2 transition-transform duration-300"
+                      className="flex gap-1 md:gap-2 transition-transform duration-300"
                       style={{
                         transform: `translateX(-${sliderIndex * (100 / cardsPerView)}%)`,
                       }}
@@ -174,37 +182,47 @@ export default function HeroProduct() {
                           <button
                             onClick={() => setSelectedBeach(beach.id)}
                             className={`w-full rounded-lg overflow-hidden transition-all duration-300
-                              ${
-                                selectedBeach === beach.id
-                                  ? "ring-1 ring-[var(--color-tertiary)]"
-                                  : "hover:opacity-80"
-                              }`}
+                              ${selectedBeach === beach.id ? "bg-[var(--color-tertiary)]" : "bg-white/5 hover:bg-white/10"}
+                              flex flex-col md:block`}
                           >
-                            <div className="relative aspect-video max-w-[340px] rounded-md">
-                              {beach.image ? (
-                                <Image
-                                  src={beach.image}
-                                  alt={beach.name}
-                                  fill
-                                  className="object-cover"
-                                  sizes="(max-width: 340px) 100vw, 340px"
-                                  quality={75}
-                                />
-                              ) : (
-                                <div className="w-full h-full bg-gray-200 flex items-center justify-center">
-                                  <span className="text-gray-400">
-                                    No image available
-                                  </span>
-                                </div>
-                              )}
-                            </div>
-                            <div className="text-left p-1.5">
-                              <h3 className="font-primary text-xs font-medium mb-0.5 bg-[var(--color-tertiary)]">
+                            {/* Mobile button text */}
+                            <div className="md:hidden p-3 text-center">
+                              <h3 className="font-primary text-sm font-medium text-gray-900">
                                 {beach.name}
                               </h3>
-                              <p className="font-primary text-[10px] text-[var(--color-text-secondary)]">
+                              <p className="font-primary text-xs text-gray-600">
                                 {beach.country}
                               </p>
+                            </div>
+
+                            {/* Desktop image card */}
+                            <div className="hidden md:block">
+                              <div className="relative aspect-video max-w-[340px] rounded-md">
+                                {beach.image ? (
+                                  <Image
+                                    src={beach.image}
+                                    alt={beach.name}
+                                    fill
+                                    className="object-cover"
+                                    sizes="(max-width: 340px) 100vw, 340px"
+                                    quality={75}
+                                  />
+                                ) : (
+                                  <div className="w-full h-full bg-gray-200 flex items-center justify-center">
+                                    <span className="text-gray-400">
+                                      No image available
+                                    </span>
+                                  </div>
+                                )}
+                              </div>
+                              <div className="text-left p-1.5">
+                                <h3 className="font-primary text-sm md:text-xs font-medium mb-0.5">
+                                  {beach.name}
+                                </h3>
+                                <p className="font-primary text-xs md:text-[10px] text-[var(--color-text-secondary)]">
+                                  {beach.country}
+                                </p>
+                              </div>
                             </div>
                           </button>
                         </div>
@@ -212,14 +230,14 @@ export default function HeroProduct() {
                     </div>
                   </div>
 
-                  {/* Next Button */}
+                  {/* Next Button - Made larger for mobile */}
                   <button
                     onClick={handleNext}
                     disabled={sliderIndex === maxIndex}
-                    className="p-1 rounded-full bg-white/10 hover:bg-white/20 disabled:opacity-50 disabled:cursor-not-allowed"
+                    className="p-2 md:p-1 rounded-full bg-white/10 hover:bg-white/20 disabled:opacity-50"
                   >
                     <svg
-                      className="w-4 h-4"
+                      className="w-6 h-6 md:w-4 md:h-4"
                       fill="none"
                       stroke="currentColor"
                       viewBox="0 0 24 24"
@@ -234,12 +252,12 @@ export default function HeroProduct() {
                   </button>
                 </div>
               )}
-              <div className="mt-8 md:mt-12 bg-white rounded-xl p-4 shadow-sm border border-gray-100 max-w-[640px] mx-auto lg:mx-0 pl-6 md:pl-8">
-                <h3 className="font-primary text-base md:text-lg font-semibold mb-2 mt-4">
+              <div className="mt-4 md:mt-12 bg-white rounded-lg md:rounded-xl p-3 md:p-4 shadow-sm border border-gray-100 max-w-[640px] mx-auto lg:mx-0 pl-6 md:pl-8">
+                <h3 className="font-primary text-sm md:text-base font-semibold mb-2 mt-4">
                   Optimal Conditions
                 </h3>
 
-                <div className="grid max-h-[320px] h-auto md:grid-cols-2 gap-4 min-h-[320px]">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-3 md:gap-4 min-h-[240px] md:min-h-[320px]">
                   {/* Current Conditions */}
                   <div className="space-y-2">
                     <h4 className="font-primary text-sm text-gray-500 uppercase tracking-wide"></h4>
@@ -344,7 +362,7 @@ export default function HeroProduct() {
                 </div>
               </div>
             ) : (
-              <div className="relative h-[320px] md:h-[440px] lg:h-[540px] mb-6 rounded-2xl overflow-hidden">
+              <div className="relative h-[240px] md:h-[440px] lg:h-[540px] mb-6 rounded-2xl overflow-hidden">
                 {currentBeach?.image && (
                   <>
                     <div className="absolute inset-0">
@@ -364,16 +382,16 @@ export default function HeroProduct() {
                       </h2>
                     </div>
 
-                    <div className="absolute bottom-4 md:bottom-5 left-4 md:left-6 right-4 md:right-6 max-w-[360px]">
-                      <div className="flex flex-col md:flex-row gap-4 md:gap-6">
+                    <div className="absolute bottom-3 md:bottom-5 left-3 md:left-6 right-3 md:right-6">
+                      <div className="flex flex-col gap-3 md:gap-6">
                         <div className="w-full md:w-1/2">
                           {currentBeach && surfData[currentBeach.id] && (
-                            <div className="bg-white/5 backdrop-blur-sm p-3 md:p-4 rounded-xl border border-white/20">
-                              <div className="flex flex-col items-start gap-2 mb-3 md:mb-4 max-w-[240px]">
-                                <span className="font-primary text-base md:text-lg font-medium text-white">
+                            <div className="bg-white/5 backdrop-blur-sm p-2 md:p-4 rounded-xl border border-white/20">
+                              <div className="gap-1.5 md:gap-2 mb-2 md:mb-4">
+                                <span className="text-sm md:text-base font-medium text-white">
                                   Today's Rating
                                 </span>
-                                <span className="text-lg bg-[var(--color-tertiary)] px-2.5 py-1 rounded-lg shadow-sm">
+                                <span className="text-base md:text-lg bg-[var(--color-tertiary)] px-2.5 py-1 rounded-lg shadow-sm">
                                   {(() => {
                                     const score = getBeachScore(currentBeach);
                                     const display = score
@@ -386,7 +404,7 @@ export default function HeroProduct() {
                                   })()}
                                 </span>
                               </div>
-                              <p className="font-primary text-xs md:text-sm mb-4 md:mb-6 text-white/80">
+                              <p className="text-xs md:text-sm mb-4 md:mb-6 text-white/80">
                                 {(() => {
                                   const score = getBeachScore(currentBeach);
                                   const display = score
@@ -397,7 +415,7 @@ export default function HeroProduct() {
                                   return display?.description;
                                 })()}
                               </p>
-                              <div className="space-y-2 md:space-y-3 font-primary text-[11px] md:text-xs bg-black/20 rounded-md p-3 md:p-4">
+                              <div className="space-y-1.5 md:space-y-3 text-[10px] md:text-xs bg-black/20 rounded-md p-3 md:p-4">
                                 <p className="flex items-center gap-2 text-white/90">
                                   <span
                                     className="inline-flex"

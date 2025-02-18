@@ -21,6 +21,14 @@ export default function QuestLogSidebar() {
 
   if (isLoading) return <div>Loading...</div>;
 
+  const highRatedEntries = recentLogs?.entries
+    .filter((entry: LogEntry) => entry.surferRating >= 4 && entry.imageUrl)
+    .slice(0, 3);
+
+  if (!highRatedEntries || highRatedEntries.length === 0) {
+    return null;
+  }
+
   if (!isSubscribed) {
     return (
       <div className="bg-[var(--color-bg-primary)] p-6 rounded-lg shadow-sm border border-gray-200">
@@ -40,14 +48,6 @@ export default function QuestLogSidebar() {
     );
   }
 
-  const highRatedEntries = recentLogs?.entries
-    .filter((entry: LogEntry) => entry.surferRating >= 4 && entry.imageUrl)
-    .slice(0, 3);
-
-  if (!highRatedEntries || highRatedEntries.length === 0) {
-    return null;
-  }
-
   return (
     <div className="bg-[var(--color-bg-primary)] p-6 rounded-lg shadow-sm border border-gray-200">
       <div className="flex items-center justify-between mb-6">
@@ -63,50 +63,46 @@ export default function QuestLogSidebar() {
       </div>
 
       <div className="space-y-6">
-        {highRatedEntries && highRatedEntries.length > 0 ? (
-          highRatedEntries.map((entry: LogEntry) => (
-            <div key={entry.id} className="group">
-              <article className="space-y-3">
-                {entry.imageUrl && (
-                  <div className="relative aspect-video rounded-lg overflow-hidden">
-                    <Image
-                      src={entry.imageUrl}
-                      alt={`Session at ${entry.beachName}`}
-                      fill
-                      className="object-cover"
-                    />
-                  </div>
-                )}
-                <div className="flex-1 min-w-0">
-                  <h4 className="text-sm font-medium text-gray-900 mb-1 truncate group-hover:text-[var(--color-text-secondary)] transition-colors">
-                    {entry.beachName}
-                  </h4>
-                  <div className="flex gap-1 mb-1">
-                    {[1, 2, 3, 4, 5].map((rating) => (
-                      <Star
-                        key={rating}
-                        className={cn(
-                          "w-4 h-4",
-                          rating <= entry.surferRating
-                            ? "fill-yellow-400"
-                            : "fill-gray-200"
-                        )}
-                      />
-                    ))}
-                  </div>
-                  <p className="text-xs text-gray-500 line-clamp-2">
-                    {entry.comments}
-                  </p>
-                  <div className="mt-1 text-xs text-gray-400">
-                    {new Date(entry.date).toLocaleDateString()}
-                  </div>
+        {highRatedEntries.map((entry: LogEntry) => (
+          <div key={entry.id} className="group">
+            <article className="space-y-3">
+              {entry.imageUrl && (
+                <div className="relative aspect-video rounded-lg overflow-hidden">
+                  <Image
+                    src={entry.imageUrl}
+                    alt={`Session at ${entry.beachName}`}
+                    fill
+                    className="object-cover"
+                  />
                 </div>
-              </article>
-            </div>
-          ))
-        ) : (
-          <div>No top-rated entries available</div>
-        )}
+              )}
+              <div className="flex-1 min-w-0">
+                <h4 className="text-sm font-medium text-gray-900 mb-1 truncate group-hover:text-[var(--color-text-secondary)] transition-colors">
+                  {entry.beachName}
+                </h4>
+                <div className="flex gap-1 mb-1">
+                  {[1, 2, 3, 4, 5].map((rating) => (
+                    <Star
+                      key={rating}
+                      className={cn(
+                        "w-4 h-4",
+                        rating <= entry.surferRating
+                          ? "fill-yellow-400"
+                          : "fill-gray-200"
+                      )}
+                    />
+                  ))}
+                </div>
+                <p className="text-xs text-gray-500 line-clamp-2">
+                  {entry.comments}
+                </p>
+                <div className="mt-1 text-xs text-gray-400">
+                  {new Date(entry.date).toLocaleDateString()}
+                </div>
+              </div>
+            </article>
+          </div>
+        ))}
       </div>
     </div>
   );

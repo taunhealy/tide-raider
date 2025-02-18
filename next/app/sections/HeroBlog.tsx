@@ -40,6 +40,8 @@ export default function Blog({ data }: BlogProps) {
     return null;
   }
 
+
+
   const [activeCategory, setActiveCategory] = useState("All");
   const [currentPage, setCurrentPage] = useState(1);
   const postsPerPage = 5;

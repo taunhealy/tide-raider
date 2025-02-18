@@ -188,6 +188,57 @@
   .text-pretty {
     text-wrap: pretty;
   }
+
+  .animate-gradient-x {
+    animation: gradient-x 3s linear infinite;
+  }
+
+  @keyframes gradient-x {
+    0% {
+      background-position: 0% 50%;
+    }
+    50% {
+      background-position: 100% 50%;
+    }
+    100% {
+      background-position: 0% 50%;
+    }
+  }
+}
+
+@keyframes pulse-glow {
+  0%,
+  100% {
+    text-shadow:
+      0 0 10px rgba(0, 255, 255, 0.5),
+      0 0 20px rgba(0, 255, 255, 0.3),
+      0 0 30px rgba(0, 255, 255, 0.2);
+  }
+  50% {
+    text-shadow:
+      0 0 20px rgba(0, 255, 255, 0.8),
+      0 0 30px rgba(0, 255, 255, 0.6),
+      0 0 40px rgba(0, 255, 255, 0.4);
+  }
+}
+
+.arcade-button {
+  text-shadow:
+    0 0 10px rgba(0, 255, 255, 0.5),
+    0 0 20px rgba(0, 255, 255, 0.3),
+    0 0 30px rgba(0, 255, 255, 0.2);
+  box-shadow:
+    0 0 20px rgba(0, 255, 255, 0.2),
+    inset 0 0 20px rgba(0, 255, 255, 0.1);
+  transition: all 0.3s ease;
+  animation: pulse-glow 2s ease-in-out infinite;
+}
+
+.arcade-button:hover {
+  animation-play-state: running;
+  box-shadow:
+    0 0 30px rgba(0, 255, 255, 0.4),
+    inset 0 0 30px rgba(0, 255, 255, 0.2);
 }
 
 /* Slider styles */
@@ -288,7 +339,7 @@
 .btn-tertiary {
   @apply bg-[var(--color-tertiary)] text-white hover:opacity-90 transition-colors rounded-md
          focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[var(--color-tertiary)]
-         disabled:opacity-50 disabled:cursor-not-allowed;
+         disabled:opacity-90 disabled:cursor-not-allowed;
 }
 
 /* Modal Styles */
@@ -318,4 +369,73 @@
 
 .animate-water-surface {
   animation: water-surface 2s ease-in-out infinite;
+}
+
+@keyframes border-glow {
+  0% {
+    opacity: 0.8;
+  }
+  50% {
+    opacity: 1;
+  }
+  100% {
+    opacity: 0.8;
+  }
+}
+
+.animate-border-glow {
+  animation: border-glow 1.5s ease-in-out infinite;
+}
+
+.mask-border {
+  mask:
+    linear-gradient(#fff 0 0) content-box,
+    linear-gradient(#fff 0 0);
+  mask-composite: exclude;
+  padding: 1px;
+}
+
+.neon-text {
+  text-shadow:
+    0 0 10px var(--color-tertiary),
+    0 0 10px var(--color-tertiary),
+    0 0 10px var(--color-tertiary);
+}
+
+@keyframes neon-pulse {
+  0% {
+    transform: scale(1);
+    opacity: 0.3;
+  }
+  20% {
+    transform: scale(1.02);
+    opacity: 0.5;
+  }
+  100% {
+    transform: scale(1);
+    opacity: 0.3;
+  }
+}
+
+.animate-neon-glow {
+  animation: neon-glow 1.2s ease-in-out infinite;
+}
+
+.animate-neon-pulse {
+  animation: neon-pulse 2s ease-in-out infinite;
+}
+
+/* Add this below existing neon-text styles */
+.subtle-text-glow {
+  text-shadow:
+    0 0 2px rgba(255, 255, 255, 0.3),
+    0 0 5px rgba(28, 217, 255, 0.2);
+}
+
+canvas {
+  position: absolute;
+  top: 0;
+  left: 0;
+  z-index: 1;
+  pointer-events: none;
 }

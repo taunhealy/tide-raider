@@ -2,7 +2,13 @@ import RippleLoader from "./RippleLoader";
 import { useEffect, useState, useRef } from "react";
 import { SpritesLoader } from "./SpritesLoader";
 
-export function RandomLoader({ isLoading }: { isLoading: boolean }) {
+export function RandomLoader({
+  isLoading,
+  whiteBackground = false,
+}: {
+  isLoading: boolean;
+  whiteBackground?: boolean;
+}) {
   const [selectedLoader, setSelectedLoader] = useState<number>(0);
   const [isVisible, setIsVisible] = useState(false);
   const startTimeRef = useRef<number>();
@@ -30,7 +36,8 @@ export function RandomLoader({ isLoading }: { isLoading: boolean }) {
       className={`
       font-primary 
       fixed inset-0 z-50 flex items-center justify-center 
-      bg-background transition-opacity duration-300 ease-in-out
+      ${whiteBackground ? "bg-white" : "bg-background"}
+      transition-opacity duration-300 ease-in-out
       ${isVisible ? "opacity-100" : "opacity-0 pointer-events-none"}
     `}
     >

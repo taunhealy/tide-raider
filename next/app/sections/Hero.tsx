@@ -5,8 +5,9 @@ import Image from "next/image";
 import { useState, useEffect, useRef } from "react";
 import gsap from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
-import ThreeJSEdgyX from "../components/ThreeJSEdgyX";
-import VHSEffect from "../components/VHSEffect";
+import ArcadeFX from "@/app/components/ArcadeFX";
+import Link from "next/link";
+import ArcadeScreen from "@/app/components/ArcadeScreen";
 
 interface HeroProps {
   data: {
@@ -94,34 +95,52 @@ export default function HeroSection({ data }: HeroProps) {
     : null;
 
   return (
-    <section className="relative w-full h-[60vh] md:h-[90vh] overflow-hidden">
-      {/* Background image */}
-      <div className="absolute inset-0">
-        <Image
-          src={imageUrl || ""}
-          alt={data?.heroImage?.alt || ""}
-          fill
-          className="object-cover"
-        />
-      </div>
-
-      {/* VHS Effect Overlay */}
-      <VHSEffect />
-
-      {/* Left sidebar text */}
-      <div
-        ref={textRef}
-        className="absolute left-[40px] top-1/2 -translate-y-1/2 pr-4 border-r border-white"
-      >
-        <div className="writing-mode-vertical-rl rotate-270 space-y-4">
-          <h2 className="font-primary font-bold text-[64px] leading-none tracking-tighter text-white">
-            {data?.heroHeading}
-          </h2>
-          <p className="font-primary font-medium text-[20px] leading-none tracking-tight text-white">
-            For kicks.
-          </p>
+    <section
+      ref={sectionRef}
+      className="relative w-full h-[60vh] md:h-[90vh] overflow-hidden"
+    >
+      <ArcadeScreen>
+        {/* Background image */}
+        <div className="absolute inset-0">
+          <Image
+            src={imageUrl || ""}
+            alt={data?.heroImage?.alt || ""}
+            fill
+            className="object-cover"
+            ref={imageRef}
+          />
         </div>
-      </div>
+
+        {/* ArcadeFX Overlay */}
+        <ArcadeFX />
+
+        {/* Left sidebar text */}
+        <div
+          ref={textRef}
+          className="absolute left-[40px] top-1/2 -translate-y-1/2 pr-4"
+        >
+          <div className="writing-mode-vertical-rl rotate-270 space-y-4">
+            <h2 className="font-primary font-bold text-[64px] leading-none tracking-tighter text-white">
+              {data?.heroHeading}
+            </h2>
+            <p className="font-primary font-medium text-[20px] leading-none tracking-tight text-white">
+              For kicks.
+            </p>
+          </div>
+        </div>
+
+        {/* Arcade Button */}
+        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 h-24 w-96">
+          <Link
+            href="/raid"
+            className="arcade-button group relative bg-transparent z-10"
+          >
+            <span className="relative z-20 text-4xl font-primary font-semibold tracking-wider text-white px-16 py-4 inline-block">
+              START
+            </span>
+          </Link>
+        </div>
+      </ArcadeScreen>
     </section>
   );
 }

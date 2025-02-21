@@ -47,11 +47,9 @@ import SponsorContainer from "./SponsorContainer";
 import FavouriteSurfVideosSidebar from "@/app/components/FavouriteSurfVideosSidebar";
 import { useSurfConditions } from "@/app/hooks/useSurfConditions";
 import { RandomLoader } from "./ui/RandomLoader";
-import { WindData } from "@/app/types/wind";
 
 interface BeachContainerProps {
   initialBeaches: Beach[];
-  windData: any;
   blogPosts: any;
   availableAds: Ad[];
 }
@@ -81,7 +79,6 @@ type FilterKeys = keyof FilterType;
 
 export default function BeachContainer({
   initialBeaches,
-  windData: initialWindData,
   blogPosts,
   availableAds,
 }: BeachContainerProps) {
@@ -312,7 +309,6 @@ export default function BeachContainer({
     if (windError) {
       console.error("Wind data fetch error:", windError);
     }
-    console.log("Current wind data:", windData);
   }, [windData, windError]);
 
   // Compute filtered beaches based on windData

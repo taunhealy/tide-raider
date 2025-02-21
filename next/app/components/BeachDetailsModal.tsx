@@ -180,6 +180,54 @@ export default function BeachDetailsModal({
             {beach.description}
           </p>
         </div>
+
+        {/* Videos Grid Section */}
+        {beach.videos && beach.videos.length > 0 && (
+          <div className="mt-2 pt-4 border-t border-gray-200">
+            <h4 className="font-medium text-base mb-3 font-primary">Videos</h4>
+            <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
+              {beach.videos.map((video, index) => (
+                <div
+                  key={index}
+                  className="relative aspect-video w-full min-h-[180px]"
+                >
+                  <Image
+                    src={
+                      video.platform === "youtube"
+                        ? `https://img.youtube.com/vi/${video.url.split("watch?v=")[1]}/hqdefault.jpg`
+                        : `https://vimeo.com/api/oembed.json?url=${video.url}&width=640`
+                    }
+                    alt={video.title}
+                    fill
+                    className="object-cover rounded-lg"
+                    sizes="(max-width: 768px) 50vw, 33vw"
+                  />
+                  <div className="absolute inset-0 flex items-center justify-center">
+                    <button
+                      className="bg-black/50 hover:bg-black/70 transition-colors p-3 rounded-full"
+                      onClick={() => window.open(video.url, "_blank")}
+                    >
+                      <svg
+                        className="w-6 h-6 text-white"
+                        fill="currentColor"
+                        viewBox="0 0 24 24"
+                      >
+                        <path d="M8 5v14l11-7z" />
+                      </svg>
+                    </button>
+                  </div>
+                  {video.title && (
+                    <div className="absolute bottom-0 left-0 right-0 p-2 bg-black/60">
+                      <p className="text-white text-sm truncate font-primary">
+                        {video.title}
+                      </p>
+                    </div>
+                  )}
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
       </DialogContent>
     </Dialog>
   );

@@ -106,7 +106,6 @@ const RegionFilter = memo(function RegionFilter({
     queryKey: ["beachCount", selectedRegion],
     queryFn: async () => {
       const today = new Date().toISOString().split("T")[0];
-      console.log(`Fetching count for region: ${selectedRegion}`);
 
       const response = await fetch(
         `/api/beach-counts?region=${encodeURIComponent(selectedRegion)}&date=${today}`

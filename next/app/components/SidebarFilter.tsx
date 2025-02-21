@@ -104,7 +104,6 @@ export default function SidebarFilter({
     if (newFilters.sharkAttack.length > 0) {
       console.log("Filtering for shark attacks");
       filteredBeaches = filteredBeaches.filter((beach) => {
-        console.log(`${beach.name}: ${beach.sharkAttack.hasAttack}`);
         return beach.sharkAttack.hasAttack === true;
       });
     }

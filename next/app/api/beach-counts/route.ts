@@ -35,7 +35,7 @@ export async function GET(request: Request) {
     const regionBeaches = beachData.filter((beach) => beach.region === region);
     const goodBeachCount = regionBeaches.filter((beach) => {
       const { score } = isBeachSuitable(beach, conditions.forecast as WindData);
-      console.log(`${beach.name}: Score ${score}/5`); // Debug log
+
       return score >= 4;
     }).length;
 

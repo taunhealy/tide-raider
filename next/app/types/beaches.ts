@@ -10,6 +10,21 @@ export interface SharkIncident {
   }[];
 }
 
+interface BeachData {
+  // ... other fields ...
+  waveType: WaveType;
+  // ... other fields ...
+}
+
+export const WAVE_TYPES = [
+  "Beach Break",
+  "Reef Break",
+  "Point Break",
+  "Beach and Reef Break",
+] as const;
+
+export type WaveType = (typeof WAVE_TYPES)[number];
+
 // Or if using type instead of interface:
 
 export interface Beach {
@@ -18,6 +33,7 @@ export interface Beach {
   continent: string;
   country: string;
   region: string;
+  isHiddenGem?: boolean | undefined;
   location: string;
   distanceFromCT: number;
   optimalWindDirections: string[];
@@ -4249,37 +4265,43 @@ export const beachData: Beach[] = [
   },
   {
     id: "black-rocks",
-    name: "Black Rocks 💀", // Added skull emoji due to extreme wave conditions
+    name: "Black Rocks",
     continent: "Africa",
     country: "South Africa",
     region: "Western Cape",
     location: "Cape Peninsula",
-    distanceFromCT: 40, // Approximate distance, please adjust if needed
-    optimalWindDirections: ["NE"],
+    distanceFromCT: 40,
+    optimalWindDirections: ["W"], // Changed from NE to W based on new info
     optimalSwellDirections: {
-      min: 180, // S
-      max: 225, // SW
-      cardinal: "S to SW",
+      min: 135, // SE
+      max: 157.5, // SSE
+      cardinal: "SE", // Changed from S-SW to SE based on new info
     },
-    bestSeasons: ["winter"], // Added based on massive swell requirement
+    bestSeasons: ["winter"],
     optimalTide: "Mid to High",
     description:
-      "World-class reef break offering massive barreling A-frame waves breaking both left and right for up to 100m over shallow rock shelf. Requires huge swell to start working properly - minimum double overhead. Extremely heavy wave with serious consequences. Strong localism - lineup limited to 10 surfers maximum and local knowledge/connections essential. Step-up or gun recommended as size increases. Despite needing massive swell, offers moderate consistency (5/10) when conditions align. Very crowded (8/10) on working days due to limited takeoff zone and strict hierarchy.",
+      "Fairly exposed reef break rated 2/5 with inconsistent waves. Works best with Southeast groundswells meeting westerly offshore winds. Offers both right (preferred) and left reef breaks. Despite unreliable conditions, spot can get crowded when working. Winter brings optimal conditions. Watch for sharks and navigate carefully around rocks.",
     difficulty: "Advanced",
     waveType: "Reef Break",
     swellSize: {
-      min: 2.0, // Double overhead minimum
-      max: 6.0, // Was 4.0
+      min: 2.0,
+      max: 6.0,
     },
     idealSwellPeriod: {
       min: 12,
       max: 18,
     },
     waterTemp: {
-      summer: 16,
-      winter: 12,
+      summer: 21, // Based on current reading of 18.9°C
+      winter: 16,
     },
-    hazards: ["Rocks", "Heavy waves", "Shallow reef", "Strong localism"],
+    hazards: [
+      "Rocks",
+      "Heavy waves",
+      "Shallow reef",
+      "Strong localism",
+      "Sharks", // Added sharks as hazard
+    ],
     crimeLevel: "Low",
     sharkAttack: {
       hasAttack: false,
@@ -6876,8 +6898,8 @@ export const beachData: Beach[] = [
     distanceFromCT: 2800,
     optimalWindDirections: ["SSW", "S"],
     optimalSwellDirections: {
-      min: 225, // SW
-      max: 247.5, // WSW
+      min: 337.5,
+      max: 22.5,
       cardinal: "SW",
     },
     bestSeasons: ["winter"], // Southern Hemisphere winter
@@ -6908,6 +6930,14 @@ export const beachData: Beach[] = [
       lat: -12.5934,
       lng: 13.4127,
     },
+    videos: [
+      {
+        url: "https://www.youtube.com/watch?v=lhyCDXX-ifA&ab_channel=FindirelaYeza",
+        title:
+          "BAÍA AZUL ONE OF THE MOST BEAUTIFUL BEACHES IN ANGOLA/ BENGUELA #TOURISM #Angola #Globo #Ghana",
+        platform: "youtube",
+      },
+    ],
   },
   {
     id: "praia-morena",
@@ -6917,11 +6947,11 @@ export const beachData: Beach[] = [
     region: "Benguela",
     location: "Benguela City",
     distanceFromCT: 2800,
-    optimalWindDirections: ["SSW", "S"],
+    optimalWindDirections: ["SE", "S"],
     optimalSwellDirections: {
-      min: 225, // SW
-      max: 247.5, // WSW
-      cardinal: "SW",
+      min: 270, // SW
+      max: 315, // NW
+      cardinal: "NW",
     },
     bestSeasons: ["winter"],
     optimalTide: "All",
@@ -6955,6 +6985,11 @@ export const beachData: Beach[] = [
       {
         url: "https://www.youtube.com/watch?v=-k4ux8OsJ10&ab_channel=NomadSurfCamps",
         title: "NOMAD SURFERS: ANGOLA",
+        platform: "youtube",
+      },
+      {
+        url: "https://www.youtube.com/watch?v=YdvzWm8MJgU&ab_channel=VlogsdoPrimata",
+        title: "PRAIA MORENA A PRAIA MAIS FAMOSA DE ANGOLA | BENGUELA",
         platform: "youtube",
       },
     ],
@@ -7008,6 +7043,50 @@ export const beachData: Beach[] = [
         platform: "youtube",
       },
     ],
+  },
+  {
+    id: "ponta-das-salinas",
+    name: "Ponta Das Salinas",
+    continent: "Africa",
+    country: "Angola",
+    region: "Benguela",
+    location: "Benguela",
+    distanceFromCT: 2800,
+    optimalWindDirections: ["SE", "SSE", "S"],
+    optimalSwellDirections: {
+      min: 270, // W
+      max: 360, // N
+      cardinal: "NW",
+    },
+    bestSeasons: ["winter"],
+    optimalTide: "All",
+    description:
+      "Beach break in Benguela region. Works best with SE to S winds and westerly to northerly swells.",
+    difficulty: "All Levels",
+    waveType: "Beach Break",
+    swellSize: {
+      min: 0.7,
+      max: 3.2,
+    },
+    idealSwellPeriod: {
+      min: 9,
+      max: 16,
+    },
+    waterTemp: {
+      summer: 26,
+      winter: 20,
+    },
+    hazards: ["Strong currents"],
+    crimeLevel: "Low",
+    sharkAttack: {
+      hasAttack: false,
+    },
+    isHiddenGem: true,
+    image: "",
+    coordinates: {
+      lat: -12.831711,
+      lng: 12.94855,
+    },
   },
   {
     id: "back-beach",
@@ -8383,6 +8462,617 @@ export const beachData: Beach[] = [
         platform: "youtube",
       },
     ],
+  },
+  {
+    id: "onrus",
+    name: "Onrus",
+    continent: "Africa",
+    country: "South Africa",
+    region: "Western Cape",
+    location: "Hermanus",
+    distanceFromCT: 120,
+    optimalWindDirections: ["NW"],
+    optimalSwellDirections: {
+      min: 225,
+      max: 247.5,
+      cardinal: "SW",
+    },
+    bestSeasons: ["winter"],
+    optimalTide: "Low to Mid",
+    description:
+      "Exposed beach and reef break offering predominantly right-hand waves. Wave quality is inconsistent but can produce excellent conditions when Southwest swell combines with Northwest winds. Features multiple peaks with both reef and beach break sections. Submerged rocks create hazards but also help shape better waves. Best during winter months when groundswells are more consistent. Can get crowded when working well.",
+    difficulty: "Intermediate",
+    waveType: "Reef Break",
+    swellSize: {
+      min: 1.2,
+      max: 3.5,
+    },
+    idealSwellPeriod: {
+      min: 12,
+      max: 24,
+    },
+    waterTemp: {
+      summer: 18,
+      winter: 14,
+    },
+    hazards: ["Submerged rocks", "Rip currents", "Strong currents"],
+    crimeLevel: "Low",
+    sharkAttack: {
+      hasAttack: false,
+    },
+    image: "",
+    coordinates: {
+      lat: -34.4169,
+      lng: 19.1789,
+    },
+  },
+  {
+    id: "meerensee-beach",
+    name: "Meerensee Beach",
+    continent: "Africa",
+    country: "South Africa",
+    region: "Western Cape",
+    location: "Overberg",
+    distanceFromCT: 120, // Approximate distance, please adjust if needed
+    optimalWindDirections: ["NW"],
+    optimalSwellDirections: {
+      min: 180, // S
+      max: 190, // S with slight variation
+      cardinal: "S",
+    },
+    bestSeasons: ["winter"], // Typical for Western Cape with S swell
+    optimalTide: "All", // No specific tide mentioned
+    description:
+      "An exposed river break that's very consistent and usually a safe bet. Features both left and right waves at the river mouth. The uncrowded nature of this spot is a plus, though dangerous rips require caution.",
+    difficulty: "Intermediate",
+    waveType: "Beach Break",
+    swellSize: {
+      min: 1.5,
+      max: 4.0,
+    },
+    idealSwellPeriod: {
+      min: 12,
+      max: 18,
+    },
+    waterTemp: {
+      summer: 19, // Based on current reading of 16.4°C, estimating seasonal range
+      winter: 15,
+    },
+    hazards: ["Dangerous rips", "Cross shore breezes"],
+    crimeLevel: "Low",
+    sharkAttack: {
+      hasAttack: false,
+    },
+    image: "",
+    coordinates: {
+      lat: -34.1234, // Please update with actual coordinates
+      lng: 18.4567,
+    },
+  },
+  {
+    id: "kleinmond",
+    name: "Kleinmond",
+    continent: "Africa",
+    country: "South Africa",
+    region: "Western Cape",
+    location: "Overberg",
+    distanceFromCT: 90, // Approximate distance, please verify
+    optimalWindDirections: ["NNW"],
+    optimalSwellDirections: {
+      min: 135, // SE
+      max: 157.5, // SSE
+      cardinal: "SSE",
+    },
+    bestSeasons: ["winter"], // Typical for Western Cape
+    optimalTide: "All", // No specific tide mentioned
+    description:
+      "Exposed beach break with reasonably consistent surf. Features left-hand peeling waves when conditions align. Works best with South-southeast swells meeting North-northwest offshore winds. Receives distant groundswells creating quality waves when conditions align. Popular spot that can get crowded during good swells. Strong rip currents require caution.",
+    difficulty: "Intermediate",
+    waveType: "Reef Break",
+    swellSize: {
+      min: 1.2,
+      max: 3.5,
+    },
+    idealSwellPeriod: {
+      min: 12,
+      max: 16,
+    },
+    waterTemp: {
+      summer: 19, // Based on current reading of 16.6°C
+      winter: 15,
+    },
+    hazards: ["Dangerous rips", "Rocks", "Crowds"],
+    crimeLevel: "Low",
+    sharkAttack: {
+      hasAttack: false,
+    },
+    image: "",
+    coordinates: {
+      lat: -34.3333, // Kleinmond coordinates
+      lng: 19.0333,
+    },
+  },
+  {
+    id: "voelklip",
+    name: "Voelklip",
+    continent: "Africa",
+    country: "South Africa",
+    region: "Western Cape",
+    location: "Overberg",
+    distanceFromCT: 120, // Approximate distance, please verify
+    optimalWindDirections: ["NE"],
+    optimalSwellDirections: {
+      min: 202.5, // SSW
+      max: 213.75, // SSW with slight variation
+      cardinal: "SSW",
+    },
+    bestSeasons: ["winter"], // Typical for Western Cape with SSW swell
+    optimalTide: "Low",
+    description:
+      "Exposed reef break that's consistently reliable. Works best with South-southwest groundswells meeting Northeast offshore winds. Poor performance in light onshore conditions. Despite being labeled as a reef break, there's no actual reef formation. Popular spot that can get crowded, with notable local presence. Exercise caution around rocks and sea urchins.",
+    difficulty: "Intermediate",
+    waveType: "Reef Break",
+    swellSize: {
+      min: 1.2,
+      max: 3.5,
+    },
+    idealSwellPeriod: {
+      min: 12,
+      max: 16,
+    },
+    waterTemp: {
+      summer: 19, // Based on current reading of 16.7°C
+      winter: 15,
+    },
+    hazards: ["Rocks", "Sea urchins", "Localism", "Cross shore breezes"],
+    crimeLevel: "Low",
+    sharkAttack: {
+      hasAttack: false,
+    },
+    image: "",
+    coordinates: {
+      lat: -34.4114, // Voelklip coordinates
+      lng: 19.3039,
+    },
+  },
+  {
+    id: "de-kelders",
+    name: "De Kelders",
+    continent: "Africa",
+    country: "South Africa",
+    region: "Western Cape",
+    location: "Overberg",
+    distanceFromCT: 165, // Approximate distance, please verify
+    optimalWindDirections: ["E"],
+    optimalSwellDirections: {
+      min: 225, // SW
+      max: 247.5, // SW with slight variation
+      cardinal: "SW",
+    },
+    bestSeasons: ["winter"], // Typical for Western Cape with SW swell
+    optimalTide: "All", // No specific tide mentioned
+    description:
+      "Exposed beach break that works infrequently. Best conditions occur with Southwest groundswells and East offshore winds. Offers both left and right-hand waves when working. Despite quality potential, spot's inconsistency keeps crowds minimal. Strong rip currents present significant hazard.",
+    difficulty: "Intermediate",
+    waveType: "Reef Break",
+    swellSize: {
+      min: 1.2,
+      max: 3.5,
+    },
+    idealSwellPeriod: {
+      min: 12,
+      max: 16,
+    },
+    waterTemp: {
+      summer: 21, // Based on current reading of 19.1°C
+      winter: 17,
+    },
+    hazards: ["Strong rips"],
+    crimeLevel: "Low",
+    sharkAttack: {
+      hasAttack: false,
+    },
+    image: "",
+    coordinates: {
+      lat: -34.55, // De Kelders coordinates
+      lng: 19.35,
+    },
+  },
+  {
+    id: "gansbaai",
+    name: "Gansbaai",
+    continent: "Africa",
+    country: "South Africa",
+    region: "Western Cape",
+    location: "Overberg",
+    distanceFromCT: 170, // Approximate distance, please verify
+    optimalWindDirections: ["E"],
+    optimalSwellDirections: {
+      min: 225, // SW
+      max: 247.5, // SW with slight variation
+      cardinal: "SW",
+    },
+    bestSeasons: ["winter"],
+    optimalTide: "All", // No specific tide mentioned
+    description:
+      "Fairly exposed reef break that works sporadically. Best conditions occur with Southwest groundswells and East offshore winds. Features both left and right-hand reef breaks. Winter brings optimal conditions, though spot remains inconsistent. Despite quality potential when working, spot rarely gets crowded. Navigate carefully around rocks and kelp beds.",
+    difficulty: "Intermediate",
+    waveType: "Reef Break",
+    swellSize: {
+      min: 1.2,
+      max: 3.5,
+    },
+    idealSwellPeriod: {
+      min: 12,
+      max: 16,
+    },
+    waterTemp: {
+      summer: 21, // Based on current reading of 19.4°C
+      winter: 17,
+    },
+    hazards: ["Rocks", "Kelp", "Large Great White Population"],
+    crimeLevel: "Low",
+    sharkAttack: {
+      hasAttack: false,
+    },
+    image: "",
+    coordinates: {
+      lat: -34.5833, // Gansbaai coordinates
+      lng: 19.35,
+    },
+  },
+  {
+    id: "pearly-beach",
+    name: "Pearly Beach",
+    continent: "Africa",
+    country: "South Africa",
+    region: "Western Cape",
+    location: "Boland and Southern Cape",
+    distanceFromCT: 175, // Approximate distance, please verify
+    optimalWindDirections: ["N"],
+    optimalSwellDirections: {
+      min: 225, // SW
+      max: 247.5, // SW with slight variation
+      cardinal: "SW",
+    },
+    bestSeasons: ["winter", "autumn", "spring"], // Summer noted as flat
+    optimalTide: "All", // No specific tide mentioned
+    description:
+      "Exposed reef break with inconsistent surf conditions. Features a right-hand reef break that works best with Southwest groundswells and North offshore winds. Summer months typically flat, with better conditions in other seasons. Despite quality potential when working, spot rarely gets crowded. Distant groundswells provide primary wave source.",
+    difficulty: "Intermediate",
+    waveType: "Reef Break",
+    swellSize: {
+      min: 1.2,
+      max: 3.5,
+    },
+    idealSwellPeriod: {
+      min: 12,
+      max: 16,
+    },
+    waterTemp: {
+      summer: 21, // Based on current reading of 19.5°C
+      winter: 17,
+    },
+    hazards: ["Rocks", "Rip currents"],
+    crimeLevel: "Low",
+    sharkAttack: {
+      hasAttack: false,
+    },
+    image: "",
+    coordinates: {
+      lat: -34.6667, // Pearly Beach coordinates
+      lng: 19.4833,
+    },
+  },
+  {
+    id: "struisbaai",
+    name: "Struisbaai",
+    continent: "Africa",
+    country: "South Africa",
+    region: "Western Cape",
+    location: "Overberg",
+    distanceFromCT: 220, // Approximate distance, please verify
+    optimalWindDirections: ["W"],
+    optimalSwellDirections: {
+      min: 225, // SW
+      max: 247.5, // SW with slight variation
+      cardinal: "SW",
+    },
+    bestSeasons: ["winter"],
+    optimalTide: "All", // No specific tide mentioned
+    description:
+      "Sheltered reef and point break offering fairly reliable surf conditions. Combines reef and point break characteristics, providing both left and right-hand options. Works best with Southwest groundswells meeting West offshore winds. Winter brings optimal conditions. Clean groundswells create quality waves. Despite good conditions, spot rarely gets crowded. Exercise caution with sharks and navigate carefully around rocks.",
+    difficulty: "Intermediate",
+    waveType: "Reef Break",
+    swellSize: {
+      min: 1.2,
+      max: 3.5,
+    },
+    idealSwellPeriod: {
+      min: 12,
+      max: 16,
+    },
+    waterTemp: {
+      summer: 24, // Based on current reading of 22.4°C
+      winter: 19,
+    },
+    hazards: ["Sharks", "Rocks", "Rip currents"],
+    crimeLevel: "Low",
+    sharkAttack: {
+      hasAttack: false,
+    },
+    image: "",
+    coordinates: {
+      lat: -34.8, // Struisbaai coordinates
+      lng: 20.0333,
+    },
+    sheltered: true, // Adding this since it's specifically mentioned as sheltered
+  },
+  {
+    id: "arniston",
+    name: "Arniston",
+    continent: "Africa",
+    country: "South Africa",
+    region: "Western Cape",
+    location: "Boland and Southern Cape",
+    distanceFromCT: 220, // Approximate distance, please verify
+    optimalWindDirections: ["WNW"],
+    optimalSwellDirections: {
+      min: 180, // S
+      max: 190, // S with slight variation
+      cardinal: "S",
+    },
+    bestSeasons: ["winter"],
+    optimalTide: "All", // No specific tide mentioned
+    description:
+      "Sheltered beach break offering reliable surf conditions. Features both left and right-hand waves. Works best with South groundswells meeting West-northwest offshore winds. Winter brings optimal conditions. Groundswells dominate over windswells, creating quality waves. Despite good conditions, spot rarely gets crowded. Exercise caution with sharks and navigate carefully around rocks.",
+    difficulty: "Intermediate",
+    waveType: "Reef Break",
+    swellSize: {
+      min: 1.2,
+      max: 3.5,
+    },
+    idealSwellPeriod: {
+      min: 12,
+      max: 16,
+    },
+    waterTemp: {
+      summer: 24, // Based on current reading of 22.6°C
+      winter: 19,
+    },
+    hazards: ["Sharks", "Rocks"],
+    crimeLevel: "Low",
+    sharkAttack: {
+      hasAttack: false,
+    },
+    image: "",
+    coordinates: {
+      lat: -34.6667, // Arniston coordinates
+      lng: 20.2333,
+    },
+    sheltered: true, // Adding this since it's specifically mentioned as sheltered
+  },
+  {
+    id: "danger-reef",
+    name: "Danger Reef",
+    continent: "Africa",
+    country: "South Africa",
+    region: "Western Cape",
+    location: "Cape Peninsula",
+    distanceFromCT: 20, // Approximate distance from Cape Town
+    optimalWindDirections: ["NW"],
+    optimalSwellDirections: {
+      min: 135, // SE
+      max: 157.5, // SSE
+      cardinal: "SE",
+    },
+    bestSeasons: ["winter"],
+    optimalTide: "All", // No specific tide mentioned
+    description:
+      "Exposed reef break rated 2/5 with fairly consistent surf conditions. Works best with Southeast groundswells meeting Northwest offshore winds. Features both left and right reef breaks. Winter brings optimal conditions with more frequent groundswells than windswells. Despite modest rating, spot draws regular crowds. Navigate carefully around submerged rocks.",
+    difficulty: "Intermediate",
+    waveType: "Reef Break",
+    swellSize: {
+      min: 1.2,
+      max: 3.5,
+    },
+    idealSwellPeriod: {
+      min: 12,
+      max: 16,
+    },
+    waterTemp: {
+      summer: 20, // Based on current reading of 17.7°C
+      winter: 16,
+    },
+    hazards: ["Submerged rocks", "Crowds"],
+    crimeLevel: "Low",
+    sharkAttack: {
+      hasAttack: false,
+    },
+    image: "",
+    coordinates: {
+      lat: -34.1234, // Please update with actual coordinates
+      lng: 18.4567, // Please update with actual coordinates
+    },
+  },
+  {
+    id: "baia-farta",
+    name: "Baia Farta",
+    continent: "Africa",
+    country: "Angola",
+    region: "Benguela",
+    location: "Benguela",
+    isHiddenGem: true,
+    distanceFromCT: 2800,
+    optimalWindDirections: ["S", "SSE", "SE"],
+    optimalSwellDirections: {
+      min: 270, // W
+      max: 360, // N
+    },
+    bestSeasons: ["winter"],
+    optimalTide: "All",
+    description:
+      "Beach break in Baia Farta region. Works with southerly to south-easterly winds and westerly to northerly swells.",
+    difficulty: "All Levels",
+    waveType: "Beach Break",
+    swellSize: {
+      min: 0.5,
+      max: 3.5,
+    },
+    idealSwellPeriod: {
+      min: 8,
+      max: 16,
+    },
+    waterTemp: {
+      summer: 26,
+      winter: 20,
+    },
+    hazards: ["Strong currents"],
+    crimeLevel: "Low",
+    sharkAttack: {
+      hasAttack: false,
+    },
+    image: "",
+    coordinates: {
+      lat: -12.595654,
+      lng: 13.204314,
+    },
+  },
+  {
+    id: "luvuvamo",
+    name: "Luvuvamo",
+    continent: "Africa",
+    country: "Angola",
+    region: "Luanda Province",
+    location: "Luanda",
+    distanceFromCT: 2900, // Approximate distance from Cape Town
+    optimalWindDirections: ["E", "NE", "NNE"],
+    optimalSwellDirections: {
+      min: 225, // SW
+      max: 315, // NW
+      cardinal: "SW",
+    },
+    bestSeasons: ["winter"], // Southern Hemisphere winter
+    optimalTide: "All",
+    description:
+      "Beach break in Luanda region. Works best with easterly to northeasterly winds and southwest to northwest swells. Hidden gem spot that remains relatively uncrowded.",
+    difficulty: "All Levels",
+    waveType: "Beach Break",
+    swellSize: {
+      min: 0.8,
+      max: 2.5,
+    },
+    idealSwellPeriod: {
+      min: 10,
+      max: 14,
+    },
+    waterTemp: {
+      summer: 28,
+      winter: 24,
+    },
+    hazards: ["Strong currents"],
+    crimeLevel: "Low",
+    sharkAttack: {
+      hasAttack: false,
+    },
+    isHiddenGem: true,
+    image: "",
+    coordinates: {
+      lat: -7.365131,
+      lng: 12.919328,
+    },
+  },
+  {
+    id: "morro-do-sombreiro",
+    name: "Morro do Sombreiro",
+    continent: "Africa",
+    country: "Angola",
+    region: "Benguela",
+    location: "Caota",
+    distanceFromCT: 380, // Approximate distance from Luanda
+    optimalWindDirections: ["N", "NE", "NNE"],
+    optimalSwellDirections: {
+      min: 160,
+      max: 260,
+      cardinal: "S, SW",
+    },
+    bestSeasons: ["winter"],
+    optimalTide: "Mid",
+    description:
+      "Remote beach break requiring a walk. Consistent wedges form on sandbanks with multiple peaks. Best on NW swells with offshore S winds.",
+    difficulty: "Intermediate",
+    waveType: "Beach Break",
+    swellSize: {
+      min: 1.2,
+      max: 2.8,
+    },
+    idealSwellPeriod: {
+      min: 12,
+      max: 16,
+    },
+    waterTemp: {
+      summer: 24,
+      winter: 20,
+    },
+    hazards: ["Remote location", "Strong currents", "Limited access"],
+    crimeLevel: "Low",
+    sharkAttack: { hasAttack: false },
+    image: "",
+    coordinates: {
+      lat: -12.588344,
+      lng: 13.303127,
+    },
+    videos: [
+      {
+        url: "https://www.youtube.com/watch?v=IiFcs_KD94s&ab_channel=GabrielTManuel",
+        title:
+          "Conhecendo um pouco o povoado da Caota/Baía Farta/Benguela/Angola",
+        platform: "youtube",
+      },
+    ],
+  },
+  {
+    id: "sumbe",
+    name: "Sumbe",
+    continent: "Africa",
+    country: "Angola",
+    region: "Benguela",
+    location: "Sumbe",
+    distanceFromCT: 2800, // Similar to other Benguela spots
+    optimalWindDirections: ["ENE", "E"],
+    optimalSwellDirections: {
+      min: 225, // SW
+      max: 247.5, // WSW
+      cardinal: "SW",
+    },
+    bestSeasons: ["winter"], // Southern Hemisphere winter
+    optimalTide: "All",
+    description:
+      "Exposed beach and reef break combination. Works best with Southwest groundswell and East-northeast offshore winds. The beach break favors left-handers. Despite quality waves, spot remains uncrowded. Watch out for rips and sharks.",
+    difficulty: "Intermediate",
+    waveType: "Beach Break", // Primary characteristic though it has reef sections
+    swellSize: {
+      min: 1.0,
+      max: 3.0,
+    },
+    idealSwellPeriod: {
+      min: 10,
+      max: 16,
+    },
+    waterTemp: {
+      summer: 28,
+      winter: 24,
+    },
+    hazards: ["Rips", "Sharks"],
+    crimeLevel: "Low",
+    sharkAttack: {
+      hasAttack: false,
+    },
+    image: "",
+    coordinates: {
+      lat: -11.236697,
+      lng: 13.830747,
+    },
   },
 ];
 

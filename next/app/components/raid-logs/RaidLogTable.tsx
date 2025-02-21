@@ -28,6 +28,7 @@ interface QuestTableProps {
   isLoading?: boolean;
   showPrivateOnly?: boolean;
   onFilterChange?: () => void;
+  onBeachClick: (beachName: string) => void;
 }
 
 interface LogEntryDisplayProps {
@@ -171,11 +172,9 @@ export default function RaidLogTable({
   isSubscribed = false,
   isLoading = false,
   showPrivateOnly = false,
+  onBeachClick,
 }: QuestTableProps) {
-  console.log("[RaidLogTable] Received entries:", entries);
-
   const normalizedEntries = useMemo(() => {
-    console.log("[RaidLogTable] Normalizing entries:", entries);
     return entries.map(normalizeLogEntry);
   }, [entries]);
 
@@ -212,8 +211,6 @@ export default function RaidLogTable({
   };
 
   const filteredEntries = normalizedEntries.filter((entry) => {
-    console.log("[RaidLogTable] Filtering entry:", entry);
-
     // For public viewing (no session)
     if (!session) {
       return !entry.isPrivate;
@@ -361,7 +358,12 @@ export default function RaidLogTable({
                       {format(new Date(entry.date), "MMM d, yyyy")}
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap min-w-[160px] max-w-[250px] h-[60px]">
-                      {entry.beachName}
+                      <button
+                        onClick={() => onBeachClick(entry.beachName)}
+                        className="text-brand-3 hover:underline font-primary"
+                      >
+                        {entry.beachName}
+                      </button>
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap min-w-[160px] max-w-[250px] h-[60px]">
                       {entry.region}

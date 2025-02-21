@@ -27,57 +27,94 @@ export async function storeGoodBeachRatings(
       }))
       .filter(({ suitable }) => suitable);
 
-    console.log(
-      `📊 Found ${ratingsToStore.length} suitable beaches in ${region}`
-    );
-
-    if (ratingsToStore.length > 0) {
-      const result = await prisma.beachGoodRating.createMany({
-        data: ratingsToStore.map(({ beach, score }) => ({
-          id: randomUUID(),
-          date,
-          beachId: beach.id,
-          region: beach.region,
-          score,
-          conditions,
-        })),
-        skipDuplicates: true,
-      });
-
-      console.log(`✅ Stored ${result.count} ratings for ${region}`);
-      return result.count;
+    if (ratingsToStore.length === 0) {
+      console.log(`📊 No suitable beaches found in ${region}`);
+      return 0;
     }
 
-    return 0;
+    const result = await prisma.beachGoodRating.createMany({
+      data: ratingsToStore.map(({ beach, score }) => ({
+        id: randomUUID(),
+        date,
+        beachId: beach.id,
+        region: beach.region,
+        score,
+        conditions,
+      })),
+      skipDuplicates: true,
+    });
+
+    console.log(`✅ Stored ${result.count} ratings for ${region}`);
+    return result.count;
   } catch (error) {
     console.error("💥 Critical rating storage error:", error);
     throw error;
   }
 }
 
-export function getGoodBeachCount(
+// Use existing ratings from database when possible
+export async function getGoodBeachCount(
   region: string,
-  conditions: WindData
-): number {
-  return beachData.filter(
-    (beach) =>
-      beach.region === region && isBeachSuitable(beach, conditions).suitable
-  ).length;
+  date: Date,
+  conditions?: WindData
+): Promise<number> {
+  // Try to get from existing ratings first
+  const existingCount = await prisma.beachGoodRating.count({
+    where: {
+      region,
+      date,
+    },
+  });
+
+  if (existingCount > 0) {
+    return existingCount;
+  }
+
+  // Fall back to calculation if conditions provided
+  if (conditions) {
+    return beachData.filter(
+      (beach) =>
+        beach.region === region && isBeachSuitable(beach, conditions).suitable
+    ).length;
+  }
+
+  return 0;
 }
 
-export function getRegionScores(conditions: WindData, region: string) {
+// Optimized to use existing ratings and reduce calculations
+export async function getRegionScores(
+  date: Date,
+  region: string,
+  conditions?: WindData
+) {
   const scores: Record<string, number> = {};
 
-  beachData
-    .filter((beach) => beach.region === region)
-    .forEach((beach) => {
-      const { suitable } = isBeachSuitable(beach, conditions);
-      if (suitable) {
-        scores[beach.region] = (scores[beach.region] || 0) + 1;
-        scores[beach.country] = (scores[beach.country] || 0) + 1;
-        scores[beach.continent] = (scores[beach.continent] || 0) + 1;
-      }
+  // Try to get from existing ratings first
+  const existingRatings = await prisma.beachGoodRating.findMany({
+    where: {
+      date,
+      region,
+    },
+  });
+
+  if (existingRatings.length > 0) {
+    // Count ratings per region
+    existingRatings.forEach((rating) => {
+      scores[rating.region] = (scores[rating.region] || 0) + 1;
     });
+    return scores;
+  }
+
+  // Fall back to calculation if conditions provided
+  if (conditions) {
+    const suitableBeaches = beachData
+      .filter((beach) => beach.region === region)
+      .filter((beach) => isBeachSuitable(beach, conditions).suitable);
+
+    suitableBeaches.forEach((beach) => {
+      scores[beach.region] = (scores[beach.region] || 0) + 1;
+    });
+  }
 
   return scores;
 }

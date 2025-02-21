@@ -3,12 +3,15 @@ import axios from "axios";
 import * as cheerio from "cheerio";
 import { prisma } from "@/app/lib/prisma";
 import { randomUUID } from "crypto";
-import { degreesToCardinal, isBeachSuitable } from "@/app/lib/surfUtils";
+import {
+  degreesToCardinal,
+  isBeachSuitable,
+  formatConditionsResponse,
+} from "@/app/lib/surfUtils";
 
 import { redis } from "@/app/lib/redis";
 import { beachData, WindData } from "@/app/types/beaches";
 import { VALID_REGIONS, ValidRegion } from "@/app/lib/constants";
-import { isValidWindData } from "@/app/types/wind";
 import { storeGoodBeachRatings } from "@/app/lib/beachRatings";
 
 interface RegionScrapeConfig {
@@ -87,33 +90,6 @@ function getTodayDate() {
   return date;
 }
 
-function formatConditionsResponse(conditions: any): WindData | null {
-  console.log("🎯 Formatting conditions:", JSON.stringify(conditions, null, 2));
-
-  if (!conditions?.forecast?.wind || !conditions?.forecast?.swell) {
-    console.log("❌ Invalid conditions structure");
-    return null;
-  }
-
-  const { wind, swell } = conditions.forecast;
-
-  const formattedData = {
-    wind: {
-      speed: Number(wind.speed),
-      direction: wind.direction,
-    },
-    swell: {
-      height: Number(swell.height),
-      period: Number(swell.period),
-      direction: Number(swell.direction),
-    },
-    timestamp: Date.now(),
-  };
-
-  console.log("✅ Formatted data:", JSON.stringify(formattedData, null, 2));
-  return formattedData;
-}
-
 // Add these constants at the top
 const SCRAPE_TIMEOUT = 30000; // 30 seconds
 const MAX_RETRIES = 3;
@@ -148,8 +124,6 @@ async function scrapeAllRegions(): Promise<ScrapeResult[]> {
           .first()
           .text()
           .trim();
-
-        console.log("Raw wind direction:", windDirection); // Debug log
 
         const windSpeed =
           parseFloat(
@@ -264,7 +238,7 @@ async function getLatestConditions(
     // Store good beach ratings if they don't exist
     if (existingConditions?.forecast) {
       await storeGoodBeachRatings(
-        existingConditions.forecast as WindData,
+        formatConditionsResponse(existingConditions),
         region,
         today
       );
@@ -305,17 +279,7 @@ async function getLatestConditions(
   // 4. Store good beach ratings for each region
   for (const conditions of scrapedData) {
     await storeGoodBeachRatings(
-      {
-        wind: {
-          speed: conditions.windSpeed,
-          direction: conditions.windDirection,
-        },
-        swell: {
-          height: conditions.swellHeight,
-          period: conditions.swellPeriod,
-          direction: conditions.swellDirection,
-        },
-      },
+      formatConditionsResponse(conditions),
       conditions.region,
       today
     );
@@ -470,39 +434,56 @@ export async function GET(request: Request) {
   const date =
     searchParams.get("date") || new Date().toISOString().split("T")[0];
 
-  console.log(`🌊 Fetching conditions for ${region} on ${date}`);
-
-  // Add region validation check
-  const isValidRequestedRegion = REGION_CONFIGS.some(
-    (config) => config.region === region
-  );
-  if (!isValidRequestedRegion) {
-    console.log(`❌ Unsupported region requested: ${region}`);
-    return NextResponse.json(
-      { error: "Region not supported" },
-      { status: 400 }
-    );
-  }
+  console.log(`🌊 Starting request for ${region} on ${date}`);
 
   try {
-    // 1. Check Redis cache first
-    const cacheKey = `surf-conditions:${region}:${date}`;
-    const cachedData = await redis.get(cacheKey);
+    // First, check if we have ratings for today
+    const existingRatings = await prisma.beachGoodRating.findFirst({
+      where: {
+        date: new Date(date),
+      },
+    });
 
-    if (cachedData) {
-      try {
-        const parsedData = JSON.parse(cachedData as string);
-        console.log(`📦 Cache hit for ${region}:`, parsedData);
-        return NextResponse.json(parsedData);
-      } catch (error) {
-        console.error(`❌ Error parsing cached data for ${region}:`, error);
-        await redis.del(cacheKey); // Clear invalid cache
+    // If no ratings exist for today, force a fresh scrape
+    if (!existingRatings) {
+      console.log("No ratings found for today, forcing fresh scrape...");
+      const scrapedData = await scrapeAllRegions();
+
+      // Store conditions and ratings for all regions
+      for (const data of scrapedData) {
+        const formattedData = {
+          region: data.region,
+          wind: {
+            speed: data.windSpeed,
+            direction: data.windDirection,
+          },
+          swell: {
+            height: data.swellHeight,
+            period: data.swellPeriod,
+            direction: data.swellDirection,
+          },
+        };
+
+        await storeGoodBeachRatings(formattedData, data.region, new Date(date));
       }
     }
 
-    console.log(`🔍 No cache found, checking database for ${region}`);
+    // Now proceed with normal cache/DB checks for conditions
+    const cacheKey = `surf-conditions:${region}:${date}`;
+    const cachedData = await redis.get(cacheKey);
 
-    // 2. Check database if not in cache
+    if (cachedData && typeof cachedData === "string") {
+      try {
+        const parsedData = JSON.parse(cachedData);
+        return NextResponse.json(parsedData);
+      } catch (error) {
+        console.error(`❌ Cache parse error for ${region}:`, error);
+        await redis.del(cacheKey);
+      }
+    }
+
+    // 2. Check database
+    console.log(`💾 Checking database for ${region}`);
     const existingConditions = await prisma.surfCondition.findFirst({
       where: {
         date: new Date(date),
@@ -511,130 +492,149 @@ export async function GET(request: Request) {
       orderBy: { updatedAt: "desc" },
     });
 
+    console.log(
+      "2. Found existing conditions:",
+      JSON.stringify(existingConditions, null, 2)
+    );
+
     if (existingConditions?.forecast) {
-      console.log(`💾 Found in database for ${region}`);
+      console.log("✅ Using database entry for ${region}");
       const formattedData = formatConditionsResponse(existingConditions);
-
-      if (formattedData) {
-        // Cache the formatted data
-        await redis.set(cacheKey, JSON.stringify(formattedData), {
-          ex: 3600, // 1 hour
-        });
-
-        // Store good beach ratings asynchronously
-        await storeGoodBeachRatings(
-          existingConditions.forecast as WindData,
-          region,
-          new Date(date)
-        );
-
-        return NextResponse.json(formattedData);
-      }
+      console.log("3. Formatted data:", JSON.stringify(formattedData, null, 2));
+      await redis.set(cacheKey, JSON.stringify(formattedData), { ex: 3600 });
+      return NextResponse.json(formattedData);
     }
 
-    console.log(`🌐 No database entry, scraping fresh data for ${region}`);
-
-    // 3. Scrape new data if not in database
-    const scrapeLockKey = `scrape-lock:${region}`;
+    // 3. Scrape new data with lock protection
+    const scrapeLockKey = `scrape-lock:${date}`; // One lock per day instead of per region
     const isLocked = await redis.get(scrapeLockKey);
 
     if (isLocked) {
-      console.log(`🔒 Scraping already in progress for ${region}`);
-      return NextResponse.json(null);
+      console.log(`🔒 Scraping locked, waiting for data...`);
+      // Wait briefly and check DB again
+      await new Promise((resolve) => setTimeout(resolve, 2000));
+      const recentData = await prisma.surfCondition.findFirst({
+        where: {
+          date: new Date(date),
+          region: region,
+        },
+        orderBy: { updatedAt: "desc" },
+      });
+
+      if (recentData?.forecast) {
+        return NextResponse.json(formatConditionsResponse(recentData));
+      }
+
+      return NextResponse.json(
+        { error: "Data refresh in progress" },
+        { status: 429 }
+      );
     }
 
     // Set scrape lock
-    await redis.set(scrapeLockKey, "1", {
-      ex: 60 * 10, // 10 minute lock
-    });
+    await redis.set(scrapeLockKey, "1", { ex: 30 }); // 30 second lock
 
     try {
+      console.log("4. No existing data, starting scrape");
       const scrapedData = await scrapeAllRegions();
-      console.log(`📥 Scraped new data for ${region}`);
 
-      if (scrapedData?.length) {
-        // Store conditions
-        await prisma.surfCondition.createMany({
-          data: scrapedData.map((regionData) => ({
+      console.log("5. Scraped data:", JSON.stringify(scrapedData, null, 2));
+
+      if (!scrapedData?.length) {
+        throw new Error(`No data scraped`);
+      }
+
+      // Save conditions and ratings in one go
+      for (const data of scrapedData) {
+        // Save condition
+        await prisma.surfCondition.create({
+          data: {
             id: randomUUID(),
-            date: getTodayDate(),
-            region: regionData.region,
+            date: new Date(date),
+            region: data.region,
             forecast: {
               wind: {
-                speed: regionData.windSpeed,
-                direction: regionData.windDirection,
+                speed: data.windSpeed,
+                direction: data.windDirection,
               },
               swell: {
-                height: regionData.swellHeight,
-                period: regionData.swellPeriod,
-                direction: regionData.swellDirection,
+                height: data.swellHeight,
+                period: data.swellPeriod,
+                direction: data.swellDirection,
               },
             },
-          })),
+            updatedAt: new Date(),
+          },
         });
 
-        // Store ratings - single call per region
-        await Promise.all(
-          scrapedData.map((regionData) =>
-            storeGoodBeachRatings(
-              {
-                wind: {
-                  speed: regionData.windSpeed,
-                  direction: regionData.windDirection,
-                },
-                swell: {
-                  height: regionData.swellHeight,
-                  period: regionData.swellPeriod,
-                  direction: regionData.swellDirection,
-                },
-              },
-              regionData.region,
-              getTodayDate()
-            )
-          )
-        );
+        // Store ratings immediately after storing conditions
+        const formattedData = {
+          region: data.region,
+          wind: {
+            speed: data.windSpeed,
+            direction: data.windDirection,
+          },
+          swell: {
+            height: data.swellHeight,
+            period: data.swellPeriod,
+            direction: data.swellDirection,
+          },
+        };
 
-        // Get the requested region's data
-        const requestedRegionData = scrapedData.find(
-          (data) => data.region === region
-        );
-
-        if (requestedRegionData) {
-          const formattedData = formatConditionsResponse({
-            forecast: {
-              wind: {
-                speed: requestedRegionData.windSpeed,
-                direction: requestedRegionData.windDirection,
-              },
-              swell: {
-                height: requestedRegionData.swellHeight,
-                period: requestedRegionData.swellPeriod,
-                direction: requestedRegionData.swellDirection,
-              },
-            },
-          });
-
-          if (formattedData) {
-            // Cache the formatted data
-            await redis.set(cacheKey, JSON.stringify(formattedData), {
-              ex: 3600,
-            });
-
-            return NextResponse.json(formattedData);
-          }
-        }
+        await storeGoodBeachRatings(formattedData, data.region, new Date(date));
       }
+
+      // Find and return requested region's data
+      const requestedRegionData = scrapedData.find(
+        (data) => data.region === region
+      );
+
+      if (!requestedRegionData) {
+        throw new Error(`No data found for ${region} in scrape results`);
+      }
+
+      const formattedData: WindData = {
+        region: requestedRegionData.region,
+        wind: {
+          speed: Number(requestedRegionData.windSpeed),
+          direction: requestedRegionData.windDirection,
+        },
+        swell: {
+          height: Number(requestedRegionData.swellHeight),
+          period: Number(requestedRegionData.swellPeriod),
+          direction: Number(requestedRegionData.swellDirection),
+        },
+      };
+
+      // Cache the result
+      await redis.set(cacheKey, JSON.stringify(formattedData), { ex: 3600 });
+
+      // Add request deduplication
+      const dedupeKey = `req-dedup:${region}:${date}`;
+      const existingRequest = await redis.get(dedupeKey);
+      if (existingRequest && typeof existingRequest === "string") {
+        return NextResponse.json(JSON.parse(existingRequest));
+      }
+      await redis.set(dedupeKey, "processing", { ex: 2 });
+
+      await redis.set(dedupeKey, JSON.stringify(formattedData), { ex: 30 });
+
+      return NextResponse.json(formattedData);
     } finally {
-      // Clean up scrape lock
+      // Always clean up the lock
       await redis.del(scrapeLockKey);
     }
-
-    console.log(`❌ No data available for ${region}`);
-    return NextResponse.json(null);
   } catch (error) {
-    console.error(`🚨 Error fetching ${region}:`, error);
+    console.error(`🚨 Error processing ${region}:`, {
+      message: error instanceof Error ? error.message : "Unknown error",
+      stack: error instanceof Error ? error.stack : undefined,
+    });
+
     return NextResponse.json(
-      { error: "Failed to fetch conditions" },
+      {
+        error: "Failed to fetch conditions",
+        details: error instanceof Error ? error.message : "Unknown error",
+      },
       { status: 500 }
     );
   }
@@ -655,17 +655,7 @@ async function ensureGoodRatings(region: string, date: Date, conditions: any) {
         `🔄 No ratings found for ${region} on ${date}, regenerating...`
       );
       await storeGoodBeachRatings(
-        {
-          wind: {
-            speed: conditions.forecast.wind.speed,
-            direction: conditions.forecast.wind.direction,
-          },
-          swell: {
-            height: conditions.forecast.swell.height,
-            period: conditions.forecast.swell.period,
-            direction: conditions.forecast.swell.direction,
-          },
-        },
+        formatConditionsResponse(conditions.forecast),
         region,
         date
       );

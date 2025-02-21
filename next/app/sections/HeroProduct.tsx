@@ -1,7 +1,7 @@
 "use client";
 
 import Image from "next/image";
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef, useMemo } from "react";
 import { beachData } from "../types/beaches";
 import {
   formatConditionsResponse,
@@ -16,6 +16,7 @@ import {
   getDirectionEmoji,
 } from "@/app/lib/forecastUtils";
 import gsap from "gsap";
+import { useQuery, useQueries } from "@tanstack/react-query";
 
 const FEATURED_BEACHES = [
   "jeffreys-bay",
@@ -28,62 +29,47 @@ const FEATURED_BEACHES = [
 ];
 
 export default function HeroProduct() {
-  const [selectedBeach, setSelectedBeach] = useState(FEATURED_BEACHES[0]);
-  const [surfData, setSurfData] = useState<{ [key: string]: WindData }>({});
+  const [selectedBeachId, setSelectedBeachId] = useState(FEATURED_BEACHES[0]);
   const [sliderIndex, setSliderIndex] = useState(0);
-  const [isLoading, setIsLoading] = useState(true);
   const [cardsPerView, setCardsPerView] = useState(1);
 
   const beaches = beachData.filter((beach) =>
     FEATURED_BEACHES.includes(beach.id)
   );
-  const currentBeach = beachData.find((beach) => beach.id === selectedBeach);
+
+  // Get all unique regions from featured beaches
+  const regions = [...new Set(beaches.map((b) => b.region))];
+
+  // Fetch all regions upfront
+  const regionQueries = useQueries({
+    queries: regions.map((region) => ({
+      queryKey: ["surf-conditions", region],
+      queryFn: async () => {
+        const res = await fetch(
+          `/api/surf-conditions?region=${encodeURIComponent(region)}`
+        );
+        return res.json();
+      },
+      staleTime: 60 * 1000 * 5, // 5 minute cache
+    })),
+  });
+
+  // Merge data from all regions
+  const surfData = useMemo(() => {
+    return beaches.reduce(
+      (acc, beach) => {
+        const regionQuery = regionQueries.find(
+          (q) => q.data?.region === beach.region
+        );
+        // Store both region and forecast data
+        acc[beach.id] = regionQuery?.data || null;
+        return acc;
+      },
+      {} as Record<string, WindData | null>
+    );
+  }, [regionQueries]);
 
   const imageRef = useRef(null);
-
-  useEffect(() => {
-    async function fetchSurfData() {
-      try {
-        setIsLoading(true);
-        const regions = [...new Set(beaches.map((beach) => beach.region))];
-
-        // Fetch all regions in parallel with a single Promise.all
-        const regionData = await Promise.all(
-          regions.map(async (region) => {
-            const response = await fetch(
-              `/api/surf-conditions?region=${encodeURIComponent(region)}`,
-              {
-                next: {
-                  revalidate: 3600, // Revalidate every hour
-                },
-              }
-            );
-            if (!response.ok) throw new Error(`Failed to fetch ${region} data`);
-            const data = await response.json();
-            return { region, data };
-          })
-        );
-
-        const beachConditions: { [key: string]: WindData } = {};
-        beaches.forEach((beach) => {
-          const regionCondition = regionData.find(
-            (r) => r.region === beach.region
-          );
-          if (regionCondition) {
-            beachConditions[beach.id] = regionCondition.data;
-          }
-        });
-
-        setSurfData(beachConditions);
-      } catch (error) {
-        console.error("Error fetching surf data:", error);
-      } finally {
-        setIsLoading(false);
-      }
-    }
-
-    fetchSurfData();
-  }, []);
 
   useEffect(() => {
     if (imageRef.current) {
@@ -95,7 +81,7 @@ export default function HeroProduct() {
         repeat: -3,
       });
     }
-  }, [currentBeach]); // Re-run when beach changes
+  }, [selectedBeachId]); // Re-run when beach changes
 
   useEffect(() => {
     const updateCardsPerView = () => {
@@ -106,9 +92,10 @@ export default function HeroProduct() {
     return () => window.removeEventListener("resize", updateCardsPerView);
   }, []);
 
-  const getBeachScore = (beach: typeof currentBeach) => {
-    if (!beach || !surfData[beach.id]) return null;
-    return isBeachSuitable(beach, surfData[beach.id]);
+  const getBeachScore = (beach: typeof selectedBeachId) => {
+    if (!beach || !surfData?.[beach]) return null;
+    const beachObj = beaches.find((b) => b.id === beach);
+    return isBeachSuitable(beachObj!, surfData[beach]);
   };
 
   const maxIndex = Math.max(0, beaches.length - cardsPerView);
@@ -120,6 +107,13 @@ export default function HeroProduct() {
   const handleNext = () => {
     setSliderIndex((prev) => Math.min(maxIndex, prev + 1));
   };
+
+  // Find current beach data
+  const currentBeach = beaches.find((b) => b.id === selectedBeachId);
+  const currentBeachData = surfData[selectedBeachId];
+
+  // Loading state (only show for initial load)
+  const isLoading = regionQueries.some((q) => q.isLoading && !q.data);
 
   return (
     <section className="bg-[var(--color-bg-secondary)] section-padding mb-6">
@@ -180,9 +174,9 @@ export default function HeroProduct() {
                           style={{ width: `${100 / cardsPerView}%` }}
                         >
                           <button
-                            onClick={() => setSelectedBeach(beach.id)}
+                            onClick={() => setSelectedBeachId(beach.id)}
                             className={`w-full rounded-lg overflow-hidden transition-all duration-300
-                              ${selectedBeach === beach.id ? "bg-[var(--color-tertiary)]" : "bg-white/5 hover:bg-white/10"}
+                              ${selectedBeachId === beach.id ? "bg-[var(--color-tertiary)]" : "bg-white/5 hover:bg-white/10"}
                               flex flex-col md:block`}
                           >
                             {/* Mobile button text */}
@@ -276,11 +270,11 @@ export default function HeroProduct() {
                           </div>
                         ))}
                       </div>
-                    ) : currentBeach && surfData[currentBeach.id] ? (
+                    ) : currentBeachData && surfData?.[selectedBeachId] ? (
                       <ul className="space-y-2">
                         {getConditionReasons(
-                          currentBeach,
-                          surfData[currentBeach.id],
+                          beaches.find((b) => b.id === selectedBeachId)!,
+                          surfData[selectedBeachId]!,
                           false
                         ).optimalConditions.map((condition, index, array) => (
                           <li
@@ -363,13 +357,13 @@ export default function HeroProduct() {
               </div>
             ) : (
               <div className="relative h-[240px] md:h-[440px] lg:h-[540px] mb-6 rounded-2xl overflow-hidden">
-                {currentBeach?.image && (
+                {selectedBeachId && surfData?.[selectedBeachId] && (
                   <>
                     <div className="absolute inset-0">
                       <Image
                         ref={imageRef}
-                        src={currentBeach.image}
-                        alt={currentBeach.name}
+                        src={currentBeach?.image || "/fallback-surf.jpg"}
+                        alt={currentBeach?.name || "Surf spot"}
                         fill
                         sizes="(max-width: 900px) 20vw, 80vw"
                         className="object-cover"
@@ -385,7 +379,7 @@ export default function HeroProduct() {
                     <div className="absolute bottom-3 md:bottom-5 left-3 md:left-6 right-3 md:right-6">
                       <div className="flex flex-col gap-3 md:gap-6">
                         <div className="w-full md:w-1/2">
-                          {currentBeach && surfData[currentBeach.id] && (
+                          {selectedBeachId && surfData?.[selectedBeachId] && (
                             <div className="bg-white/5 backdrop-blur-sm p-2 md:p-4 rounded-xl border border-white/20">
                               <div className="gap-1.5 md:gap-2 mb-2 md:mb-4">
                                 <span className="text-sm md:text-base font-medium text-white">
@@ -393,12 +387,13 @@ export default function HeroProduct() {
                                 </span>
                                 <span className="text-base md:text-lg bg-[var(--color-tertiary)] px-2.5 py-1 rounded-lg shadow-sm">
                                   {(() => {
-                                    const score = getBeachScore(currentBeach);
+                                    const score =
+                                      getBeachScore(selectedBeachId);
                                     const display = score
                                       ? getScoreDisplay(score.score)
                                       : null;
                                     const conditions =
-                                      surfData[currentBeach.id];
+                                      surfData?.[selectedBeachId];
 
                                     return display?.emoji;
                                   })()}
@@ -406,11 +401,12 @@ export default function HeroProduct() {
                               </div>
                               <p className="text-xs md:text-sm mb-4 md:mb-6 text-white/80">
                                 {(() => {
-                                  const score = getBeachScore(currentBeach);
+                                  const score = getBeachScore(selectedBeachId);
                                   const display = score
                                     ? getScoreDisplay(score.score)
                                     : null;
-                                  const conditions = surfData[currentBeach.id];
+                                  const conditions =
+                                    surfData?.[selectedBeachId];
 
                                   return display?.description;
                                 })()}
@@ -419,44 +415,51 @@ export default function HeroProduct() {
                                 <p className="flex items-center gap-2 text-white/90">
                                   <span
                                     className="inline-flex"
-                                    title={`Wind Speed: ${surfData[currentBeach.id].wind?.speed < 5 ? "Light" : surfData[currentBeach.id].wind?.speed < 12 ? "Moderate" : surfData[currentBeach.id].wind?.speed < 20 ? "Strong" : "Very Strong"}`}
+                                    title={`Wind Speed: ${surfData?.[selectedBeachId].wind?.speed < 5 ? "Light" : surfData?.[selectedBeachId].wind?.speed < 12 ? "Moderate" : surfData?.[selectedBeachId].wind?.speed < 20 ? "Strong" : "Very Strong"}`}
                                   >
                                     {getWindEmoji(
-                                      surfData[currentBeach.id].wind?.speed
+                                      surfData?.[selectedBeachId].wind?.speed
                                     )}
                                   </span>
                                   <span className="font-medium font-primary">
-                                    {surfData[currentBeach.id].wind?.direction}{" "}
-                                    @ {surfData[currentBeach.id].wind?.speed}
+                                    {
+                                      surfData?.[selectedBeachId].wind
+                                        ?.direction
+                                    }{" "}
+                                    @ {surfData?.[selectedBeachId].wind?.speed}
                                     km/h
                                   </span>
                                 </p>
                                 <p className="flex items-center gap-2 text-white/90 font-primary">
                                   <span
                                     className="inline-flex font-primary"
-                                    title={`Swell Height: ${surfData[currentBeach.id].swell?.height < 0.5 ? "Flat" : surfData[currentBeach.id].swell?.height < 1 ? "Small" : surfData[currentBeach.id].swell?.height < 2 ? "Medium" : "Large"}`}
+                                    title={`Swell Height: ${surfData?.[selectedBeachId].swell?.height < 0.5 ? "Flat" : surfData?.[selectedBeachId].swell?.height < 1 ? "Small" : surfData?.[selectedBeachId].swell?.height < 2 ? "Medium" : "Large"}`}
                                   >
                                     {getSwellEmoji(
-                                      surfData[currentBeach.id].swell?.height
+                                      surfData?.[selectedBeachId].swell?.height
                                     )}
                                   </span>
                                   <span className="font-medium font-primary">
-                                    {surfData[currentBeach.id].swell?.height}m @{" "}
-                                    {surfData[currentBeach.id].swell?.period}s
+                                    {surfData?.[selectedBeachId].swell?.height}m
+                                    @{" "}
+                                    {surfData?.[selectedBeachId].swell?.period}s
                                   </span>
                                 </p>
                                 <p className="flex items-center gap-2 text-white/90 font-primary">
                                   <span
                                     className="inline-flex font-primary"
-                                    title={`Swell Direction: ${surfData[currentBeach.id].swell?.direction}`}
+                                    title={`Swell Direction: ${surfData?.[selectedBeachId].swell?.direction}`}
                                   >
                                     {getDirectionEmoji(
-                                      surfData[currentBeach.id].swell
+                                      surfData?.[selectedBeachId].swell
                                         ?.direction || 0
                                     )}
                                   </span>
                                   <span className="font-medium font-primary">
-                                    {surfData[currentBeach.id].swell?.direction}
+                                    {
+                                      surfData?.[selectedBeachId].swell
+                                        ?.direction
+                                    }
                                   </span>
                                 </p>
                               </div>

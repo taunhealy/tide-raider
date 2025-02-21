@@ -16,8 +16,6 @@ export default function VHSEffect({ className }: VHSEffectProps) {
       return;
     }
 
-    console.log("Initializing VHS effect...");
-
     const scene = new THREE.Scene();
     const camera = new THREE.OrthographicCamera(-1, 1, 1, -1, 0.1, 10);
     const renderer = new THREE.WebGLRenderer({

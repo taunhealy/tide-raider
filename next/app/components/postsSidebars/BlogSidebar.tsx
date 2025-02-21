@@ -8,8 +8,6 @@ interface BlogSidebarProps {
 }
 
 export default function BlogSidebar({ posts, widgets }: BlogSidebarProps) {
-  console.log("BlogSidebar widgets:", { widgets, posts });
-
   const sortedWidgets = [...(widgets || [])].sort((a, b) => a.order - b.order);
 
   if (!widgets?.length) {

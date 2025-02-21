@@ -3,8 +3,8 @@
 import { urlForImage } from "@/app/lib/urlForImage";
 import Link from "next/link";
 import type { Post } from "@/app/types/blog";
-import FormattedDate from "@/app/components/FormattedDate";
 import type { Trip } from "@/app/types/blog";
+import { useQuery } from "@tanstack/react-query";
 
 interface BlogPostsSidebarProps {
   posts: {
@@ -15,14 +15,24 @@ interface BlogPostsSidebarProps {
 }
 
 export default function BlogPostsSidebar({ posts }: BlogPostsSidebarProps) {
-  console.log("1. Full posts object:", posts);
+  // Add a query to fetch fresh data
+  const { data: freshPosts } = useQuery({
+    queryKey: ["blogPosts"],
+    queryFn: async () => {
+      const res = await fetch("/api/posts");
+      if (!res.ok) throw new Error("Failed to fetch posts");
+      return res.json();
+    },
+    // Start with the initial data from props
+    initialData: posts,
+    // Refetch on mount to ensure fresh data
+    staleTime: 0,
+  });
 
-  // Access the posts array from the posts object
-  const postsArray = posts?.posts || [];
-  console.log("2. Posts array:", postsArray);
+  // Use freshPosts instead of posts prop
+  const postsArray = freshPosts?.posts || [];
 
-  const travelPosts = postsArray.filter((post) => {
-    console.log("3. Checking post categories:", post.categories);
+  const travelPosts = postsArray.filter((post: Post) => {
     return post.categories?.some((category) => category.title === "Travel");
   });
 
@@ -45,7 +55,7 @@ export default function BlogPostsSidebar({ posts }: BlogPostsSidebarProps) {
       </div>
 
       <div className="space-y-6">
-        {travelPosts.slice(0, 3).map((post) => (
+        {travelPosts.slice(0, 3).map((post: Post) => (
           <Link
             key={post.slug}
             href={`/blog/${post.slug}`}

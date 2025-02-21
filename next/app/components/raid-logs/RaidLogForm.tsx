@@ -428,7 +428,7 @@ export function RaidLogForm({
                       maxLength={140}
                     />
                     <div className="text-sm text-gray-500 mt-1 font-primary">
-                      Characters remaining: {140 - comments.length}
+                      Characters remaining: {250 - comments.length}
                     </div>
                   </div>
                 )}

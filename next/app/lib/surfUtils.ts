@@ -64,6 +64,25 @@ export function getScoreDisplay(score: number): ScoreDisplay {
   }
 }
 
+const cardinalToDegreesMap: { [key: string]: number } = {
+  N: 0,
+  NNE: 22.5,
+  NE: 45,
+  ENE: 67.5,
+  E: 90,
+  ESE: 112.5,
+  SE: 135,
+  SSE: 157.5,
+  S: 180,
+  SSW: 202.5,
+  SW: 225,
+  WSW: 247.5,
+  W: 270,
+  WNW: 292.5,
+  NW: 315,
+  NNW: 337.5,
+};
+
 export function isBeachSuitable(
   beach: Beach,
   conditions: WindDataProp
@@ -74,9 +93,28 @@ export function isBeachSuitable(
 
   let score = 10; // Start with perfect score
 
-  // Check wind direction first
+  // Smarter wind direction check
   if (!beach.optimalWindDirections.includes(conditions.wind.direction)) {
-    score = Math.max(0, score - 4); // Wrong wind direction
+    // Convert both directions to degrees for comparison
+    const currentDirDegrees = cardinalToDegreesMap[conditions.wind.direction];
+    const isNeighboring = beach.optimalWindDirections.some((optimalDir) => {
+      const optimalDegrees = cardinalToDegreesMap[optimalDir];
+      if (currentDirDegrees === undefined || optimalDegrees === undefined)
+        return false;
+
+      // Calculate the smallest angle between the two directions
+      const diff = Math.abs(currentDirDegrees - optimalDegrees);
+      const angleDiff = Math.min(diff, 360 - diff);
+
+      // Consider directions within 45 degrees as neighboring
+      return angleDiff <= 45;
+    });
+
+    if (isNeighboring) {
+      score = Math.max(0, score - 2); // Less penalty for similar directions
+    } else {
+      score = Math.max(0, score - 4); // Full penalty for non-optimal directions
+    }
   }
 
   // Check wind strength separately
@@ -354,19 +392,33 @@ export function getGoodBeachCount(
   return { count, shouldDisplay: count > 0 };
 }
 
-export function formatConditionsResponse(conditions: any) {
+export function formatConditionsResponse(conditions: any): WindData {
+  // Handle nested forecast structure
+  const forecast = conditions.forecast || conditions;
+
   return {
+    region: conditions.region,
     wind: {
-      direction: conditions.windDirection,
-      speed: conditions.windSpeed,
+      speed: Number(forecast.wind?.speed),
+      direction: forecast.wind?.direction,
     },
     swell: {
-      height: conditions.swellHeight,
-      direction: conditions.swellDirection,
-      period: conditions.swellPeriod,
-      cardinalDirection: degreesToCardinal(Number(conditions.swellDirection)),
+      height: Number(forecast.swell?.height),
+      period: Number(forecast.swell?.period),
+      direction: Number(forecast.swell?.direction),
     },
-    timestamp: conditions.timestamp,
-    region: conditions.region,
   };
+}
+
+export function isWindDirectionSimilar(
+  windDirection: string,
+  optimalDirections: string[]
+): boolean {
+  // Normalize the wind direction before comparison
+  const normalizedWind = windDirection.trim().toUpperCase();
+  const normalizedOptimal = optimalDirections.map((d) =>
+    d.trim().toUpperCase()
+  );
+
+  return normalizedOptimal.some((optimal) => normalizedWind === optimal);
 }

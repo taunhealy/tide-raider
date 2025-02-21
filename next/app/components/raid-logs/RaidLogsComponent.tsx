@@ -13,6 +13,7 @@ import Link from "next/link";
 import type { Beach } from "@/app/types/beaches";
 import { toast } from "sonner";
 import { handleSignIn } from "@/app/lib/auth-utils";
+import BeachDetailsModal from "@/app/components/BeachDetailsModal";
 
 // Add filter config types similar to QuestLogs
 type FilterConfig = {
@@ -54,6 +55,7 @@ export const RaidLogsComponent: React.FC<RaidLogsComponentProps> = ({
     initialFilters?.isPrivate ?? false
   );
   const [isFormOpen, setIsFormOpen] = useState(false);
+  const [selectedBeach, setSelectedBeach] = useState<Beach | null>(null);
 
   const handleFilterChange = useCallback(
     (newFilters: Partial<FilterConfig>) => {
@@ -160,6 +162,20 @@ export const RaidLogsComponent: React.FC<RaidLogsComponentProps> = ({
     return logEntriesData?.entries || [];
   }, [logEntriesData?.entries, error]);
 
+  const handleBeachClick = useCallback(
+    (beachName: string) => {
+      const beach = beaches.find((b) => b.name === beachName);
+      if (beach) {
+        setSelectedBeach(beach);
+      }
+    },
+    [beaches]
+  );
+
+  const handleSubscribe = useCallback(() => {
+    router.push("/pricing"); // Redirect to pricing page
+  }, [router]);
+
   return (
     <div className="min-h-screen bg-[var(--color-bg-secondary)] p-4 sm:p-6 lg:p-9 font-primary relative">
       <div className="max-w-[1600px] mx-auto relative z-10">
@@ -217,6 +233,7 @@ export const RaidLogsComponent: React.FC<RaidLogsComponentProps> = ({
               isSubscribed={session?.user?.isSubscribed}
               isLoading={isLoading}
               showPrivateOnly={isPrivate}
+              onBeachClick={handleBeachClick}
             />
           )}
         </div>
@@ -230,6 +247,16 @@ export const RaidLogsComponent: React.FC<RaidLogsComponentProps> = ({
         onClose={() => setIsFilterOpen(false)}
       />
       <RaidLogForm isOpen={isFormOpen} onClose={() => setIsFormOpen(false)} />
+
+      {selectedBeach && (
+        <BeachDetailsModal
+          beach={selectedBeach}
+          isOpen={!!selectedBeach}
+          onClose={() => setSelectedBeach(null)}
+          isSubscribed={!!session?.user?.isSubscribed}
+          onSubscribe={handleSubscribe}
+        />
+      )}
     </div>
   );
 };

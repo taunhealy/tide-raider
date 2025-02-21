@@ -19,6 +19,7 @@ interface SurfForecastWidgetProps {
 
 export default function SurfForecastWidget({
   forecast,
+  date,
 }: SurfForecastWidgetProps) {
   if (!forecast?.wind || !forecast?.swell) {
     return <div>Sorry, no forecast data rendered. Please refresh.</div>;
@@ -36,7 +37,7 @@ export default function SurfForecastWidget({
   return (
     <div className="bg-white p-6 rounded-lg shadow-md border border-gray-100">
       <h3 className="text-lg font-semibold mb-4 font-primary text-gray-800">
-        Today's Forecast
+        Forecast for {date}
       </h3>
       <div className="grid gap-4">
         <div className="p-3 bg-gray-50 rounded-lg">

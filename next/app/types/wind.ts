@@ -1,6 +1,7 @@
 import { Beach } from "./beaches";
 
 export type WindData = {
+  region: string;
   wind: {
     speed: number; // Wind speed in km/h (e.g., 35)
     direction: string; // Cardinal direction (e.g., "SSE", "NW")
@@ -11,18 +12,6 @@ export type WindData = {
     direction: number; // Swell direction in degrees (e.g., 219)
   };
 };
-
-// Helper type guard to validate WindData
-export function isValidWindData(data: any): data is WindData {
-  return (
-    data &&
-    typeof data.wind?.speed === "number" &&
-    typeof data.wind?.direction === "string" &&
-    typeof data.swell?.height === "number" &&
-    typeof data.swell?.period === "number" &&
-    typeof data.swell?.direction === "number"
-  );
-}
 
 export interface BeachContainerProps {
   initialBeaches: Beach[];

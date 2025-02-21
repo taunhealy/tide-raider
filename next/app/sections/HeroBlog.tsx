@@ -40,8 +40,6 @@ export default function Blog({ data }: BlogProps) {
     return null;
   }
 
-
-
   const [activeCategory, setActiveCategory] = useState("All");
   const [currentPage, setCurrentPage] = useState(1);
   const postsPerPage = 5;
@@ -50,31 +48,17 @@ export default function Blog({ data }: BlogProps) {
   const [canScrollLeft, setCanScrollLeft] = useState(false);
   const [canScrollRight, setCanScrollRight] = useState(true);
 
-  console.log("Raw posts data:", data.posts);
-
   const filteredPosts = useMemo(() => {
-    console.log("Filtering for category:", activeCategory);
     return data.posts.filter((post) => {
       if (activeCategory === "All") return true;
 
-      console.log(`Checking post "${post.title}":`);
-      console.log("Post categories:", JSON.stringify(post.categories, null, 2));
-
       return post.categories?.some((category) => {
         const matches = category.title === activeCategory;
-        console.log(
-          `Category "${category.title}" matches "${activeCategory}"?`,
-          matches
-        );
+
         return matches;
       });
     });
   }, [data.posts, activeCategory]);
-
-  console.log(
-    "Filtered posts:",
-    filteredPosts.map((p) => p.title)
-  );
 
   const handleScroll = useCallback(() => {
     if (!containerRef.current) return;

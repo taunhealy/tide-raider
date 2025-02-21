@@ -8,24 +8,7 @@ import RaidSkeleton from "@/app/components/skeletons/RaidSkeleton";
 
 async function QuestContent() {
   try {
-    const baseUrl =
-      process.env.NEXT_PUBLIC_BASE_URL?.replace(/\/$/, "") ||
-      "https://www.tideraider.com";
-    const date = new Date().toISOString().split("T")[0];
-
-    const [windResponse, blogData, activeAds] = await Promise.all([
-      fetch(`${baseUrl}/api/surf-conditions?region=Western Cape&date=${date}`, {
-        headers: {
-          "Content-Type": "application/json",
-        },
-      }).then(async (res) => {
-        if (!res.ok) {
-          console.error(`Wind API error: ${res.status} ${res.statusText}`);
-          return null;
-        }
-        const data = await res.json();
-        return data;
-      }),
+    const [blogData, activeAds] = await Promise.all([
       client.fetch(blogListingQuery).catch((error) => {
         console.error("Blog fetch error:", error);
         return []; // Fallback data
@@ -61,10 +44,6 @@ async function QuestContent() {
         }),
     ]);
 
-    const windData = windResponse || {};
-    const blogs = blogData || [];
-    const ads = activeAds || [];
-
     return (
       <div className="min-h-screen bg-[var(--color-bg-secondary)]">
         <div className="container mx-auto px-4 py-8">
@@ -72,9 +51,8 @@ async function QuestContent() {
             <div className="flex-1">
               <BeachContainer
                 initialBeaches={beachData}
-                windData={windData}
-                blogPosts={blogs}
-                availableAds={ads}
+                blogPosts={blogData}
+                availableAds={activeAds}
               />
             </div>
           </div>

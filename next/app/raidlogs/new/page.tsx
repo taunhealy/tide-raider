@@ -13,8 +13,6 @@ export default function NewRaidLogPage() {
   const { data: session, status } = useSession();
   const [beaches, setBeaches] = useState<Beach[]>(beachData);
 
-  console.log("Beach data in page:", beachData);
-
   if (status === "loading") return <RandomLoader isLoading={true} />;
   if (!session) return router.push("/login");
 

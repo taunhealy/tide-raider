@@ -295,19 +295,19 @@ export default function DashboardPage() {
                 ) : (
                   <div className="p-6 border rounded-xl bg-white shadow-sm">
                     <p className="mb-4 font-primary">
-                      {hasActiveTrial ? (
+                      {hasActiveTrial &&
+                      subscriptionDetails?.data?.attributes?.trial_ends_at &&
+                      new Date(
+                        subscriptionDetails.data.attributes.trial_ends_at
+                      ) > new Date() ? (
                         <>
                           Your free trial is active. 🐟🐟🐟
-                          {subscriptionDetails?.data?.attributes
-                            ?.trial_ends_at && (
-                            <span className="block mt-2 text-sm text-gray-600">
-                              Trial ends on:{" "}
-                              {formatDate(
-                                subscriptionDetails.data.attributes
-                                  .trial_ends_at
-                              )}
-                            </span>
-                          )}
+                          <span className="block mt-2 text-sm text-gray-600">
+                            Trial ends on:{" "}
+                            {formatDate(
+                              subscriptionDetails.data.attributes.trial_ends_at
+                            )}
+                          </span>
                         </>
                       ) : (
                         "No active subscription"
@@ -317,12 +317,20 @@ export default function DashboardPage() {
                       variant="outline"
                       className="w-full sm:w-auto font-primary"
                       onClick={() =>
-                        hasActiveTrial
+                        hasActiveTrial &&
+                        subscriptionDetails?.data?.attributes?.trial_ends_at &&
+                        new Date(
+                          subscriptionDetails.data.attributes.trial_ends_at
+                        ) > new Date()
                           ? (window.location.href = "/pricing")
                           : handleTrial()
                       }
                     >
-                      {hasActiveTrial
+                      {hasActiveTrial &&
+                      subscriptionDetails?.data?.attributes?.trial_ends_at &&
+                      new Date(
+                        subscriptionDetails.data.attributes.trial_ends_at
+                      ) > new Date()
                         ? "Continue to Subscription"
                         : "Start Free Trial"}
                     </Button>

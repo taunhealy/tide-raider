@@ -58,7 +58,9 @@ export async function POST(request: Request) {
     });
 
     if (!response.ok) {
-      throw new Error("Failed to create checkout");
+      const errorData = await response.json();
+      console.error("Lemon Squeezy API error:", errorData);
+      throw new Error(`Failed to create checkout: ${response.status}`);
     }
 
     const checkout = await response.json();

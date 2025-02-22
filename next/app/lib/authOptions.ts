@@ -11,6 +11,7 @@ declare module "next-auth/jwt" {
     sub?: string;
     isSubscribed?: boolean;
     hasActiveTrial?: boolean;
+    trialEndDate?: Date | null;
     picture?: string;
   }
 }

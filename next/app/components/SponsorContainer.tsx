@@ -75,17 +75,17 @@ const SponsorContainer = () => {
         {/* Log Display */}
         <div className="pl-4 pr-12 pt-4">
           <div className="flex flex-col">
-            <p className="text-xs font-medium">{recentLog.surferName}</p>
+            <p className="text-[16px] font-medium">{recentLog.surferName}</p>
             <div className="flex justify-between items-start mt-1">
               <div className="space-y-1">
-                <p className="text-[0.6rem] uppercase tracking-wide text-[var(--color-text-secondary)]">
+                <p className="text-[12px] uppercase tracking-wide text-[var(--color-text-secondary)]">
                   {recentLog.beachName}
                 </p>
                 <div className="flex items-center justify-start space-x-0.5">
                   {[...Array(5)].map((_, i) => (
                     <span
                       key={i}
-                      className={`text-[0.7rem] ${
+                      className={`text-[12px] ${
                         i < Math.floor(recentLog.surferRating)
                           ? "opacity-100"
                           : "opacity-20"

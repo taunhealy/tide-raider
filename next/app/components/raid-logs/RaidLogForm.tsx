@@ -270,7 +270,7 @@ export function RaidLogForm({
       {isOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center">
           <div className="absolute inset-0 bg-black/50" onClick={onClose} />
-          <div className="relative bg-white rounded-lg shadow-xl max-w-[500px] lg:max-w-[500px] w-[500px] m-4 p-4 lg:p-6 overflow-y-auto max-h-[90vh]">
+          <div className="relative bg-white rounded-lg shadow-xl w-full mx-4 md:max-w-[500px] p-4 lg:p-6 overflow-y-auto max-h-[90vh] z-[51]">
             {!isSubscribed && !hasActiveTrial && (
               <div className="absolute inset-0 bg-gray-100/50 backdrop-blur-[2px] z-10 rounded-lg" />
             )}

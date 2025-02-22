@@ -110,13 +110,13 @@ export default function Blog({ data }: BlogProps) {
   return (
     <section className="blog-section pt-[54px] pb-[81px] md:pt-[54px] md:pb-[121.51px] px-4 md:px-[121.51px] bg-[var(--color-bg-primary)]">
       <div className="text-left mb-8 md:mb-12">
-        <h3 className="heading-3 font-primary text-3xl md:text-5xl font-bold text-gray-900">
+        <h3 className="heading-3 text-2xl md:text-3xl lg:text-4xl">
           Latest Blog Posts
         </h3>
       </div>
       <div className="blog-nav-container flex flex-col md:flex-row justify-between gap-[32px] mb-8">
-        <div className="flex justify-between items-end w-full min-w-[700px]">
-          <div className="blog-nav-titles flex flex-row gap-[16px] items-end overflow-x-hidden overflow-y-hidden min-h-[32px]">
+        <div className="flex justify-between items-end w-full">
+          <div className="blog-nav-titles flex flex-row gap-[16px] items-end overflow-x-auto overflow-y-hidden min-h-[32px] max-w-[calc(100%-100px)]">
             {["All", ...allCategories.map((cat) => cat.title)].map(
               (category) => (
                 <h6
@@ -139,7 +139,7 @@ export default function Blog({ data }: BlogProps) {
               )
             )}
           </div>
-          <div className="blog-nav-item">
+          <div className="blog-nav-item flex-shrink-0 ml-4">
             <Link href="/blog">
               <span className="font-primary text-[16px] underline text-[var(--color-text-primary)] hover:text-[var(--color-text-secondary)] transition-colors duration-300">
                 View All
@@ -207,7 +207,7 @@ export default function Blog({ data }: BlogProps) {
 
                   <div className="flex-1 p-4 md:p-6">
                     {post.categories && post.categories.length > 0 && (
-                      <div className="flex gap-2 mb-2">
+                      <div className="flex gap-2">
                         {post.categories
                           .filter(
                             (category): category is Category => !!category?.slug
@@ -223,7 +223,7 @@ export default function Blog({ data }: BlogProps) {
                       </div>
                     )}
 
-                    <h3 className="font-primary text-lg md:text-xl mb-2 md:mb-[16px] font-semibold text-gray-900 group-hover:text-primary transition-colors duration-300">
+                    <h3 className="font-primary text-base md:text-lg mb-2 md:mb-[16px] font-semibold text-gray-900 group-hover:text-primary transition-colors duration-300">
                       {post.title}
                     </h3>
 

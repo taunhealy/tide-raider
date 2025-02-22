@@ -46,15 +46,15 @@ export default async function BlogPost({
   );
 
   return (
-    <div className="container mx-auto px-4 py-8 max-w-[1200px]">
+    <div className="container mx-auto px-4 sm:px-6 py-8 max-w-[1200px]">
       <div className="grid grid-cols-1 lg:grid-cols-[1fr_400px] gap-8">
-        <main className="max-w-[720px]">
-          <h1 className="font-primary text-[2.5rem] leading-[1.2] font-bold mb-4">
+        <main className="max-w-full lg:max-w-[720px]">
+          <h1 className="font-primary text-[2rem] sm:text-[2.5rem] leading-[1.2] font-bold mb-4">
             {safePost.title}
           </h1>
 
           {safePost.mainImage?.asset && (
-            <div className="relative aspect-[16/9] mb-12">
+            <div className="relative aspect-[16/9] mb-8 sm:mb-12">
               <Image
                 src={
                   urlForImage(safePost.mainImage)?.url() ||
@@ -68,20 +68,20 @@ export default async function BlogPost({
             </div>
           )}
 
-          <div className="prose max-w-none font-primary prose-lg">
+          <div className="prose prose-sm sm:prose-base lg:prose-lg max-w-none font-primary">
             {safePost.content.map(
               (
                 section: {
                   sectionHeading?: string;
                   content: PortableTextBlock[];
-                  videoLink?: string;
                   sectionImages?: SectionImage[];
+                  videoLink?: string;
                 },
                 index: number
               ) => (
-                <div key={index} className="mt-8">
+                <div key={index} className="mt-6 sm:mt-8">
                   {section.sectionHeading && (
-                    <h2 className="text-[1.875rem] leading-[1.3] font-bold mb-4 md:mb-4">
+                    <h2 className="text-[1.5rem] sm:text-[1.875rem] leading-[1.3] font-bold mb-3 sm:mb-4">
                       {section.sectionHeading}
                     </h2>
                   )}
@@ -89,11 +89,11 @@ export default async function BlogPost({
                   <CustomPortableText value={section.content} />
 
                   {section.videoLink && (
-                    <div className="my-6">
+                    <div className="my-4 sm:my-6">
                       <iframe
                         src={`https://www.youtube.com/embed/${getVideoId(section.videoLink)}`}
                         title="YouTube Video"
-                        className="w-full h-64"
+                        className="w-full aspect-video"
                         frameBorder="0"
                         allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
                         allowFullScreen
@@ -102,14 +102,9 @@ export default async function BlogPost({
                   )}
 
                   {section.sectionImages &&
-                    section.sectionImages.map((image, imgIndex) => {
-                      const imageUrl = image.uploadedImage?.asset
-                        ? urlForImage(image.uploadedImage.asset)?.url() ||
-                          "/images/placeholder.jpg"
-                        : "/images/placeholder.jpg";
-
-                      return (
-                        <div key={imgIndex} className="relative aspect-[16/9]">
+                    section.sectionImages.map((image, imgIndex) => (
+                      <div key={imgIndex} className="my-4 sm:my-6">
+                        <div className="relative aspect-[16/9]">
                           <Image
                             src={
                               image.uploadedImage?.asset?.url ||
@@ -119,14 +114,14 @@ export default async function BlogPost({
                             fill
                             className="object-cover rounded-lg"
                           />
-                          {image.uploadedImage?.caption && (
-                            <p className="text-sm text-gray-500 mt-2">
-                              {image.uploadedImage.caption}
-                            </p>
-                          )}
                         </div>
-                      );
-                    })}
+                        {image.uploadedImage?.caption && (
+                          <p className="text-sm text-gray-500 mt-2 px-2">
+                            {image.uploadedImage.caption}
+                          </p>
+                        )}
+                      </div>
+                    ))}
                 </div>
               )
             )}
@@ -136,7 +131,7 @@ export default async function BlogPost({
         </main>
 
         {/* Sidebar */}
-        <aside className="space-y-8 lg:sticky lg:top-4 lg:self-start">
+        <aside className="space-y-6 sm:space-y-8 lg:sticky lg:top-4 lg:self-start">
           <BlogSidebar posts={safePost.relatedPosts} widgets={sortedWidgets} />
         </aside>
       </div>

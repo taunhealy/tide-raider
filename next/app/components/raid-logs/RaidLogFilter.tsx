@@ -81,12 +81,14 @@ export function RaidLogFilter({
   return (
     <div
       className={cn(
-        "fixed top-0 right-0 h-full w-[360px] bg-white transform transition-transform duration-300 ease-in-out z-50 shadow-lg",
+        "fixed top-0 right-0 h-full w-full sm:w-[360px] bg-white transform transition-transform duration-300 ease-in-out z-50 shadow-lg",
         isOpen ? "translate-x-0" : "translate-x-full"
       )}
     >
-      <div className="flex justify-between items-center p-6 border-b">
-        <h2 className="text-lg font-semibold font-primary">Filter Raids</h2>
+      <div className="flex justify-between items-center p-3 sm:p-6 border-b">
+        <h2 className="text-base sm:text-lg font-semibold font-primary">
+          Filter Raids
+        </h2>
         <button
           onClick={onClose}
           className="p-2 hover:bg-gray-100 rounded-full"
@@ -95,7 +97,7 @@ export function RaidLogFilter({
         </button>
       </div>
 
-      <div className="p-6 space-y-6 overflow-y-auto max-h-[calc(100vh-70px)]">
+      <div className="p-3 sm:p-6 space-y-4 sm:space-y-6 overflow-y-auto max-h-[calc(100vh-70px)]">
         {/* Star Rating Filter */}
         <div className="filter-section">
           <h3 className="text-sm font-medium mb-3">Minimum Rating</h3>
@@ -114,7 +116,9 @@ export function RaidLogFilter({
                 <Star
                   className={cn(
                     "h-4 w-4",
-                    selectedRating === rating ? "fill-gray-600" : "fill-gray-400"
+                    selectedRating === rating
+                      ? "fill-gray-600"
+                      : "fill-gray-400"
                   )}
                 />
               </button>

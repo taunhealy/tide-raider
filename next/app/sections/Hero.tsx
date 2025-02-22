@@ -98,15 +98,15 @@ export default function HeroSection({ data }: HeroProps) {
   return (
     <section
       ref={sectionRef}
-      className="relative w-full h-screen min-h-[600px] overflow-hidden"
+      className="relative w-full h-[100svh] min-h-[600px] overflow-hidden"
     >
       <div className="relative w-full h-full z-99">
         {/* Neon Hearts */}
-        <div className="absolute top-8 right-8 flex space-x-4 z-20">
+        <div className="absolute top-4 sm:top-6 md:top-8 right-4 sm:right-6 md:right-8 flex space-x-2 sm:space-x-3 md:space-x-4 z-20">
           {[1, 2, 3].map((i) => (
             <Heart
               key={i}
-              className="w-4 h-4 md:w-6 md:h-6 text-brand-3 animate-neon-pulse"
+              className="w-3 h-3 sm:w-4 sm:h-4 md:w-6 md:h-6 text-brand-3 animate-neon-pulse"
               style={{ animationDelay: `${i * 100}ms` }}
               stroke="currentColor"
               strokeWidth={2.5}
@@ -121,6 +121,8 @@ export default function HeroSection({ data }: HeroProps) {
             src={imageUrl || ""}
             alt={data?.heroImage?.alt || ""}
             fill
+            priority
+            sizes="100vw"
             className="object-cover"
             ref={imageRef}
           />
@@ -129,22 +131,22 @@ export default function HeroSection({ data }: HeroProps) {
         {/* Left sidebar text */}
         <div
           ref={textRef}
-          className="absolute left-[32px] sm:left-[30px] md:left-[60px] top-1/2 -translate-y-1/2 pr-2 sm:pr-3 md:pr-4"
+          className="absolute left-4 sm:left-6 md:left-[60px] top-1/2 -translate-y-1/2 pr-2 sm:pr-3 md:pr-4"
         >
-          <div className="writing-mode-vertical-rl rotate-270 space-y-2 sm:space-y-3 md:space-y-4">
-            <h2 className="font-primary font-bold text-3xl sm:text-4xl md:text-5xl lg:text-[64px] leading-none tracking-tighter text-white">
+          <div className="writing-mode-vertical-rl rotate-270 space-y-1.5 sm:space-y-2 md:space-y-4">
+            <h2 className="font-primary font-bold text-2xl sm:text-3xl md:text-5xl lg:text-[64px] leading-none tracking-tighter text-white">
               {data?.heroHeading}
             </h2>
-            <p className="font-primary font-medium text-sm sm:text-base md:text-lg lg:text-[20px] leading-none tracking-tight text-white">
+            <p className="font-primary font-medium text-xs sm:text-sm md:text-lg lg:text-[20px] leading-none tracking-tight text-white">
               For kicks.
             </p>
           </div>
         </div>
 
         {/* Arcade Button */}
-        <div className="absolute top-1/2 right-8 sm:right-12 md:right-16 -translate-y-1/2 h-16 sm:h-20 md:h-24 w-64 sm:w-80 md:w-96">
+        <div className="absolute top-1/2 right-4 sm:right-8 md:right-16 -translate-y-1/2 h-12 sm:h-16 md:h-24 w-48 sm:w-64 md:w-96">
           <Link href="/raid" className="group relative bg-transparent z-10">
-            <span className="relative z-20 text-xl sm:text-2xl md:text-3xl lg:text-4xl font-primary font-semibold tracking-wider text-white px-8 sm:px-12 md:px-16 py-2 sm:py-3 md:py-4 inline-block transform perspective-[400px] rotate-x-[10deg] neon-text animate-neon-pulse">
+            <span className="relative z-20 text-lg sm:text-xl md:text-3xl lg:text-4xl font-primary font-semibold tracking-wider text-white px-6 sm:px-8 md:px-16 py-2 sm:py-3 md:py-4 inline-block transform perspective-[400px] rotate-x-[10deg] neon-text animate-neon-pulse">
               START
             </span>
           </Link>

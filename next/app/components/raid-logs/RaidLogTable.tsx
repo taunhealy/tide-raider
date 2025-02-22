@@ -285,15 +285,19 @@ export default function RaidLogTable({
           return (
             <div
               key={entry.id}
-              className="bg-white rounded-lg border border-gray-200 shadow p-4 space-y-3"
+              className="bg-white rounded-lg border border-gray-200 shadow p-3 sm:p-4 space-y-2 sm:space-y-3"
             >
-              <div className="flex justify-between items-start">
+              <div className="flex flex-col sm:flex-row sm:justify-between sm:items-start gap-2 sm:gap-0">
                 <div>
-                  <h3 className="font-medium">{entry.beachName}</h3>
-                  <p className="text-sm text-gray-500">
+                  <h3 className="text-sm sm:text-base font-medium">
+                    {entry.beachName}
+                  </h3>
+                  <p className="text-xs sm:text-sm text-gray-500">
                     {format(new Date(entry.date), "MMM d, yyyy")}
                   </p>
-                  <p className="text-sm text-gray-500">{entry.region}</p>
+                  <p className="text-xs sm:text-sm text-gray-500">
+                    {entry.region}
+                  </p>
                 </div>
                 <StarRating rating={entry.surferRating} />
               </div>

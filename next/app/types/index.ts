@@ -40,4 +40,8 @@ export interface SanityImage {
     _ref: string;
     _type: "reference";
   };
+  hotspot?: {
+    x: number;
+    y: number;
+  };
 }

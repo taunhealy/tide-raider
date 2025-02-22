@@ -40,17 +40,41 @@ export default function HeroProduct() {
   // Get all unique regions from featured beaches
   const regions = [...new Set(beaches.map((b) => b.region))];
 
-  // Fetch all regions upfront
+  // Add error handling for data fetching
+  const handleError = (error: any) => {
+    console.error("Error fetching surf conditions:", error);
+    // You could set an error state here if needed
+  };
+
+  // Modify the queries to handle rate limiting
   const regionQueries = useQueries({
     queries: regions.map((region) => ({
       queryKey: ["surf-conditions", region],
       queryFn: async () => {
-        const res = await fetch(
-          `/api/surf-conditions?region=${encodeURIComponent(region)}`
-        );
-        return res.json();
+        try {
+          const res = await fetch(
+            `/api/surf-conditions?region=${encodeURIComponent(region)}`
+          );
+          if (res.status === 429) {
+            // Wait and retry once if rate limited
+            await new Promise((resolve) => setTimeout(resolve, 2000));
+            const retryRes = await fetch(
+              `/api/surf-conditions?region=${encodeURIComponent(region)}`
+            );
+            if (!retryRes.ok)
+              throw new Error(`HTTP error! status: ${retryRes.status}`);
+            return retryRes.json();
+          }
+          if (!res.ok) throw new Error(`HTTP error! status: ${res.status}`);
+          return res.json();
+        } catch (error) {
+          console.error("Error fetching surf conditions:", error);
+          return null;
+        }
       },
-      staleTime: 60 * 1000 * 5, // 5 minute cache
+      staleTime: 60 * 1000 * 5, // 5 minutes
+      retry: 1,
+      retryDelay: 2000,
     })),
   });
 
@@ -85,11 +109,18 @@ export default function HeroProduct() {
 
   useEffect(() => {
     const updateCardsPerView = () => {
+      if (typeof window === "undefined") return;
       setCardsPerView(window.innerWidth < 768 ? 1 : 3);
     };
+
+    // Run once on mount
     updateCardsPerView();
-    window.addEventListener("resize", updateCardsPerView);
-    return () => window.removeEventListener("resize", updateCardsPerView);
+
+    // Only add listener if in browser
+    if (typeof window !== "undefined") {
+      window.addEventListener("resize", updateCardsPerView);
+      return () => window.removeEventListener("resize", updateCardsPerView);
+    }
   }, []);
 
   const getBeachScore = (beach: typeof selectedBeachId) => {

@@ -7,7 +7,7 @@ import gsap from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
 
 import Link from "next/link";
-import VHSEffect from "@/app/components/VHSEffect";
+
 import { Heart } from "lucide-react";
 
 interface HeroProps {
@@ -129,7 +129,7 @@ export default function HeroSection({ data }: HeroProps) {
         {/* Left sidebar text */}
         <div
           ref={textRef}
-          className="absolute left-[20px] sm:left-[30px] md:left-[40px] top-1/2 -translate-y-1/2 pr-2 sm:pr-3 md:pr-4"
+          className="absolute left-[32px] sm:left-[30px] md:left-[60px] top-1/2 -translate-y-1/2 pr-2 sm:pr-3 md:pr-4"
         >
           <div className="writing-mode-vertical-rl rotate-270 space-y-2 sm:space-y-3 md:space-y-4">
             <h2 className="font-primary font-bold text-3xl sm:text-4xl md:text-5xl lg:text-[64px] leading-none tracking-tighter text-white">

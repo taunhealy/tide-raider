@@ -8983,6 +8983,48 @@ export const beachData: Beach[] = [
     },
   },
   {
+    id: "shipwreck",
+    name: "Shipwreck",
+    continent: "Africa",
+    country: "Angola",
+    region: "Luanda Province",
+    location: "Luanda",
+    distanceFromCT: 2900, // Approximate distance from Cape Town
+    optimalWindDirections: ["NE"],
+    optimalSwellDirections: {
+      min: 225, // SW
+      max: 247.5, // WSW
+      cardinal: "SW",
+    },
+    bestSeasons: ["winter"],
+    optimalTide: "All",
+    description: "Exposed beach break rated 3/5 with fairly consistent surf conditions. Works best with Southwest swell combining with Northeast offshore winds. Receives both local windswells and distant groundswells. Features both left and right-hand waves along the beach. Despite reliable conditions, spot rarely gets crowded. Watch out for submerged wreck and sharks.",
+    difficulty: "Intermediate",
+    waveType: "Beach Break",
+    swellSize: {
+      min: 1.0,
+      max: 3.0,
+    },
+    idealSwellPeriod: {
+      min: 10,
+      max: 14,
+    },
+    waterTemp: {
+      summer: 28,
+      winter: 24,
+    },
+    hazards: ["Submerged wreck", "Sharks"],
+    crimeLevel: "Low",
+    sharkAttack: {
+      hasAttack: false,
+    },
+    image: "",
+    coordinates: {
+      lat: -9.088445,
+      lng: 12.992997,
+    },
+  },
+  {
     id: "morro-do-sombreiro",
     name: "Morro do Sombreiro",
     continent: "Africa",

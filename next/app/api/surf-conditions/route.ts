@@ -91,117 +91,119 @@ function getTodayDate() {
 }
 
 // Add these constants at the top
-const SCRAPE_TIMEOUT = 30000; // 30 seconds
+const SCRAPE_TIMEOUT = 15000; // Reduce to 15 seconds
 const MAX_RETRIES = 3;
 const RETRY_DELAY = 2000; // 2 seconds
+const CONCURRENT_SCRAPE_LIMIT = 3; // Limit concurrent scrapes
 
 async function scrapeAllRegions(): Promise<ScrapeResult[]> {
   const results: ScrapeResult[] = [];
 
-  for (const config of REGION_CONFIGS) {
-    let retries = MAX_RETRIES;
-    while (retries > 0) {
-      try {
-        console.log(
-          `Starting scrape for ${config.region} from ${config.url}...`
-        );
+  // Process regions in batches to avoid overwhelming the server
+  for (let i = 0; i < REGION_CONFIGS.length; i += CONCURRENT_SCRAPE_LIMIT) {
+    const batch = REGION_CONFIGS.slice(i, i + CONCURRENT_SCRAPE_LIMIT);
 
-        const response = await axios.get(config.url, {
-          timeout: SCRAPE_TIMEOUT,
-          headers: {
-            "User-Agent":
-              "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36",
-          },
-        });
+    const batchPromises = batch.map(async (config) => {
+      let retries = MAX_RETRIES;
+      while (retries > 0) {
+        try {
+          console.log(
+            `Starting scrape for ${config.region} from ${config.url}...`
+          );
 
-        const html = response.data;
-        const $ = cheerio.load(html);
+          const response = await axios.get(config.url, {
+            timeout: SCRAPE_TIMEOUT,
+            headers: {
+              "User-Agent":
+                "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36",
+            },
+          });
 
-        // Updated wind direction selector and parsing
-        const windDirection = $(
-          'div[style="display:block; width: 49px; height:20px; line-height:20px;  text-align: center; float:left; vertical-align: middle; background-color: white; border: 0px solid orange; color: black;"]'
-        )
-          .first()
-          .text()
-          .trim();
+          const html = response.data;
+          const $ = cheerio.load(html);
 
-        const windSpeed =
-          parseFloat(
-            $(
-              'div[style*="width: 20px"][style*="height:20px"][style*="background-color: rgb(255, 255, 255)"][style*="color: rgb(0, 0, 0)"]'
-            )
-              .first()
-              .text()
-              .trim()
-          ) || 0;
-
-        const waveHeight =
-          parseFloat(
-            $('div[style*="width: 49px"][style*="height:20px"]')
-              .filter((_, el) => {
-                const num = parseFloat($(el).text());
-                return !isNaN(num) && num > 0 && num <= 5.0;
-              })
-              .first()
-              .text()
-              .trim()
-          ) || 0;
-
-        const swellPeriod =
-          parseFloat(
-            $('div[style*="width: 49px"][style*="height:20px"]')
-              .filter((_, el) => {
-                const num = parseFloat($(el).text());
-                return !isNaN(num) && num >= 5 && num <= 25;
-              })
-              .first()
-              .text()
-              .trim()
-          ) || 0;
-
-        const swellDirection = parseInt(
-          $('div[style*="width: 49px"]')
-            .filter((_, el) => $(el).text().includes("°"))
+          // Updated wind direction selector and parsing
+          const windDirection = $(
+            'div[style="display:block; width: 49px; height:20px; line-height:20px;  text-align: center; float:left; vertical-align: middle; background-color: white; border: 0px solid orange; color: black;"]'
+          )
             .first()
             .text()
-            .trim()
-            .split("\n")
-            .pop()
-            ?.replace("°", "") || "0",
-          10
-        );
+            .trim();
 
-        results.push({
-          region: config.region,
-          windDirection: windDirection || "0",
-          windSpeed,
-          swellHeight: waveHeight,
-          swellDirection,
-          swellPeriod,
-        });
+          const windSpeed =
+            parseFloat(
+              $(
+                'div[style*="width: 20px"][style*="height:20px"][style*="background-color: rgb(255, 255, 255)"][style*="color: rgb(0, 0, 0)"]'
+              )
+                .first()
+                .text()
+                .trim()
+            ) || 0;
 
-        console.log(
-          `Successfully scraped data for ${config.region}:`,
-          results[results.length - 1]
-        );
-        break;
-      } catch (error) {
-        retries--;
-        console.error(`Scraping error for ${config.region}:`, {
-          message: (error as Error).message,
-          status: (error as any).response?.status,
-          statusText: (error as any).response?.statusText,
-          retries_left: retries,
-        });
+          const waveHeight =
+            parseFloat(
+              $('div[style*="width: 49px"][style*="height:20px"]')
+                .filter((_, el) => {
+                  const num = parseFloat($(el).text());
+                  return !isNaN(num) && num > 0 && num <= 5.0;
+                })
+                .first()
+                .text()
+                .trim()
+            ) || 0;
 
-        if (retries > 0) {
+          const swellPeriod =
+            parseFloat(
+              $('div[style*="width: 49px"][style*="height:20px"]')
+                .filter((_, el) => {
+                  const num = parseFloat($(el).text());
+                  return !isNaN(num) && num >= 5 && num <= 25;
+                })
+                .first()
+                .text()
+                .trim()
+            ) || 0;
+
+          const swellDirection = parseInt(
+            $('div[style*="width: 49px"]')
+              .filter((_, el) => $(el).text().includes("°"))
+              .first()
+              .text()
+              .trim()
+              .split("\n")
+              .pop()
+              ?.replace("°", "") || "0",
+            10
+          );
+
+          return {
+            region: config.region,
+            windDirection,
+            windSpeed,
+            swellHeight: waveHeight,
+            swellDirection,
+            swellPeriod,
+          } as ScrapeResult;
+        } catch (error) {
+          retries--;
+          if (retries === 0) {
+            console.error(
+              `Failed to scrape ${config.region} after all retries`
+            );
+            return null;
+          }
           await new Promise((resolve) => setTimeout(resolve, RETRY_DELAY));
-          continue;
         }
-        // Only throw if we're out of retries
-        if (retries === 0) throw error;
       }
-    }
+      return null;
+    });
+
+    const batchResults = await Promise.all(batchPromises);
+    results.push(
+      ...batchResults.filter(
+        (result): result is ScrapeResult => result !== null
+      )
+    );
   }
 
   if (results.length === 0) {
@@ -434,56 +436,8 @@ export async function GET(request: Request) {
   const date =
     searchParams.get("date") || new Date().toISOString().split("T")[0];
 
-  console.log(`🌊 Starting request for ${region} on ${date}`);
-
   try {
-    // First, check if we have ratings for today
-    const existingRatings = await prisma.beachGoodRating.findFirst({
-      where: {
-        date: new Date(date),
-      },
-    });
-
-    // If no ratings exist for today, force a fresh scrape
-    if (!existingRatings) {
-      console.log("No ratings found for today, forcing fresh scrape...");
-      const scrapedData = await scrapeAllRegions();
-
-      // Store conditions and ratings for all regions
-      for (const data of scrapedData) {
-        const formattedData = {
-          region: data.region,
-          wind: {
-            speed: data.windSpeed,
-            direction: data.windDirection,
-          },
-          swell: {
-            height: data.swellHeight,
-            period: data.swellPeriod,
-            direction: data.swellDirection,
-          },
-        };
-
-        await storeGoodBeachRatings(formattedData, data.region, new Date(date));
-      }
-    }
-
-    // Now proceed with normal cache/DB checks for conditions
-    const cacheKey = `surf-conditions:${region}:${date}`;
-    const cachedData = await redis.get(cacheKey);
-
-    if (cachedData && typeof cachedData === "string") {
-      try {
-        const parsedData = JSON.parse(cachedData);
-        return NextResponse.json(parsedData);
-      } catch (error) {
-        console.error(`❌ Cache parse error for ${region}:`, error);
-        await redis.del(cacheKey);
-      }
-    }
-
-    // 2. Check database
-    console.log(`💾 Checking database for ${region}`);
+    // 1. Check database first
     const existingConditions = await prisma.surfCondition.findFirst({
       where: {
         date: new Date(date),
@@ -492,57 +446,33 @@ export async function GET(request: Request) {
       orderBy: { updatedAt: "desc" },
     });
 
-    console.log(
-      "2. Found existing conditions:",
-      JSON.stringify(existingConditions, null, 2)
-    );
-
     if (existingConditions?.forecast) {
-      console.log("✅ Using database entry for ${region}");
-      const formattedData = formatConditionsResponse(existingConditions);
-      console.log("3. Formatted data:", JSON.stringify(formattedData, null, 2));
-      await redis.set(cacheKey, JSON.stringify(formattedData), { ex: 3600 });
-      return NextResponse.json(formattedData);
+      return NextResponse.json(formatConditionsResponse(existingConditions));
     }
 
-    // 3. Scrape new data with lock protection
-    const scrapeLockKey = `scrape-lock:${date}`; // One lock per day instead of per region
+    // 2. Check if another scrape is in progress
+    const scrapeLockKey = `scrape-lock:${date}`;
     const isLocked = await redis.get(scrapeLockKey);
 
     if (isLocked) {
-      console.log(`🔒 Scraping locked, waiting for data...`);
-      // Wait briefly and check DB again
-      await new Promise((resolve) => setTimeout(resolve, 2000));
-      const recentData = await prisma.surfCondition.findFirst({
-        where: {
-          date: new Date(date),
-          region: region,
-        },
-        orderBy: { updatedAt: "desc" },
-      });
-
-      if (recentData?.forecast) {
-        return NextResponse.json(formatConditionsResponse(recentData));
-      }
-
-      return NextResponse.json(
-        { error: "Data refresh in progress" },
-        { status: 429 }
+      return new Response(
+        JSON.stringify({ error: "Data refresh in progress" }),
+        {
+          status: 429,
+          headers: {
+            "Retry-After": "5",
+            "Content-Type": "application/json",
+          },
+        }
       );
     }
 
-    // Set scrape lock
-    await redis.set(scrapeLockKey, "1", { ex: 30 }); // 30 second lock
+    // Set lock with existing timeout
+    await redis.set(scrapeLockKey, "1", { ex: CACHE_TIMES.SCRAPE_LOCK });
 
     try {
-      console.log("4. No existing data, starting scrape");
+      // Continue with existing scraping logic
       const scrapedData = await scrapeAllRegions();
-
-      console.log("5. Scraped data:", JSON.stringify(scrapedData, null, 2));
-
-      if (!scrapedData?.length) {
-        throw new Error(`No data scraped`);
-      }
 
       // Save conditions and ratings in one go
       for (const data of scrapedData) {
@@ -607,6 +537,7 @@ export async function GET(request: Request) {
       };
 
       // Cache the result
+      const cacheKey = `surf-conditions:${region}:${date}`;
       await redis.set(cacheKey, JSON.stringify(formattedData), { ex: 3600 });
 
       // Add request deduplication
@@ -621,21 +552,13 @@ export async function GET(request: Request) {
 
       return NextResponse.json(formattedData);
     } finally {
-      // Always clean up the lock
       await redis.del(scrapeLockKey);
     }
   } catch (error) {
-    console.error(`🚨 Error processing ${region}:`, {
-      message: error instanceof Error ? error.message : "Unknown error",
-      stack: error instanceof Error ? error.stack : undefined,
-    });
-
+    console.error("Error:", error);
     return NextResponse.json(
-      {
-        error: "Failed to fetch conditions",
-        details: error instanceof Error ? error.message : "Unknown error",
-      },
-      { status: 500 }
+      { error: "Service temporarily unavailable" },
+      { status: 503 }
     );
   }
 }

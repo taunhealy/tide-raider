@@ -21,6 +21,29 @@ export async function GET(request: Request) {
       },
     });
 
+    // Check if trial has expired
+    const now = new Date();
+    if (
+      user?.hasActiveTrial &&
+      user.trialEndDate &&
+      new Date(user.trialEndDate) < now
+    ) {
+      // Update user to remove trial
+      await prisma.user.update({
+        where: { email: session.user.email },
+        data: { hasActiveTrial: false },
+      });
+
+      return NextResponse.json({
+        data: {
+          attributes: {
+            status: "expired",
+            trial_ends_at: user.trialEndDate,
+          },
+        },
+      });
+    }
+
     // If user has an active trial, return trial information
     if (user?.hasActiveTrial) {
       console.log("Trial data:", {

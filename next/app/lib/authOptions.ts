@@ -41,11 +41,17 @@ export const authOptions: NextAuthOptions = {
       return baseUrl;
     },
     async session({ session, token }) {
-      if (token?.sub && session.user) {
-        session.user.id = token.sub;
-        session.user.isSubscribed = token.isSubscribed || false;
-        session.user.hasActiveTrial = token.hasActiveTrial || false;
-        session.user.image = token.picture || undefined;
+      if (token?.sub && session?.user) {
+        return {
+          ...session,
+          user: {
+            ...session.user,
+            id: token.sub,
+            isSubscribed: token.isSubscribed || false,
+            hasActiveTrial: token.hasActiveTrial || false,
+            image: token.picture || session.user.image,
+          },
+        };
       }
       return session;
     },
@@ -57,6 +63,7 @@ export const authOptions: NextAuthOptions = {
           sub: user.id,
           isSubscribed: false,
           hasActiveTrial: false,
+          trialEndDate: null,
           picture: user.image ?? undefined,
         };
       }
@@ -68,6 +75,7 @@ export const authOptions: NextAuthOptions = {
           select: {
             lemonSubscriptionId: true,
             hasActiveTrial: true,
+            trialEndDate: true,
             image: true,
           },
         });
@@ -76,6 +84,7 @@ export const authOptions: NextAuthOptions = {
           ...token,
           isSubscribed: !!dbUser?.lemonSubscriptionId,
           hasActiveTrial: dbUser?.hasActiveTrial || false,
+          trialEndDate: dbUser?.trialEndDate || null,
           picture: dbUser?.image || token.picture,
         };
       }

@@ -19,9 +19,10 @@ const montserrat = Montserrat({
 });
 
 export const metadata = {
-  title: "Daily Surf Forecast & Surf Report, Surf Spot Suggestions",
+  title:
+    "Tide Raider - Daily Surf Forecast, Surf Report & Surf Spot Suggestions",
   description:
-    "Read the surf report and find the best surf spots in the Western Cape based on current surf conditions",
+    "Read the surf report and find the best surf spots in Africa, based on current surf conditions",
 };
 
 export default function RootLayout({
@@ -31,16 +32,40 @@ export default function RootLayout({
 }) {
   return (
     <html lang="en" className={`${inter.variable} ${montserrat.variable}`}>
+      <head>
+        <link rel="icon" type="image/x-icon" href="/favicon.ico" />
+        <link
+          rel="icon"
+          type="image/png"
+          sizes="32x32"
+          href="/favicon-32x32.png"
+        />
+        <link
+          rel="icon"
+          type="image/png"
+          sizes="16x16"
+          href="/favicon-16x16.png"
+        />
+        <link
+          rel="apple-touch-icon"
+          sizes="180x180"
+          href="/apple-touch-icon.png"
+        />
+        <link
+          rel="icon"
+          type="image/png"
+          sizes="192x192"
+          href="/android-chrome-192x192.png"
+        />
+      </head>
       <body>
         <AppProviders>
-          <main>
-            <Navbar />
-            {children}
-          </main>
-          <Footer />
+          <Navbar />
           <NewsBannerWrapper />
+          {children}
+          <Footer />
+          <Toaster />
         </AppProviders>
-        <Toaster position="top-center" />
       </body>
     </html>
   );

@@ -5,21 +5,27 @@ import { SkillLevel } from "@prisma/client";
 // Add type conversion function
 function convertToAdapterUser(user: any): AdapterUser {
   return {
-    ...user,
-    skillLevel: user.skillLevel as SkillLevel | null,
+    id: user.id,
+    email: user.email,
+    name: user.name || "",
     emailVerified: user.emailVerified ? new Date(user.emailVerified) : null,
+    image: user.image || null,
   };
 }
 
 export function PrismaAdapter(): Adapter {
   return {
     async createUser(data: Omit<AdapterUser, "id">) {
-      return prisma.user.create({
+      const user = await prisma.user.create({
         data: {
           ...data,
           name: data.name || "",
+          hasActiveTrial: false,
+          subscriptionStatus: null,
+          subscriptionEndsAt: null,
         },
       });
+      return convertToAdapterUser(user);
     },
 
     async getUser(id) {

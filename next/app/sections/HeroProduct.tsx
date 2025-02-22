@@ -153,7 +153,7 @@ export default function HeroProduct() {
         <h5 className="text-large">Explore beyond your regular surf break.</h5>
       </div>
 
-      <div className="slider-section container mx-auto px-4">
+      <div className="slider-section container mx-auto px-4 max-w-7xl">
         <div className="flex flex-col lg:flex-row gap-6 lg:gap-12">
           {/* Slider Section */}
           <div className="w-full lg:w-1/3">
@@ -412,8 +412,8 @@ export default function HeroProduct() {
                         <div className="w-full md:w-1/2">
                           {selectedBeachId && surfData?.[selectedBeachId] && (
                             <div className="bg-white/5 backdrop-blur-sm p-2 md:p-4 rounded-xl border border-white/20">
-                              <div className="gap-1.5 md:gap-2 mb-2 md:mb-4">
-                                <span className="text-sm md:text-base font-medium text-white">
+                              <div className="gap-1.5 md:gap-2 mb-2 md:mb-4 flex items-center space-x-2">
+                                <span className="text-sm md:text-base font-medium text-white font-primary">
                                   Today's Rating
                                 </span>
                                 <span className="text-base md:text-lg bg-[var(--color-tertiary)] px-2.5 py-1 rounded-lg shadow-sm">
@@ -443,7 +443,7 @@ export default function HeroProduct() {
                                 })()}
                               </p>
                               <div className="space-y-1.5 md:space-y-3 text-[10px] md:text-xs bg-black/20 rounded-md p-3 md:p-4">
-                                <p className="flex items-center gap-2 text-white/90">
+                                <p className="flex items-center gap-2 text-white/90 font-primary">
                                   <span
                                     className="inline-flex"
                                     title={`Wind Speed: ${surfData?.[selectedBeachId].wind?.speed < 5 ? "Light" : surfData?.[selectedBeachId].wind?.speed < 12 ? "Moderate" : surfData?.[selectedBeachId].wind?.speed < 20 ? "Strong" : "Very Strong"}`}

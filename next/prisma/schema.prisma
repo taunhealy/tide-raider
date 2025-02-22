@@ -80,6 +80,8 @@ model User {
   trialEndDate      DateTime?
   hasActiveTrial    Boolean     @default(false)
   logEntries        LogEntry[]
+  subscriptionStatus  String?
+  subscriptionEndsAt  DateTime?
 
   // Auth Relations
   accounts      Account[]

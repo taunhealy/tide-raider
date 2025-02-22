@@ -24,6 +24,8 @@ export async function POST(request: Request) {
     const eventType = payload.meta.event_name;
     const userEmail = payload.data.attributes.user_email;
     const subscriptionId = payload.data.id;
+    const status = payload.data.attributes.status;
+    const endsAt = payload.data.attributes.ends_at;
 
     console.log(`Processing ${eventType} for ${userEmail}`);
 
@@ -31,7 +33,7 @@ export async function POST(request: Request) {
     switch (eventType) {
       case "subscription_created":
       case "subscription_updated":
-        // Update user subscription
+      case "subscription_resumed":
         await prisma.user.update({
           where: { email: userEmail },
           data: {
@@ -42,9 +44,24 @@ export async function POST(request: Request) {
         break;
 
       case "subscription_cancelled":
+        // Don't remove subscription ID until grace period ends
         await prisma.user.update({
           where: { email: userEmail },
-          data: { lemonSubscriptionId: null },
+          data: {
+            subscriptionEndsAt: new Date(endsAt),
+            subscriptionStatus: status,
+          },
+        });
+        break;
+
+      case "subscription_expired":
+        await prisma.user.update({
+          where: { email: userEmail },
+          data: {
+            lemonSubscriptionId: null,
+            subscriptionStatus: "expired",
+            subscriptionEndsAt: null,
+          },
         });
         break;
 

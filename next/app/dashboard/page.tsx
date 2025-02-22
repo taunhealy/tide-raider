@@ -13,6 +13,9 @@ import { urlForImage } from "@/app/lib/urlForImage";
 import Image from "next/image";
 import { client } from "@/lib/sanity";
 import { groq } from "next-sanity";
+import { useSubscriptionDetails } from "../hooks/useSubscriptionDetails";
+import { formatDate } from "../lib/utils";
+import { useSubscriptionManagement } from "../hooks/useSubscriptionManagement";
 
 export default function DashboardPage() {
   const { data: session, update } = useSession();
@@ -38,15 +41,10 @@ export default function DashboardPage() {
   });
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-
-  const { data: userLogs } = useQuery({
-    queryKey: ["userLogs"],
-    queryFn: async () => {
-      const response = await fetch("/api/raid-logs/user");
-      if (!response.ok) throw new Error("Failed to fetch logs");
-      return response.json();
-    },
-  });
+  const { data: subscriptionDetails, isLoading: isLoadingDetails } =
+    useSubscriptionDetails();
+  const subscriptionData = subscriptionDetails?.data?.attributes;
+  const { mutate } = useSubscriptionManagement();
 
   const { data } = useQuery({
     queryKey: ["dashboard"],
@@ -92,6 +90,15 @@ export default function DashboardPage() {
       toast.error(message);
     } finally {
       setIsLoading(false);
+    }
+  };
+
+  const handleSubscriptionAction = async (action: string) => {
+    if (!subscriptionData?.id) return;
+    try {
+      await mutate({ action, subscriptionId: subscriptionData.id });
+    } catch (error) {
+      console.error("Subscription action failed:", error);
     }
   };
 
@@ -164,30 +171,151 @@ export default function DashboardPage() {
 
             {activeTab === "billing" && (
               <div className="space-y-4">
-                <h2 className="text-lg sm:text-xl font-semibold">
+                <h2 className="text-lg sm:text-xl font-semibold font-primary">
                   Subscription Status
                 </h2>
-                {isSubscribed ? (
-                  <div className="p-2 sm:p-4 border rounded-md bg-green-50">
-                    <p className="font-medium">Active Subscription</p>
-                    <Button
-                      variant="destructive"
-                      className="w-full sm:w-auto mt-2"
-                      onClick={() => handleUnsubscribe()}
-                    >
-                      Unsubscribe
-                    </Button>
+                {isLoadingDetails ? (
+                  <div className="p-4 text-center font-primary">
+                    Loading subscription details...
+                  </div>
+                ) : subscriptionData ? (
+                  <div className="p-6 border rounded-xl bg-white shadow-sm space-y-6">
+                    <div className="space-y-4">
+                      <div className="flex items-center gap-2">
+                        <span
+                          className={`inline-flex items-center px-3 py-1 rounded-full text-sm font-medium
+                          ${
+                            subscriptionData.status === "trialing"
+                              ? "bg-blue-50 text-blue-700"
+                              : subscriptionData.status === "active"
+                                ? "bg-green-50 text-green-700"
+                                : "bg-gray-50 text-gray-700"
+                          }`}
+                        >
+                          {subscriptionData.status.charAt(0).toUpperCase() +
+                            subscriptionData.status.slice(1)}
+                        </span>
+                      </div>
+
+                      {(subscriptionData.trial_ends_at ||
+                        subscriptionData.ends_at) && (
+                        <p className="text-sm text-gray-600 font-primary">
+                          {subscriptionData.trial_ends_at ? (
+                            <>
+                              Trial ends on:{" "}
+                              {formatDate(subscriptionData.trial_ends_at)}
+                            </>
+                          ) : (
+                            <>
+                              Next billing date:{" "}
+                              {formatDate(subscriptionData.ends_at)}
+                            </>
+                          )}
+                        </p>
+                      )}
+                    </div>
+
+                    <div className="flex flex-col sm:flex-row gap-3 pt-4 border-t">
+                      <Button
+                        variant="outline"
+                        className="w-full sm:w-auto font-primary text-[12px]"
+                        onClick={() => handleSubscriptionAction("pause")}
+                      >
+                        <svg
+                          className="w-4 h-4 mr-2"
+                          viewBox="0 0 24 24"
+                          fill="none"
+                          stroke="currentColor"
+                          strokeWidth="2"
+                        >
+                          <path
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                            d="M10 9v6m4-6v6m7-3a9 9 0 11-18 0 9 9 0 0118 0z"
+                          />
+                        </svg>
+                        Pause Subscription
+                      </Button>
+
+                      <Button
+                        variant="outline"
+                        className="w-full sm:w-auto font-primary text-[12px]"
+                        onClick={() => {
+                          window.open(
+                            subscriptionData?.urls?.update_payment_method,
+                            "_blank"
+                          );
+                        }}
+                      >
+                        <svg
+                          className="w-4 h-4 mr-2"
+                          viewBox="0 0 24 24"
+                          fill="none"
+                          stroke="currentColor"
+                          strokeWidth="2"
+                        >
+                          <path
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                            d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z"
+                          />
+                        </svg>
+                        Update Payment Method
+                      </Button>
+
+                      <Button
+                        variant="destructive"
+                        className="w-full sm:w-auto font-primary text-[12px]"
+                        onClick={() => handleUnsubscribe()}
+                      >
+                        <svg
+                          className="w-4 h-4 mr-2"
+                          viewBox="0 0 24 24"
+                          fill="none"
+                          stroke="currentColor"
+                          strokeWidth="2"
+                        >
+                          <path
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                            d="M6 18L18 6M6 6l12 12"
+                          />
+                        </svg>
+                        Cancel Subscription
+                      </Button>
+                    </div>
+
+                    {subscriptionData.pause_resumes_at && (
+                      <p className="text-sm text-gray-600 font-primary pt-4 border-t">
+                        Subscription will resume on:{" "}
+                        {formatDate(subscriptionData.pause_resumes_at)}
+                      </p>
+                    )}
                   </div>
                 ) : (
-                  <div className="p-2 sm:p-4 border rounded-md bg-yellow-50">
-                    <p className="mb-2">
-                      {hasActiveTrial
-                        ? "Your free trial is active. 🐟🐟🐟 "
-                        : "No active subscription"}
+                  <div className="p-6 border rounded-xl bg-white shadow-sm">
+                    <p className="mb-4 font-primary">
+                      {hasActiveTrial ? (
+                        <>
+                          Your free trial is active. 🐟🐟🐟
+                          {subscriptionDetails?.data?.attributes
+                            ?.trial_ends_at && (
+                            <span className="block mt-2 text-sm text-gray-600">
+                              Trial ends on:{" "}
+                              {formatDate(
+                                subscriptionDetails.data.attributes
+                                  .trial_ends_at
+                              )}
+                            </span>
+                          )}
+                        </>
+                      ) : (
+                        "No active subscription"
+                      )}
                     </p>
                     <Button
                       variant="outline"
-                      className="w-full sm:w-auto"
+                      className="w-full sm:w-auto font-primary"
                       onClick={() =>
                         hasActiveTrial
                           ? (window.location.href = "/pricing")

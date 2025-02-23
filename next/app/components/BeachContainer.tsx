@@ -608,6 +608,9 @@ export default function BeachContainer({
   // If you need only 3 logs, you can slice them in the render:
   const latestLogs = recentLogs?.entries?.slice(0, 3);
 
+  // Update the forecast widget section
+  const [forecastSource, setForecastSource] = useState<"A" | "B">("A");
+
   return (
     <div className="bg-[var(--color-bg-secondary)] p-6 mx-auto relative min-h-[calc(100vh-72px)] flex flex-col">
       {/* Main Layout */}
@@ -844,6 +847,43 @@ export default function BeachContainer({
                       )}
                     </div>
 
+                    {/* Forecast Source Toggle */}
+                    <div className="flex items-center justify-between mb-6">
+                      <h3 className="text-[21px] heading-6 text-gray-800 font-primary">
+                        Today's Forecast
+                      </h3>
+                      <div className="flex items-center gap-2">
+                        {/* Source Toggle Buttons */}
+                        <div className="flex rounded-[21px] bg-gray-100 p-1">
+                          <button
+                            onClick={() => setForecastSource("A")}
+                            className={cn(
+                              "px-3 py-1 text-sm font-primary rounded-[16px] transition-colors",
+                              forecastSource === "A"
+                                ? "bg-white text-black shadow-sm"
+                                : "text-gray-600 hover:text-gray-800"
+                            )}
+                          >
+                            Source A
+                          </button>
+                          <button
+                            onClick={() => setForecastSource("B")}
+                            className={cn(
+                              "px-3 py-1 text-sm font-primary rounded-[16px] transition-colors",
+                              forecastSource === "B"
+                                ? "bg-white text-black shadow-sm"
+                                : "text-gray-600 hover:text-gray-800"
+                            )}
+                          >
+                            Source B
+                          </button>
+                        </div>
+                        <div className="font-primary text-black bg-gray-100 px-3 py-1 rounded-[21px] text-sm">
+                          8AM
+                        </div>
+                      </div>
+                    </div>
+
                     {/* Beach Grid */}
                     <BeachGrid
                       beaches={currentItems}
@@ -969,18 +1009,35 @@ export default function BeachContainer({
                 <h3 className="text-[21px] heading-6 text-gray-800 font-primary">
                   Today's Forecast
                 </h3>
-                <div
-                  className={`
-                  font-primary
-                  text-black
-                  bg-gray-100
-                  px-3
-                  py-1
-                  rounded-[21px]
-                  text-sm
-                `}
-                >
-                  8AM
+                <div className="flex items-center gap-2">
+                  {/* Source Toggle Buttons */}
+                  <div className="flex rounded-[21px] bg-gray-100 p-1">
+                    <button
+                      onClick={() => setForecastSource("A")}
+                      className={cn(
+                        "px-3 py-1 text-sm font-primary rounded-[16px] transition-colors",
+                        forecastSource === "A"
+                          ? "bg-white text-black shadow-sm"
+                          : "text-gray-600 hover:text-gray-800"
+                      )}
+                    >
+                      Source A
+                    </button>
+                    <button
+                      onClick={() => setForecastSource("B")}
+                      className={cn(
+                        "px-3 py-1 text-sm font-primary rounded-[16px] transition-colors",
+                        forecastSource === "B"
+                          ? "bg-white text-black shadow-sm"
+                          : "text-gray-600 hover:text-gray-800"
+                      )}
+                    >
+                      Source B
+                    </button>
+                  </div>
+                  <div className="font-primary text-black bg-gray-100 px-3 py-1 rounded-[21px] text-sm">
+                    8AM
+                  </div>
                 </div>
               </div>
 

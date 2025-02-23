@@ -246,7 +246,11 @@ export const RaidLogsComponent: React.FC<RaidLogsComponentProps> = ({
         isOpen={isFilterOpen}
         onClose={() => setIsFilterOpen(false)}
       />
-      <RaidLogForm isOpen={isFormOpen} onClose={() => setIsFormOpen(false)} />
+      <RaidLogForm
+        isOpen={isFormOpen}
+        onClose={() => setIsFormOpen(false)}
+        beaches={beaches}
+      />
 
       {selectedBeach && (
         <BeachDetailsModal

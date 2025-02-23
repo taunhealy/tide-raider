@@ -442,15 +442,28 @@ enum FinType {
   OTHER
 }
 
-model SurfCondition {
+// Existing SurfCondition model becomes ForecastA
+model ForecastA {
   id        String   @id @default(uuid())
-  date      DateTime  // The forecast date (start of day)
+  date      DateTime
   region    String
   forecast  Json
-  createdAt DateTime @default(now())  // When record was created
-  updatedAt DateTime @updatedAt       // When record was last updated
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
-  @@unique([date, region], name: "date_region")
+  @@unique([date, region])
+}
+
+// New model for Forecast B
+model ForecastB {
+  id        String   @id @default(uuid())
+  date      DateTime
+  region    String
+  forecast  Json
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([date, region])
 }
 
 model Feedback {

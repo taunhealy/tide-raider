@@ -178,39 +178,39 @@ export function RaidLogForm({
 
   const fetchForecast = async (beach: Beach) => {
     try {
-      if (!selectedDate || !beach.region) {
-        console.error("Missing required data for forecast");
-        return;
-      }
+      const fetchWithRetry = async (retryAttempt = 0) => {
+        const response = await fetch(
+          `/api/surf-conditions?` +
+            new URLSearchParams({
+              date: selectedDate,
+              region: beach.region,
+              retry: retryAttempt.toString(),
+            })
+        );
 
-      const formattedDate = new Date(selectedDate).toISOString().split("T")[0];
+        const data = await response.json();
 
-      console.log("Fetching forecast for:", {
-        date: formattedDate,
-        region: beach.region,
-      });
+        if (response.status === 202) {
+          // Server requested retry
+          console.log(`Attempt ${retryAttempt + 1}: Retrying in 5 seconds...`);
+          await new Promise((resolve) => setTimeout(resolve, 5000));
+          return fetchWithRetry(data.retryAttempt);
+        }
 
-      const response = await fetch(
-        `/api/raid-logs/forecast?` +
-          new URLSearchParams({
-            date: formattedDate,
-            region: beach.region,
-          })
-      );
+        if (!response.ok) {
+          if (data.maxRetriesReached) {
+            throw new Error("Failed to fetch forecast after multiple attempts");
+          }
+          throw new Error("Failed to fetch forecast");
+        }
 
-      if (!response.ok) {
-        console.error(`HTTP error! status: ${response.status}`);
-        // Don't throw error here, just return and keep forecast as undefined
-        return;
-      }
+        setForecast(data);
+        return data;
+      };
 
-      const data = await response.json();
-      console.log("Received forecast data:", data);
-      setForecast(data);
-      return data;
+      return fetchWithRetry();
     } catch (error) {
       console.error("Error loading forecast:", error);
-      // Only set forecast to null for network/parsing errors
       setForecast(null);
     }
   };
@@ -268,9 +268,14 @@ export function RaidLogForm({
   return (
     <>
       {isOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center">
-          <div className="absolute inset-0 bg-black/50" onClick={onClose} />
-          <div className="relative bg-white rounded-lg shadow-xl w-full mx-4 md:max-w-[500px] p-4 lg:p-6 overflow-y-auto max-h-[90vh] z-[51]">
+        <div className="fixed inset-0 z-[100] flex items-center justify-center">
+          <div
+            className="absolute inset-0 bg-black/50"
+            onClick={onClose}
+            role="button"
+            tabIndex={0}
+          />
+          <div className="relative bg-white rounded-lg shadow-xl w-full mx-4 md:max-w-[500px] p-4 lg:p-6 overflow-y-auto max-h-[90vh] z-[101]">
             {!isSubscribed && !hasActiveTrial && (
               <div className="absolute inset-0 bg-gray-100/50 backdrop-blur-[2px] z-10 rounded-lg" />
             )}
@@ -302,7 +307,8 @@ export function RaidLogForm({
 
             <button
               onClick={onClose}
-              className="absolute top-4 right-4 text-gray-400 hover:text-gray-500"
+              className="absolute top-4 right-4 text-gray-400 hover:text-gray-500 z-[102]"
+              type="button"
             >
               <X className="h-6 w-6" />
             </button>

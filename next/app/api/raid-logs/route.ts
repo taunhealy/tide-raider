@@ -66,15 +66,15 @@ interface Forecast {
 
 // Add this helper function at the top
 async function getForecast(date: string, region: string) {
-  // Convert the date string to start of day UTC
   const queryDate = new Date(date);
   queryDate.setUTCHours(0, 0, 0, 0);
 
-  const conditions = await prisma.surfCondition.findFirst({
+  // Try source A first
+  const forecastA = await prisma.forecastA.findFirst({
     where: {
       date: {
         gte: queryDate,
-        lt: new Date(queryDate.getTime() + 24 * 60 * 60 * 1000), // next day
+        lt: new Date(queryDate.getTime() + 24 * 60 * 60 * 1000),
       },
       region: region,
     },
@@ -86,7 +86,26 @@ async function getForecast(date: string, region: string) {
     },
   });
 
-  return conditions?.forecast || null;
+  if (forecastA) return forecastA.forecast;
+
+  // Try source B as fallback
+  const forecastB = await prisma.forecastB.findFirst({
+    where: {
+      date: {
+        gte: queryDate,
+        lt: new Date(queryDate.getTime() + 24 * 60 * 60 * 1000),
+      },
+      region: region,
+    },
+    select: {
+      forecast: true,
+    },
+    orderBy: {
+      updatedAt: "desc",
+    },
+  });
+
+  return forecastB?.forecast || null;
 }
 
 // Update the GET endpoint to handle forecast requests

@@ -5,6 +5,7 @@ export async function GET(request: Request) {
   const { searchParams } = new URL(request.url);
   const date = searchParams.get("date");
   const region = searchParams.get("region");
+  const source = searchParams.get("source") || "A";
 
   if (!date || !region) {
     return NextResponse.json(
@@ -17,7 +18,9 @@ export async function GET(request: Request) {
     const queryDate = new Date(date);
     queryDate.setUTCHours(0, 0, 0, 0);
 
-    const conditions = await prisma.surfCondition.findFirst({
+    // Explicitly type the model variable
+    const model = source === "A" ? prisma.forecastA : prisma.forecastB;
+    const conditions = await (model as any).findFirst({
       where: {
         date: queryDate,
         region: region,
@@ -26,6 +29,23 @@ export async function GET(request: Request) {
         forecast: true,
       },
     });
+
+    if (!conditions && source === "A") {
+      // Try source B as fallback
+      const backupConditions = await prisma.forecastB.findFirst({
+        where: {
+          date: queryDate,
+          region: region,
+        },
+        select: {
+          forecast: true,
+        },
+      });
+
+      if (backupConditions) {
+        return NextResponse.json(backupConditions.forecast);
+      }
+    }
 
     if (!conditions) {
       return NextResponse.json(

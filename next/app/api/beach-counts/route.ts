@@ -17,14 +17,25 @@ export async function GET(request: Request) {
   }
 
   try {
-    // Get the surf conditions for this region and date
-    const conditions = await prisma.surfCondition.findFirst({
+    // Try source A first
+    let conditions = await prisma.forecastA.findFirst({
       where: {
         region: region,
         date: new Date(dateStr),
       },
       orderBy: { updatedAt: "desc" },
     });
+
+    // If no data from source A, try source B
+    if (!conditions) {
+      conditions = await prisma.forecastB.findFirst({
+        where: {
+          region: region,
+          date: new Date(dateStr),
+        },
+        orderBy: { updatedAt: "desc" },
+      });
+    }
 
     if (!conditions?.forecast) {
       console.log(`No conditions found for ${region} on ${dateStr}`);

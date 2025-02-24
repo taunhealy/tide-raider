@@ -8,12 +8,29 @@ import {
 } from "@/app/lib/forecastUtils";
 import { cn } from "@/app/lib/utils";
 
+interface StickyForecastWidgetProps {
+  forecasts: {
+    [date: string]: WindData;
+  };
+  selectedDate?: string;
+}
+
 export default function StickyForecastWidget({
-  windData,
-}: {
-  windData: WindData | null;
-}) {
+  forecasts,
+  selectedDate,
+}: StickyForecastWidgetProps) {
+  // Early return if no forecasts
+  if (!forecasts || typeof forecasts !== "object") {
+    return null;
+  }
+
+  const dateOptions = Object.keys(forecasts);
+  if (dateOptions.length === 0) {
+    return null;
+  }
+
   const [isVisible, setIsVisible] = useState(false);
+  const [activeDate, setActiveDate] = useState(selectedDate || dateOptions[0]);
 
   useEffect(() => {
     const handleScroll = () => {
@@ -34,10 +51,15 @@ export default function StickyForecastWidget({
     return () => window.removeEventListener("scroll", handleScroll);
   }, []);
 
-  // Return null after the hooks
-  if (!windData) {
-    return null;
-  }
+  // Update activeDate when selectedDate changes
+  useEffect(() => {
+    if (selectedDate && forecasts[selectedDate]) {
+      setActiveDate(selectedDate);
+    }
+  }, [selectedDate]);
+
+  const forecast = forecasts[activeDate];
+  if (!forecast) return null;
 
   return (
     <div
@@ -55,17 +77,17 @@ export default function StickyForecastWidget({
           <div>
             <span className="text-gray-600 block mb-1">Wind</span>
             <div className="font-medium">
-              {getWindEmoji(windData.wind.speed)} {windData.wind.direction} @{" "}
-              {windData.wind.speed}km/h
+              {getWindEmoji(forecast.windSpeed)} {forecast.windDirection} @{" "}
+              {forecast.windSpeed}km/h
             </div>
           </div>
           <div className="w-px h-8 bg-gray-200" />
           <div>
             <span className="text-gray-600 block mb-1">Swell</span>
             <div className="font-medium">
-              {getSwellEmoji(windData.swell.height)} {windData.swell.height}m @{" "}
-              {windData.swell.period}s{" "}
-              {getDirectionEmoji((windData.swell.direction + 180) % 360)}
+              {getSwellEmoji(forecast.swellHeight)} {forecast.swellHeight}m @{" "}
+              {forecast.swellPeriod}s{" "}
+              {getDirectionEmoji((forecast.swellDirection + 180) % 360)}
             </div>
           </div>
         </div>

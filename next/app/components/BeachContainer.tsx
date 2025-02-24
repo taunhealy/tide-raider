@@ -260,7 +260,6 @@ export default function BeachContainer({
   // Calculate scores and counts using allWindData
   const beachScores = useMemo(() => {
     if (!allWindData) {
-      console.log("No wind data available yet");
       return {};
     }
 
@@ -304,10 +303,13 @@ export default function BeachContainer({
     isLoading,
   } = useSurfConditions(selectedRegion);
 
-  // Debug logging
+  // Add this console.log to debug the response
   useEffect(() => {
+    if (windData) {
+      console.log("Received wind data:", windData);
+    }
     if (windError) {
-      console.error("Wind data fetch error:", windError);
+      console.error("Wind data error:", windError);
     }
   }, [windData, windError]);
 
@@ -821,26 +823,68 @@ export default function BeachContainer({
                           </p>
                         </div>
                       ) : (
-                        <div className="grid grid-cols-2 gap-4">
-                          {/* Wind Data */}
-                          <div className="bg-gray-50 p-4 rounded-lg">
-                            <span className="text-gray-600 block mb-1 font-primary">
-                              Wind
-                            </span>
-                            <div className="font-medium font-primary">
-                              {windData.wind.direction} @ {windData.wind.speed}
-                              km/h
-                            </div>
-                          </div>
+                        <div className="space-y-6">
+                          <h3 className="text-[21px] heading-6 text-gray-800 font-primary">
+                            Surf Forecast
+                          </h3>
 
-                          {/* Swell Data */}
-                          <div className="bg-gray-50 p-4 rounded-lg">
-                            <span className="text-gray-600 block mb-1 font-primary">
-                              Swell
-                            </span>
-                            <div className="font-medium font-primary">
-                              {windData.swell.height}m @ {windData.swell.period}
-                              s
+                          <div className="grid grid-cols-2 gap-4">
+                            {/* Wind Data */}
+                            <div className="bg-gray-50 p-4 rounded-lg border border-gray-100 aspect-square flex flex-col">
+                              <label className="text-sm text-gray-500 uppercase tracking-wide mb-2 font-primary">
+                                Wind
+                              </label>
+                              <div className="flex-1 flex flex-col items-center justify-center">
+                                <div className="space-y-2 text-center">
+                                  <span className="text-xl font-semibold text-gray-800 font-primary">
+                                    {windData.windDirection}
+                                  </span>
+                                  <span className="block text-sm text-gray-600 font-primary">
+                                    {windData.windSpeed} km/h
+                                  </span>
+                                </div>
+                              </div>
+                            </div>
+
+                            {/* Swell Height */}
+                            <div className="bg-gray-50 p-4 rounded-lg border border-gray-100 aspect-square flex flex-col">
+                              <label className="text-sm text-gray-500 uppercase tracking-wide mb-2 font-primary">
+                                Swell Height
+                              </label>
+                              <div className="flex-1 flex flex-col items-center justify-center">
+                                <span className="text-xl font-semibold text-gray-800 font-primary">
+                                  {windData.swellHeight}m
+                                </span>
+                              </div>
+                            </div>
+
+                            {/* Swell Period */}
+                            <div className="bg-gray-50 p-4 rounded-lg border border-gray-100 aspect-square flex flex-col">
+                              <label className="text-sm text-gray-500 uppercase tracking-wide mb-2 font-primary">
+                                Swell Period
+                              </label>
+                              <div className="flex-1 flex flex-col items-center justify-center">
+                                <span className="text-xl font-semibold text-gray-800 font-primary">
+                                  {windData.swellPeriod}s
+                                </span>
+                              </div>
+                            </div>
+
+                            {/* Swell Direction */}
+                            <div className="bg-gray-50 p-4 rounded-lg border border-gray-100 aspect-square flex flex-col">
+                              <label className="text-sm text-gray-500 uppercase tracking-wide mb-2 font-primary">
+                                Swell Direction
+                              </label>
+                              <div className="flex-1 flex flex-col items-center justify-center">
+                                <div className="space-y-2 text-center">
+                                  <span className="text-xl font-semibold text-gray-800 font-primary">
+                                    {windData.swellDirection}°
+                                  </span>
+                                  <span className="block text-sm text-gray-600 font-primary">
+                                    {degreesToCardinal(windData.swellDirection)}
+                                  </span>
+                                </div>
+                              </div>
                             </div>
                           </div>
                         </div>
@@ -1067,10 +1111,10 @@ export default function BeachContainer({
                       <div className="flex-1 flex flex-col items-center justify-center">
                         <div className="space-y-2 text-center">
                           <span className="text-xl font-semibold text-gray-800 font-primary">
-                            {windData?.wind?.direction || "N/A"}
+                            {windData.windDirection || "N/A"}
                           </span>
                           <span className="block text-sm text-gray-600 font-primary">
-                            {windData?.wind?.speed || "N/A"} km/h
+                            {windData.windSpeed || "N/A"} km/h
                           </span>
                         </div>
                       </div>
@@ -1087,7 +1131,7 @@ export default function BeachContainer({
                       </label>
                       <div className="flex-1 flex flex-col items-center justify-center">
                         <span className="text-xl font-semibold text-gray-800 font-primary">
-                          {windData?.swell?.height || "N/A"}m
+                          {windData.swellHeight || "N/A"}m
                         </span>
                       </div>
                     </div>
@@ -1103,7 +1147,7 @@ export default function BeachContainer({
                       </label>
                       <div className="flex-1 flex flex-col items-center justify-center">
                         <span className="text-xl font-semibold text-gray-800 font-primary">
-                          {windData?.swell?.period || "N/A"}s
+                          {windData.swellPeriod || "N/A"}s
                         </span>
                       </div>
                     </div>
@@ -1120,12 +1164,11 @@ export default function BeachContainer({
                       <div className="flex-1 flex flex-col items-center justify-center">
                         <div className="space-y-2 text-center">
                           <span className="text-xl font-semibold text-gray-800 font-primary">
-                            {windData?.swell?.direction || "N/A"}°
+                            {windData.swellDirection || "N/A"}°
                           </span>
                           <span className="block text-sm text-gray-600 font-primary">
-                            {degreesToCardinal(
-                              Number(windData?.swell?.direction)
-                            ) || "N/A"}
+                            {degreesToCardinal(windData.swellDirection) ||
+                              "N/A"}
                           </span>
                         </div>
                       </div>
@@ -1192,7 +1235,7 @@ export default function BeachContainer({
       )}
 
       {/* Sticky Forecast Widget */}
-      <StickyForecastWidget windData={windData || null} />
+      <StickyForecastWidget forecasts={{ today: windData || null }} />
 
       {/* Add Sponsor Container */}
       <SponsorContainer />

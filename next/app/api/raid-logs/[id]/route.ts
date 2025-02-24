@@ -87,10 +87,6 @@ export async function PATCH(
       },
     });
 
-    console.log("Session ID:", session.user.id);
-    console.log("Entry User ID:", entry?.userId);
-    console.log("User Email:", session.user.email);
-
     if (entry?.userId !== session.user.id) {
       console.error("Authorization failed - ID mismatch");
       return new Response("Forbidden", { status: 403 });

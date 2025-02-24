@@ -87,16 +87,16 @@ export function isBeachSuitable(
   beach: Beach,
   conditions: WindDataProp
 ): { suitable: boolean; score: number } {
-  if (!conditions?.wind?.direction || !conditions?.swell?.direction) {
+  if (!conditions?.windDirection || !conditions?.swellDirection) {
     return { suitable: false, score: 0 };
   }
 
   let score = 10; // Start with perfect score
 
   // Smarter wind direction check
-  if (!beach.optimalWindDirections.includes(conditions.wind.direction)) {
+  if (!beach.optimalWindDirections.includes(conditions.windDirection)) {
     // Convert both directions to degrees for comparison
-    const currentDirDegrees = cardinalToDegreesMap[conditions.wind.direction];
+    const currentDirDegrees = cardinalToDegreesMap[conditions.windDirection];
     const isNeighboring = beach.optimalWindDirections.some((optimalDir) => {
       const optimalDegrees = cardinalToDegreesMap[optimalDir];
       if (currentDirDegrees === undefined || optimalDegrees === undefined)
@@ -106,38 +106,37 @@ export function isBeachSuitable(
       const diff = Math.abs(currentDirDegrees - optimalDegrees);
       const angleDiff = Math.min(diff, 360 - diff);
 
-      // Consider directions within 45 degrees as neighboring
       return angleDiff <= 45;
     });
 
     if (isNeighboring) {
-      score = Math.max(0, score - 2); // Less penalty for similar directions
+      score = Math.max(0, score - 2);
     } else {
-      score = Math.max(0, score - 4); // Full penalty for non-optimal directions
+      score = Math.max(0, score - 4);
     }
   }
 
   // Check wind strength separately
   if (!beach.sheltered) {
-    if (conditions.wind.speed > 35) {
-      score = Math.max(0, score - 4); // Very strong winds
-    } else if (conditions.wind.speed > 25) {
-      score = Math.max(0, score - 3); // Strong winds
-    } else if (conditions.wind.speed > 15) {
-      score = Math.max(0, score - 2); // Moderate winds
+    if (conditions.windSpeed > 35) {
+      score = Math.max(0, score - 4);
+    } else if (conditions.windSpeed > 25) {
+      score = Math.max(0, score - 3);
+    } else if (conditions.windSpeed > 15) {
+      score = Math.max(0, score - 2);
     }
   }
 
   // Check wave size with significant penalties
   if (
     !(
-      conditions.swell.height >= beach.swellSize.min &&
-      conditions.swell.height <= beach.swellSize.max
+      conditions.swellHeight >= beach.swellSize.min &&
+      conditions.swellHeight <= beach.swellSize.max
     )
   ) {
     const heightDiff = Math.min(
-      Math.abs(conditions.swell.height - beach.swellSize.min),
-      Math.abs(conditions.swell.height - beach.swellSize.max)
+      Math.abs(conditions.swellHeight - beach.swellSize.min),
+      Math.abs(conditions.swellHeight - beach.swellSize.max)
     );
     if (heightDiff <= 0.5) {
       score = Math.max(0, score - 4); // Just outside range
@@ -149,7 +148,7 @@ export function isBeachSuitable(
   }
 
   // Check swell direction with graduated penalties
-  const swellDeg = conditions.swell.direction;
+  const swellDeg = conditions.swellDirection;
   const minSwellDiff = Math.abs(swellDeg - beach.optimalSwellDirections.min);
   const maxSwellDiff = Math.abs(swellDeg - beach.optimalSwellDirections.max);
   const swellDirDiff = Math.min(minSwellDiff, maxSwellDiff);
@@ -173,14 +172,14 @@ export function isBeachSuitable(
 
   // Check swell period with graduated penalties
   const periodDiff = Math.min(
-    Math.abs(conditions.swell.period - beach.idealSwellPeriod.min),
-    Math.abs(conditions.swell.period - beach.idealSwellPeriod.max)
+    Math.abs(conditions.swellPeriod - beach.idealSwellPeriod.min),
+    Math.abs(conditions.swellPeriod - beach.idealSwellPeriod.max)
   );
 
   if (
     !(
-      conditions.swell.period >= beach.idealSwellPeriod.min &&
-      conditions.swell.period <= beach.idealSwellPeriod.max
+      conditions.swellPeriod >= beach.idealSwellPeriod.min &&
+      conditions.swellPeriod <= beach.idealSwellPeriod.max
     )
   ) {
     if (periodDiff <= 2) {
@@ -238,8 +237,7 @@ export function getConditionReasons(
   windData: WindData | null,
   isGoodConditions: boolean = false
 ) {
-  // Add early return if windData or its required properties are missing
-  if (!windData?.wind?.direction || !windData?.swell?.direction) {
+  if (!windData?.windDirection || !windData?.swellDirection) {
     return {
       reasons: [],
       optimalConditions: [
@@ -271,18 +269,18 @@ export function getConditionReasons(
 
   // Check wind direction
   const hasGoodWind = beach.optimalWindDirections.includes(
-    windData.wind.direction
+    windData.windDirection
   );
   if (isGoodConditions ? hasGoodWind : !hasGoodWind) {
     reasons.push(
       isGoodConditions
-        ? `Perfect wind direction (${windData.wind.direction})`
-        : `Wind direction (${windData.wind.direction}) not optimal`
+        ? `Perfect wind direction (${windData.windDirection})`
+        : `Wind direction (${windData.windDirection}) not optimal`
     );
   }
 
   // Check swell direction
-  const swellDeg = windData.swell.direction;
+  const swellDeg = windData.swellDirection;
   const minSwellDiff = Math.abs(swellDeg - beach.optimalSwellDirections.min);
   const maxSwellDiff = Math.abs(swellDeg - beach.optimalSwellDirections.max);
   const swellDirDiff = Math.min(minSwellDiff, maxSwellDiff);
@@ -298,23 +296,23 @@ export function getConditionReasons(
   ) {
     reasons.push(
       isGoodConditions
-        ? `Great swell direction (${windData.swell.direction}°)`
-        : `Swell direction (${windData.swell.direction}°) outside optimal range`
+        ? `Great swell direction (${windData.swellDirection}°)`
+        : `Swell direction (${windData.swellDirection}°) outside optimal range`
     );
   }
 
   // Check swell height
   const hasGoodSwellHeight =
-    windData.swell.height >= beach.swellSize.min &&
-    windData.swell.height <= beach.swellSize.max;
+    windData.swellHeight >= beach.swellSize.min &&
+    windData.swellHeight <= beach.swellSize.max;
 
   if (isGoodConditions ? hasGoodSwellHeight : !hasGoodSwellHeight) {
     if (isGoodConditions) {
-      reasons.push(`Perfect wave height (${windData.swell.height}m)`);
+      reasons.push(`Perfect wave height (${windData.swellHeight}m)`);
     } else {
       const issue =
-        windData.swell.height < beach.swellSize.min ? "too small" : "too big";
-      reasons.push(`Wave height (${windData.swell.height}m) ${issue}`);
+        windData.swellHeight < beach.swellSize.min ? "too small" : "too big";
+      reasons.push(`Wave height (${windData.swellHeight}m) ${issue}`);
     }
   }
 
@@ -325,8 +323,8 @@ export function getConditionReasons(
       isMet: hasGoodWind,
     },
     {
-      text: `Wind Speed: 0-25km/h${windData.wind.speed > 25 && !beach.sheltered ? "" : ""}`,
-      isMet: windData.wind.speed <= 25 || beach.sheltered,
+      text: `Wind Speed: 0-25km/h${windData.windSpeed > 25 && !beach.sheltered ? "" : ""}`,
+      isMet: windData.windSpeed <= 25 || beach.sheltered,
     },
     {
       text: `Optimal Swell Direction: ${beach.optimalSwellDirections.min}° - ${beach.optimalSwellDirections.max}°`,
@@ -341,8 +339,8 @@ export function getConditionReasons(
     {
       text: `Optimal Swell Period: ${beach.idealSwellPeriod.min}s - ${beach.idealSwellPeriod.max}s`,
       isMet:
-        windData.swell.period >= beach.idealSwellPeriod.min &&
-        windData.swell.period <= beach.idealSwellPeriod.max,
+        windData.swellPeriod >= beach.idealSwellPeriod.min &&
+        windData.swellPeriod <= beach.idealSwellPeriod.max,
     },
   ];
 
@@ -390,24 +388,6 @@ export function getGoodBeachCount(
   }).length;
 
   return { count, shouldDisplay: count > 0 };
-}
-
-export function formatConditionsResponse(conditions: any): WindData {
-  // Handle nested forecast structure
-  const forecast = conditions.forecast || conditions;
-
-  return {
-    region: conditions.region,
-    wind: {
-      speed: Number(forecast.wind?.speed),
-      direction: forecast.wind?.direction,
-    },
-    swell: {
-      height: Number(forecast.swell?.height),
-      period: Number(forecast.swell?.period),
-      direction: Number(forecast.swell?.direction),
-    },
-  };
 }
 
 export function isWindDirectionSimilar(

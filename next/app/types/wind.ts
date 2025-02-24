@@ -1,16 +1,18 @@
 import { Beach } from "./beaches";
 
 export type WindData = {
+  date: Date;
   region: string;
-  wind: {
-    speed: number; // Wind speed in km/h (e.g., 35)
-    direction: string; // Cardinal direction (e.g., "SSE", "NW")
-  };
-  swell: {
-    height: number; // Swell height in meters (e.g., 3.0)
-    period: number; // Swell period in seconds (e.g., 13)
-    direction: number; // Swell direction in degrees (e.g., 219)
-  };
+  windSpeed: number; // Int in DB
+  windDirection: string; // String in DB
+  swellHeight: number; // Float in DB
+  swellPeriod: number; // Int in DB
+  swellDirection: number; // Float in DB
+};
+
+export type ForecastData = {
+  updatedAt: Date;
+  forecasts: { [date: string]: WindData };
 };
 
 export interface BeachContainerProps {
@@ -20,3 +22,7 @@ export interface BeachContainerProps {
 
 // Also add a reusable type for components that use windData
 export type WindDataProp = WindData | null | undefined;
+
+export interface WeeklyForecast {
+  [date: string]: WindData;
+}

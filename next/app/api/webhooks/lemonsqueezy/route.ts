@@ -27,7 +27,6 @@ export async function POST(request: Request) {
     const status = payload.data.attributes.status;
     const endsAt = payload.data.attributes.ends_at;
 
-    console.log(`Processing ${eventType} for ${userEmail}`);
 
     // Handle different event types
     switch (eventType) {

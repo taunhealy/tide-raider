@@ -1,116 +1,94 @@
-// prisma/schema.prisma
-
 generator client {
   provider = "prisma-client-js"
 }
 
 datasource db {
   provider  = "postgresql"
-  url  	    = env("DATABASE_URL")
+  url       = env("DATABASE_URL")
   directUrl = env("DIRECT_URL")
-  // uncomment next line if you use Prisma <5.10
-  // directUrl = env("DATABASE_URL_UNPOOLED")
 }
 
 model BeachGoodRating {
-  id          String   @id @default(uuid())
-  date        DateTime  // Changed from String to DateTime
-  beachId     String
-  region      String
-  score       Int      // 4 or 5
-  conditions  Json     // Store the conditions that made it good
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
-  
+  id         String   @id @default(uuid())
+  beachId    String
+  region     String
+  score      Int
+  conditions Json
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+  date       DateTime
+
   @@unique([beachId, date])
   @@index([date, region])
   @@index([beachId, date])
 }
 
 model AdRequest {
-  id                   String    @id
-  category             String    // Store the ad category
-  companyName          String
-  contactEmail         String
-  imageUrl             String?
-  linkUrl             String
-  title               String?
-  region              String    // Required field for regional targeting
-  startDate           DateTime  // Changed to DateTime
-  endDate             DateTime  // Changed to DateTime
-  status              String   
-  rejectionReason     String?
-  categoryData        Json?     // Store category-specific fields
-  yearlyPrice         Float     // Yearly price for the ad
-  googleAdsContribution Float   // Monthly contribution to Google Ads budget
-  createdAt           DateTime  @default(now())
-  updatedAt           DateTime  @updatedAt
-  userId              String?
-  lemonSubscriptionId String?
-  googleAdsCampaignId String?
-   payfastSubscriptionId String?
-   variantId           String?
-  
-  @@index([payfastSubscriptionId])
-  
-  user User? @relation(fields: [userId], references: [id])
+  id                    String   @id
+  companyName           String
+  contactEmail          String
+  imageUrl              String?
+  linkUrl               String
+  status                String
+  createdAt             DateTime @default(now())
+  updatedAt             DateTime @updatedAt
+  rejectionReason       String?
+  lemonSubscriptionId   String?
+  userId                String?
+  category              String
+  categoryData          Json?
+  googleAdsCampaignId   String?
+  googleAdsContribution Float
+  region                String
+  title                 String?
+  yearlyPrice           Float
+  startDate             DateTime
+  endDate               DateTime
+  payfastSubscriptionId String?
+  variantId             String?
+  user                  User?    @relation(fields: [userId], references: [id])
 
+  @@index([payfastSubscriptionId])
   @@index([region])
   @@index([category])
   @@index([status])
 }
 
-// Core User Model
 model User {
-  id            String      @id @default(cuid())
-  name          String
-  bio           String?
-  link          String?
-  email         String      @unique
-  emailVerified DateTime?
-  image         String?
-  password      String?
-  savedFilters  Json?  
-  skillLevel    SkillLevel?
-  createdAt     DateTime    @default(now())
-  updatedAt     DateTime    @updatedAt
-  lemonCustomerId String?
+  id                  String              @id @default(cuid())
+  name                String
+  email               String              @unique
+  emailVerified       DateTime?
+  image               String?
+  password            String?
+  skillLevel          SkillLevel?
+  createdAt           DateTime            @default(now())
+  updatedAt           DateTime            @updatedAt
+  lemonCustomerId     String?
   lemonSubscriptionId String?
-  trialStartDate    DateTime?
-  trialEndDate      DateTime?
-  hasActiveTrial    Boolean     @default(false)
-  logEntries        LogEntry[]
-  subscriptionStatus  String?
+  savedFilters        Json?
+  hasActiveTrial      Boolean             @default(false)
+  trialEndDate        DateTime?
+  trialStartDate      DateTime?
+  bio                 String?
+  link                String?
   subscriptionEndsAt  DateTime?
-
-  // Auth Relations
-  accounts      Account[]
-  sessions      Session[]
-
-  // Membership
-  membership    Membership?
-
-  // Relations as Host/Guide
-  bnbListings   BnbListing[]    // As a BnB host
-  surfSafaris   SurfSafariListing[]    // As a safari guide
-  
-  // Relations as Customer
-  bnbBookings   BnbBooking[]    // As a surfer booking BnB
-  safariBookings SafariBooking[] // As a surfer booking safari
-  reviews       Review[]         // Reviews left by user
-
-  // User's Board Model
-  boards        Board[]
-
-  adRequests    AdRequest[]
-
-  stories       Story[]
-
-  events        Event[]
-
-  filters       UserFilters?
-
-  favorites     UserFavorite[]
+  subscriptionStatus  String?
+  accounts            Account[]
+  adRequests          AdRequest[]
+  bnbBookings         BnbBooking[]
+  bnbListings         BnbListing[]
+  boards              Board[]
+  events              Event[]
+  logEntries          LogEntry[]
+  membership          Membership?
+  reviews             Review[]
+  safariBookings      SafariBooking[]
+  sessions            Session[]
+  stories             Story[]
+  surfSafaris         SurfSafariListing[]
+  favorites           UserFavorite[]
+  filters             UserFilters?
 
   @@index([email])
   @@index([skillLevel])
@@ -132,31 +110,27 @@ model Event {
 }
 
 model LogEntry {
-  id              String    @id @default(uuid())
-  date            DateTime
-  region          String?
-  country         String?
-  comments        String?
-  imageUrl        String?
-  waveType        String?
-  beachName       String?
-  continent       String?
-  createdAt       DateTime  @default(now())
-  isPrivate       Boolean   @default(false)
-  updatedAt       DateTime  @updatedAt
-  surferName      String?
-  isAnonymous     Boolean   @default(false)
-  surferEmail     String?
-  surferRating    Float?
-  userId          String?   @map("user_id")
-  user            User?     @relation(fields: [userId], references: [id])
-  
-  // Add JSON forecast field
+  id           String   @id @default(uuid())
+  date         DateTime
+  surferName   String?
+  surferEmail  String?
+  beachName    String?
+  surferRating Float?
+  comments     String?
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+  imageUrl     String?
+  isPrivate    Boolean  @default(false)
+  isAnonymous  Boolean  @default(false)
+  continent    String?
+  country      String?
+  region       String?
+  waveType     String?
+  beachId      String?
   forecast     Json?
-  
-  // Relations
-  beach       Beach?   @relation(fields: [beachId], references: [id], onDelete: SetNull)
-  beachId     String?
+  userId       String?  @map("user_id")
+  beach        Beach?   @relation(fields: [beachId], references: [id])
+  user         User?    @relation(fields: [userId], references: [id])
 
   @@index([isPrivate])
   @@index([userId])
@@ -165,24 +139,22 @@ model LogEntry {
   @@index([surferRating])
 }
 
-// Safari Booking Model
 model SafariBooking {
-  id          String    @id @default(cuid())
-  safariId    String
-  userId      String
-  date        DateTime
-  bringingBoard Boolean  @default(false)
-  requiresRental Boolean @default(false)
-  skillLevel  SkillLevel
-  status      BookingStatus @default(PENDING)
-  notes       String?
-  createdAt   DateTime  @default(now())
-  updatedAt   DateTime  @updatedAt
-  boardId     String?
-  board       Board?    @relation(fields: [boardId], references: [id])
-
-  safari      SurfSafariListing @relation(fields: [safariId], references: [id], onDelete: Restrict)
-  user        User      @relation(fields: [userId], references: [id], onDelete: Restrict)
+  id             String            @id @default(cuid())
+  safariId       String
+  userId         String
+  date           DateTime
+  bringingBoard  Boolean           @default(false)
+  requiresRental Boolean           @default(false)
+  skillLevel     SkillLevel
+  status         BookingStatus     @default(PENDING)
+  notes          String?
+  createdAt      DateTime          @default(now())
+  updatedAt      DateTime          @updatedAt
+  boardId        String?
+  board          Board?            @relation(fields: [boardId], references: [id])
+  safari         SurfSafariListing @relation(fields: [safariId], references: [id])
+  user           User              @relation(fields: [userId], references: [id])
 
   @@index([safariId])
   @@index([userId])
@@ -192,30 +164,268 @@ model SafariBooking {
 }
 
 model BnbBooking {
-  id          String    @id @default(cuid())
+  id          String        @id @default(cuid())
   listingId   String
   userId      String
   startDate   DateTime
   endDate     DateTime
-  boardId     String?   // User's own board if they bring one
-  rentBoardId String?   // Host's board if they want to rent one
+  boardId     String?
+  rentBoardId String?
   notes       String?
   status      BookingStatus @default(PENDING)
-  createdAt   DateTime  @default(now())
-  updatedAt   DateTime  @updatedAt
-
-  listing     BnbListing @relation(fields: [listingId], references: [id])
-  user        User      @relation(fields: [userId], references: [id])
-  board       Board?    @relation("UserOwnBoard", fields: [boardId], references: [id])
-  rentBoard   Board?    @relation("RentalBoard", fields: [rentBoardId], references: [id])
+  createdAt   DateTime      @default(now())
+  updatedAt   DateTime      @updatedAt
+  board       Board?        @relation("UserOwnBoard", fields: [boardId], references: [id])
+  listing     BnbListing    @relation(fields: [listingId], references: [id])
+  rentBoard   Board?        @relation("RentalBoard", fields: [rentBoardId], references: [id])
+  user        User          @relation(fields: [userId], references: [id])
 
   @@index([listingId])
   @@index([userId])
   @@index([status])
 }
 
+model BnbListing {
+  id                     String               @id @default(cuid())
+  hostId                 String
+  title                  String
+  description            String
+  location               String
+  profileImage           String?
+  images                 String
+  sleepingArrangement    SleepingType
+  breakfastOptions       String
+  price                  Float?
+  isFree                 Boolean              @default(false)
+  hasVehicleTransport    Boolean              @default(false)
+  canTransportLongboard  Boolean              @default(false)
+  canTransportShortboard Boolean              @default(false)
+  isActive               Boolean              @default(true)
+  createdAt              DateTime             @default(now())
+  updatedAt              DateTime             @updatedAt
+  beaches                BeachBnbConnection[]
+  bookings               BnbBooking[]
+  host                   User                 @relation(fields: [hostId], references: [id], onDelete: Cascade)
+  reviews                Review[]
 
-// Enums
+  @@index([hostId])
+  @@index([isActive])
+}
+
+model SurfSafariListing {
+  id                     String                  @id @default(cuid())
+  guideId                String
+  title                  String
+  description            String
+  profileImage           String?
+  price                  Float?
+  isFree                 Boolean                 @default(false)
+  hasVehicleTransport    Boolean                 @default(false)
+  canTransportLongboard  Boolean                 @default(false)
+  canTransportShortboard Boolean                 @default(false)
+  isActive               Boolean                 @default(true)
+  createdAt              DateTime                @default(now())
+  updatedAt              DateTime                @updatedAt
+  beaches                BeachSafariConnection[]
+  reviews                Review[]
+  bookings               SafariBooking[]
+  guide                  User                    @relation(fields: [guideId], references: [id], onDelete: Cascade)
+
+  @@index([guideId])
+  @@index([isActive])
+}
+
+model BeachSafariConnection {
+  id       String            @id @default(cuid())
+  beachId  String
+  safariId String
+  distance Float?
+  safari   SurfSafariListing @relation(fields: [safariId], references: [id])
+
+  @@unique([beachId, safariId])
+  @@index([safariId])
+  @@index([beachId])
+}
+
+model BeachBnbConnection {
+  id        String     @id @default(cuid())
+  beachId   String
+  listingId String
+  distance  Float?
+  listing   BnbListing @relation(fields: [listingId], references: [id])
+
+  @@unique([beachId, listingId])
+  @@index([listingId])
+  @@index([beachId])
+}
+
+model Review {
+  id           String             @id @default(cuid())
+  userId       String
+  rating       Int
+  comment      String?
+  createdAt    DateTime           @default(now())
+  bnbListingId String?
+  safariId     String?
+  bnbListing   BnbListing?        @relation(fields: [bnbListingId], references: [id])
+  safari       SurfSafariListing? @relation(fields: [safariId], references: [id])
+  user         User               @relation(fields: [userId], references: [id])
+
+  @@index([userId])
+}
+
+model Beach {
+  id         String     @id
+  regionId   String
+  name       String
+  region     Region     @relation(fields: [regionId], references: [id])
+  feedbacks  Feedback[]
+  logEntries LogEntry[]
+  stories    Story[]
+}
+
+model Account {
+  id                String  @id @default(cuid())
+  userId            String
+  type              String
+  provider          String
+  providerAccountId String
+  refresh_token     String?
+  access_token      String?
+  expires_at        Int?
+  token_type        String?
+  scope             String?
+  id_token          String?
+  session_state     String?
+  user              User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([provider, providerAccountId])
+}
+
+model Session {
+  id           String   @id @default(cuid())
+  sessionToken String   @unique
+  userId       String
+  expires      DateTime
+  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model Membership {
+  id             String   @id @default(cuid())
+  userId         String   @unique
+  lemonSqueezyId String?
+  variantId      Int?
+  checkoutUrl    String?
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+  user           User     @relation(fields: [userId], references: [id])
+}
+
+model Board {
+  id             String          @id @default(cuid())
+  userId         String
+  name           String
+  type           BoardType
+  length         String
+  finSetup       FinType
+  isForRent      Boolean         @default(false)
+  rentPrice      Float?
+  userBookings   BnbBooking[]    @relation("UserOwnBoard")
+  rentalBookings BnbBooking[]    @relation("RentalBoard")
+  user           User            @relation(fields: [userId], references: [id])
+  safariBookings SafariBooking[]
+
+  @@index([userId])
+  @@index([isForRent])
+}
+
+model ForecastA {
+  id             String   @id @default(uuid())
+  date           DateTime
+  region         String
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+  windSpeed      Int      @default(0)
+  windDirection  String   @default("N/A")
+  swellHeight    Float    @default(0)
+  swellPeriod    Int      @default(0)
+  swellDirection Float    @default(0)
+
+  @@unique([date, region])
+}
+
+model ForecastB {
+  id        String   @id @default(uuid())
+  date      DateTime
+  region    String
+  forecast  Json
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([date, region])
+}
+
+model Feedback {
+  id           String   @id @default(cuid())
+  createdAt    DateTime @default(now())
+  date         DateTime
+  beachId      String
+  conditions   Json
+  improvements String?
+  beach        Beach    @relation(fields: [beachId], references: [id])
+}
+
+model Story {
+  id          String   @id @default(cuid())
+  title       String
+  details     String
+  date        DateTime
+  category    String
+  link        String?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  authorId    String
+  beachName   String?
+  beachId     String?
+  customBeach String?
+  author      User     @relation(fields: [authorId], references: [id])
+  beach       Beach?   @relation(fields: [beachId], references: [id])
+
+  @@index([authorId])
+  @@index([beachId])
+}
+
+model UserFilters {
+  id        String   @id @default(cuid())
+  userEmail String   @unique
+  filters   Json
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  userId    String   @unique
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+}
+
+model UserFavorite {
+  id        String   @id @default(cuid())
+  userId    String
+  title     String   @db.VarChar(255)
+  videoLink String   @db.VarChar(2048)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  user      User     @relation(fields: [userId], references: [id])
+
+  @@index([userId])
+  @@index([createdAt])
+}
+
+model Region {
+  id      String  @id
+  name    String
+  beaches Beach[]
+}
+
 enum SkillLevel {
   BEGINNER
   INTERMEDIATE
@@ -240,189 +450,6 @@ enum SleepingType {
   BUNK
 }
 
-
-// BnbListing Model
-model BnbListing {
-  id                  String   @id @default(cuid())
-  hostId              String
-  title               String
-  description         String
-  location            String
-  profileImage        String?
-  images              String
-  
-  // Accommodation Details
-  sleepingArrangement SleepingType
-  breakfastOptions    String
-  price               Float?
-  isFree              Boolean  @default(false)
-  
-  // Transport
-  hasVehicleTransport Boolean   @default(false)
-  canTransportLongboard Boolean @default(false)
-  canTransportShortboard Boolean @default(false)
-  
-  // Metadata
-  isActive            Boolean   @default(true)
-  createdAt           DateTime  @default(now())
-  updatedAt           DateTime  @updatedAt
-
-  // Relations
-  host                User     @relation(fields: [hostId], references: [id], onDelete: Cascade)
-  beaches             BeachBnbConnection[]
-  reviews             Review[]
-  bookings            BnbBooking[]
-
-  @@index([hostId])
-  @@index([isActive])
-}
-
-// Surf Safari Model
-model SurfSafariListing {
-  id          String    @id @default(cuid())
-  guideId     String
-  title       String
-  description String
-  profileImage String?
-  
-  // Pricing
-  price       Float?
-  isFree      Boolean   @default(false)
-  
-  // Transport
-  hasVehicleTransport Boolean   @default(false)
-  canTransportLongboard Boolean @default(false)
-  canTransportShortboard Boolean @default(false)
-  
-  // Metadata
-  isActive     Boolean   @default(true)
-  createdAt    DateTime  @default(now())
-  updatedAt    DateTime  @updatedAt
-
-  // Relations
-  guide        User      @relation(fields: [guideId], references: [id], onDelete: Cascade)
-  beaches      BeachSafariConnection[]
-  bookings     SafariBooking[]
-  reviews      Review[]
-
-  @@index([guideId])
-  @@index([isActive])
-}
-
-
-model BeachSafariConnection {
-  id          String    @id @default(cuid())
-  beachId     String
-  safariId    String
-  distance    Float?    // Distance in km
-  safari      SurfSafariListing  @relation(fields: [safariId], references: [id])
-
-  @@unique([beachId, safariId])
-  @@index([safariId])
-  @@index([beachId])
-}
-
-model BeachBnbConnection {
-  id          String     @id @default(cuid())
-  beachId     String
-  listingId   String
-  distance    Float?     // Distance in km
-  
-  listing     BnbListing @relation(fields: [listingId], references: [id])
-
-  @@unique([beachId, listingId])
-  @@index([listingId])
-  @@index([beachId])
-}
-
-model Review {
-  id          String      @id @default(cuid())
-  userId      String
-  rating      Int
-  comment     String?
-  createdAt   DateTime    @default(now())
-  
-  // Optional relations (one of these will be set)
-  bnbListingId String?
-  safariId     String?
-  
-  user        User        @relation(fields: [userId], references: [id])
-  bnbListing  BnbListing? @relation(fields: [bnbListingId], references: [id])
-  safari      SurfSafariListing? @relation(fields: [safariId], references: [id])
-
-  @@index([userId])
-}
-
-model Beach {
-  id       String  @id
-  regionId String
-  region   Region  @relation(fields: [regionId], references: [id])
-  feedbacks Feedback[]
-  stories     Story[]
-  logEntries  LogEntry[]
-  name        String
-}
-
-model Account {
-  id                String  @id @default(cuid())
-  userId            String
-  type              String
-  provider          String
-  providerAccountId String
-  refresh_token     String?
-  access_token      String?
-  expires_at        Int?
-  token_type        String?
-  scope             String?
-  id_token          String?
-  session_state     String?
-
-  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
-
-  @@unique([provider, providerAccountId])
-}
-
-model Session {
-  id           String   @id @default(cuid())
-  sessionToken String   @unique
-  userId       String
-  expires      DateTime
-  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-}
-
-model Membership {
-  id              String    @id @default(cuid())
-  userId          String    @unique
-  lemonSqueezyId  String?
-  variantId       Int?
-  checkoutUrl     String?
-  createdAt       DateTime  @default(now())
-  updatedAt       DateTime  @updatedAt
-  
-  user            User      @relation(fields: [userId], references: [id])
-}
-
-// User's Board Model
-model Board {
-  id          String    @id @default(cuid())
-  userId      String
-  name        String    // E.g., "My Fish", "Summer Longboard"
-  type        BoardType // Shortboard, Longboard, etc
-  length      String    // "6'0", "7'2", etc
-  finSetup    FinType   // Thruster, Twin, Quad, etc
-  isForRent   Boolean   @default(false)
-  rentPrice   Float?
-  
-  // Relations
-  user        User      @relation(fields: [userId], references: [id])
-  safariBookings SafariBooking[]
-  userBookings    BnbBooking[] @relation("UserOwnBoard")
-  rentalBookings  BnbBooking[] @relation("RentalBoard")
-
-  @@index([userId])
-  @@index([isForRent])
-}
-
 enum BoardType {
   SHORTBOARD
   LONGBOARD
@@ -440,89 +467,4 @@ enum FinType {
   SINGLE
   FIVE
   OTHER
-}
-
-// Existing SurfCondition model becomes ForecastA
-model ForecastA {
-  id        String   @id @default(uuid())
-  date      DateTime
-  region    String
-  forecast  Json
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-
-  @@unique([date, region])
-}
-
-// New model for Forecast B
-model ForecastB {
-  id        String   @id @default(uuid())
-  date      DateTime
-  region    String
-  forecast  Json
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-
-  @@unique([date, region])
-}
-
-model Feedback {
-  id          String   @id @default(cuid())
-  createdAt   DateTime @default(now())
-  date        DateTime
-  beachId     String
-  beach       Beach    @relation(fields: [beachId], references: [id])
-  conditions  Json     // Store conditions as JSON
-  improvements String? @db.Text
-}
-
-model Story {
-  id            String   @id @default(cuid())
-  title         String
-  details       String   @db.Text
-  date          DateTime
-  category      String
-  link          String?
-  createdAt     DateTime @default(now())
-  updatedAt     DateTime @updatedAt
-  author        User     @relation(fields: [authorId], references: [id])
-  authorId      String
-  beachName     String?  // For both custom and existing beaches
-  beach         Beach?   @relation(fields: [beachId], references: [id])
-  beachId       String?  // Optional relation to existing beach
-  customBeach   String?  // For custom beach locations
-
-  @@index([authorId])
-  @@index([beachId])
-}
-
-model UserFilters {
-  id        String   @id @default(cuid())
-  userEmail String   @unique
-  filters   Json
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-  userId    String   @unique
-  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-
-  @@index([userId])
-}
-
-model UserFavorite {
-  id          String   @id @default(cuid())
-  userId      String
-  user        User     @relation(fields: [userId], references: [id])
-  title       String   @db.VarChar(255)
-  videoLink   String   @db.VarChar(2048)
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
-
-  @@index([userId])
-  @@index([createdAt])
-}
-
-model Region {
-  id    String  @id
-  name  String
-  beaches Beach[]
 }

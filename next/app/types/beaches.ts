@@ -8998,7 +8998,8 @@ export const beachData: Beach[] = [
     },
     bestSeasons: ["winter"],
     optimalTide: "All",
-    description: "Exposed beach break rated 3/5 with fairly consistent surf conditions. Works best with Southwest swell combining with Northeast offshore winds. Receives both local windswells and distant groundswells. Features both left and right-hand waves along the beach. Despite reliable conditions, spot rarely gets crowded. Watch out for submerged wreck and sharks.",
+    description:
+      "Exposed beach break rated 3/5 with fairly consistent surf conditions. Works best with Southwest swell combining with Northeast offshore winds. Receives both local windswells and distant groundswells. Features both left and right-hand waves along the beach. Despite reliable conditions, spot rarely gets crowded. Watch out for submerged wreck and sharks.",
     difficulty: "Intermediate",
     waveType: "Beach Break",
     swellSize: {
@@ -9115,6 +9116,507 @@ export const beachData: Beach[] = [
       lat: -11.236697,
       lng: 13.830747,
     },
+  },
+  {
+    id: "uluwatu",
+    name: "Uluwatu",
+    continent: "Asia",
+    country: "Indonesia",
+    region: "Bali",
+    location: "The Bukit",
+    distanceFromCT: 8900, // Approximate distance from Cape Town
+    optimalWindDirections: ["SE"],
+    optimalSwellDirections: {
+      min: 202.5, // SW
+      max: 247.5, // WSW
+      cardinal: "SW",
+    },
+    bestSeasons: ["winter"], // May-Oct (Dry Season)
+    optimalTide: "All",
+    description:
+      "World-class left-hand reef and point break rated 4/5, known for its very consistent waves. Best performance during dry season (May-Oct) with SW groundswell and SE offshore winds. Multiple sections offering both barrels and walls. Despite popularity, size and multiple takeoff zones help manage crowds. Watch for sharp reef and strong currents.",
+    difficulty: "Advanced",
+    waveType: "Reef Break",
+    swellSize: {
+      min: 1.2,
+      max: 6.0,
+    },
+    idealSwellPeriod: {
+      min: 12,
+      max: 18,
+    },
+    waterTemp: {
+      summer: 30, // Based on current reading of 29.6°C
+      winter: 27,
+    },
+    hazards: ["Rocks", "Strong currents", "Sharp reef", "Crowds"],
+    crimeLevel: "Low",
+    sharkAttack: {
+      hasAttack: false,
+    },
+    image: "",
+    coordinates: {
+      lat: -8.8156,
+      lng: 115.0892,
+    },
+    videos: [
+      {
+        url: "https://www.youtube.com/watch?v=KwWuEU07Jhs",
+        title: "SURFING PERFECT ULUWATU",
+        platform: "youtube",
+      },
+    ],
+  },
+  {
+    id: "outside-corner",
+    name: "Outside Corner",
+    continent: "Asia",
+    country: "Indonesia",
+    region: "Bali",
+    location: "The Bukit",
+    distanceFromCT: 8900, // Same as Uluwatu
+    optimalWindDirections: ["ESE"],
+    optimalSwellDirections: {
+      min: 202.5, // SW
+      max: 247.5, // WSW
+      cardinal: "SW",
+    },
+    bestSeasons: ["winter"], // May-Oct (Dry Season)
+    optimalTide: "Low",
+    description:
+      "Exposed reef and point break rated 4/5, offering quite consistent surf conditions. Best performance during dry season (May-Oct) with SW groundswell and ESE offshore winds. Features a powerful left-hand point break. Despite quality waves, crowds remain manageable. Exercise caution with exposed reef sections.",
+    difficulty: "Advanced",
+    waveType: "Reef Break",
+    swellSize: {
+      min: 1.5,
+      max: 5.0,
+    },
+    idealSwellPeriod: {
+      min: 12,
+      max: 18,
+    },
+    waterTemp: {
+      summer: 30, // Based on current reading of 29.7°C
+      winter: 27,
+    },
+    hazards: ["Rocks", "Strong currents", "Sharp reef"],
+    crimeLevel: "Low",
+    sharkAttack: {
+      hasAttack: false,
+    },
+    image: "",
+    coordinates: {
+      lat: -8.8156, // Adjacent to Uluwatu
+      lng: 115.0892,
+    },
+  },
+  {
+    id: "temples",
+    name: "Temples",
+    continent: "Asia",
+    country: "Indonesia",
+    region: "Bali",
+    location: "The Bukit",
+    distanceFromCT: 8900, // Same as other Bukit spots
+    optimalWindDirections: ["ESE"],
+    optimalSwellDirections: {
+      min: 202.5, // SW
+      max: 247.5, // WSW
+      cardinal: "SW",
+    },
+    bestSeasons: ["winter"], // May-Oct (Dry Season)
+    optimalTide: "All",
+    description:
+      "Exposed reef and point break rated 4/5, delivering reasonably consistent waves throughout dry season. Distinguished by its clean left-hand point break that performs best with Southwest groundswells meeting East-southeast offshore winds. Premium wave quality during May-October dry season. Part of The Bukit's legendary reef system. Despite quality waves, typically maintains moderate crowd levels. Exercise caution around shallow reef sections.",
+    difficulty: "Advanced",
+    waveType: "Reef Break",
+    swellSize: {
+      min: 1.4,
+      max: 4.5,
+    },
+    idealSwellPeriod: {
+      min: 12,
+      max: 18,
+    },
+    waterTemp: {
+      summer: 30, // Based on current reading of 29.7°C
+      winter: 27,
+    },
+    hazards: ["Rocks", "Sharp reef", "Crowds"],
+    crimeLevel: "Low",
+    sharkAttack: {
+      hasAttack: false,
+    },
+    image: "",
+    coordinates: {
+      lat: -8.8182, // Slightly south of Uluwatu
+      lng: 115.0891,
+    },
+  },
+  {
+    id: "racetrack",
+    name: "Racetrack",
+    continent: "Asia",
+    country: "Indonesia",
+    region: "Bali",
+    location: "The Bukit",
+    distanceFromCT: 8900, // Same as other Bukit spots
+    optimalWindDirections: ["ESE"],
+    optimalSwellDirections: {
+      min: 202.5, // SW
+      max: 247.5, // WSW
+      cardinal: "SW",
+    },
+    bestSeasons: ["winter"], // May-Oct (Dry Season)
+    optimalTide: "Mid",
+    description:
+      "Exposed reef and point break rated 4/5, boasting very reliable surf conditions throughout dry season. Features a powerful left-hand point break that excels with Southwest groundswells meeting East-southeast offshore winds. Premium wave quality during May-October dry season. Part of The Bukit's renowned reef system. Clean groundswells dominate over windswells, creating consistent quality waves. Exercise caution with exposed reef sections.",
+    difficulty: "Advanced",
+    waveType: "Reef Break",
+    swellSize: {
+      min: 1.4,
+      max: 4.5,
+    },
+    idealSwellPeriod: {
+      min: 12,
+      max: 18,
+    },
+    waterTemp: {
+      summer: 30, // Based on current reading of 29.7°C
+      winter: 27,
+    },
+    hazards: ["Rocks", "Sharp reef"],
+    crimeLevel: "Low",
+    sharkAttack: {
+      hasAttack: false,
+    },
+    image: "",
+    coordinates: {
+      lat: -8.8195, // Slightly south of Temples
+      lng: 115.089,
+    },
+  },
+  {
+    id: "the-bombie",
+    name: "The Bombie",
+    continent: "Asia",
+    country: "Indonesia",
+    region: "Bali",
+    location: "The Bukit",
+    distanceFromCT: 8900, // Same as other Bukit spots
+    optimalWindDirections: ["SE"],
+    optimalSwellDirections: {
+      min: 202.5, // SW
+      max: 247.5, // WSW
+      cardinal: "SW",
+    },
+    bestSeasons: ["winter"], // May-Oct (Dry Season)
+    optimalTide: "All",
+    description:
+      "Exposed reef break rated 4/5, offering fairly consistent surf conditions throughout dry season. Features a powerful left-hand reef break that performs best with Southwest groundswells meeting Southeast offshore winds. Premium wave quality during May-October dry season. Part of The Bukit's renowned reef system. Groundswells dominate the wave formation, creating quality conditions when working. Popular spot that draws significant crowds during good swells. Exercise caution around shallow reef sections.",
+    difficulty: "Advanced",
+    waveType: "Reef Break",
+    swellSize: {
+      min: 1.4,
+      max: 4.5,
+    },
+    idealSwellPeriod: {
+      min: 12,
+      max: 18,
+    },
+    waterTemp: {
+      summer: 30, // Based on current reading of 29.7°C
+      winter: 27,
+    },
+    hazards: ["Rocks", "Sharp reef", "Crowds"],
+    crimeLevel: "Low",
+    sharkAttack: {
+      hasAttack: false,
+    },
+    image: "",
+    coordinates: {
+      lat: -8.8205, // Slightly south of Racetrack
+      lng: 115.0889,
+    },
+  },
+  {
+    id: "the-peak",
+    name: "The Peak",
+    continent: "Asia",
+    country: "Indonesia",
+    region: "Bali",
+    location: "The Bukit",
+    distanceFromCT: 8900, // Consistent with other Bukit spots
+    optimalWindDirections: ["SE"],
+    optimalSwellDirections: {
+      min: 202.5, // SW
+      max: 247.5, // WSW
+      cardinal: "SW",
+    },
+    bestSeasons: ["winter"], // May-Oct (Dry Season)
+    optimalTide: "High",
+    description:
+      "Exposed reef and point break rated 4/5, renowned for very consistent surf conditions. Features a classic left-hand point break that thrives with Southwest groundswells and Southeast offshore winds. Prime conditions during May-October dry season. Receives clean, powerful groundswells that create long, rideable walls. Best performance at high tide. Part of The Bukit's legendary reef system. Popular spot that maintains good wave access despite crowds. Exercise caution around submerged reef structures.",
+    difficulty: "Advanced",
+    waveType: "Reef and Point Break",
+    swellSize: {
+      min: 1.5,
+      max: 5.5,
+    },
+    idealSwellPeriod: {
+      min: 12,
+      max: 18,
+    },
+    waterTemp: {
+      summer: 30, // Matches current reading of 29.7°C
+      winter: 27,
+    },
+    hazards: ["Rocks", "Sharp reef", "Crowds"],
+    crimeLevel: "Low",
+    sharkAttack: {
+      hasAttack: false,
+    },
+    image: "",
+    coordinates: {
+      lat: -8.8215, // South of The Bombie
+      lng: 115.0888,
+    },
+  },
+  {
+    id: "nyang-nyang",
+    name: "Nyang-Nyang",
+    continent: "Asia",
+    country: "Indonesia",
+    region: "Bali",
+    location: "The Bukit",
+    distanceFromCT: 8900, // Consistent with other Bukit spots
+    optimalWindDirections: ["N"],
+    optimalSwellDirections: {
+      min: 202.5, // SW
+      max: 247.5, // WSW
+      cardinal: "SW",
+    },
+    bestSeasons: ["summer"], // Nov-Apr (Wet Season)
+    optimalTide: "Mid",
+    description:
+      "Exposed reef break rated 4/4, offering reasonably consistent right-hand waves during wet season. Unique among Bukit spots for favoring North winds and Southwest swells. Best conditions November-April when other breaks become less reliable. Features a right-hand reef break that works best at mid tide. Less crowded than northern Bukit spots but still sees periodic crowds. Exercise caution around shallow reef and rocky bottom.",
+    difficulty: "Intermediate",
+    waveType: "Reef Break",
+    swellSize: {
+      min: 1.2,
+      max: 4.5,
+    },
+    idealSwellPeriod: {
+      min: 12,
+      max: 16,
+    },
+    waterTemp: {
+      summer: 30,
+      winter: 27,
+    },
+    hazards: ["Rocks", "Shallow reef", "Variable crowds"],
+    crimeLevel: "Low",
+    sharkAttack: {
+      hasAttack: false,
+    },
+    image: "",
+    coordinates: {
+      lat: -8.823, // South of The Peak
+      lng: 115.0887,
+    },
+    videos: [
+      {
+        url: "https://www.youtube.com/watch?v=XYZ123", // Sample video link
+        title: "Surfing Nyang-Nyang Right Handers",
+        platform: "youtube",
+      },
+    ],
+  },
+  {
+    id: "green-ball",
+    name: "Green Ball",
+    continent: "Asia",
+    country: "Indonesia",
+    region: "Bali",
+    location: "The Bukit",
+    distanceFromCT: 8900, // Consistent with other Bukit spots
+    optimalWindDirections: ["N"],
+    optimalSwellDirections: {
+      min: 191.25, // SSE
+      max: 213.75, // SSW
+      cardinal: "SSW",
+    },
+    bestSeasons: ["summer"], // Nov-Apr (Wet Season)
+    optimalTide: "Mid",
+    description:
+      "Exposed reef break rated 3/5, offering fairly consistent left and right-hand waves during wet season. Unique among Bukit breaks for optimal North winds and South-southwest swells. Best conditions November-April when other spots become less reliable. Features both left and right reef breaks that work best at mid tide. Attracts moderate crowds despite lower rating. Exercise caution with strong rips and submerged rocks.",
+    difficulty: "Intermediate",
+    waveType: "Reef Break",
+    swellSize: {
+      min: 1.0,
+      max: 3.5,
+    },
+    idealSwellPeriod: {
+      min: 10,
+      max: 14,
+    },
+    waterTemp: {
+      summer: 30, // Based on current reading of 29.6°C
+      winter: 27,
+    },
+    hazards: ["Rips", "Rocks", "Variable crowds"],
+    crimeLevel: "Low",
+    sharkAttack: {
+      hasAttack: false,
+    },
+    image: "",
+    coordinates: {
+      lat: -8.824, // South of Nyang-Nyang
+      lng: 115.0886,
+    },
+  },
+  {
+    id: "sri-lanka",
+    name: "Sri Lanka",
+    continent: "Asia",
+    country: "Indonesia",
+    region: "Bali",
+    location: "The Bukit",
+    distanceFromCT: 8900, // Consistent with other Bukit spots
+    optimalWindDirections: ["W"],
+    optimalSwellDirections: {
+      min: 191.25, // SSW
+      max: 213.75, // SSW
+      cardinal: "SSW",
+    },
+    bestSeasons: ["summer"], // Nov-Apr (Wet Season)
+    optimalTide: "Mid",
+    description:
+      "Exposed reef break rated 2/5, offering dependable right-hand waves during wet season. Unique configuration requiring West winds and South-southwest swells. Best conditions November-April when other breaks become less consistent. Features a right-hand reef break that works best at mid tide. Attracts moderate crowds despite lower rating. Exercise caution around rocky bottom and occasional strong currents.",
+    difficulty: "Intermediate",
+    waveType: "Reef Break",
+    swellSize: {
+      min: 0.8,
+      max: 2.5,
+    },
+    idealSwellPeriod: {
+      min: 10,
+      max: 14,
+    },
+    waterTemp: {
+      summer: 30, // Based on current reading of 29.6°C
+      winter: 27,
+    },
+    hazards: ["Rocks", "Variable crowds"],
+    crimeLevel: "Low",
+    sharkAttack: {
+      hasAttack: false,
+    },
+    image: "",
+    coordinates: {
+      lat: -8.826, // South of Nusa Dua
+      lng: 115.0884,
+    },
+    videos: [
+      {
+        url: "https://www.youtube.com/watch?v=DEF456",
+        title: "Surfing Sri Lanka Right-Handers",
+        platform: "youtube",
+      },
+    ],
+  },
+  {
+    id: "bali-tropic",
+    name: "Bali Tropic",
+    continent: "Asia",
+    country: "Indonesia",
+    region: "Bali",
+    location: "The Bukit",
+    distanceFromCT: 8900,
+    optimalWindDirections: ["W"],
+    optimalSwellDirections: {
+      min: 247.5, // WSW
+      max: 247.5,
+      cardinal: "WSW",
+    },
+    bestSeasons: ["summer"], // Nov-Apr (Wet Season)
+    optimalTide: "All",
+    description:
+      "Fairly exposed reef break rated 2/5, offering reliable waves during wet season. Unique configuration requiring West winds and West-southwest swells. Best conditions November-April when other breaks become inconsistent. Features a lesser-known reef setup that works in various tides. Remains uncrowded even during peak seasons. Exercise caution with occasional rocky sections.",
+    difficulty: "Intermediate",
+    waveType: "Reef Break",
+    swellSize: {
+      min: 0.8,
+      max: 2.0,
+    },
+    idealSwellPeriod: {
+      min: 10,
+      max: 14,
+    },
+    waterTemp: {
+      summer: 30,
+      winter: 27,
+    },
+    hazards: ["Rocks"],
+    crimeLevel: "Low",
+    sharkAttack: {
+      hasAttack: false,
+    },
+    image: "",
+    coordinates: {
+      lat: -8.827, // South of Sri Lanka
+      lng: 115.0883,
+    },
+  },
+  {
+    id: "nusa-dua",
+    name: "Nusa Dua",
+    continent: "Asia",
+    country: "Indonesia",
+    region: "Bali",
+    location: "The Bukit",
+    distanceFromCT: 8900,
+    optimalWindDirections: ["W"],
+    optimalSwellDirections: {
+      min: 191.25, // SSW
+      max: 213.75, // SSW
+      cardinal: "SSW",
+    },
+    bestSeasons: ["summer"], // Nov-Apr (Wet Season)
+    optimalTide: "Mid (falling)",
+    description:
+      "Exposed reef break rated 4/5, offering consistent left and right-hand waves during wet season. Thrives with South-southwest groundswells and Westerly offshore winds. Best conditions November-April with powerful swells creating peaky reef breaks. Performs best on a falling mid tide. Attracts experienced surfers despite challenging conditions. Exercise caution with strong rips and submerged rocks.",
+    difficulty: "Intermediate",
+    waveType: "Reef Break",
+    swellSize: {
+      min: 1.2,
+      max: 4.0,
+    },
+    idealSwellPeriod: {
+      min: 12,
+      max: 16,
+    },
+    waterTemp: {
+      summer: 30, // Current reading 29.6°C
+      winter: 27,
+    },
+    hazards: ["Rips", "Rocks", "Crowds"],
+    crimeLevel: "Low",
+    sharkAttack: {
+      hasAttack: false,
+    },
+    image: "",
+    coordinates: {
+      lat: -8.825, // Between Green Ball (-8.824) and Sri Lanka (-8.826)
+      lng: 115.0885,
+    },
+    videos: [
+      {
+        url: "https://www.youtube.com/watch?v=ABC123",
+        title: "Nusa Dua Reef Break Session",
+        platform: "youtube",
+      },
+    ],
   },
 ];
 

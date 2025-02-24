@@ -121,7 +121,14 @@ export const REGION_CONFIGS: RegionSourceConfig[] = [
   {
     region: "Liberia",
     sourceA: {
-      url: "https://www.windfinder.com/forecast/liberia_guanacaste_costarica",
+      url: "https://www.windfinder.com/forecast/monrovia_montserrado_liberia",
+      scraper: scraperA,
+    },
+  },
+  {
+    region: "Bali",
+    sourceA: {
+      url: "https://www.windfinder.com/forecast/bali_uluwatu",
       scraper: scraperA,
     },
   },

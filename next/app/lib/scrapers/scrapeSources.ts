@@ -70,9 +70,58 @@ export const REGION_CONFIGS: RegionSourceConfig[] = [
     },
   },
   {
+    region: "Madagascar West",
+    sourceA: {
+      url: "https://www.windfinder.com/forecast/anakao",
+      scraper: scraperA,
+    },
+  },
+  {
     region: "Madagascar East",
     sourceA: {
       url: "https://www.windfinder.com/forecast/farafangana",
+      scraper: scraperA,
+    },
+  },
+  {
+    region: "Mozambique",
+    sourceA: {
+      url: "https://www.windfinder.com/forecast/maputo_costa_do_sol",
+      scraper: scraperA,
+    },
+  },
+  {
+    region: "Zambia",
+    sourceA: {
+      url: "https://www.windfinder.com/forecast/livingstone",
+      scraper: scraperA,
+    },
+  },
+  {
+    region: "Luanda Province",
+    sourceA: {
+      url: "https://www.windfinder.com/forecast/cabo_ledo",
+      scraper: scraperA,
+    },
+  },
+  {
+    region: "Benguela",
+    sourceA: {
+      url: "https://www.windfinder.com/forecast/caota",
+      scraper: scraperA,
+    },
+  },
+  {
+    region: "Gabon Coast",
+    sourceA: {
+      url: "https://www.windfinder.com/forecast/cocobeach_estuaire_gabon",
+      scraper: scraperA,
+    },
+  },
+  {
+    region: "Liberia",
+    sourceA: {
+      url: "https://www.windfinder.com/forecast/liberia_guanacaste_costarica",
       scraper: scraperA,
     },
   },

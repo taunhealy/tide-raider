@@ -34,7 +34,7 @@ export async function scraperA(url: string, region: string): Promise<WindData> {
 
   try {
     browser = await chromium.launch({
-      headless: false,
+      headless: true,
       args: ["--no-sandbox", "--disable-blink-features=AutomationControlled"],
     });
 
@@ -125,27 +125,61 @@ export async function scraperA(url: string, region: string): Promise<WindData> {
           .trim();
       };
 
+      // Try both table structures
       const table = document.querySelector(".weathertable");
       if (!table) return null;
 
       const rows = Array.from(table.querySelectorAll(".weathertable__row")).map(
         (row) => {
-          const data = {
-            time: row.querySelector(".data-time .value")?.textContent,
-            windSpeed: row.querySelector(".cell-wind-3 .units-ws")?.textContent,
-            windDir: row
+          // First try Surf-Forecast selectors
+          let time = row.querySelector(".data-time .value")?.textContent;
+          let windSpeed = row.querySelector(
+            ".cell-wind-3 .units-ws"
+          )?.textContent;
+          let windDir = row
+            .querySelector(".cell-wind-2 .directionarrow")
+            ?.getAttribute("title");
+          let waveHeight = row.querySelector(
+            ".cell-waves-2 .units-wh"
+          )?.textContent;
+          let wavePeriod = row.querySelector(
+            ".cell-waves-2 .data-wavefreq"
+          )?.textContent;
+          let swellDir = row
+            .querySelector(".cell-waves-1 .directionarrow")
+            ?.getAttribute("title");
+
+          // If we didn't find the data, try Windfinder selectors
+          if (!time || !windSpeed) {
+            time = row
+              .querySelector(".data-time .value")
+              ?.getAttribute("data-value");
+            windSpeed = row
+              .querySelector(".cell-wind-3 .units-ws")
+              ?.getAttribute("data-value");
+            windDir = row
               .querySelector(".cell-wind-2 .directionarrow")
-              ?.getAttribute("title"),
-            waveHeight: row.querySelector(".cell-waves-2 .units-wh")
-              ?.textContent,
-            wavePeriod: row.querySelector(".cell-waves-2 .data-wavefreq")
-              ?.textContent,
-            swellDir: row
+              ?.getAttribute("title");
+            waveHeight = row
+              .querySelector(".cell-waves-2 .units-wh")
+              ?.getAttribute("data-value");
+            wavePeriod = row
+              .querySelector(".cell-waves-2 .data-wavefreq")
+              ?.textContent?.trim();
+            swellDir = row
               .querySelector(".cell-waves-1 .directionarrow")
-              ?.getAttribute("title"),
+              ?.getAttribute("title");
+          }
+
+          return {
+            time,
+            windSpeed,
+            windDir,
+            waveHeight,
+            wavePeriod,
+            swellDir,
             date: "",
           };
-          return data;
         }
       );
 
@@ -160,12 +194,17 @@ export async function scraperA(url: string, region: string): Promise<WindData> {
 
     let forecast: WindData | null = null;
     cleanHtml?.forEach((row) => {
-      if (row.time === "08h") {
+      if (
+        row.time === "07" ||
+        row.time === "08" ||
+        row.time === "07h" ||
+        row.time === "08h"
+      ) {
         forecast = {
-          windSpeed: parseInt(row.windSpeed),
-          windDirection: row.windDir.replace("°", ""),
-          swellHeight: parseFloat(row.waveHeight),
-          swellPeriod: parseInt(row.wavePeriod.trim().replace(/\s+s$/, "")),
+          windSpeed: parseInt(row.windSpeed || "0"),
+          windDirection: row.windDir?.replace("°", "") || "0",
+          swellHeight: parseFloat(row.waveHeight || "0"),
+          swellPeriod: parseInt((row.wavePeriod || "0").replace(/\s+s$/, "")),
           swellDirection: parseFloat(row.swellDir?.replace("°", "") || "0"),
           date: today,
           region,

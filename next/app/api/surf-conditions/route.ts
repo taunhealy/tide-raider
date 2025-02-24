@@ -98,17 +98,30 @@ async function getLatestConditions(
   region: ValidRegion = "Western Cape"
 ) {
   console.log("=== getLatestConditions ===");
+  console.log("Region:", region, "Force refresh:", forceRefresh);
 
-  // 1. Check database first
+  // Get today's date range
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+  const tomorrow = new Date(today);
+  tomorrow.setDate(tomorrow.getDate() + 1);
+
+  // 1. Check database first with a date range for today
   const existingForecast = await prisma.forecastA.findFirst({
     where: {
       region: region,
-      date: new Date(new Date().setHours(8, 0, 0, 0)), // Today at 8am
+      date: {
+        gte: today,
+        lt: tomorrow,
+      },
+    },
+    orderBy: {
+      date: "desc",
     },
   });
 
   if (existingForecast && !forceRefresh) {
-    // Convert wind direction to cardinal for existing data
+    console.log("Found existing forecast:", existingForecast);
     return {
       ...existingForecast,
       windDirection: degreesToCardinal(
@@ -118,39 +131,59 @@ async function getLatestConditions(
   }
 
   // 2. If no data exists or force refresh, scrape and store
+  console.log(
+    "No existing forecast found or force refresh requested. Scraping..."
+  );
+
   const regionConfig = REGION_CONFIGS.find(
     (config) => config.region === region
   );
-  if (!regionConfig) throw new Error("Invalid region");
+  if (!regionConfig) {
+    throw new Error(`Invalid region configuration for ${region}`);
+  }
 
-  const forecast = await scraperA(regionConfig.sourceA.url, region);
+  try {
+    console.log("Attempting to scrape from:", regionConfig.sourceA.url);
+    const forecast = await scraperA(regionConfig.sourceA.url, region);
 
-  // Store raw degrees in DB
-  const storedForecast = await prisma.forecastA.upsert({
-    where: {
-      date_region: {
-        date: forecast.date,
-        region: forecast.region,
+    if (!forecast) {
+      throw new Error(`Scraper returned null for ${region}`);
+    }
+
+    // Store raw degrees in DB
+    const storedForecast = await prisma.forecastA.upsert({
+      where: {
+        date_region: {
+          date: forecast.date,
+          region: forecast.region,
+        },
       },
-    },
-    update: {
-      windSpeed: forecast.windSpeed,
-      windDirection: forecast.windDirection,
-      swellHeight: forecast.swellHeight,
-      swellPeriod: forecast.swellPeriod,
-      swellDirection: forecast.swellDirection,
-    },
-    create: {
-      id: randomUUID(),
-      ...forecast,
-    },
-  });
+      update: {
+        windSpeed: forecast.windSpeed,
+        windDirection: forecast.windDirection,
+        swellHeight: forecast.swellHeight,
+        swellPeriod: forecast.swellPeriod,
+        swellDirection: forecast.swellDirection,
+      },
+      create: {
+        id: randomUUID(),
+        ...forecast,
+      },
+    });
 
-  // Return with cardinal direction
-  return {
-    ...storedForecast,
-    windDirection: degreesToCardinal(parseFloat(storedForecast.windDirection)),
-  };
+    console.log("Successfully stored forecast:", storedForecast);
+
+    // Return with cardinal direction
+    return {
+      ...storedForecast,
+      windDirection: degreesToCardinal(
+        parseFloat(storedForecast.windDirection)
+      ),
+    };
+  } catch (error) {
+    console.error(`Failed to scrape data for ${region}:`, error);
+    throw error; // Re-throw to be handled by the GET route
+  }
 }
 
 // New helper function to fetch other regions in the background
@@ -270,11 +303,20 @@ export async function GET(request: Request) {
 
   try {
     const conditions = await getLatestConditions(false, region);
+    if (!conditions) {
+      return NextResponse.json(
+        { error: "No conditions found" },
+        { status: 404 }
+      );
+    }
     console.log("Returning conditions:", conditions);
     return NextResponse.json(conditions);
   } catch (error) {
     console.error("Detailed error in GET route:", error);
-    return NextResponse.json({ status: 500 });
+    return NextResponse.json(
+      { error: "Failed to fetch conditions" },
+      { status: 500 }
+    );
   }
 }
 

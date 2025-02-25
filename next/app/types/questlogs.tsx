@@ -11,23 +11,18 @@ export interface LogEntry {
   id: string;
   userId?: string;
   user?: { id: string };
-  date: Date;
+  date: string;
   sessionDate?: Date;
   surferName: string;
   surferEmail: string;
   beachName: string;
   beachId: string;
   forecast?: {
-    entries?: Array<{
-      wind: { speed: number; direction: string };
-      swell: {
-        height: number;
-        period: number;
-        direction: string;
-        cardinalDirection: string;
-      };
-      timestamp: number;
-    }>;
+    windSpeed: number;
+    swellHeight: number;
+    swellPeriod: number;
+    windDirection: string;
+    swellDirection: number;
   };
   surferRating: number;
   comments: string;
@@ -91,29 +86,6 @@ export interface QuestLogTableColumn {
   sortable?: boolean;
   render?: (entry: LogEntry) => React.ReactNode;
 }
-
-export const DEFAULT_COLUMNS: QuestLogTableColumn[] = [
-  { key: "date", label: "Date", sortable: true },
-  { key: "beachName", label: "Location", sortable: true },
-  { key: "region", label: "Region", sortable: true },
-  { key: "surferName", label: "Adventurer", sortable: true },
-  { key: "surferRating", label: "Wave Rating", sortable: true },
-  {
-    key: "forecastSummary",
-    label: "Conditions",
-    render: (entry: LogEntry) => {
-      const forecastData = entry.forecast?.entries?.[0];
-      if (!forecastData?.swell || !forecastData?.wind) {
-        return "No forecast data";
-      }
-
-      const { swell, wind } = forecastData;
-
-      return `${swell.height}m ${getSwellEmoji(swell.height)} | ${getWindEmoji(wind.speed)} ${wind.speed}km/h | ${getDirectionEmoji(parseInt(swell.direction))}`;
-    },
-  },
-  { key: "comments", label: "Comments" },
-];
 
 export type RegionFilters = {
   continents: string[];

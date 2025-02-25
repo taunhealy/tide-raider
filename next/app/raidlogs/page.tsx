@@ -17,13 +17,8 @@ export default function RaidLogsPage() {
 
   // Allow access even without session
   return (
-    <div className="p-3 sm:p-4 md:p-6 max-w-4xl mx-auto">
-      <RaidLogForm
-        isOpen={true}
-        onClose={() => router.push("/raidlogs")}
-        userEmail={session?.user?.email || ""}
-        beaches={beachData}
-      />
+    <div className="p-2 sm:p-4 md:p-4 mx-2">
+      <RaidLogsComponent beaches={beachData} />
     </div>
   );
 }

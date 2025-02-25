@@ -5,6 +5,7 @@ import {
   getWindEmoji,
   getSwellEmoji,
   getDirectionEmoji,
+  degreesToCardinal,
 } from "@/app/lib/forecastUtils";
 import { cn } from "@/app/lib/utils";
 
@@ -77,8 +78,9 @@ export default function StickyForecastWidget({
           <div>
             <span className="text-gray-600 block mb-1">Wind</span>
             <div className="font-medium">
-              {getWindEmoji(forecast.windSpeed)} {forecast.windDirection} @{" "}
-              {forecast.windSpeed}km/h
+              {getWindEmoji(forecast.windSpeed)}{" "}
+              {degreesToCardinal(parseFloat(forecast.windDirection))} @{" "}
+              {forecast.windSpeed}kts
             </div>
           </div>
           <div className="w-px h-8 bg-gray-200" />

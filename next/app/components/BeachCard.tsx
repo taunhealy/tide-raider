@@ -283,7 +283,7 @@ export default function BeachCard({
                     <div>
                       <h4 className="text-base sm:text-[21px] font-primary font-semibold text-[var(--color-text-primary)] flex items-center gap-2">
                         {beach.name}
-                        {windData?.wind?.speed && windData.wind.speed > 25 && (
+                        {windData?.windSpeed && windData.windSpeed > 25 && (
                           <span title="Strong winds">🌪️</span>
                         )}
                         {beach.sharkAttack.hasAttack && (

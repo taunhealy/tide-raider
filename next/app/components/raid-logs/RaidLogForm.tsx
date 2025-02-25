@@ -16,6 +16,7 @@ import { useHandleTrial } from "@/app/hooks/useHandleTrial";
 import { useRouter } from "next/navigation";
 import { signIn } from "next-auth/react";
 import { format } from "date-fns";
+import { getCardinalDirection } from "@/lib/forecastUtils";
 
 interface RaidLogFormProps {
   userEmail?: string;
@@ -143,7 +144,22 @@ export function RaidLogForm({
         userId: session!.user.id,
         surferRating: surferRating,
         comments,
-        forecast: forecast,
+        forecast: {
+          entries: [
+            {
+              wind: {
+                speed: forecast.windSpeed,
+                direction: getCardinalDirection(forecast.windDirection),
+              },
+              swell: {
+                height: forecast.swellHeight,
+                period: forecast.swellPeriod,
+                direction: getCardinalDirection(forecast.swellDirection),
+              },
+              timestamp: new Date(selectedDate).getTime(),
+            },
+          ],
+        },
         continent: selectedBeach.continent,
         country: selectedBeach.country,
         region: selectedBeach.region,
@@ -327,7 +343,9 @@ export function RaidLogForm({
                   <input
                     type="date"
                     value={selectedDate}
-                    onChange={(e) => setSelectedDate(e.target.value)}
+                    onChange={(e) =>
+                      setSelectedDate(e.target.value.split("T")[0])
+                    }
                     max={new Date().toISOString().split("T")[0]}
                     required
                     className="p-2 border rounded"

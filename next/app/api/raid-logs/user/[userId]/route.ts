@@ -36,6 +36,7 @@ export async function GET(request: Request) {
               ],
             }
           : null,
+        date: entry.date.toISOString().split("T")[0],
       };
     });
 

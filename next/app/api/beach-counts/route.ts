@@ -2,7 +2,7 @@ import { prisma } from "@/app/lib/prisma";
 import { NextResponse } from "next/server";
 import { beachData } from "@/app/types/beaches";
 import { isBeachSuitable } from "@/app/lib/surfUtils";
-import { WindData } from "@/app/types/beaches";
+import { storeGoodBeachRatings } from "@/app/lib/beachRatings";
 
 export async function GET(request: Request) {
   const { searchParams } = new URL(request.url);
@@ -17,43 +17,55 @@ export async function GET(request: Request) {
   }
 
   try {
-    // Try source A first
-    let conditions = await prisma.forecastA.findFirst({
+    // First check for existing ratings
+    const queryDate = new Date(dateStr);
+    queryDate.setUTCHours(0, 0, 0, 0);
+
+    const existingCount = await prisma.beachGoodRating.count({
       where: {
         region: region,
-        date: new Date(dateStr),
+        date: queryDate,
+        score: {
+          gte: 4,
+        },
       },
-      orderBy: { updatedAt: "desc" },
     });
 
-    // If no data from source A, try source B
-    if (!conditions) {
-      conditions = await prisma.forecastB.findFirst({
+    if (existingCount > 0) {
+      return NextResponse.json({ count: existingCount });
+    }
+
+    // If no ratings exist, get conditions and store new ratings
+    const conditions = await prisma.forecastA.findFirst({
+      where: {
+        region: region,
+        date: {
+          gte: queryDate,
+          lt: new Date(queryDate.getTime() + 24 * 60 * 60 * 1000),
+        },
+      },
+    });
+
+    if (conditions) {
+      // Store new ratings
+      await storeGoodBeachRatings(conditions, region, queryDate);
+
+      // Get fresh count
+      const newCount = await prisma.beachGoodRating.count({
         where: {
           region: region,
-          date: new Date(dateStr),
+          date: queryDate,
+          score: {
+            gte: 4,
+          },
         },
-        orderBy: { updatedAt: "desc" },
       });
+
+      return NextResponse.json({ count: newCount });
     }
 
-    if (!conditions?.forecast) {
-      console.log(`No conditions found for ${region} on ${dateStr}`);
-      return NextResponse.json({ count: 0 });
-    }
-
-    // Use the same scoring logic as BeachContainer
-    const regionBeaches = beachData.filter((beach) => beach.region === region);
-    const goodBeachCount = regionBeaches.filter((beach) => {
-      const { score } = isBeachSuitable(beach, conditions.forecast as WindData);
-
-      return score >= 4;
-    }).length;
-
-    console.log(
-      `Found ${goodBeachCount} good beaches for ${region} on ${dateStr}`
-    );
-    return NextResponse.json({ count: goodBeachCount });
+    console.log(`No conditions found for ${region} on ${dateStr}`);
+    return NextResponse.json({ count: 0 });
   } catch (error) {
     console.error(`Error getting beach count:`, error);
     return NextResponse.json(

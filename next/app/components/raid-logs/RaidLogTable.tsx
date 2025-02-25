@@ -1,10 +1,6 @@
 "use client";
 
-import {
-  DEFAULT_COLUMNS,
-  QuestLogTableColumn,
-  LogEntry,
-} from "@/app/types/questlogs";
+import { QuestLogTableColumn, LogEntry } from "@/app/types/questlogs";
 
 import { format } from "date-fns";
 import { Star, Pencil, X } from "lucide-react";
@@ -20,6 +16,7 @@ import { useSession } from "next-auth/react";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { useRouter } from "next/navigation";
 import { useMemo } from "react";
+import { ForecastData } from "@/types/wind";
 
 interface QuestTableProps {
   entries: LogEntry[];
@@ -41,33 +38,36 @@ function LogEntryDisplay({ entry, isAnonymous }: LogEntryDisplayProps) {
   return <span className="font-primary text-gray-900">{displayName}</span>;
 }
 
-function ForecastInfo({ forecast }: { forecast: any }) {
-  if (!forecast?.wind || !forecast?.swell) {
-    return <span className="text-gray-500">No forecast data</span>;
+function ForecastInfo({ forecast }: { forecast?: LogEntry["forecast"] }) {
+  if (!forecast?.windSpeed || !forecast?.swellHeight) {
+    return <p className="font-primary text-gray-500 italic">—</p>;
   }
+
+  const windDirection = parseFloat(forecast.windDirection) || 0;
+  const swellDirection = forecast.swellDirection || 0;
+
+  const windCardinal = degreesToCardinal(windDirection);
+  const swellCardinal = degreesToCardinal(swellDirection);
 
   return (
     <div className="space-y-1 text-sm">
       <p className="break-words">
-        <span title={`Wind Speed: ${forecast.wind.speed} km/h`}>
-          {getWindEmoji(forecast.wind.speed)}
+        <span title={`Wind Speed: ${forecast.windSpeed} kts`}>
+          {getWindEmoji(forecast.windSpeed)}
         </span>{" "}
-        {forecast.wind.direction} @ {forecast.wind.speed}km/h
+        {windCardinal} @ {forecast.windSpeed}kts
       </p>
       <p className="break-words">
-        <span title={`Swell Height: ${forecast.swell.height}m`}>
-          {getSwellEmoji(forecast.swell.height)}
+        <span title={`Swell Height: ${forecast.swellHeight}m`}>
+          {getSwellEmoji(forecast.swellHeight)}
         </span>{" "}
-        {forecast.swell.height}m @ {forecast.swell.period}s
+        {forecast.swellHeight}m @ {forecast.swellPeriod}s
       </p>
       <p className="break-words">
-        <span
-          title={`Swell Direction: ${forecast.swell.cardinalDirection || degreesToCardinal(Number(forecast.swell.direction))}`}
-        >
-          {getDirectionEmoji(forecast.swell.direction)}
+        <span title={`Swell Direction: ${swellCardinal}`}>
+          {getDirectionEmoji(forecast.swellDirection)}
         </span>{" "}
-        {forecast.swell.cardinalDirection ||
-          degreesToCardinal(Number(forecast.swell.direction))}
+        {swellCardinal}
       </p>
     </div>
   );
@@ -161,10 +161,39 @@ function TableSkeleton() {
 
 const normalizeLogEntry = (entry: LogEntry): LogEntry => ({
   ...entry,
-  date: new Date(entry.date),
+  date: new Date(entry.date.split("T")[0]).toISOString().split("T")[0],
   isPrivate: entry.isPrivate ?? false,
   isAnonymous: entry.isAnonymous ?? false,
 });
+
+export const DEFAULT_COLUMNS: QuestLogTableColumn[] = [
+  {
+    key: "forecastSummary",
+    label: "Conditions",
+    render: (entry: LogEntry) => {
+      const forecast = entry.forecast;
+      if (!forecast?.windSpeed || !forecast?.swellHeight) {
+        return <span className="font-primary text-gray-500">—</span>;
+      }
+
+      return (
+        <>
+          <div className="font-primary">
+            {getSwellEmoji(forecast.swellHeight)} {forecast.swellHeight}m{" • "}
+            {getWindEmoji(forecast.windSpeed)} {forecast.windSpeed}kts
+          </div>
+          <div className="text-xs text-gray-500 font-primary">
+            {degreesToCardinal(parseFloat(forecast.windDirection))} winds
+          </div>
+        </>
+      );
+    },
+  },
+  {
+    key: "comments",
+    label: "Comments",
+  },
+];
 
 export default function RaidLogTable({
   entries,
@@ -327,8 +356,8 @@ export default function RaidLogTable({
       </div>
 
       {/* Desktop View - Table */}
-      <div className="hidden md:block overflow-x-auto rounded-lg border border-gray-200 shadow">
-        <div className="min-h-[500px]">
+      <div className="hidden md:block rounded-lg border border-gray-200 shadow">
+        <div className="min-h-[500px] w-full">
           <table className="w-full divide-y divide-gray-200">
             <thead className="bg-gray-50">
               <tr>
@@ -336,10 +365,9 @@ export default function RaidLogTable({
                   <th
                     key={column.key}
                     className={cn(
-                      "px-3 py-3 sm:px-6 sm:py-3 text-xs sm:text-sm text-left text-gray-500 uppercase tracking-wider whitespace-nowrap",
-                      column.key === "date"
-                        ? "min-w-[120px] max-w-[200px]"
-                        : "min-w-[160px] max-w-[300px]",
+                      "px-4 py-3 sm:px-6 sm:py-4 text-sm text-left text-gray-500 uppercase tracking-wider",
+                      column.key === "date" ? "min-w-[140px]" : "min-w-[180px]",
+                      column.key === "comments" && "min-w-[300px]",
                       "h-[40px]"
                     )}
                   >
@@ -358,10 +386,10 @@ export default function RaidLogTable({
 
                 return (
                   <tr key={entry.id} className="hover:bg-gray-50">
-                    <td className="px-3 py-4 sm:px-6 whitespace-nowrap text-sm min-w-[120px] max-w-[200px] h-[60px]">
+                    <td className="px-4 py-4 sm:px-6 whitespace-nowrap text-sm min-w-[140px]">
                       {format(new Date(entry.date), "MMM d, yyyy")}
                     </td>
-                    <td className="px-6 py-4 whitespace-nowrap min-w-[160px] max-w-[250px] h-[60px]">
+                    <td className="px-4 py-4 sm:px-6 whitespace-nowrap min-w-[180px]">
                       <button
                         onClick={() => onBeachClick(entry.beachName)}
                         className="text-brand-3 hover:underline font-primary"
@@ -369,22 +397,24 @@ export default function RaidLogTable({
                         {entry.beachName}
                       </button>
                     </td>
-                    <td className="px-6 py-4 whitespace-nowrap min-w-[160px] max-w-[250px] h-[60px]">
+                    <td className="px-4 py-4 sm:px-6 whitespace-nowrap min-w-[180px]">
                       {entry.region}
                     </td>
-                    <td className="px-6 py-4 whitespace-nowrap font-primary">
+                    <td className="px-4 py-4 sm:px-6 whitespace-nowrap min-w-[180px] font-primary">
                       <LogEntryDisplay
                         entry={entry}
                         isAnonymous={entry.isAnonymous ?? false}
                       />
                     </td>
-                    <td className="px-6 py-4">
+                    <td className="px-4 py-4 sm:px-6 min-w-[140px]">
                       <StarRating rating={entry.surferRating} />
                     </td>
-                    <td className="px-4 py-4">
+                    <td className="px-4 py-4 sm:px-6 min-w-[200px]">
                       <ForecastInfo forecast={entry.forecast} />
                     </td>
-                    <td className="px-6 py-4">{entry.comments}</td>
+                    <td className="px-4 py-4 sm:px-6 min-w-[300px] whitespace-normal">
+                      {entry.comments}
+                    </td>
                     {isSubscribed && entry.imageUrl && (
                       <td className="px-2 py-2 sm:px-4">
                         <div className="relative w-[80px] h-[80px] sm:w-[120px] sm:h-[120px]">

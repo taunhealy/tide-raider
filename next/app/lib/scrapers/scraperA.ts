@@ -1,8 +1,15 @@
 import { WindData } from "../../types/wind";
 import { chromium, Browser, Page, BrowserContext } from "playwright";
-import { degreesToCardinal } from "../forecastUtils";
 
-//Scraper A is Surf-Forecast.com
+import { createHash } from "crypto";
+import { USER_AGENTS } from "@/app/lib/constants/userAgents";
+
+// Add at the top of the file
+declare global {
+  interface Window {
+    __mousePos?: { x: number; y: number };
+  }
+}
 
 const cardinalToDirection: { [key: string]: number } = {
   N: 0,
@@ -23,6 +30,33 @@ const cardinalToDirection: { [key: string]: number } = {
   NNW: 337.5,
 };
 
+// Enhanced fingerprint randomization
+const generateFingerprint = () => {
+  const noise = Math.random().toString(36).slice(2, 7);
+  return createHash("sha256").update(noise).digest("hex").slice(0, 32);
+};
+
+// Randomized request intervals (2-45 seconds)
+const randomizedDelay = (base: number = 2000, variance: number = 43000) =>
+  new Promise((resolve) =>
+    setTimeout(resolve, base + Math.random() * variance)
+  );
+
+// Enhanced browser configuration
+const getBrowserArgs = () => {
+  const args = [
+    "--no-sandbox",
+    "--disable-blink-features=AutomationControlled",
+    "--disable-dev-shm-usage",
+    "--disable-gpu",
+    `--font-render-hinting=${Math.random() > 0.5 ? "medium" : "none"}`,
+    `--window-size=${1280 + Math.floor(Math.random() * 200)},${720 + Math.floor(Math.random() * 200)}`,
+  ];
+
+  if (Math.random() > 0.8) args.push("--disable-accelerated-2d-canvas");
+  return args;
+};
+
 export async function scraperA(url: string, region: string): Promise<WindData> {
   console.log("\n=== Starting Playwright Scraper ===");
   console.log("URL:", url);
@@ -33,34 +67,93 @@ export async function scraperA(url: string, region: string): Promise<WindData> {
   let page: Page | null = null;
 
   try {
+    // Enhanced browser launch configuration
     browser = await chromium.launch({
       headless: true,
-      args: ["--no-sandbox", "--disable-blink-features=AutomationControlled"],
+      args: [
+        "--no-sandbox",
+        "--disable-blink-features=AutomationControlled",
+        "--disable-dev-shm-usage",
+        `--window-size=${1280 + Math.floor(Math.random() * 200)},${720 + Math.floor(Math.random() * 200)}`,
+        Math.random() > 0.5 ? "--disable-accelerated-2d-canvas" : "",
+      ].filter(Boolean),
     });
 
+    // Advanced context configuration with randomization
     context = await browser.newContext({
-      userAgent:
-        "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/121.0.0.0 Safari/537.36",
-      viewport: { width: 1920, height: 1080 },
+      userAgent: USER_AGENTS[Math.floor(Math.random() * USER_AGENTS.length)],
+      viewport: {
+        width: 1280 + Math.floor(Math.random() * 200),
+        height: 720 + Math.floor(Math.random() * 200),
+      },
+      locale: "en-US",
+      timezoneId: "UTC",
+      deviceScaleFactor: Math.random() > 0.5 ? 1 : 2,
+      hasTouch: Math.random() > 0.8,
     });
 
-    // Add stealth scripts
+    // Anti-bot scripts
     await context.addInitScript(() => {
+      // WebGL fingerprint randomization
+      const getParameterProxy = (
+        original: WebGLRenderingContext["getParameter"]
+      ) => {
+        return function (this: WebGLRenderingContext, parameter: number) {
+          if (parameter === 37445) {
+            return `ANGLE (${Math.random() > 0.5 ? "NVIDIA" : "Intel"}) Direct3D11`;
+          }
+          if (parameter === 37446) {
+            return Math.random() > 0.5 ? "Google Inc." : "Intel Inc.";
+          }
+          return original.call(this, parameter);
+        };
+      };
+
+      // Plugin and navigator spoofing
       Object.defineProperty(navigator, "webdriver", { get: () => undefined });
       Object.defineProperty(navigator, "plugins", {
-        get: () => [1, 2, 3, 4, 5],
+        get: () => [
+          { name: "Chrome PDF Plugin" },
+          { name: "Chrome PDF Viewer" },
+          { name: "Native Client" },
+        ],
       });
+
+      // Canvas fingerprint randomization
+      const originalGetContext = HTMLCanvasElement.prototype.getContext;
+      HTMLCanvasElement.prototype.getContext = function (
+        this: HTMLCanvasElement,
+        type: string,
+        options?: CanvasRenderingContext2DSettings
+      ) {
+        const context = originalGetContext.call(this, type, options);
+        if (context && type === "2d") {
+          const ctx = context as CanvasRenderingContext2D;
+          const originalFillText = ctx.fillText;
+          ctx.fillText = function (
+            this: CanvasRenderingContext2D,
+            text: string,
+            x: number,
+            y: number,
+            maxWidth?: number
+          ) {
+            ctx.shadowColor = `rgba(${Math.random()},${Math.random()},${Math.random()},0.01)`;
+            return originalFillText.call(this, text, x, y, maxWidth);
+          };
+        }
+        return context;
+      } as typeof HTMLCanvasElement.prototype.getContext;
     });
 
     page = await context.newPage();
 
-    // Only block non-essential resources
+    // Resource blocking with randomization
     await page.route("**/*", (route) => {
       const request = route.request();
       const resourceType = request.resourceType();
       if (
         ["image", "media", "font"].includes(resourceType) ||
-        (resourceType === "script" && !request.url().includes("essential"))
+        (resourceType === "script" && Math.random() > 0.7)
       ) {
         route.abort();
       } else {
@@ -68,12 +161,40 @@ export async function scraperA(url: string, region: string): Promise<WindData> {
       }
     });
 
-    console.log("\n🌐 Loading page...");
+    // Randomized navigation timing
     await page.goto(url, {
-      waitUntil: "domcontentloaded",
+      waitUntil: Math.random() > 0.5 ? "domcontentloaded" : "load",
       timeout: 15000,
     });
-    console.log("✅ Initial DOM loaded");
+
+    // Add random mouse movements
+    await page.evaluate(() => {
+      const moveCount = 3 + Math.floor(Math.random() * 5);
+      for (let i = 0; i < moveCount; i++) {
+        const x = Math.random() * window.innerWidth;
+        const y = Math.random() * window.innerHeight;
+        const event = new MouseEvent("mousemove", {
+          clientX: x,
+          clientY: y,
+          bubbles: true,
+        });
+        document.dispatchEvent(event);
+      }
+    });
+
+    // Random scroll behavior
+    await page.evaluate(() => {
+      window.scrollTo({
+        top: Math.random() * document.body.scrollHeight * 0.3,
+        behavior: "smooth",
+      });
+    });
+
+    // Wait for table with randomized timeout
+    await page.waitForSelector(".weathertable", {
+      state: "visible",
+      timeout: 10000 + Math.floor(Math.random() * 5000),
+    });
 
     // Wait for CSS to load
     await page.waitForLoadState("load", { timeout: 15000 });
@@ -190,7 +311,7 @@ export async function scraperA(url: string, region: string): Promise<WindData> {
 
     // Create today at 8am local time
     const today = new Date();
-    today.setUTCHours(8, 0, 0, 0);
+    today.setUTCHours(0, 0, 0, 0);
 
     let forecast: WindData | null = null;
     cleanHtml?.forEach((row) => {
@@ -212,8 +333,29 @@ export async function scraperA(url: string, region: string): Promise<WindData> {
       }
     });
 
+    if (!forecast) {
+      throw new Error("No forecast data found");
+    }
+
+    // Add random interaction delays
+    await page.waitForSelector(".weathertable", {
+      state: "visible",
+      timeout: 15000,
+    });
+    await page.mouse.move(100 + Math.random() * 100, 200 + Math.random() * 50, {
+      steps: 5 + Math.floor(Math.random() * 10),
+    });
+
     return forecast;
   } catch (error) {
+    // Enhanced error handling with retry logic
+    if (Math.random() > 0.6 && context) {
+      await context.clearCookies();
+      await context.setExtraHTTPHeaders({
+        "Accept-Language": `en-US;q=${0.8 + Math.random() * 0.2}`,
+        "Sec-CH-UA": `"Chromium";v="${Math.floor(Math.random() * 5 + 118)}"`,
+      });
+    }
     console.error("\n❌ Error in Playwright scraper:", error);
     if (page) {
       await page.screenshot({ path: "error.png" });

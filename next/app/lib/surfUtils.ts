@@ -93,10 +93,18 @@ export function isBeachSuitable(
 
   let score = 10; // Start with perfect score
 
+  // Convert wind direction from degrees to cardinal
+  const windCardinal = degreesToCardinal(conditions.windDirection);
+  console.log("Wind conversion:", {
+    fromDegrees: conditions.windDirection,
+    toCardinal: windCardinal,
+  });
+
   // Smarter wind direction check
-  if (!beach.optimalWindDirections.includes(conditions.windDirection)) {
+  if (!beach.optimalWindDirections.includes(windCardinal)) {
+    console.log("Wind direction not in optimal:", windCardinal);
     // Convert both directions to degrees for comparison
-    const currentDirDegrees = cardinalToDegreesMap[conditions.windDirection];
+    const currentDirDegrees = Number(conditions.windDirection);
     const isNeighboring = beach.optimalWindDirections.some((optimalDir) => {
       const optimalDegrees = cardinalToDegreesMap[optimalDir];
       if (currentDirDegrees === undefined || optimalDegrees === undefined)
@@ -246,7 +254,7 @@ export function getConditionReasons(
           isMet: false,
         },
         {
-          text: `Wind Speed: 0-25km/h`,
+          text: `Wind Speed: 0-25kts`,
           isMet: false,
         },
         {
@@ -323,7 +331,7 @@ export function getConditionReasons(
       isMet: hasGoodWind,
     },
     {
-      text: `Wind Speed: 0-25km/h${windData.windSpeed > 25 && !beach.sheltered ? "" : ""}`,
+      text: `Wind Speed: 0-25kts${windData.windSpeed > 25 && !beach.sheltered ? "" : ""}`,
       isMet: windData.windSpeed <= 25 || beach.sheltered,
     },
     {

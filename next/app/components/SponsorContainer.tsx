@@ -1,23 +1,13 @@
+"use client";
+
 import { useState, useEffect } from "react";
-import Link from "next/link";
-import { Mail } from "lucide-react";
 import { useQuery } from "@tanstack/react-query";
 import { cn } from "@/lib/utils";
 import { getWindEmoji } from "@/lib/forecastUtils";
 import { getSwellEmoji } from "@/lib/forecastUtils";
 import { getDirectionEmoji } from "@/lib/forecastUtils";
-
-interface SurfLog {
-  id: string;
-  date: string;
-  beachName: string;
-  forecast: {
-    wind: { speed: number; direction: string };
-    swell: { height: number; period: number; direction: string };
-  };
-  surferRating: number;
-  surferName: string;
-}
+import { degreesToCardinal } from "@/app/lib/forecastUtils";
+import { LogEntry } from "@/app/types/questlogs";
 
 import { WaveAnimation } from "./WaveAnimation";
 
@@ -31,7 +21,7 @@ const SponsorContainer = () => {
       const response = await fetch("/api/raid-logs");
       if (!response.ok) throw new Error("Failed to fetch logs");
       const data = await response.json();
-      return data.entries as SurfLog[];
+      return data.entries as LogEntry[];
     },
     staleTime: 1000 * 60 * 5, // 5 minutes
   });
@@ -65,17 +55,30 @@ const SponsorContainer = () => {
       className={cn(
         "fixed bottom-9 right-4 bg-white rounded-lg shadow-lg p-4 z-50",
         "transition-all duration-300 ease-in-out",
-        "transform hidden md:block",
+        "transform hidden md:block cursor-pointer hover:shadow-xl",
         isVisible
           ? "opacity-100 translate-y-0"
           : "opacity-0 translate-y-8 pointer-events-none"
       )}
+      onClick={() => window.open("/raidlogs", "_blank")}
     >
       <div className="flex items-center gap-4">
         {/* Log Display */}
         <div className="pl-4 pr-12 pt-4">
           <div className="flex flex-col">
-            <p className="text-[16px] font-medium">{recentLog.surferName}</p>
+            <div className="mb-2">
+              <h3 className="text-lg font-semibold">Logged Session</h3>
+              <p className="text-sm text-[var(--color-text-secondary)]">
+                {new Date(recentLog.date).toLocaleDateString("en-US", {
+                  month: "short",
+                  day: "numeric",
+                  year: "numeric",
+                })}
+              </p>
+            </div>
+            <p className="text-sm font-normal text-[var(--color-text-secondary)]">
+              {recentLog.surferName}
+            </p>
             <div className="flex justify-between items-start mt-1">
               <div className="space-y-1">
                 <p className="text-[12px] uppercase tracking-wide text-[var(--color-text-secondary)]">
@@ -98,20 +101,24 @@ const SponsorContainer = () => {
               </div>
 
               {/* Forecast Information */}
-              <div className="text-right space-y-1">
-                <div className="text-[0.6rem] text-[var(--color-text-secondary)]">
-                  {getWindEmoji(recentLog.forecast.wind.speed)}{" "}
-                  {recentLog.forecast.wind.direction} @{" "}
-                  {recentLog.forecast.wind.speed}km/h
-                </div>
-                <div className="text-[0.6rem] text-[var(--color-text-secondary)]">
-                  {getSwellEmoji(recentLog.forecast.swell.height)}{" "}
-                  {recentLog.forecast.swell.height}m @{" "}
-                  {recentLog.forecast.swell.period}s{" "}
-                  {getDirectionEmoji(
-                    (parseInt(recentLog.forecast.swell.direction) + 180) % 360
-                  )}
-                </div>
+              <div className="text-right space-y-1 ml-4">
+                {recentLog?.forecast && (
+                  <>
+                    <div className="text-[12px] text-[var(--color-text-secondary)]">
+                      {getWindEmoji(recentLog.forecast.windSpeed)}{" "}
+                      {degreesToCardinal(
+                        parseFloat(recentLog.forecast.windDirection)
+                      )}{" "}
+                      @ {recentLog.forecast.windSpeed}kts
+                    </div>
+                    <div className="text-[12px] text-[var(--color-text-secondary)]">
+                      {getSwellEmoji(recentLog.forecast.swellHeight)}{" "}
+                      {recentLog.forecast.swellHeight}m @{" "}
+                      {recentLog.forecast.swellPeriod}s{" "}
+                      {getDirectionEmoji(recentLog.forecast.swellDirection)}
+                    </div>
+                  </>
+                )}
               </div>
             </div>
           </div>

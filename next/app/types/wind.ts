@@ -3,11 +3,13 @@ import { Beach } from "./beaches";
 export type WindData = {
   date: Date;
   region: string;
-  windSpeed: number; // Int in DB
-  windDirection: string; // String in DB
-  swellHeight: number; // Float in DB
-  swellPeriod: number; // Int in DB
-  swellDirection: number; // Float in DB
+  windSpeed: number; // Matches ForecastA.windSpeed (Int)
+  windDirection: string; // Matches ForecastA.windDirection
+  swellHeight: number; // Matches ForecastA.swellHeight (Float)
+  swellPeriod: number; // Matches ForecastA.swellPeriod (Int)
+  swellDirection: number; // Matches ForecastA.swellDirection (Float)
+  createdAt?: Date; // From ForecastA model
+  updatedAt?: Date; // From ForecastA model
 };
 
 export type ForecastData = {

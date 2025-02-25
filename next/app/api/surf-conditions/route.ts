@@ -11,7 +11,6 @@ import { storeGoodBeachRatings } from "@/app/lib/beachRatings";
 import { WindData } from "@/app/types/wind";
 import { REGION_CONFIGS } from "@/lib/scrapers/scrapeSources";
 import { scraperA } from "@/app/lib/scrapers/scraperA";
-import { Prisma } from "@prisma/client";
 
 interface RegionScrapeConfig {
   url: string;
@@ -89,22 +88,23 @@ function degreesToCardinal(degrees: number): string {
     "NW",
     "NNW",
   ];
-  const index = Math.round((parseFloat(degrees) % 360) / 22.5);
+  const index = Math.round((degrees % 360) / 22.5);
   return directions[index % 16];
 }
 
-async function getLatestConditions(
-  forceRefresh = false,
-  region: ValidRegion = "Western Cape"
-) {
+async function getLatestConditions(forceRefresh = false, region: ValidRegion) {
+  if (!region) {
+    throw new Error("Region is required");
+  }
+
   console.log("=== getLatestConditions ===");
   console.log("Region:", region, "Force refresh:", forceRefresh);
 
-  // Get today's date range
+  // Get today's date range (UTC midnight to next day)
   const today = new Date();
-  today.setHours(0, 0, 0, 0);
+  today.setUTCHours(0, 0, 0, 0);
   const tomorrow = new Date(today);
-  tomorrow.setDate(tomorrow.getDate() + 1);
+  tomorrow.setUTCDate(tomorrow.getUTCDate() + 1);
 
   // 1. Check database first with a date range for today
   const existingForecast = await prisma.forecastA.findFirst({
@@ -115,6 +115,16 @@ async function getLatestConditions(
         lt: tomorrow,
       },
     },
+    select: {
+      id: true,
+      date: true,
+      region: true,
+      windSpeed: true,
+      windDirection: true,
+      swellHeight: true,
+      swellPeriod: true,
+      swellDirection: true,
+    },
     orderBy: {
       date: "desc",
     },
@@ -124,9 +134,11 @@ async function getLatestConditions(
     console.log("Found existing forecast:", existingForecast);
     return {
       ...existingForecast,
-      windDirection: degreesToCardinal(
-        parseFloat(existingForecast.windDirection)
-      ),
+      windSpeed: existingForecast.windSpeed,
+      windDirection: existingForecast.windDirection,
+      swellHeight: existingForecast.swellHeight,
+      swellPeriod: existingForecast.swellPeriod,
+      swellDirection: existingForecast.swellDirection,
     };
   }
 
@@ -145,6 +157,11 @@ async function getLatestConditions(
   try {
     console.log("Attempting to scrape from:", regionConfig.sourceA.url);
     const forecast = await scraperA(regionConfig.sourceA.url, region);
+
+    if (forecast) {
+      // Strip time from date
+      forecast.date.setUTCHours(0, 0, 0, 0);
+    }
 
     if (!forecast) {
       throw new Error(`Scraper returned null for ${region}`);
@@ -176,9 +193,11 @@ async function getLatestConditions(
     // Return with cardinal direction
     return {
       ...storedForecast,
-      windDirection: degreesToCardinal(
-        parseFloat(storedForecast.windDirection)
-      ),
+      windSpeed: storedForecast.windSpeed,
+      windDirection: storedForecast.windDirection,
+      swellHeight: storedForecast.swellHeight,
+      swellPeriod: storedForecast.swellPeriod,
+      swellDirection: storedForecast.swellDirection,
     };
   } catch (error) {
     console.error(`Failed to scrape data for ${region}:`, error);
@@ -272,7 +291,7 @@ async function storeForecast(source: "A" | "B", data: WindData) {
   return model.create({
     data: {
       id: randomUUID(),
-      date: getTodayDate(),
+      date: new Date(data.date.toISOString().split("T")[0]), // Date-only
       region: data.region,
       windSpeed: data.windSpeed,
       windDirection: data.windDirection,
@@ -296,7 +315,14 @@ async function getForecastsForRegion(region: ValidRegion) {
 
 export async function GET(request: Request) {
   const { searchParams } = new URL(request.url);
-  const region = (searchParams.get("region") as ValidRegion) || "Western Cape";
+  const region = searchParams.get("region") as ValidRegion;
+
+  if (!region || !isValidRegion(region)) {
+    return NextResponse.json(
+      { error: "Invalid or missing region parameter" },
+      { status: 400 }
+    );
+  }
 
   console.log("=== Starting GET request ===");
   console.log("Region:", region);

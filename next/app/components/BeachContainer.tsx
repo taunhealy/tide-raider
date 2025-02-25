@@ -796,6 +796,57 @@ export default function BeachContainer({
                   </div>
                 </div>
 
+                {/* Replace grid with inline forecast */}
+                <div className="mb-6">
+                  {isLoading ? (
+                    <RandomLoader isLoading={isLoading} />
+                  ) : windError ? (
+                    <div className="text-red-600 font-primary text-sm">
+                      Forecast loading failed
+                    </div>
+                  ) : !windData ? (
+                    <div className="text-yellow-600 font-primary text-sm">
+                      No forecast data
+                    </div>
+                  ) : (
+                    <div className="flex items-center gap-4 font-primary bg-gray-50 px-4 py-2 rounded-lg border border-gray-200">
+                      <div className="flex items-center gap-2 text-sm">
+                        <span className="font-semibold text-gray-800">
+                          🌬️ Wind
+                        </span>
+                        <span>
+                          {degreesToCardinal(
+                            parseFloat(windData.windDirection)
+                          ) || "N/A"}
+                        </span>
+                        <span>{windData.windSpeed}kts</span>
+                      </div>
+
+                      <div className="h-4 w-px bg-gray-300" />
+
+                      <div className="flex items-center gap-2 text-sm">
+                        <span className="font-semibold text-gray-800">
+                          🌊 Swell
+                        </span>
+                        <span>{windData.swellHeight}m</span>
+                        <span>@{windData.swellPeriod}s</span>
+                        <span>
+                          {degreesToCardinal(windData.swellDirection)}
+                        </span>
+                      </div>
+
+                      <div className="h-4 w-px bg-gray-300" />
+
+                      <div className="flex items-center gap-2 text-sm">
+                        <span className="font-semibold text-gray-800">
+                          ⏱️ Time
+                        </span>
+                        <span>{format(new Date(), "haaa")}</span>
+                      </div>
+                    </div>
+                  )}
+                </div>
+
                 {filteredBeaches.length === 0 ? (
                   <div className="text-center py-8">
                     <p className="text-[var(--color-text-primary)] text-left max-w-[34ch] font-primary">
@@ -805,126 +856,13 @@ export default function BeachContainer({
                   </div>
                 ) : (
                   <>
-                    {/* Forecast Widget */}
-                    <div data-forecast-widget>
-                      {isLoading ? (
-                        <RandomLoader isLoading={isLoading} />
-                      ) : windError ? (
-                        <div className="mb-6 p-4 bg-red-50 border border-red-200 rounded-lg">
-                          <p className="text-red-800 font-primary mb-2">
-                            Error loading forecast data. Please try again later.
-                          </p>
-                        </div>
-                      ) : !windData ? (
-                        <div className="p-4 bg-yellow-50 border border-yellow-200 rounded-lg">
-                          <p className="text-yellow-800 font-primary">
-                            No forecast data available for {selectedRegion}.
-                            Please try again later.
-                          </p>
-                        </div>
-                      ) : (
-                        <div className="space-y-6">
-                          <h3 className="text-[21px] heading-6 text-gray-800 font-primary">
-                            Surf Forecast
-                          </h3>
-
-                          <div className="grid grid-cols-2 gap-4">
-                            {/* Wind Data */}
-                            <div className="bg-gray-50 p-4 rounded-lg border border-gray-100 aspect-square flex flex-col">
-                              <label className="text-sm text-gray-500 uppercase tracking-wide mb-2 font-primary">
-                                Wind
-                              </label>
-                              <div className="flex-1 flex flex-col items-center justify-center">
-                                <div className="space-y-2 text-center">
-                                  <span className="text-xl font-semibold text-gray-800 font-primary">
-                                    {windData.windDirection}
-                                  </span>
-                                  <span className="block text-sm text-gray-600 font-primary">
-                                    {windData.windSpeed} km/h
-                                  </span>
-                                </div>
-                              </div>
-                            </div>
-
-                            {/* Swell Height */}
-                            <div className="bg-gray-50 p-4 rounded-lg border border-gray-100 aspect-square flex flex-col">
-                              <label className="text-sm text-gray-500 uppercase tracking-wide mb-2 font-primary">
-                                Swell Height
-                              </label>
-                              <div className="flex-1 flex flex-col items-center justify-center">
-                                <span className="text-xl font-semibold text-gray-800 font-primary">
-                                  {windData.swellHeight}m
-                                </span>
-                              </div>
-                            </div>
-
-                            {/* Swell Period */}
-                            <div className="bg-gray-50 p-4 rounded-lg border border-gray-100 aspect-square flex flex-col">
-                              <label className="text-sm text-gray-500 uppercase tracking-wide mb-2 font-primary">
-                                Swell Period
-                              </label>
-                              <div className="flex-1 flex flex-col items-center justify-center">
-                                <span className="text-xl font-semibold text-gray-800 font-primary">
-                                  {windData.swellPeriod}s
-                                </span>
-                              </div>
-                            </div>
-
-                            {/* Swell Direction */}
-                            <div className="bg-gray-50 p-4 rounded-lg border border-gray-100 aspect-square flex flex-col">
-                              <label className="text-sm text-gray-500 uppercase tracking-wide mb-2 font-primary">
-                                Swell Direction
-                              </label>
-                              <div className="flex-1 flex flex-col items-center justify-center">
-                                <div className="space-y-2 text-center">
-                                  <span className="text-xl font-semibold text-gray-800 font-primary">
-                                    {windData.swellDirection}°
-                                  </span>
-                                  <span className="block text-sm text-gray-600 font-primary">
-                                    {degreesToCardinal(windData.swellDirection)}
-                                  </span>
-                                </div>
-                              </div>
-                            </div>
-                          </div>
-                        </div>
-                      )}
-                    </div>
-
                     {/* Forecast Source Toggle */}
                     <div className="flex items-center justify-between mb-6">
                       <h3 className="text-[21px] heading-6 text-gray-800 font-primary">
-                        Today's Forecast
+                        Breaks
                       </h3>
                       <div className="flex items-center gap-2">
                         {/* Source Toggle Buttons */}
-                        <div className="flex rounded-[21px] bg-gray-100 p-1">
-                          <button
-                            onClick={() => setForecastSource("A")}
-                            className={cn(
-                              "px-3 py-1 text-sm font-primary rounded-[16px] transition-colors",
-                              forecastSource === "A"
-                                ? "bg-white text-black shadow-sm"
-                                : "text-gray-600 hover:text-gray-800"
-                            )}
-                          >
-                            Source A
-                          </button>
-                          <button
-                            onClick={() => setForecastSource("B")}
-                            className={cn(
-                              "px-3 py-1 text-sm font-primary rounded-[16px] transition-colors",
-                              forecastSource === "B"
-                                ? "bg-white text-black shadow-sm"
-                                : "text-gray-600 hover:text-gray-800"
-                            )}
-                          >
-                            Source B
-                          </button>
-                        </div>
-                        <div className="font-primary text-black bg-gray-100 px-3 py-1 rounded-[21px] text-sm">
-                          8AM
-                        </div>
                       </div>
                     </div>
 
@@ -1055,30 +993,7 @@ export default function BeachContainer({
                 </h3>
                 <div className="flex items-center gap-2">
                   {/* Source Toggle Buttons */}
-                  <div className="flex rounded-[21px] bg-gray-100 p-1">
-                    <button
-                      onClick={() => setForecastSource("A")}
-                      className={cn(
-                        "px-3 py-1 text-sm font-primary rounded-[16px] transition-colors",
-                        forecastSource === "A"
-                          ? "bg-white text-black shadow-sm"
-                          : "text-gray-600 hover:text-gray-800"
-                      )}
-                    >
-                      Source A
-                    </button>
-                    <button
-                      onClick={() => setForecastSource("B")}
-                      className={cn(
-                        "px-3 py-1 text-sm font-primary rounded-[16px] transition-colors",
-                        forecastSource === "B"
-                          ? "bg-white text-black shadow-sm"
-                          : "text-gray-600 hover:text-gray-800"
-                      )}
-                    >
-                      Source B
-                    </button>
-                  </div>
+                  <div className="flex rounded-[21px] bg-gray-100 p-1"></div>
                   <div className="font-primary text-black bg-gray-100 px-3 py-1 rounded-[21px] text-sm">
                     8AM
                   </div>
@@ -1111,10 +1026,12 @@ export default function BeachContainer({
                       <div className="flex-1 flex flex-col items-center justify-center">
                         <div className="space-y-2 text-center">
                           <span className="text-xl font-semibold text-gray-800 font-primary">
-                            {windData.windDirection || "N/A"}
+                            {degreesToCardinal(
+                              parseFloat(windData.windDirection)
+                            ) || "N/A"}
                           </span>
                           <span className="block text-sm text-gray-600 font-primary">
-                            {windData.windSpeed || "N/A"} km/h
+                            {windData.windSpeed || "N/A"} kts
                           </span>
                         </div>
                       </div>

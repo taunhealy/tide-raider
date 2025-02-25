@@ -93,7 +93,6 @@ export interface Beach {
     currentAds?: AdSlot[];
   };
   coffeeShop?: {
-    url: string;
     name: string;
   }[];
   hasSharkAlert?: boolean;
@@ -174,7 +173,7 @@ export const beachData: Beach[] = [
       },
     ],
     profileImage: "/images/profile/hero-cover.jpg", // Removed /public prefix
-    coffeeShop: [{ url: "Harvest Café, Muizenberg", name: "Harvest Café" }],
+    coffeeShop: [{ name: "Harvest Café, Muizenberg" }],
   },
   {
     id: "long-beach",
@@ -9161,8 +9160,8 @@ export const beachData: Beach[] = [
     },
     videos: [
       {
-        url: "https://www.youtube.com/watch?v=KwWuEU07Jhs",
-        title: "SURFING PERFECT ULUWATU",
+        url: "https://www.youtube.com/watch?v=dcPAxBJO6iY&pp=ygUUVWx1d2F0dSBCYWxpIHN1cmZpbmc%3D",
+        title: "The Reality Of Surfing Uluwatu, Bali",
         platform: "youtube",
       },
     ],
@@ -9358,7 +9357,7 @@ export const beachData: Beach[] = [
     description:
       "Exposed reef and point break rated 4/5, renowned for very consistent surf conditions. Features a classic left-hand point break that thrives with Southwest groundswells and Southeast offshore winds. Prime conditions during May-October dry season. Receives clean, powerful groundswells that create long, rideable walls. Best performance at high tide. Part of The Bukit's legendary reef system. Popular spot that maintains good wave access despite crowds. Exercise caution around submerged reef structures.",
     difficulty: "Advanced",
-    waveType: "Reef and Point Break",
+    waveType: "Reef Break",
     swellSize: {
       min: 1.5,
       max: 5.5,
@@ -9414,6 +9413,11 @@ export const beachData: Beach[] = [
       summer: 30,
       winter: 27,
     },
+    coffeeShop: [
+      {
+        name: "The Great White House", // Local cafe with ocean views
+      },
+    ],
     hazards: ["Rocks", "Shallow reef", "Variable crowds"],
     crimeLevel: "Low",
     sharkAttack: {
@@ -9426,8 +9430,8 @@ export const beachData: Beach[] = [
     },
     videos: [
       {
-        url: "https://www.youtube.com/watch?v=XYZ123", // Sample video link
-        title: "Surfing Nyang-Nyang Right Handers",
+        url: "https://www.youtube.com/watch?v=xDAchHyRX8k&ab_channel=Surfind", // Sample video link
+        title: "Kelly Slater surf at Nyang-Nyang, Surfing Bali",
         platform: "youtube",
       },
     ],
@@ -9583,7 +9587,7 @@ export const beachData: Beach[] = [
       cardinal: "SSW",
     },
     bestSeasons: ["summer"], // Nov-Apr (Wet Season)
-    optimalTide: "Mid (falling)",
+    optimalTide: "Mid",
     description:
       "Exposed reef break rated 4/5, offering consistent left and right-hand waves during wet season. Thrives with South-southwest groundswells and Westerly offshore winds. Best conditions November-April with powerful swells creating peaky reef breaks. Performs best on a falling mid tide. Attracts experienced surfers despite challenging conditions. Exercise caution with strong rips and submerged rocks.",
     difficulty: "Intermediate",
@@ -9612,11 +9616,114 @@ export const beachData: Beach[] = [
     },
     videos: [
       {
-        url: "https://www.youtube.com/watch?v=ABC123",
-        title: "Nusa Dua Reef Break Session",
+        url: "https://www.youtube.com/watch?v=pll3RHu7dRk&ab_channel=SurfRawFiles",
+        title: "NusaDua Left - Bali - RAWFILES - 17/FEB/2021",
         platform: "youtube",
       },
     ],
+  },
+  {
+    id: "tandjung-lefts",
+    name: "Tandjung-Lefts",
+    continent: "Asia",
+    country: "Indonesia",
+    region: "Bali",
+    location: "Sanur",
+    distanceFromCT: 8900,
+    optimalWindDirections: ["W"],
+    optimalSwellDirections: {
+      min: 180,
+      max: 195,
+      cardinal: "S",
+    },
+    bestSeasons: ["winter"],
+    optimalTide: "Mid",
+    description:
+      "Reasonably exposed reef break in Sanur offering left-hand waves. Best during wet season (Nov-Apr) with South swells and West offshore winds. Works best on rising mid tide. Watch for submerged rocks. Can get crowded despite moderate rating.",
+    difficulty: "Intermediate",
+    waveType: "Reef Break",
+    swellSize: {
+      min: 1.2,
+      max: 3.5,
+    },
+    idealSwellPeriod: {
+      min: 12,
+      max: 16,
+    },
+    waterTemp: {
+      summer: 30,
+      winter: 27,
+    },
+    hazards: ["Submerged rocks", "Crowds"],
+    crimeLevel: "Low",
+    sharkAttack: {
+      hasAttack: false,
+    },
+    image: "",
+    coffeeShop: [
+      {
+        name: "Buddha Cafe Sanur",
+      },
+    ],
+    coordinates: {
+      lat: -8.701,
+      lng: 115.2626,
+    },
+  },
+  {
+    id: "tandjungs-rights",
+    name: "Tandjungs-Rights",
+    continent: "Asia",
+    country: "Indonesia",
+    region: "Bali",
+    location: "Sanur",
+    distanceFromCT: 8900,
+    optimalWindDirections: ["W"],
+    optimalSwellDirections: {
+      min: 180,
+      max: 195,
+      cardinal: "S",
+    },
+    bestSeasons: ["winter"],
+    optimalTide: "All",
+    description:
+      "Fairly exposed reef break with very consistent right-hand waves. Best during wet season (Nov-Apr) with South groundswells and West offshore winds. Works at all tide stages. Rocky bottom and occasional crowds require attention.",
+    difficulty: "Intermediate",
+    waveType: "Reef Break",
+    swellSize: {
+      min: 1.2,
+      max: 3.5,
+    },
+    idealSwellPeriod: {
+      min: 12,
+      max: 16,
+    },
+    waterTemp: {
+      summer: 30,
+      winter: 27,
+    },
+    hazards: ["Rocks", "Crowds"],
+    crimeLevel: "Low",
+    sharkAttack: {
+      hasAttack: false,
+    },
+    image: "",
+    videos: [
+      {
+        url: "https://www.youtube.com/watch?v=xRa71kkL4xc&ab_channel=DanHarmon",
+        title: "Complete Surfing Guide to Indonesia",
+        platform: "youtube",
+      },
+    ],
+    coffeeShop: [
+      {
+        name: "Salt Cafe Sanur",
+      },
+    ],
+    coordinates: {
+      lat: -8.7025, // Slightly south of Tandjung-Lefts
+      lng: 115.2631,
+    },
   },
 ];
 

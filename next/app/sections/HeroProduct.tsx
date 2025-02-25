@@ -4,7 +4,6 @@ import Image from "next/image";
 import { useState, useEffect, useRef, useMemo } from "react";
 import { beachData } from "../types/beaches";
 import {
-  formatConditionsResponse,
   isBeachSuitable,
   getScoreDisplay,
   getConditionReasons,
@@ -16,7 +15,7 @@ import {
   getDirectionEmoji,
 } from "@/app/lib/forecastUtils";
 import gsap from "gsap";
-import { useQuery, useQueries } from "@tanstack/react-query";
+import { useQuery } from "@tanstack/react-query";
 
 const FEATURED_BEACHES = [
   "jeffreys-bay",
@@ -36,62 +35,71 @@ export default function HeroProduct() {
   const beaches = beachData.filter((beach) =>
     FEATURED_BEACHES.includes(beach.id)
   );
+  const currentBeach = beaches.find((b) => b.id === selectedBeachId);
 
   // Get all unique regions from featured beaches
   const regions = [...new Set(beaches.map((b) => b.region))];
+  const initialRegion = regions[0];
 
-  // Add error handling for data fetching
-  const handleError = (error: any) => {
-    console.error("Error fetching surf conditions:", error);
-    // You could set an error state here if needed
-  };
-
-  // Modify the queries to handle rate limiting
-  const regionQueries = useQueries({
-    queries: regions.map((region) => ({
-      queryKey: ["surf-conditions", region],
-      queryFn: async () => {
-        try {
-          const res = await fetch(
-            `/api/surf-conditions?region=${encodeURIComponent(region)}`
-          );
-          if (res.status === 429) {
-            // Wait and retry once if rate limited
-            await new Promise((resolve) => setTimeout(resolve, 2000));
-            const retryRes = await fetch(
-              `/api/surf-conditions?region=${encodeURIComponent(region)}`
-            );
-            if (!retryRes.ok)
-              throw new Error(`HTTP error! status: ${retryRes.status}`);
-            return retryRes.json();
-          }
-          if (!res.ok) throw new Error(`HTTP error! status: ${res.status}`);
-          return res.json();
-        } catch (error) {
-          console.error("Error fetching surf conditions:", error);
-          return null;
-        }
-      },
-      staleTime: 60 * 1000 * 5, // 5 minutes
-      retry: 1,
-      retryDelay: 2000,
-    })),
+  // Fetch only the initial region's data
+  const { data: initialRegionData, isLoading: isInitialLoading } = useQuery({
+    queryKey: ["surf-conditions", initialRegion],
+    queryFn: async () => {
+      try {
+        const res = await fetch(
+          `/api/surf-conditions?region=${encodeURIComponent(initialRegion)}`
+        );
+        if (!res.ok) throw new Error(`HTTP error! status: ${res.status}`);
+        return res.json();
+      } catch (error) {
+        console.error("Error fetching surf conditions:", error);
+        return null;
+      }
+    },
+    staleTime: 60 * 1000 * 5, // 5 minutes
   });
 
-  // Merge data from all regions
+  // Fetch data for other regions when needed
+  const { data: selectedRegionData, isLoading: isSelectedLoading } = useQuery({
+    queryKey: ["surf-conditions", currentBeach?.region],
+    queryFn: async () => {
+      if (!currentBeach?.region) return null;
+      try {
+        const res = await fetch(
+          `/api/surf-conditions?region=${encodeURIComponent(currentBeach.region)}`
+        );
+        if (!res.ok) throw new Error(`HTTP error! status: ${res.status}`);
+        return res.json();
+      } catch (error) {
+        console.error("Error fetching surf conditions:", error);
+        return null;
+      }
+    },
+    enabled: !!currentBeach?.region,
+    staleTime: 60 * 1000 * 5, // 5 minutes
+    refetchOnWindowFocus: false,
+    refetchOnMount: false,
+  });
+
+  // Merge data from regions
   const surfData = useMemo(() => {
     return beaches.reduce(
       (acc, beach) => {
-        const regionQuery = regionQueries.find(
-          (q) => q.data?.region === beach.region
-        );
-        // Store both region and forecast data
-        acc[beach.id] = regionQuery?.data || null;
+        if (beach.region === initialRegion) {
+          acc[beach.id] = initialRegionData || null;
+        } else if (beach.region === currentBeach?.region) {
+          acc[beach.id] = selectedRegionData || null;
+        } else {
+          acc[beach.id] = null;
+        }
         return acc;
       },
       {} as Record<string, WindData | null>
     );
-  }, [regionQueries]);
+  }, [beaches, initialRegionData, selectedRegionData, currentBeach?.region]);
+
+  // Update loading state
+  const isLoading = isInitialLoading || isSelectedLoading;
 
   const imageRef = useRef(null);
 
@@ -140,11 +148,7 @@ export default function HeroProduct() {
   };
 
   // Find current beach data
-  const currentBeach = beaches.find((b) => b.id === selectedBeachId);
   const currentBeachData = surfData[selectedBeachId];
-
-  // Loading state (only show for initial load)
-  const isLoading = regionQueries.some((q) => q.isLoading && !q.data);
 
   return (
     <section className="pt-[54px] pb-[81px] md:pt-[54px] md:pb-[121.51px] px-4 md:px-[121.51px] bg-[var(--color-bg-primary)]">
@@ -451,60 +455,53 @@ export default function HeroProduct() {
                                   <p className="flex items-center gap-2 text-white/90 font-primary">
                                     <span
                                       className="inline-flex"
-                                      title={`Wind Speed: ${surfData?.[selectedBeachId].wind?.speed < 5 ? "Light" : surfData?.[selectedBeachId].wind?.speed < 12 ? "Moderate" : surfData?.[selectedBeachId].wind?.speed < 20 ? "Strong" : "Very Strong"}`}
+                                      title={`Wind Speed: ${surfData?.[selectedBeachId]?.windSpeed < 5 ? "Light" : surfData?.[selectedBeachId]?.windSpeed < 12 ? "Moderate" : surfData?.[selectedBeachId]?.windSpeed < 20 ? "Strong" : "Very Strong"}`}
                                     >
                                       {getWindEmoji(
-                                        surfData?.[selectedBeachId].wind?.speed
+                                        surfData?.[selectedBeachId]?.windSpeed
                                       )}
                                     </span>
                                     <span className="font-medium font-primary">
                                       {
-                                        surfData?.[selectedBeachId].wind
-                                          ?.direction
+                                        surfData?.[selectedBeachId]
+                                          ?.windDirection
                                       }{" "}
-                                      @{" "}
-                                      {surfData?.[selectedBeachId].wind?.speed}
-                                      km/h
+                                      @ {surfData?.[selectedBeachId]?.windSpeed}
+                                      kts
                                     </span>
                                   </p>
                                   <p className="flex items-center gap-2 text-white/90 font-primary">
                                     <span
                                       className="inline-flex font-primary"
-                                      title={`Swell Height: ${surfData?.[selectedBeachId].swell?.height < 0.5 ? "Flat" : surfData?.[selectedBeachId].swell?.height < 1 ? "Small" : surfData?.[selectedBeachId].swell?.height < 2 ? "Medium" : "Large"}`}
+                                      title={`Swell Height: ${surfData?.[selectedBeachId]?.swellHeight < 0.5 ? "Flat" : surfData?.[selectedBeachId]?.swellHeight < 1 ? "Small" : surfData?.[selectedBeachId]?.swellHeight < 2 ? "Medium" : "Large"}`}
                                     >
                                       {getSwellEmoji(
-                                        surfData?.[selectedBeachId].swell
-                                          ?.height
+                                        surfData?.[selectedBeachId]?.swellHeight
                                       )}
                                     </span>
                                     <span className="font-medium font-primary">
-                                      {
-                                        surfData?.[selectedBeachId].swell
-                                          ?.height
-                                      }
+                                      {surfData?.[selectedBeachId]?.swellHeight}
                                       m @{" "}
-                                      {
-                                        surfData?.[selectedBeachId].swell
-                                          ?.period
-                                      }
+                                      {surfData?.[selectedBeachId]?.swellPeriod}
                                       s
                                     </span>
                                   </p>
                                   <p className="flex items-center gap-2 text-white/90 font-primary">
                                     <span
                                       className="inline-flex font-primary"
-                                      title={`Swell Direction: ${surfData?.[selectedBeachId].swell?.direction}`}
+                                      title={`Swell Direction: ${surfData?.[selectedBeachId]?.swellDirection}`}
                                     >
                                       {getDirectionEmoji(
-                                        surfData?.[selectedBeachId].swell
-                                          ?.direction || 0
+                                        surfData?.[selectedBeachId]
+                                          ?.swellDirection || 0
                                       )}
                                     </span>
                                     <span className="font-medium font-primary">
                                       {
-                                        surfData?.[selectedBeachId].swell
-                                          ?.direction
+                                        surfData?.[selectedBeachId]
+                                          ?.swellDirection
                                       }
+                                      °
                                     </span>
                                   </p>
                                 </div>

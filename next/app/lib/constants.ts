@@ -133,6 +133,11 @@ export const VALID_REGIONS = [
   "Madagascar South",
   "Madagascar East",
   "Madagascar West",
+  "Bali",
+  "Gabon Coast",
+  "Liberia",
+  "Mozambique",
+  "Zambia",
 ] as const;
 
 export type ValidRegion = (typeof VALID_REGIONS)[number];

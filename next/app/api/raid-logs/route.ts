@@ -65,47 +65,27 @@ interface Forecast {
 }
 
 // Add this helper function at the top
-async function getForecast(date: string, region: string) {
-  const queryDate = new Date(date);
-  queryDate.setUTCHours(0, 0, 0, 0);
-
-  // Try source A first
-  const forecastA = await prisma.forecastA.findFirst({
+async function getForecast(date: Date, region: string) {
+  return prisma.forecastA.findFirst({
     where: {
       date: {
-        gte: queryDate,
-        lt: new Date(queryDate.getTime() + 24 * 60 * 60 * 1000),
+        gte: new Date(date.setUTCHours(0, 0, 0, 0)),
+        lt: new Date(date.setUTCDate(date.getUTCDate() + 1)),
       },
       region: region,
     },
     select: {
-      forecast: true,
+      // Remove the 'forecast' field from selection
+      windSpeed: true,
+      windDirection: true,
+      swellHeight: true,
+      swellPeriod: true,
+      swellDirection: true,
     },
     orderBy: {
       updatedAt: "desc",
     },
   });
-
-  if (forecastA) return forecastA.forecast;
-
-  // Try source B as fallback
-  const forecastB = await prisma.forecastB.findFirst({
-    where: {
-      date: {
-        gte: queryDate,
-        lt: new Date(queryDate.getTime() + 24 * 60 * 60 * 1000),
-      },
-      region: region,
-    },
-    select: {
-      forecast: true,
-    },
-    orderBy: {
-      updatedAt: "desc",
-    },
-  });
-
-  return forecastB?.forecast || null;
 }
 
 // Update the GET endpoint to handle forecast requests
@@ -211,12 +191,15 @@ export async function POST(request: Request) {
     });
 
     // Fetch forecast data
-    const forecast = await getForecast(data.date, data.region);
+    const forecast = await getForecast(
+      new Date(data.date.split("T")[0]),
+      data.region
+    );
 
     const entry = await prisma.logEntry.create({
       data: {
         ...data,
-        date: new Date(data.date),
+        date: new Date(data.date.split("T")[0]),
         userId: session.user.id,
         surferName: user?.name || session.user.name || "Anonymous Surfer", // Use database name, fallback to session name
         forecast: forecast,

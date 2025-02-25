@@ -2,10 +2,11 @@ import { prisma } from "@/app/lib/prisma";
 import { beachData } from "@/app/types/beaches";
 import { isBeachSuitable } from "./surfUtils";
 import { randomUUID } from "crypto";
-import type { WindData } from "@/app/types/wind";
+import type { WindData, WindDataProp } from "@/app/types/wind";
+import { NextResponse } from "next/server";
 
 export async function storeGoodBeachRatings(
-  conditions: WindData,
+  forecast: any,
   region: string,
   date: Date
 ) {
@@ -13,19 +14,41 @@ export async function storeGoodBeachRatings(
     console.log(
       `🏖️ Rating storage started for ${region} at ${new Date().toISOString()}`
     );
+    console.log("Forecast data:", forecast);
 
     const regionBeaches = beachData.filter((b) => b.region === region);
+    console.log(`📍 Found ${regionBeaches.length} beaches in ${region}`);
+
     if (regionBeaches.length === 0) {
       console.error(`❌ No beaches found for region: ${region}`);
       return 0;
     }
 
+    // Convert forecast to expected WindDataProp format
+    const conditions: WindDataProp = {
+      date,
+      region,
+      windSpeed: forecast.windSpeed,
+      windDirection: Number(forecast.windDirection),
+      swellHeight: forecast.swellHeight,
+      swellDirection: Number(forecast.swellDirection),
+      swellPeriod: forecast.swellPeriod,
+    };
+
+    console.log("Processed conditions:", conditions);
+
     const ratingsToStore = regionBeaches
-      .map((beach) => ({
-        beach,
-        ...isBeachSuitable(beach, conditions),
-      }))
-      .filter(({ suitable }) => suitable);
+      .map((beach) => {
+        const { score, suitable } = isBeachSuitable(beach, conditions);
+        console.log(
+          `Beach ${beach.name}: score=${score}, suitable=${suitable}`
+        );
+        return { beach, score, suitable };
+      })
+      .filter(({ score }) => score >= 4);
+
+    console.log(`🌊 Found ${ratingsToStore.length} beaches with score >= 4`);
+    console.log("Ratings to store:", ratingsToStore);
 
     if (ratingsToStore.length === 0) {
       console.log(`📊 No suitable beaches found in ${region}`);
@@ -39,7 +62,7 @@ export async function storeGoodBeachRatings(
         beachId: beach.id,
         region: beach.region,
         score,
-        conditions,
+        conditions: conditions,
       })),
       skipDuplicates: true,
     });
@@ -117,4 +140,68 @@ export async function getRegionScores(
   }
 
   return scores;
+}
+
+export async function GET(request: Request) {
+  const { searchParams } = new URL(request.url);
+  const region = searchParams.get("region");
+  const dateStr = searchParams.get("date");
+
+  if (!region || !dateStr) {
+    return NextResponse.json(
+      { error: "Missing required parameters" },
+      { status: 400 }
+    );
+  }
+
+  try {
+    // First check for existing ratings
+    const existingCount = await prisma.beachGoodRating.count({
+      where: {
+        region: region,
+        date: new Date(dateStr),
+        score: {
+          gte: 4,
+        },
+      },
+    });
+
+    if (existingCount > 0) {
+      return NextResponse.json({ count: existingCount });
+    }
+
+    // If no ratings exist, get conditions and store new ratings
+    const conditions = await prisma.forecastA.findFirst({
+      where: {
+        region: region,
+        date: new Date(dateStr),
+      },
+    });
+
+    if (conditions) {
+      // Store new ratings
+      await storeGoodBeachRatings(conditions, region, conditions.date);
+
+      // Get fresh count
+      const newCount = await prisma.beachGoodRating.count({
+        where: {
+          region: region,
+          date: conditions.date,
+          score: {
+            gte: 4,
+          },
+        },
+      });
+
+      return NextResponse.json({ count: newCount });
+    }
+
+    return NextResponse.json({ count: 0 });
+  } catch (error) {
+    console.error(`Error getting beach count:`, error);
+    return NextResponse.json(
+      { error: "Failed to get beach count" },
+      { status: 500 }
+    );
+  }
 }

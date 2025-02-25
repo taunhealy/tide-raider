@@ -177,9 +177,9 @@ export const RaidLogsComponent: React.FC<RaidLogsComponentProps> = ({
   }, [router]);
 
   return (
-    <div className="min-h-screen bg-[var(--color-bg-secondary)] p-3 sm:p-4 md:p-6 lg:p-9 font-primary relative">
-      <div className="max-w-[1600px] mx-auto">
-        <div className="bg-white rounded-lg shadow-sm p-3 sm:p-4 md:p-6 lg:p-9">
+    <div className="bg-[var(--color-bg-secondary)] p-3 sm:p-4 md:p-6 lg:p-9 font-primary relative">
+      <div className="max-w-[1800px] mx-auto px-0 md:px-4">
+        <div className="bg-white rounded-lg shadow-sm p-3 sm:px-4 md:px-6 lg:px-8">
           <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 sm:gap-4 mb-4 sm:mb-6 w-full">
             <div className="w-full border-b border-gray-200 pb-3 sm:border-0 sm:pb-0">
               <h2 className="text-xl sm:text-2xl font-semibold font-primary">
@@ -228,13 +228,15 @@ export const RaidLogsComponent: React.FC<RaidLogsComponentProps> = ({
               </p>
             </div>
           ) : (
-            <RaidLogTable
-              entries={filteredEntries}
-              isSubscribed={session?.user?.isSubscribed}
-              isLoading={isLoading}
-              showPrivateOnly={isPrivate}
-              onBeachClick={handleBeachClick}
-            />
+            <div className="overflow-x-auto">
+              <RaidLogTable
+                entries={filteredEntries}
+                isSubscribed={session?.user?.isSubscribed}
+                isLoading={isLoading}
+                showPrivateOnly={isPrivate}
+                onBeachClick={handleBeachClick}
+              />
+            </div>
           )}
         </div>
       </div>

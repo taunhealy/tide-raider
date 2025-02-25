@@ -21,6 +21,7 @@ interface MediaGridProps {
   videos?: { url: string; title: string; platform: "youtube" | "vimeo" }[];
   beach: Beach;
   sessions?: LogEntry[];
+  name?: string;
 }
 
 function MediaGridBase({ videos, beach, sessions = [] }: MediaGridProps) {
@@ -72,7 +73,7 @@ function MediaGridBase({ videos, beach, sessions = [] }: MediaGridProps) {
                             recentSession.forecast.entries[0].wind.speed
                           )}{" "}
                           {recentSession.forecast.entries[0].wind.direction} @{" "}
-                          {recentSession.forecast.entries[0].wind.speed}km/h
+                          {recentSession.forecast.entries[0].wind.speed}kts
                         </p>
                         {recentSession.forecast.entries[0].swell && (
                           <p>
@@ -136,7 +137,7 @@ function MediaGridBase({ videos, beach, sessions = [] }: MediaGridProps) {
                           recentSession.forecast.entries[0].wind.speed
                         )}{" "}
                         {recentSession.forecast.entries[0].wind.direction} @{" "}
-                        {recentSession.forecast.entries[0].wind.speed}km/h
+                        {recentSession.forecast.entries[0].wind.speed}kts
                       </p>
                       {recentSession.forecast.entries[0].swell && (
                         <p>
@@ -181,7 +182,9 @@ function MediaGridBase({ videos, beach, sessions = [] }: MediaGridProps) {
             return (
               <a
                 key={`coffee-${index}`}
-                href={`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent("name" in item ? item.url : "")}`}
+                href={`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(
+                  `${item.name}, ${beach.region}`
+                )}`}
                 target="_blank"
                 rel="noopener noreferrer"
                 className="relative aspect-video rounded-lg overflow-hidden bg-gray-100 flex items-center justify-center group"
@@ -210,7 +213,7 @@ function MediaGridBase({ videos, beach, sessions = [] }: MediaGridProps) {
                   </div>
 
                   <h4 className="text-sm sm:text-base text-gray-700 font-semibold group-hover:text-gray-900 transition-colors text-center">
-                    {"name" in item ? item.name : "View on Maps"}
+                    {item.name}
                   </h4>
                   <span>
                     <h6 className="text-sm sm:text-base">⚡☕⚡</h6>

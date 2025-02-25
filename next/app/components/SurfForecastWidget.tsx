@@ -3,21 +3,21 @@ import { WindData } from "@/app/types/wind";
 import { useState } from "react";
 
 interface SurfForecastWidgetProps {
-  forecasts: {
-    [date: string]: WindData;
-  };
+  beachId: string;
+  date: string;
+  forecast: any;
   selectedDate?: string;
 }
 
 export default function SurfForecastWidget({
-  forecasts,
+  forecast,
   selectedDate,
 }: SurfForecastWidgetProps) {
   const [activeDate, setActiveDate] = useState(
-    selectedDate || Object.keys(forecasts)[0]
+    selectedDate || Object.keys(forecast)[0]
   );
 
-  const dateOptions = Object.keys(forecasts).sort();
+  const dateOptions = Object.keys(forecast).sort();
   const currentDateIndex = dateOptions.indexOf(activeDate);
 
   const handlePrevDate = () => {
@@ -32,14 +32,20 @@ export default function SurfForecastWidget({
     }
   };
 
-  const forecast = forecasts[activeDate];
-
   if (!forecast) {
     return <div>Sorry, no forecast data rendered. Please refresh.</div>;
   }
 
   const formatDate = (dateStr: string) => {
-    const date = new Date(dateStr);
+    // Split ISO string to remove time portion
+    const [datePart] = dateStr.split("T");
+    const date = new Date(datePart);
+
+    if (isNaN(date.getTime())) {
+      console.error("Invalid date value:", dateStr);
+      return "Invalid date";
+    }
+
     return new Intl.DateTimeFormat("en-US", {
       weekday: "short",
       month: "short",
@@ -74,10 +80,12 @@ export default function SurfForecastWidget({
             <span className="text-gray-600 font-primary">Wind</span>
             <div className="text-right">
               <span className="font-primary text-gray-900">
-                {forecast.windDirection}
+                {forecast.windDirection
+                  ? degreesToCardinal(forecast.windDirection)
+                  : "N/A"}
               </span>
               <div className="text-sm font-primary text-gray-700">
-                {forecast.windSpeed ? `${forecast.windSpeed} km/h` : "N/A"}
+                {forecast.windSpeed} kts
               </div>
             </div>
           </div>
@@ -88,7 +96,7 @@ export default function SurfForecastWidget({
             <span className="text-gray-600 font-primary">Swell</span>
             <div className="text-right">
               <span className="font-primary text-gray-900">
-                {forecast.swellHeight ? `${forecast.swellHeight}m` : "N/A"}
+                {forecast.swellHeight}m
               </span>
               <div className="text-sm font-primary text-gray-700">
                 {forecast.swellPeriod

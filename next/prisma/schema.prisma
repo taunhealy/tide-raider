@@ -346,7 +346,7 @@ model ForecastA {
   createdAt      DateTime @default(now())
   updatedAt      DateTime @updatedAt
   windSpeed      Int      @default(0)
-  windDirection  String   @default("N/A")
+  windDirection  Float    @default(0)
   swellHeight    Float    @default(0)
   swellPeriod    Int      @default(0)
   swellDirection Float    @default(0)

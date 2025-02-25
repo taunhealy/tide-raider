@@ -4,7 +4,7 @@ export type WindData = {
   date: Date;
   region: string;
   windSpeed: number; // Matches ForecastA.windSpeed (Int)
-  windDirection: string; // Matches ForecastA.windDirection
+  windDirection: number; // Changed to number to match ForecastA.windDirection
   swellHeight: number; // Matches ForecastA.swellHeight (Float)
   swellPeriod: number; // Matches ForecastA.swellPeriod (Int)
   swellDirection: number; // Matches ForecastA.swellDirection (Float)

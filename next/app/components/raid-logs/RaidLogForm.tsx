@@ -401,7 +401,7 @@ export function RaidLogForm({
                       ) : (
                         <SurfForecastWidget
                           beachId={selectedBeach.id}
-                          date={selectedDate}
+                          date={new Date(selectedDate).getTime()}
                           forecast={forecast}
                         />
                       )}

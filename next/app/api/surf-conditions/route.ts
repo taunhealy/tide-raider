@@ -17,15 +17,6 @@ interface RegionScrapeConfig {
   region: string;
 }
 
-interface ScrapeResult {
-  region: string;
-  windDirection: string;
-  windSpeed: number;
-  swellHeight: number;
-  swellDirection: number;
-  swellPeriod: number;
-}
-
 function getTodayDate() {
   const date = new Date();
   // Set to start of day in UTC
@@ -156,7 +147,7 @@ async function getLatestConditions(forceRefresh = false, region: ValidRegion) {
 
   try {
     console.log("Attempting to scrape from:", regionConfig.sourceA.url);
-    const forecast = await scraperA(regionConfig.sourceA.url, region);
+    const forecast: WindData = await scraperA(regionConfig.sourceA.url, region);
 
     if (forecast) {
       // Strip time from date
@@ -263,7 +254,7 @@ interface SourceConfig {
   regions: {
     [key: string]: {
       url: string;
-      scraper: (html: string) => Promise<ScrapeResult>;
+      scraper: (html: string) => Promise<WindData>;
     };
   };
 }

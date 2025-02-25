@@ -276,9 +276,8 @@ export function getConditionReasons(
   const reasons = [];
 
   // Check wind direction
-  const hasGoodWind = beach.optimalWindDirections.includes(
-    windData.windDirection
-  );
+  const windCardinal = degreesToCardinal(windData.windDirection);
+  const hasGoodWind = beach.optimalWindDirections.includes(windCardinal);
   if (isGoodConditions ? hasGoodWind : !hasGoodWind) {
     reasons.push(
       isGoodConditions

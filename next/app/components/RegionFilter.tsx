@@ -105,30 +105,45 @@ const RegionFilter = memo(function RegionFilter({
   const { data: regionCount, isLoading: isCountLoading } = useQuery({
     queryKey: ["beachCount", selectedRegion],
     queryFn: async () => {
+      if (!selectedRegion) return 0;
+
       const today = new Date().toISOString().split("T")[0];
 
-      const response = await fetch(
-        `/api/beach-counts?region=${encodeURIComponent(selectedRegion)}&date=${today}`
-      );
+      try {
+        const response = await fetch(
+          `/api/beach-counts?region=${encodeURIComponent(selectedRegion)}&date=${today}`
+        );
 
-      if (!response.ok) {
-        throw new Error("Failed to fetch count");
+        if (!response.ok) {
+          throw new Error("Failed to fetch beach count");
+        }
+
+        const data = await response.json();
+
+        // If we get an explicit "no suitable beaches" message, return 0
+        if (data.message === "No suitable beaches found") {
+          return 0;
+        }
+
+        return data.count ?? 0;
+      } catch (error) {
+        console.error("Error fetching beach count:", error);
+        return 0;
       }
-
-      const data = await response.json();
-      return data.count;
     },
-    enabled: !!selectedRegion,
-    staleTime: 1000 * 60 * 5, // Cache for 5 minutes
-    gcTime: 1000 * 60 * 30, // Keep in cache for 30 minutes
-    refetchOnWindowFocus: false, // Prevent refetch on window focus
-    refetchOnMount: false, // Prevent refetch on component mount
-    refetchOnReconnect: false, // Prevent refetch on reconnect
+    // Add a shorter stale time since we know when the data is final
+    staleTime: 5000,
+    enabled: Boolean(selectedRegion),
   });
 
   useEffect(() => {
-    console.log(`Region count for ${selectedRegion}:`, regionCount);
-  }, [selectedRegion, regionCount]);
+    console.log({
+      selectedRegion,
+      regionCount,
+      isCountLoading,
+      queryEnabled: Boolean(selectedRegion),
+    });
+  }, [selectedRegion, regionCount, isCountLoading]);
 
   const handleSaveFilters = async () => {
     if (!session?.user) return;
@@ -215,7 +230,7 @@ const RegionFilter = memo(function RegionFilter({
             <div className="w-6 h-6 animate-pulse bg-[var(--color-brand-tertiary)]/20 rounded-full" />
           ) : (
             <span className="inline-flex items-center justify-center w-6 h-6 text-sm bg-white rounded-full text-black font-primary">
-              {regionCount ?? 0}
+              {regionCount}
             </span>
           ))}
       </button>

@@ -323,13 +323,29 @@ export async function scraperA(url: string, region: string): Promise<WindData> {
       ) {
         forecast = {
           windSpeed: parseInt(row.windSpeed || "0"),
-          windDirection: row.windDir?.replace("°", "") || "0",
+          windDirection: parseFloat(row.windDir?.replace("°", "") || "0"),
           swellHeight: parseFloat(row.waveHeight || "0"),
           swellPeriod: parseInt((row.wavePeriod || "0").replace(/\s+s$/, "")),
           swellDirection: parseFloat(row.swellDir?.replace("°", "") || "0"),
           date: today,
           region,
         };
+
+        // Add debug logging
+        console.log("Raw wind direction:", row.windDir);
+        console.log("Parsed forecast:", forecast);
+
+        if (!forecast) {
+          throw new Error("No forecast data found");
+        }
+
+        // Validate wind direction before returning
+        if (forecast.windDirection === 0 && row.windDir) {
+          console.warn(
+            "Warning: Wind direction parsed as 0 from non-empty value:",
+            row.windDir
+          );
+        }
       }
     });
 

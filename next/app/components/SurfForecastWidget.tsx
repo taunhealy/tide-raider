@@ -1,11 +1,10 @@
 import { degreesToCardinal } from "@/app/lib/surfUtils";
-import { WindData } from "@/app/types/wind";
+import { WindData, WeeklyForecast } from "@/app/types/wind";
 import { useState } from "react";
 
 interface SurfForecastWidgetProps {
   beachId: string;
-  date: string;
-  forecast: any;
+  forecast: WeeklyForecast;
   selectedDate?: string;
 }
 

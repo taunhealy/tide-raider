@@ -9,6 +9,7 @@ import { client } from "@/app/lib/sanity";
 import { pricingQuery } from "@/app/lib/queries";
 import { useEffect, useState } from "react";
 import { useSubscription } from "../context/SubscriptionContext";
+import { toast } from "sonner";
 
 function ImageSkeleton() {
   return (
@@ -36,7 +37,11 @@ export default function PricingPage() {
   const handleSubscribe = useHandleSubscribe();
   const [data, setData] = useState<PricingData | null>(null);
   const [imageLoading, setImageLoading] = useState(true);
-  const { isSubscribed, hasActiveTrial } = useSubscription();
+  const { isSubscribed, hasActiveTrial, trialStatus } = useSubscription();
+  const [loadingStates, setLoadingStates] = useState({
+    subscribe: false,
+    unsubscribe: false,
+  });
 
   useEffect(() => {
     const fetchData = async () => {
@@ -46,7 +51,17 @@ export default function PricingPage() {
     fetchData();
   }, []);
 
+  const handleSubscribeWithLoading = async () => {
+    setLoadingStates((prev) => ({ ...prev, subscribe: true }));
+    try {
+      await handleSubscribe();
+    } finally {
+      setLoadingStates((prev) => ({ ...prev, subscribe: false }));
+    }
+  };
+
   const handleUnsubscribe = async () => {
+    setLoadingStates((prev) => ({ ...prev, unsubscribe: true }));
     try {
       const response = await fetch("/api/subscriptions", {
         method: "POST",
@@ -63,8 +78,19 @@ export default function PricingPage() {
       window.location.reload();
     } catch (error) {
       console.error("Error unsubscribing:", error);
-      alert("Failed to unsubscribe. Please try again.");
+      toast.error("Failed to unsubscribe. Please try again.");
+    } finally {
+      setLoadingStates((prev) => ({ ...prev, unsubscribe: false }));
     }
+  };
+
+  const getButtonText = () => {
+    if (loadingStates.subscribe) return "Processing...";
+    if (loadingStates.unsubscribe) return "Cancelling...";
+    if (isSubscribed) return "Unsubscribe";
+    if (trialStatus === "active") return "Subscribe Now";
+    if (trialStatus === "ended") return "Subscribe Now";
+    return "Start Free Trial";
   };
 
   return (
@@ -131,14 +157,15 @@ export default function PricingPage() {
                     variant="outline"
                     className={cn("w-full font-primary")}
                     onClick={
-                      isSubscribed ? handleUnsubscribe : () => handleSubscribe()
+                      isSubscribed
+                        ? handleUnsubscribe
+                        : handleSubscribeWithLoading
+                    }
+                    disabled={
+                      loadingStates.subscribe || loadingStates.unsubscribe
                     }
                   >
-                    {isSubscribed
-                      ? "Unsubscribe"
-                      : hasActiveTrial
-                        ? "Subscribe Now"
-                        : "Start Free Trial"}
+                    {getButtonText()}
                   </Button>
                 </div>
               </div>
@@ -154,7 +181,7 @@ export default function PricingPage() {
                   className="object-cover opacity-70"
                   priority
                   placeholder="blur"
-                  blurDataURL="data:image/jpeg;base64,/9j/4AAQSkZJRgABAQAAAQABAAD/4gHYSUNDX1BST0ZJTEUAAQEAAAHIAAAAAAQwAABtbnRyUkdCIFhZWiAH4AABAAEAAAAAAABhY3NwAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAQAA9tYAAQAAAADTLQAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAlkZXNjAAAA8AAAACRyWFlaAAABFAAAABRnWFlaAAABKAAAABRiWFlaAAABPAAAABR3dHB0AAABUAAAABRyVFJDAAABZAAAAChnVFJDAAABZAAAAChiVFJDAAABZAAAAChjcHJ0AAABjAAAADxtbHVjAAAAAAAAAAEAAAAMZW5VUwAAAAgAAAAcAHMAUgBHAEJYWVogAAAAAAAAb6IAADj1AAADkFhZWiAAAAAAAABimQAAt4UAABjaWFlaIAAAAAAAACSgAAAPhAAAts9YWVogAAAAAAAA9tYAAQAAAADTLXBhcmEAAAAAAAQAAAACZmYAAPKnAAANWQAAE9AAAApbAAAAAAAAAABtbHVjAAAAAAAAAAEAAAAMZW5VUwAAACAAAAAcAEcAbwBvAGcAbABlACAASQBuAGMALgAgADIAMAAxADb/2wBDABQODxIPDRQSEBIXFRQdHx4eHRoaHSQrJiEkKic0Ly4vLy4vNDk2ODU4Ni8vQUFBQC8vRUVFRUVFRUVFRUVFRUX/2wBDAR0XFyAeIB4gHh4gIB4lICAgICUmJSAgICUvJSUlJSUlLyUlJSUlJSUlJSUlJSUlJSUlJSUlJSUlJSUlJSUlJSX/wAARCAAIAAoDASIAAhEBAxEB/8QAFQABAQAAAAAAAAAAAAAAAAAAAAb/xAAUEAEAAAAAAAAAAAAAAAAAAAAA/8QAFQEBAQAAAAAAAAAAAAAAAAAAAAX/xAAUEQEAAAAAAAAAAAAAAAAAAAAA/9oADAMBAAIRAxEAPwCdABmX/9k="
+                  blurDataURL="data:image/jpeg;base64,/9j/4AAQSkZJRgABAQAAAQABAAD/4gHYSUNDX1BST0ZJTEUAAQEAAAHIAAAAAAQwAABtbnRyUkdCIFhZWiAH4AABAAEAAAAAAABhY3NwAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAQAA9tYAAQAAAADTLQAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAlkZXNjAAAA8AAAACRyWFlaAAABFAAAABRnWFlaAAABKAAAABRiWFlaAAABPAAAABR3dHB0AAABUAAAABRyVFJDAAABZAAAAChnVFJDAAABZAAAAChiVFJDAAABZAAAAChjcHJ0AAABjAAAADxtbHVjAAAAAAAAAAEAAAAMZW5VUwAAAAgAAAAcAHMAUgBHAEJYWVogAAAAAAAAb6IAADj1AAADkFhZWiAAAAAAAABimQAAt4UAABjaWFlaIAAAAAAAACSgAAAPhAAAts9YWVogAAAAAAAA9tYAAQAAAADTLXBhcmEAAAAAAAQAAAACZmYAAPKnAAANWQAAE9AAAApbAAAAAAAAAABtbHVjAAAAAAAAAAEAAAAMZW5VUwAAACAAAAAcAEcAbwBvAGcAbABlACAASQBuAGMALgAgADIAMAAxADb/2wBDABQODxIPDRQSEBIXFRQdHx4eHRoaHSQrJiEkKic0Ly4vLy4vNDk2ODU4Ni8vQUFBQC8vRUVFRUVFRUVFRUVFRUX/2wBDAR0XFyAeIB4gHh4gIB4lICAgICUmJSAgICUvJSUlJSUlLyUlJSUlJSUlJSUlJSUlJSUlJSUlJSUlJSUlJSX/wAARCAAIAAoDASIAAhEBAxEB/8QAFQABAQAAAAAAAAAAAAAAAAAAAAb/xAAUEAEAAAAAAAAAAAAAAAAAAAAA/8QAFQEBAQAAAAAAAAAAAAAAAAAAAAX/xAAUEQEAAAAAAAAAAAAAAAAAAAAA/9oADAMBAAIRAxEAPwCdABmX/9k="
                 />
               </div>
             ) : (

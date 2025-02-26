@@ -16,8 +16,10 @@ import { groq } from "next-sanity";
 import { useSubscriptionDetails } from "../hooks/useSubscriptionDetails";
 import { formatDate } from "../lib/utils";
 import { useSubscriptionManagement } from "../hooks/useSubscriptionManagement";
+import { useRouter } from "next/navigation";
 
 export default function DashboardPage() {
+  const router = useRouter();
   const { data: session, update } = useSession();
   const { trialStatus, trialEndDate } = useSubscription();
   const [activeTab, setActiveTab] = useState<"account" | "billing">("account");
@@ -90,6 +92,21 @@ export default function DashboardPage() {
       }`);
     },
   });
+
+  // Add this useEffect to refresh data when subscription changes
+  useEffect(() => {
+    const refreshData = async () => {
+      await update(); // Update the session
+      queryClient.invalidateQueries({ queryKey: ["subscriptionDetails"] });
+      router.refresh(); // Refresh the page
+    };
+
+    // Set up event listener for subscription changes
+    const channel = new BroadcastChannel("subscription-update");
+    channel.onmessage = refreshData;
+
+    return () => channel.close();
+  }, [update, queryClient, router]);
 
   const handleUsernameUpdate = async () => {
     if (!username.trim()) {
@@ -255,6 +272,11 @@ export default function DashboardPage() {
                               Trial ends on:{" "}
                               {formatDate(subscriptionData.trial_ends_at)}
                             </>
+                          ) : subscriptionData.status === "cancelled" ? (
+                            <>
+                              Subscribed until:{" "}
+                              {formatDate(subscriptionData.ends_at)}
+                            </>
                           ) : (
                             <>
                               Next billing date:{" "}
@@ -266,7 +288,7 @@ export default function DashboardPage() {
                     </div>
 
                     <div className="flex flex-col sm:flex-row gap-3 pt-4 border-t">
-                      {subscriptionData.status === "trialing" ? (
+                      {subscriptionData.status === "cancelled" ? (
                         <Button
                           variant="default"
                           className="w-full sm:w-auto font-primary"
@@ -275,7 +297,7 @@ export default function DashboardPage() {
                         >
                           {loadingStates.subscribe
                             ? "Processing..."
-                            : "Continue to Subscribe"}
+                            : "Resubscribe"}
                         </Button>
                       ) : (
                         <>

@@ -48,6 +48,8 @@ export async function POST(request: Request) {
       case "subscription_created":
       case "subscription_updated":
       case "subscription_resumed":
+      case "subscription_payment_success":
+      case "order_created":
         await prisma.user.update({
           where: { email: userEmail },
           data: {
@@ -55,6 +57,7 @@ export async function POST(request: Request) {
             hasActiveTrial: false,
           },
         });
+        return NextResponse.json({ success: true, refresh: true });
         break;
 
       case "subscription_cancelled":

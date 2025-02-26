@@ -90,6 +90,8 @@ export interface Post {
   relatedPosts: Post[];
   trip?: Trip;
   sectionImages?: SectionImage[];
+  country?: string;
+  region?: string;
 }
 
 export interface ContentSection {

@@ -249,9 +249,19 @@ export const landingPageQuery = groq`
         publishedAt,
         description,
         categories[]-> {
+          _id,
           title,
-          slug
+          "slug": slug.current
+        },
+        "trip": trip->{
+          country,
+          region
         }
+      },
+      "allCategories": *[_type == "postCategory"] {
+        _id,
+        title,
+        "slug": slug.current
       }
     }
   }
@@ -277,4 +287,13 @@ export const tripQuery = groq`*[_type == "trip" && slug.current == $slug][0]{
     includes[]
   },
   idealMonth
+}`;
+
+export const profilePageQuery = groq`*[_type == "profile"][0] {
+  heroImage {
+    image {
+      asset->
+    },
+    alt
+  }
 }`;

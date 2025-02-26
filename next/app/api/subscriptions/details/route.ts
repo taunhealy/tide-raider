@@ -42,6 +42,31 @@ export async function GET(request: Request) {
       });
     }
 
+    // Handle subscription status
+    if (user?.subscriptionStatus === "cancelled") {
+      if (user.subscriptionEndsAt && new Date(user.subscriptionEndsAt) > now) {
+        // Still within paid period
+        return NextResponse.json({
+          data: {
+            attributes: {
+              status: "active",
+              ends_at: user.subscriptionEndsAt,
+              cancelled: true,
+            },
+          },
+        });
+      } else {
+        // Past the paid period, update to expired
+        await prisma.user.update({
+          where: { email: session.user.email },
+          data: {
+            subscriptionStatus: "expired",
+            lemonSubscriptionId: null,
+          },
+        });
+      }
+    }
+
     // Return null data if no subscription
     if (!user?.lemonSubscriptionId && !user?.hasActiveTrial) {
       return NextResponse.json({ data: null });

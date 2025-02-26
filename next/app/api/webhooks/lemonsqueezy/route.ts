@@ -61,12 +61,11 @@ export async function POST(request: Request) {
         break;
 
       case "subscription_cancelled":
-        // Don't remove subscription ID until grace period ends
         await prisma.user.update({
           where: { email: userEmail },
           data: {
             subscriptionEndsAt: new Date(endsAt),
-            subscriptionStatus: status,
+            subscriptionStatus: "cancelled",
           },
         });
         break;

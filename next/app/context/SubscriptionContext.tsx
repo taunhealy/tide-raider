@@ -57,10 +57,16 @@ export function SubscriptionProvider({
     return data?.user?.hasTrialEnded ? "ended" : "available";
   })();
 
+// rendering subscription message based on context
+
   return (
     <SubscriptionContext.Provider
       value={{
-        isSubscribed: data?.subscription?.data?.attributes?.status === "active",
+        isSubscribed:
+          data?.subscription?.data?.attributes?.status === "active" ||
+          (data?.subscription?.data?.attributes?.cancelled &&
+            new Date(data?.subscription?.data?.attributes?.ends_at) >
+              new Date()),
         hasActiveTrial: trialStatus === "active",
         trialStatus,
         isLoading: sessionLoading || subscriptionLoading,

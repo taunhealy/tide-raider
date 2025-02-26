@@ -1,3 +1,4 @@
+import { cache } from "react";
 import BeachContainer from "@/app/components/BeachContainer";
 import { beachData } from "@/app/types/beaches";
 import { client } from "@/app/lib/sanity";
@@ -6,42 +7,56 @@ import { blogListingQuery } from "@/app/lib/queries";
 import { Suspense } from "react";
 import RaidSkeleton from "@/app/components/skeletons/RaidSkeleton";
 
+// Cache the blog posts fetch
+const getBlogPosts = cache(async () => {
+  try {
+    const response = await client.fetch(blogListingQuery);
+    return response.posts || [];
+  } catch (error) {
+    console.error("Blog fetch error:", error);
+    return [];
+  }
+});
+
+// Cache the ads fetch
+const getActiveAds = cache(async () => {
+  try {
+    const ads = await prisma.adRequest.findMany({
+      where: {
+        status: "active",
+        endDate: {
+          gte: new Date(),
+        },
+      },
+      select: {
+        id: true,
+        category: true,
+        companyName: true,
+        imageUrl: true,
+        linkUrl: true,
+        title: true,
+        region: true,
+        startDate: true,
+        endDate: true,
+        status: true,
+        categoryData: true,
+        yearlyPrice: true,
+        googleAdsContribution: true,
+      },
+    });
+    return ads.map((ad) => ({ ...ad, isAd: true as const }));
+  } catch (error) {
+    console.error("Ads fetch error:", error);
+    return [];
+  }
+});
+
 async function QuestContent() {
   try {
-    const [blogData, activeAds] = await Promise.all([
-      client.fetch(blogListingQuery).catch((error) => {
-        console.error("Blog fetch error:", error);
-        return []; // Fallback data
-      }),
-      prisma.adRequest
-        .findMany({
-          where: {
-            status: "active",
-            endDate: {
-              gte: new Date(),
-            },
-          },
-          select: {
-            id: true,
-            category: true,
-            companyName: true,
-            imageUrl: true,
-            linkUrl: true,
-            title: true,
-            region: true,
-            startDate: true,
-            endDate: true,
-            status: true,
-            categoryData: true,
-            yearlyPrice: true,
-            googleAdsContribution: true,
-          },
-        })
-        .then((ads) => ads.map((ad) => ({ ...ad, isAd: true as const })))
-        .catch((error) => {
-          console.error("Ads fetch error:", error);
-          return [];
-        }),
+    // Use cached functions
+    const [blogPosts, activeAds] = await Promise.all([
+      getBlogPosts(),
+      getActiveAds(),
     ]);
 
     return (
@@ -51,7 +66,7 @@ async function QuestContent() {
             <div className="flex-1">
               <BeachContainer
                 initialBeaches={beachData}
-                blogPosts={blogData}
+                blogPosts={blogPosts}
                 availableAds={activeAds}
               />
             </div>

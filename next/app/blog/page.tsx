@@ -1,6 +1,7 @@
-import HeroBlogSection from "@/app/sections/HeroBlog";
 import { landingPageQuery } from "@/lib/queries";
 import { client } from "@/lib/sanity";
+import BlogGrid from "../sections/BlogGrid";
+import { groq } from "next-sanity";
 
 export const revalidate = 0;
 
@@ -22,15 +23,40 @@ async function getHomeContent() {
     : null;
 }
 
+const blogPageQuery = groq`{
+  "blog": {
+    "posts": *[_type == "post"] | order(publishedAt desc) {
+      _id,
+      title,
+      "slug": slug.current,
+      mainImage,
+      publishedAt,
+      description,
+      categories[]->{
+        _id,
+        title
+      },
+      "trip": trip->{
+        country,
+        region
+      }
+    },
+    "allCategories": *[_type == "postCategory"] {
+      _id,
+      title
+    }
+  }
+}`;
+
 export default async function BlogPage() {
-  const content = await client.fetch(landingPageQuery);
+  const content = await client.fetch(blogPageQuery);
 
   if (!content) {
     return (
       <div className="animate-pulse max-w-7xl mx-auto px-4">
         {/* Title Skeleton */}
         <div className="h-8 bg-gray-200 rounded-full w-48 mb-8 mx-auto"></div>
-        
+
         {/* Blog Grid Skeleton */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {[...Array(3)].map((_, i) => (
@@ -50,8 +76,13 @@ export default async function BlogPage() {
   }
 
   return (
-    <main>
-      <HeroBlogSection data={content.blog} />
+    <main className="bg-white">
+      <div className="max-w-7xl mx-auto px-4 py-16 sm:py-24">
+        <h1 className="font-primary text-4xl md:text-5xl font-bold text-left mb-12">
+          Blog Posts
+        </h1>
+        <BlogGrid data={content.blog} />
+      </div>
     </main>
   );
 }

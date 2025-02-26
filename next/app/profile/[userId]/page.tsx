@@ -44,7 +44,9 @@ export default function ProfilePage() {
     queryFn: async () => {
       return client.fetch(groq`*[_type == "profile"][0] {
         heroImage {
-          image { ..., asset-> },
+          image {
+            asset->
+          },
           alt
         }
       }`);
@@ -128,13 +130,24 @@ export default function ProfilePage() {
         {["account", "favourites"].includes(activeTab) && (
           <div className="flex-none w-full sm:w-[800px] relative h-[600px]">
             <div className="absolute inset-0 overflow-hidden rounded-md">
-              <Image
-                src={urlForImage(data?.heroImage?.image)?.url() || ""}
-                alt={data?.heroImage?.alt || "Profile background"}
-                fill
-                className="object-cover"
-                sizes="(max-width: 768px) 100vw, 500px"
-              />
+              {data?.heroImage?.image ? (
+                <Image
+                  src={
+                    urlForImage(data.heroImage.image)?.url() ||
+                    "/fallback-image.jpg"
+                  }
+                  alt={data?.heroImage?.alt || "Profile background"}
+                  fill
+                  className="object-cover"
+                  sizes="(max-width: 768px) 100vw, 500px"
+                />
+              ) : (
+                <div className="w-full h-full bg-gray-200 flex items-center justify-center">
+                  <span className="text-gray-400 font-primary">
+                    No image available
+                  </span>
+                </div>
+              )}
             </div>
           </div>
         )}

@@ -3,6 +3,8 @@ import { chromium, Browser, Page, BrowserContext } from "playwright";
 
 import { createHash } from "crypto";
 import { USER_AGENTS } from "@/app/lib/constants/userAgents";
+import { ProxyManager } from "../proxy/proxyManager";
+import { ProxyConfig } from "../proxy/types";
 
 // Add at the top of the file
 declare global {
@@ -57,6 +59,8 @@ const getBrowserArgs = () => {
   return args;
 };
 
+const proxyManager = new ProxyManager();
+
 export async function scraperA(url: string, region: string): Promise<WindData> {
   console.log("\n=== Starting Playwright Scraper ===");
   console.log("URL:", url);
@@ -65,10 +69,14 @@ export async function scraperA(url: string, region: string): Promise<WindData> {
   let browser: Browser | null = null;
   let context: BrowserContext | null = null;
   let page: Page | null = null;
+  let proxy: ProxyConfig | null = null;
+  const startTime = Date.now();
 
   try {
-    // Enhanced browser launch configuration
-    browser = await chromium.launch({
+    proxy = proxyManager.getProxyForRegion(region);
+    console.log(`Using proxy: ${proxy.host}`);
+
+    const launchOptions: any = {
       headless: true,
       args: [
         "--no-sandbox",
@@ -77,7 +85,16 @@ export async function scraperA(url: string, region: string): Promise<WindData> {
         `--window-size=${1280 + Math.floor(Math.random() * 200)},${720 + Math.floor(Math.random() * 200)}`,
         Math.random() > 0.5 ? "--disable-accelerated-2d-canvas" : "",
       ].filter(Boolean),
-    });
+    };
+
+    // Only add proxy if using Cloudflare Worker
+    if (proxy.isCloudflare) {
+      launchOptions.proxy = {
+        server: `https://${proxy.host}`,
+      };
+    }
+
+    browser = await chromium.launch(launchOptions);
 
     // Advanced context configuration with randomization
     context = await browser.newContext({
@@ -356,8 +373,12 @@ export async function scraperA(url: string, region: string): Promise<WindData> {
       steps: 5 + Math.floor(Math.random() * 10),
     });
 
+    proxyManager.reportProxySuccess(proxy.host, Date.now() - startTime);
     return forecast;
   } catch (error) {
+    if (proxy) {
+      proxyManager.reportProxyFailure(proxy.host);
+    }
     // Enhanced error handling with retry logic
     if (Math.random() > 0.6 && context) {
       await context.clearCookies();

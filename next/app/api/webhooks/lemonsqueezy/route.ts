@@ -9,12 +9,28 @@ export async function POST(request: Request) {
   try {
     const body = await request.text();
     const payload = JSON.parse(body);
+
+    // Add debug logging
+    console.log("Webhook received:", {
+      eventType: payload.meta.event_name,
+      userEmail: payload.data.attributes.user_email,
+      subscriptionId: payload.data.id,
+      status: payload.data.attributes.status,
+    });
+
     const signature = request.headers.get("X-Signature");
 
     // Verify webhook signature
     const secret = process.env.LEMON_SQUEEZY_WEBHOOK_SECRET!;
     const hmac = createHmac("sha256", secret);
     const digest = hmac.update(body).digest("hex");
+
+    // Add debug logging for signature verification
+    console.log("Signature verification:", {
+      received: signature,
+      calculated: digest,
+      matches: signature === digest,
+    });
 
     if (signature !== digest) {
       console.error("Invalid webhook signature");
@@ -26,7 +42,6 @@ export async function POST(request: Request) {
     const subscriptionId = payload.data.id;
     const status = payload.data.attributes.status;
     const endsAt = payload.data.attributes.ends_at;
-
 
     // Handle different event types
     switch (eventType) {

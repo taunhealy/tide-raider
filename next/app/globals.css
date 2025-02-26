@@ -85,6 +85,17 @@
     @apply font-primary text-[12px] leading-snug;
     font-weight: var(--heading-font-weight);
   }
+
+  html {
+    font-family:
+      Inter,
+      system-ui,
+      -apple-system,
+      BlinkMacSystemFont,
+      "Segoe UI",
+      Roboto,
+      sans-serif;
+  }
 }
 
 @layer components {

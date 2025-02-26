@@ -8,13 +8,13 @@ import { Toaster } from "sonner";
 
 const inter = Inter({
   subsets: ["latin"],
-  variable: "--font-inter",
+  variable: "--font-primary",
   display: "swap",
 });
 
 const montserrat = Montserrat({
   subsets: ["latin"],
-  variable: "--font-montserrat",
+  variable: "--font-secondary",
   display: "swap",
 });
 

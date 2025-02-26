@@ -315,12 +315,13 @@ export async function scraperA(url: string, region: string): Promise<WindData> {
 
     let forecast: WindData | null = null;
     cleanHtml?.forEach((row) => {
-      if (
-        row.time === "07" ||
-        row.time === "08" ||
-        row.time === "07h" ||
-        row.time === "08h"
-      ) {
+      // Look for morning times between 05h-11h
+      const timeStr = row.time?.toString() || "";
+      const hour = parseInt(timeStr.replace("h", ""));
+
+      if (hour >= 5 && hour <= 11) {
+        console.log("Found morning time:", hour);
+
         forecast = {
           windSpeed: parseInt(row.windSpeed || "0"),
           windDirection: parseFloat(row.windDir?.replace("°", "") || "0"),
@@ -332,25 +333,18 @@ export async function scraperA(url: string, region: string): Promise<WindData> {
         };
 
         // Add debug logging
+        console.log("Raw time:", timeStr);
+        console.log("Parsed hour:", hour);
         console.log("Raw wind direction:", row.windDir);
         console.log("Parsed forecast:", forecast);
 
-        if (!forecast) {
-          throw new Error("No forecast data found");
-        }
-
-        // Validate wind direction before returning
-        if (forecast.windDirection === 0 && row.windDir) {
-          console.warn(
-            "Warning: Wind direction parsed as 0 from non-empty value:",
-            row.windDir
-          );
-        }
+        // Break after finding first valid morning time
+        return;
       }
     });
 
     if (!forecast) {
-      throw new Error("No forecast data found");
+      throw new Error("No morning forecast data found between 05h-11h");
     }
 
     // Add random interaction delays

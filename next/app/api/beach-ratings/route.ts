@@ -1,8 +1,6 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/app/lib/prisma";
-import { beachData } from "@/app/types/beaches";
-import { isBeachSuitable } from "@/app/lib/surfUtils";
-import { randomUUID } from "crypto";
+
 import { storeGoodBeachRatings } from "@/lib/beachRatings";
 import type { WindDataProp } from "@/app/types/wind";
 

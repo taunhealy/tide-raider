@@ -21,19 +21,17 @@ export async function GET(request: Request) {
       },
     });
 
-    // Check if trial has expired
+    // Handle trial expiration more rigorously
     const now = new Date();
-    if (
-      user?.hasActiveTrial &&
-      user.trialEndDate &&
-      new Date(user.trialEndDate) < now
-    ) {
-      // Update user to remove trial
+    if (user?.trialEndDate && new Date(user.trialEndDate) < now) {
       await prisma.user.update({
         where: { email: session.user.email },
-        data: { hasActiveTrial: false },
+        data: {
+          hasActiveTrial: false,
+          trialEndDate: null,
+          trialStartDate: null,
+        },
       });
-
       return NextResponse.json({
         data: {
           attributes: {
@@ -42,6 +40,11 @@ export async function GET(request: Request) {
           },
         },
       });
+    }
+
+    // Return null data if no subscription
+    if (!user?.lemonSubscriptionId && !user?.hasActiveTrial) {
+      return NextResponse.json({ data: null });
     }
 
     // If user has an active trial, return trial information

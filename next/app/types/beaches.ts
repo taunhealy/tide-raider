@@ -234,9 +234,7 @@ export const beachData: Beach[] = [
         platform: "youtube",
       },
     ],
-    coffeeShop: [
-      { url: "Good Riddance Coffee Co", name: "Good Riddance Coffee Co." },
-    ],
+    coffeeShop: [{ name: "Good Riddance Coffee Co." }],
     advertisingPrice: 1000,
   },
 
@@ -295,7 +293,7 @@ export const beachData: Beach[] = [
         platform: "youtube",
       },
     ],
-    coffeeShop: [{ url: "Sentinel Cafe", name: "Sentinel Cafe" }],
+    coffeeShop: [{ name: "Sentinel Cafe" }],
     advertisingPrice: 1000,
   },
   {
@@ -347,7 +345,7 @@ export const beachData: Beach[] = [
         platform: "youtube",
       },
     ],
-    coffeeShop: [{ url: "The Surf Cafe, Big Bay", name: "The Surf Cafe" }],
+    coffeeShop: [{ name: "The Surf Cafe" }],
   },
   {
     id: "dunes",
@@ -405,9 +403,7 @@ export const beachData: Beach[] = [
         platform: "youtube",
       },
     ],
-    coffeeShop: [
-      { url: "Aegir Project Brewery Noordhoek", name: "Aegir Project Brewery" },
-    ],
+    coffeeShop: [{ name: "Aegir Project Brewery" }],
   },
   {
     id: "scarborough",
@@ -457,9 +453,7 @@ export const beachData: Beach[] = [
         platform: "youtube",
       },
     ],
-    coffeeShop: [
-      { url: "Whole Earth Cafe & Accommodation", name: "Whole Earth Cafe" },
-    ],
+    coffeeShop: [{ name: "Whole Earth Cafe" }],
   },
   {
     id: "dungeons",
@@ -650,9 +644,7 @@ export const beachData: Beach[] = [
         platform: "youtube",
       },
     ],
-    coffeeShop: [
-      { url: "Chardonnay Deli Kalk Bay", name: "Chardonnay Deli Kalk Bay" },
-    ],
+    coffeeShop: [{ name: "Chardonnay Deli Kalk Bay" }],
   },
   {
     id: "crayfish-factory",

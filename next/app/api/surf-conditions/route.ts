@@ -1,15 +1,12 @@
 import { NextResponse } from "next/server";
-import axios from "axios";
-import * as cheerio from "cheerio";
 import { prisma } from "@/app/lib/prisma";
 import { randomUUID } from "crypto";
 import {} from "@/app/lib/surfUtils";
 
 import { redis } from "@/app/lib/redis";
-import { VALID_REGIONS, ValidRegion } from "@/app/lib/constants";
 import { storeGoodBeachRatings } from "@/app/lib/beachRatings";
 import { WindData } from "@/app/types/wind";
-import { REGION_CONFIGS } from "@/lib/scrapers/scrapeSources";
+import { REGION_CONFIGS } from "@/app/lib/scrapers/scrapeSources";
 import { scraperA } from "@/app/lib/scrapers/scraperA";
 
 interface RegionScrapeConfig {
@@ -55,9 +52,10 @@ const CACHE_TIMES = {
   SCRAPE_LOCK: 60 * 2, // 2 minute scrape lock
 };
 
-// Add validation function
+type ValidRegion = (typeof REGION_CONFIGS)[number]["region"];
+
 function isValidRegion(region: string): region is ValidRegion {
-  return VALID_REGIONS.includes(region as ValidRegion);
+  return REGION_CONFIGS.some((config) => config.region === region);
 }
 
 function degreesToCardinal(degrees: number): string {
@@ -196,43 +194,6 @@ async function getLatestConditions(forceRefresh = false, region: ValidRegion) {
   }
 }
 
-// New helper function to fetch other regions in the background
-async function backgroundFetchOtherRegions(today: Date) {
-  const queryDate = new Date(today);
-  queryDate.setUTCHours(0, 0, 0, 0);
-
-  // Check both forecast tables
-  const existingRegionsA = await prisma.forecastA.findMany({
-    where: { date: queryDate },
-    select: { region: true },
-  });
-
-  const existingRegionsB = await prisma.forecastB.findMany({
-    where: { date: queryDate },
-    select: { region: true },
-  });
-
-  // Combine unique regions from both sources
-  const existingRegions = [
-    ...new Set([
-      ...existingRegionsA.map((r) => r.region),
-      ...existingRegionsB.map((r) => r.region),
-    ]),
-  ];
-
-  // Find regions we need to fetch
-  const regionsToFetch = REGION_CONFIGS.filter(
-    (config) => !existingRegions.includes(config.region)
-  );
-
-  if (regionsToFetch.length === 0) {
-    console.log("All regions already fetched for today");
-    return;
-  }
-
-  console.log("🌐 Background fetching data for remaining regions...");
-}
-
 // Add rate limit helper
 async function checkRateLimit(region: string): Promise<boolean> {
   const key = REDIS_KEYS.RATE_LIMIT(region);
@@ -315,8 +276,7 @@ export async function GET(request: Request) {
     );
   }
 
-  console.log("=== Starting GET request ===");
-  console.log("Region:", region);
+  console.log(`=== Starting GET request for ${region} ===`);
 
   try {
     const conditions = await getLatestConditions(false, region);
@@ -326,7 +286,6 @@ export async function GET(request: Request) {
         { status: 404 }
       );
     }
-    console.log("Returning conditions:", conditions);
     return NextResponse.json(conditions);
   } catch (error) {
     console.error("Detailed error in GET route:", error);

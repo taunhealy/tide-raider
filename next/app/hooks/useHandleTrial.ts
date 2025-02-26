@@ -6,7 +6,10 @@ export function useHandleTrial() {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: async () => {
+    mutationFn: async (options?: { 
+      onMutate?: () => void,
+      onSettled?: () => void 
+    }) => {
       if (!session?.user) {
         throw new Error("Must be logged in to start trial");
       }
@@ -21,10 +24,16 @@ export function useHandleTrial() {
         throw new Error(error.message || "Failed to start trial");
       }
 
+      options?.onMutate?.();
       return response.json();
     },
     onSuccess: () => {
       // Invalidate and refetch user session to update trial status
+      queryClient.invalidateQueries({ queryKey: ["session"] });
+    },
+    onSettled: () => {
+      // This is called when the mutation is complete, regardless of success or failure
+      // You can use this to perform any cleanup or side effects
       queryClient.invalidateQueries({ queryKey: ["session"] });
     },
   });

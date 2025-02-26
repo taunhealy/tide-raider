@@ -95,14 +95,9 @@ export function isBeachSuitable(
 
   // Convert wind direction from degrees to cardinal
   const windCardinal = degreesToCardinal(conditions.windDirection);
-  console.log("Wind conversion:", {
-    fromDegrees: conditions.windDirection,
-    toCardinal: windCardinal,
-  });
 
   // Smarter wind direction check
   if (!beach.optimalWindDirections.includes(windCardinal)) {
-    console.log("Wind direction not in optimal:", windCardinal);
     // Convert both directions to degrees for comparison
     const currentDirDegrees = Number(conditions.windDirection);
     const isNeighboring = beach.optimalWindDirections.some((optimalDir) => {

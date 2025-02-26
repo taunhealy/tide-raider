@@ -23,6 +23,7 @@ import { MapPin } from "lucide-react";
 import "ol/ol.css";
 import { useSubscription } from "../context/SubscriptionContext";
 import WindCompass from "./WindCompass";
+import { degreesToCardinal } from "@/app/lib/surfUtils";
 
 const inter = Inter({ subsets: ["latin"] });
 
@@ -244,10 +245,10 @@ export default function Map({ beaches, windData, hasActiveTrial }: MapProps) {
         {windData && (
           <div className="absolute top-4 right-4 scale-75 origin-top-right z-50">
             <WindCompass
-              windDirection={windData.wind.direction}
-              windSpeed={windData.wind.speed}
-              swellDirection={windData.swell.direction}
-              swellHeight={windData.swell.height}
+              windDirection={degreesToCardinal(windData.windDirection)}
+              windSpeed={windData.windSpeed}
+              swellDirection={windData.swellDirection}
+              swellHeight={windData.swellHeight}
             />
           </div>
         )}

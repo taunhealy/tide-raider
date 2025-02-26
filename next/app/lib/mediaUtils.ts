@@ -7,7 +7,6 @@ interface MediaItem {
 }
 
 interface CoffeeShop {
-  url: string;
   name: string;
 }
 

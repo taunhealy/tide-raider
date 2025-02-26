@@ -194,7 +194,11 @@ export function RaidLogForm({
 
   const fetchForecast = async (beach: Beach) => {
     try {
-      const fetchWithRetry = async (retryAttempt = 0) => {
+      const fetchWithRetry = async (retryAttempt = 0, maxRetries = 3) => {
+        if (retryAttempt >= maxRetries) {
+          throw new Error("Maximum retry attempts reached");
+        }
+
         const response = await fetch(
           `/api/surf-conditions?` +
             new URLSearchParams({
@@ -210,14 +214,15 @@ export function RaidLogForm({
           // Server requested retry
           console.log(`Attempt ${retryAttempt + 1}: Retrying in 5 seconds...`);
           await new Promise((resolve) => setTimeout(resolve, 5000));
-          return fetchWithRetry(data.retryAttempt);
+          return fetchWithRetry(retryAttempt + 1, maxRetries);
         }
 
         if (!response.ok) {
-          if (data.maxRetriesReached) {
-            throw new Error("Failed to fetch forecast after multiple attempts");
+          console.error("Forecast fetch error:", data);
+          if (data.error) {
+            throw new Error(data.error);
           }
-          throw new Error("Failed to fetch forecast");
+          throw new Error(`Failed to fetch forecast: ${response.statusText}`);
         }
 
         setForecast(data);
@@ -228,6 +233,11 @@ export function RaidLogForm({
     } catch (error) {
       console.error("Error loading forecast:", error);
       setForecast(null);
+      // Optionally show user-friendly error message
+      alert(
+        `Unable to load forecast data: ${error instanceof Error ? error.message : "Unknown error"}`
+      );
+      return null;
     }
   };
 
@@ -275,7 +285,7 @@ export function RaidLogForm({
     }
 
     if (!hasActiveTrial) {
-      handleTrial();
+      handleTrial({});
     } else {
       router.push("/pricing");
     }
@@ -401,7 +411,7 @@ export function RaidLogForm({
                       ) : (
                         <SurfForecastWidget
                           beachId={selectedBeach.id}
-                          date={new Date(selectedDate).getTime()}
+                          selectedDate={selectedDate}
                           forecast={forecast}
                         />
                       )}

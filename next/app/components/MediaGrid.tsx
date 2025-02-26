@@ -1,40 +1,21 @@
 "use client";
 
 import { getMediaGridItems } from "@/app/lib/mediaUtils";
-import { useState, useMemo } from "react";
+import { useState } from "react";
 import { getVideoThumbnail } from "@/app/lib/videoUtils";
 import dynamic from "next/dynamic";
 import { Beach } from "@/app/types/beaches";
-import { QuestLogModal } from "./QuestLogModal";
 import { useSession } from "next-auth/react";
-import Image from "next/image";
-import { Star } from "lucide-react";
-import { cn } from "@/app/lib/utils";
-import {
-  getWindEmoji,
-  getSwellEmoji,
-  getDirectionEmoji,
-} from "@/app/lib/forecastUtils";
-import { LogEntry } from "@/types/questlogs";
 
 interface MediaGridProps {
   videos?: { url: string; title: string; platform: "youtube" | "vimeo" }[];
   beach: Beach;
-  sessions?: LogEntry[];
   name?: string;
 }
 
-function MediaGridBase({ videos, beach, sessions = [] }: MediaGridProps) {
+function MediaGridBase({ videos, beach }: MediaGridProps) {
   const { data: session } = useSession();
-  const [selectedSession, setSelectedSession] = useState<LogEntry | null>(null);
   const [hoveredIndex, setHoveredIndex] = useState<number | null>(null);
-
-  // Get most recent session for this specific beach
-  const recentSession = sessions
-    .filter(
-      (session) => session.beachName.toLowerCase() === beach.name.toLowerCase()
-    )
-    .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime())[0];
 
   const { items, shownAdClientIds } = getMediaGridItems(
     videos,
@@ -45,137 +26,6 @@ function MediaGridBase({ videos, beach, sessions = [] }: MediaGridProps) {
   return (
     <>
       <div className="grid grid-cols-2 gap-2 mt-4">
-        {/* Recent Session Card */}
-        {recentSession && (
-          <div
-            onClick={() => setSelectedSession(recentSession)}
-            className="relative aspect-video rounded-lg overflow-hidden cursor-pointer group"
-          >
-            {recentSession.imageUrl ? (
-              // Session with image
-              <>
-                <Image
-                  src={recentSession.imageUrl}
-                  alt={`Session at ${beach.name}`}
-                  fill
-                  className="object-cover"
-                />
-                <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent opacity-0 group-hover:opacity-100 transition-all duration-300">
-                  <div className="absolute bottom-0 left-0 right-0 p-4 text-white">
-                    <h3 className="font-medium">{beach.name}</h3>
-                    <p className="text-sm opacity-90">
-                      Logged by {recentSession.surferName}
-                    </p>
-                    {recentSession.forecast?.entries?.[0] && (
-                      <div className="text-xs space-y-1 mt-2 opacity-90">
-                        <p>
-                          {getWindEmoji(
-                            recentSession.forecast.entries[0].wind.speed
-                          )}{" "}
-                          {recentSession.forecast.entries[0].wind.direction} @{" "}
-                          {recentSession.forecast.entries[0].wind.speed}kts
-                        </p>
-                        {recentSession.forecast.entries[0].swell && (
-                          <p>
-                            {getSwellEmoji(
-                              recentSession.forecast.entries[0].swell.height
-                            )}{" "}
-                            {recentSession.forecast.entries[0].swell.height}m @{" "}
-                            {recentSession.forecast.entries[0].swell.period}s
-                          </p>
-                        )}
-                        {recentSession.forecast.entries[0].swell && (
-                          <>
-                            {getDirectionEmoji(
-                              parseInt(
-                                recentSession.forecast.entries[0].swell
-                                  .direction
-                              )
-                            )}{" "}
-                            {
-                              recentSession.forecast.entries[0].swell
-                                .cardinalDirection
-                            }
-                          </>
-                        )}
-                      </div>
-                    )}
-                  </div>
-                </div>
-              </>
-            ) : (
-              // Session without image - Card format
-              <div className="h-full w-full bg-[var(--color-bg-secondary)] p-4 border border-[var(--color-border-light)] rounded-lg hover:border-[var(--color-border-hover)] transition-colors">
-                <div className="h-full flex flex-col">
-                  <div className="flex items-center justify-between mb-2">
-                    <h3 className="font-medium text-[var(--color-text-primary)]">
-                      {beach.name}
-                    </h3>
-                    <div className="flex gap-1">
-                      {[1, 2, 3, 4, 5].map((rating) => (
-                        <Star
-                          key={rating}
-                          className={cn(
-                            "w-4 h-4",
-                            rating <= recentSession.surferRating
-                              ? "text-[var(--color-tertiary)] fill-current"
-                              : "text-gray-300"
-                          )}
-                        />
-                      ))}
-                    </div>
-                  </div>
-
-                  <p className="text-sm text-[var(--color-text-secondary)] mb-2 line-clamp-2 flex-grow">
-                    {recentSession.comments || "No comments provided"}
-                  </p>
-
-                  {recentSession.forecast?.entries?.[0] && (
-                    <div className="text-xs text-[var(--color-text-secondary)] space-y-1 mb-2 border-t border-[var(--color-border-light)] pt-2">
-                      <p>
-                        {getWindEmoji(
-                          recentSession.forecast.entries[0].wind.speed
-                        )}{" "}
-                        {recentSession.forecast.entries[0].wind.direction} @{" "}
-                        {recentSession.forecast.entries[0].wind.speed}kts
-                      </p>
-                      {recentSession.forecast.entries[0].swell && (
-                        <p>
-                          {getSwellEmoji(
-                            recentSession.forecast.entries[0].swell.height
-                          )}{" "}
-                          {recentSession.forecast.entries[0].swell.height}m @{" "}
-                          {recentSession.forecast.entries[0].swell.period}s
-                        </p>
-                      )}
-                      {recentSession.forecast.entries[0].swell && (
-                        <>
-                          {getDirectionEmoji(
-                            parseInt(
-                              recentSession.forecast.entries[0].swell.direction
-                            )
-                          )}{" "}
-                          {
-                            recentSession.forecast.entries[0].swell
-                              .cardinalDirection
-                          }
-                        </>
-                      )}
-                    </div>
-                  )}
-
-                  <div className="flex items-center justify-between text-xs text-[var(--color-text-tertiary)]">
-                    <span>Logged by {recentSession.surferName}</span>
-                    <span>
-                      {new Date(recentSession.date).toLocaleDateString()}
-                    </span>
-                  </div>
-                </div>
-              </div>
-            )}
-          </div>
-        )}
-
         {items.map((item, index) => {
           // Coffee Shop
           if ("type" in item && item.type === "coffeeShop") {
@@ -183,7 +33,7 @@ function MediaGridBase({ videos, beach, sessions = [] }: MediaGridProps) {
               <a
                 key={`coffee-${index}`}
                 href={`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(
-                  `${item.name}, ${beach.region}`
+                  `${beach.coffeeShop?.[0].name}, ${beach.region}`
                 )}`}
                 target="_blank"
                 rel="noopener noreferrer"
@@ -213,7 +63,7 @@ function MediaGridBase({ videos, beach, sessions = [] }: MediaGridProps) {
                   </div>
 
                   <h4 className="text-sm sm:text-base text-gray-700 font-semibold group-hover:text-gray-900 transition-colors text-center">
-                    {item.name}
+                    {beach.coffeeShop?.[0].name}
                   </h4>
                   <span>
                     <h6 className="text-sm sm:text-base">⚡☕⚡</h6>
@@ -223,11 +73,11 @@ function MediaGridBase({ videos, beach, sessions = [] }: MediaGridProps) {
             );
           }
 
-          // Video or Coffee Shop only - remove ad handling
+          // Video
           return (
             <a
-              key={item.url}
-              href={item.url}
+              key={"url" in item ? item.url : ""}
+              href={"url" in item ? item.url : "#"}
               target="_blank"
               rel="noopener noreferrer"
               className="relative aspect-video rounded-lg overflow-hidden cursor-pointer group"
@@ -235,7 +85,7 @@ function MediaGridBase({ videos, beach, sessions = [] }: MediaGridProps) {
             >
               <img
                 src={getVideoThumbnail(
-                  item.url,
+                  "url" in item ? item.url : "",
                   "platform" in item ? item.platform : "youtube"
                 )}
                 alt={"title" in item ? item.title : item.name || "Surf video"}
@@ -288,15 +138,6 @@ function MediaGridBase({ videos, beach, sessions = [] }: MediaGridProps) {
           );
         })}
       </div>
-
-      {/* Session Modal */}
-      {selectedSession && (
-        <QuestLogModal
-          session={selectedSession}
-          isOpen={!!selectedSession}
-          onClose={() => setSelectedSession(null)}
-        />
-      )}
     </>
   );
 }

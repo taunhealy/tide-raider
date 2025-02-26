@@ -50,8 +50,13 @@ export async function POST(req: Request) {
     }
 
     const trialStartDate = new Date();
+    // Explicitly set time to start of day to avoid time zone issues
+    trialStartDate.setHours(0, 0, 0, 0);
+
     const trialEndDate = new Date(trialStartDate);
-    trialEndDate.setDate(trialEndDate.getDate() + 14); // 14 days trial
+    trialEndDate.setDate(trialStartDate.getDate() + 7); // 7 days trial
+    // Set end time to end of day
+    trialEndDate.setHours(23, 59, 59, 999);
 
     const user = await prisma.user.update({
       where: { id: session.user.id },

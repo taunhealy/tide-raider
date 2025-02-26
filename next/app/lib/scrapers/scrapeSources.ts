@@ -1,14 +1,12 @@
 import { WindData } from "@/app/types/wind";
 import { scraperA } from "@/app/lib/scrapers/scraperA";
+import { ValidRegion } from "@/app/lib/regions";
 
 interface RegionSourceConfig {
-  region: string;
+  region: ValidRegion;
   sourceA: {
     url: string;
-    scraper: (
-      html: string,
-      region: string
-    ) => Promise<{ [key: string]: WindData }>;
+    scraper: (url: string, region: ValidRegion) => Promise<WindData>;
   };
 }
 
@@ -133,5 +131,3 @@ export const REGION_CONFIGS: RegionSourceConfig[] = [
     },
   },
 ];
-
-export type ValidRegion = (typeof REGION_CONFIGS)[number]["region"];

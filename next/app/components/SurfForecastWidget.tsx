@@ -1,11 +1,12 @@
 import { degreesToCardinal } from "@/app/lib/surfUtils";
 import { WindData, WeeklyForecast } from "@/app/types/wind";
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import { LogEntry } from "@/app/types/questlogs";
 
 interface SurfForecastWidgetProps {
   beachId: string;
-  forecast: WeeklyForecast;
   selectedDate?: string;
+  forecast: NonNullable<LogEntry["forecast"]>;
 }
 
 export default function SurfForecastWidget({
@@ -15,6 +16,12 @@ export default function SurfForecastWidget({
   const [activeDate, setActiveDate] = useState(
     selectedDate || Object.keys(forecast)[0]
   );
+
+  useEffect(() => {
+    if (selectedDate) {
+      setActiveDate(selectedDate);
+    }
+  }, [selectedDate]);
 
   const dateOptions = Object.keys(forecast).sort();
   const currentDateIndex = dateOptions.indexOf(activeDate);

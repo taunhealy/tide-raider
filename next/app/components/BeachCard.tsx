@@ -18,8 +18,6 @@ import {
   DEFAULT_PROFILE_IMAGE,
   WAVE_TYPE_ICONS,
   WaveType,
-  VALID_REGIONS,
-  ValidRegion,
 } from "@/app/lib/constants";
 import { MediaGrid } from "@/app/components/MediaGrid";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
@@ -27,6 +25,8 @@ import type { LogEntry } from "@/app/types/questlogs";
 import Link from "next/link";
 import { Star } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { ValidRegion } from "@/lib/regions";
+import { VALID_REGIONS } from "@/lib/regions";
 
 interface BeachCardProps {
   beach: Beach;
@@ -505,7 +505,6 @@ export default function BeachCard({
         <MediaGrid
           beach={beach}
           videos={beach.videos || []}
-          sessions={beachSessions}
         />
       )}
     </>

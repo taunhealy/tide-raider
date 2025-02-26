@@ -1,7 +1,5 @@
 import { prisma } from "@/app/lib/prisma";
 import { NextResponse } from "next/server";
-import { beachData } from "@/app/types/beaches";
-import { isBeachSuitable } from "@/app/lib/surfUtils";
 import { storeGoodBeachRatings } from "@/app/lib/beachRatings";
 
 export async function GET(request: Request) {

@@ -6,11 +6,12 @@ export function useSubscriptionDetails() {
     queryFn: async () => {
       const response = await fetch("/api/subscriptions/details");
       if (!response.ok) {
+        if (response.status === 404) return { data: null };
         throw new Error("Failed to fetch subscription details");
       }
       return response.json();
     },
-    enabled: true, // Only fetch when component mounts
-    refetchInterval: 60000, // Refetch every minute to keep URLs fresh
+    refetchOnWindowFocus: false,
+    retry: false,
   });
 }

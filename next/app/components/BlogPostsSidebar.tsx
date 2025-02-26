@@ -15,35 +15,77 @@ interface BlogPostsSidebarProps {
 }
 
 export default function BlogPostsSidebar({ posts }: BlogPostsSidebarProps) {
-  // Add a query to fetch fresh data
-  const { data: freshPosts } = useQuery({
+  // Modify the query configuration
+  const { data: freshPosts, isLoading } = useQuery({
     queryKey: ["blogPosts"],
     queryFn: async () => {
       const res = await fetch("/api/posts");
       if (!res.ok) throw new Error("Failed to fetch posts");
       return res.json();
     },
-    // Start with the initial data from props
     initialData: posts,
-    // Refetch on mount to ensure fresh data
-    staleTime: 0,
+    // Remove staleTime: 0 to use default caching behavior
+    refetchOnMount: true,
+    refetchOnWindowFocus: false,
+    retry: 2,
   });
 
-  // Use freshPosts instead of posts prop
-  const postsArray = freshPosts?.posts || [];
+  // Safely access the posts array
+  const postsArray = freshPosts?.posts || posts?.posts || [];
 
+  // Filter travel posts
   const travelPosts = postsArray.filter((post: Post) => {
     return post.categories?.some((category) => category.title === "Travel");
   });
 
-  console.log("4. Travel posts found:", travelPosts);
+  // Show loading state
+  if (isLoading) {
+    return (
+      <div className="bg-[var(--color-bg-primary)] p-6 rounded-lg shadow-sm mb-6">
+        <div className="flex items-center justify-between mb-6">
+          <h3 className="heading-6">Travel Posts</h3>
+          <Link
+            href="/blog?category=Travel"
+            className="text-main hover:text-[var(--color-text-secondary)] hover:underline transition-colors"
+          >
+            View All
+          </Link>
+        </div>
+        <div className="space-y-4">
+          {[1, 2, 3].map((i) => (
+            <div key={i} className="animate-pulse flex gap-4">
+              <div className="w-20 h-20 bg-gray-200 rounded-lg"></div>
+              <div className="flex-1">
+                <div className="h-4 bg-gray-200 rounded w-3/4 mb-2"></div>
+                <div className="h-3 bg-gray-200 rounded w-1/2"></div>
+              </div>
+            </div>
+          ))}
+        </div>
+      </div>
+    );
+  }
 
-  if (!travelPosts.length) {
-    return null;
+  // Show empty state if no posts data at all
+  if (!postsArray.length) {
+    return (
+      <div className="bg-[var(--color-bg-primary)] p-6 rounded-lg shadow-sm mb-6">
+        <div className="flex items-center justify-between mb-6">
+          <h3 className="heading-6">Travel Posts</h3>
+          <Link
+            href="/blog?category=Travel"
+            className="text-main hover:text-[var(--color-text-secondary)] hover:underline transition-colors"
+          >
+            View All
+          </Link>
+        </div>
+        <p className="text-main text-sm">No travel posts available yet.</p>
+      </div>
+    );
   }
 
   return (
-    <div className="bg-[var(--color-bg-primary)] p-6 rounded-lg shadow-sm">
+    <div className="bg-[var(--color-bg-primary)] p-6 rounded-lg shadow-sm mb-6">
       <div className="flex items-center justify-between mb-6">
         <h3 className="heading-6">Travel Posts</h3>
         <Link

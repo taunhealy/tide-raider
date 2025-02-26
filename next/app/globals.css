@@ -15,8 +15,10 @@
 @layer base {
   :root {
     /* Fonts */
-    --font-inter: "Inter";
-    --font-montserrat: "Montserrat";
+    --font-inter: var(--font-primary), "Inter", system-ui, -apple-system,
+      BlinkMacSystemFont, sans-serif;
+    --font-montserrat: var(--font-secondary), "Montserrat", system-ui,
+      -apple-system, BlinkMacSystemFont, sans-serif;
 
     /* Brand Colors */
     --color-primary: #000000;
@@ -87,14 +89,7 @@
   }
 
   html {
-    font-family:
-      Inter,
-      system-ui,
-      -apple-system,
-      BlinkMacSystemFont,
-      "Segoe UI",
-      Roboto,
-      sans-serif;
+    font-family: var(--font-inter);
   }
 }
 

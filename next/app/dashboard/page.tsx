@@ -17,6 +17,7 @@ import { useSubscriptionDetails } from "../hooks/useSubscriptionDetails";
 import { formatDate } from "../lib/utils";
 import { useSubscriptionManagement } from "../hooks/useSubscriptionManagement";
 import { useRouter } from "next/navigation";
+import { SubscriptionStatus } from "@/types/subscription";
 
 export default function DashboardPage() {
   const router = useRouter();
@@ -254,17 +255,15 @@ export default function DashboardPage() {
                         <span
                           className={`inline-flex items-center px-3 py-1 rounded-full text-sm font-medium
                           ${
-                            subscriptionData.status === "trialing"
-                              ? "bg-blue-50 text-blue-700"
-                              : subscriptionData.status === "active"
-                                ? "bg-green-50 text-green-700"
-                                : subscriptionData.status === "suspended"
-                                  ? "bg-yellow-50 text-yellow-700"
-                                  : "bg-gray-50 text-gray-700"
+                            subscriptionData.status ===
+                            SubscriptionStatus.ACTIVE
+                              ? "bg-green-50 text-green-700"
+                              : subscriptionData.status === "suspended"
+                                ? "bg-yellow-50 text-yellow-700"
+                                : "bg-gray-50 text-gray-700"
                           }`}
                         >
-                          {subscriptionData.status.charAt(0).toUpperCase() +
-                            subscriptionData.status.slice(1)}
+                          {subscriptionData.status}
                         </span>
                       </div>
 

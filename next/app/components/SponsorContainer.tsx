@@ -9,8 +9,6 @@ import { getDirectionEmoji } from "@/lib/forecastUtils";
 import { degreesToCardinal } from "@/app/lib/forecastUtils";
 import { LogEntry } from "@/app/types/questlogs";
 
-import { WaveAnimation } from "./WaveAnimation";
-
 const SponsorContainer = () => {
   const [isVisible, setIsVisible] = useState(false);
 
@@ -125,11 +123,7 @@ const SponsorContainer = () => {
         </div>
 
         {/* Wave Animation Circle */}
-        <div className="relative w-12 h-12 rounded-full overflow-hidden group">
-          <div className="absolute inset-0 p-1.5">
-            <WaveAnimation />
-          </div>
-        </div>
+        <div className="relative w-12 h-12 rounded-full overflow-hidden group"></div>
       </div>
     </div>
   );

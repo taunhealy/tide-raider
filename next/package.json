@@ -46,6 +46,7 @@
     "cheerio": "^1.0.0",
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
+    "countries-list": "^3.1.1",
     "date-fns": "^4.1.0",
     "google-ads-api": "^17.1.0-rest-beta",
     "gsap": "^3.12.5",

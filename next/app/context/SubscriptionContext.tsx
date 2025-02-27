@@ -4,6 +4,7 @@ import { createContext, useContext } from "react";
 import { useAuth } from "../hooks/useAuth";
 import { Session } from "next-auth";
 import { useQuery } from "@tanstack/react-query";
+import { SubscriptionStatus } from "@/app/types/subscription";
 
 interface SubscriptionContextType {
   isSubscribed: boolean;
@@ -30,45 +31,45 @@ export function SubscriptionProvider({
 }) {
   const { session, isLoading: sessionLoading } = useAuth();
 
-  // Combined query for user and subscription data
   const { data, isLoading: subscriptionLoading } = useQuery({
     queryKey: ["subscription-state"],
     queryFn: async () => {
-      const [userRes, subRes] = await Promise.all([
-        fetch("/api/user/current"),
-        fetch("/api/subscriptions/details"),
-      ]);
+      const userRes = await fetch("/api/user/current");
+      const userData = await userRes.json();
+      const subRes = await fetch("/api/subscriptions/details");
+      const subData = await subRes.json();
 
-      if (!userRes.ok || !subRes.ok) throw new Error("Failed to fetch data");
+      console.log("React Query data:", {
+        userData,
+        subData,
+        userStatus: userData?.subscriptionStatus,
+        subStatus: subData?.data?.status,
+      });
 
       return {
-        user: await userRes.json(),
-        subscription: await subRes.json(),
+        user: userData,
+        subscription: subData,
       };
     },
     enabled: !!session?.user,
   });
 
-  // Derive trial status
-  const trialStatus = (() => {
-    if (data?.user?.hasActiveTrial) {
-      return new Date(data.user.trialEndDate) > new Date() ? "active" : "ended";
-    }
-    return data?.user?.hasTrialEnded ? "ended" : "available";
-  })();
+  const isSubscribed =
+    data?.user?.subscriptionStatus === SubscriptionStatus.ACTIVE;
 
-// rendering subscription message based on context
+  console.log("Final subscription check:", {
+    status: data?.user?.subscriptionStatus,
+    enumValue: SubscriptionStatus.ACTIVE,
+    isMatch: data?.user?.subscriptionStatus === SubscriptionStatus.ACTIVE,
+    isSubscribed,
+  });
 
   return (
     <SubscriptionContext.Provider
       value={{
-        isSubscribed:
-          data?.subscription?.data?.attributes?.status === "active" ||
-          (data?.subscription?.data?.attributes?.cancelled &&
-            new Date(data?.subscription?.data?.attributes?.ends_at) >
-              new Date()),
-        hasActiveTrial: trialStatus === "active",
-        trialStatus,
+        isSubscribed,
+        hasActiveTrial: Boolean(data?.user?.hasActiveTrial),
+        trialStatus: data?.user?.hasActiveTrial ? "active" : "ended",
         isLoading: sessionLoading || subscriptionLoading,
         session,
         trialEndDate: data?.user?.trialEndDate,

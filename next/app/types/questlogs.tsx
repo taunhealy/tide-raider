@@ -4,13 +4,17 @@ import {
   getSwellEmoji,
   getDirectionEmoji,
 } from "../lib/forecastUtils";
-import type { Beach } from "./beaches";
+import type { Beach } from "@/app/types/beaches";
 import { Prisma } from "@prisma/client";
 
 export interface LogEntry {
   id: string;
   userId?: string;
-  user?: { id: string };
+  nationality?: string;
+  user?: {
+    id: string;
+    nationality?: string;
+  };
   date: string;
   sessionDate?: Date;
   surferName: string;

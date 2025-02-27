@@ -2,8 +2,12 @@
 
 import Image from "next/image";
 import { useState } from "react";
-import { Button } from "@/app/components/ui/Button";
-import { User } from "@prisma/client"; // Assuming you have a User type
+import { countries } from "countries-list";
+
+type CountryWithEmoji = {
+  name: string;
+  emoji: string;
+};
 
 interface ProfileHeaderProps {
   userData: {
@@ -12,13 +16,25 @@ interface ProfileHeaderProps {
     id: string;
     createdAt?: Date | string;
     link?: string;
+    nationality?: string;
+    nationalityName?: string;
   };
   isOwnProfile?: boolean;
+  nationalitySelector?: React.ReactNode;
+}
+
+function getFlagEmoji(countryCode: string) {
+  const codePoints = countryCode
+    .toUpperCase()
+    .split("")
+    .map((char) => 127397 + char.charCodeAt(0));
+  return String.fromCodePoint(...codePoints);
 }
 
 export default function ProfileHeader({
   userData,
   isOwnProfile,
+  nationalitySelector,
 }: ProfileHeaderProps) {
   const [isUploading, setIsUploading] = useState(false);
 
@@ -85,9 +101,23 @@ export default function ProfileHeader({
       </div>
 
       <div>
-        <h1 className="text-2xl font-bold font-primary">
-          {userData?.name || "Anonymous"}
-        </h1>
+        <div className="flex items-center gap-2">
+          <h1 className="text-2xl font-bold font-primary">
+            {userData?.name || "Anonymous"}
+          </h1>
+          {nationalitySelector}
+        </div>
+        {userData?.nationality && (
+          <div className="text-sm text-gray-600 mt-1">
+            From{" "}
+            {
+              (countries as Record<string, { name: string }>)[
+                userData.nationality
+              ]?.name
+            }{" "}
+            {getFlagEmoji(userData.nationality)}
+          </div>
+        )}
         {userData?.link && (
           <div className="mt-1">
             <a

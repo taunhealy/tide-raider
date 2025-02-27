@@ -28,7 +28,8 @@ export async function GET(
         link: true,
         image: true,
         createdAt: true,
-        skillLevel: true, // Added missing field
+        skillLevel: true,
+        nationality: true,
         _count: {
           select: {
             boards: true,

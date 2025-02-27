@@ -10,6 +10,8 @@ import { pricingQuery } from "@/app/lib/queries";
 import { useEffect, useState } from "react";
 import { useSubscription } from "../context/SubscriptionContext";
 import { toast } from "sonner";
+import { useSubscriptionDetails } from "../hooks/useSubscriptionDetails";
+import { SubscriptionStatus } from "@/app/types/subscription";
 
 function ImageSkeleton() {
   return (
@@ -42,6 +44,10 @@ export default function PricingPage() {
     subscribe: false,
     unsubscribe: false,
   });
+  const { data: subscriptionDetails } = useSubscriptionDetails();
+  const isActiveSubscription =
+    subscriptionDetails?.data?.status === SubscriptionStatus.ACTIVE;
+  const subscriptionData = subscriptionDetails?.data;
 
   useEffect(() => {
     const fetchData = async () => {
@@ -54,7 +60,18 @@ export default function PricingPage() {
   const handleSubscribeWithLoading = async () => {
     setLoadingStates((prev) => ({ ...prev, subscribe: true }));
     try {
-      await handleSubscribe();
+      const response = await fetch("/api/subscriptions/create", {
+        method: "POST",
+      });
+      const data = await response.json();
+
+      if (data.url) {
+        // Redirect to PayPal checkout
+        window.location.href = data.url;
+      }
+    } catch (error) {
+      console.error("Subscription creation failed:", error);
+      toast.error("Failed to create subscription. Please try again.");
     } finally {
       setLoadingStates((prev) => ({ ...prev, subscribe: false }));
     }
@@ -63,16 +80,17 @@ export default function PricingPage() {
   const handleUnsubscribe = async () => {
     setLoadingStates((prev) => ({ ...prev, unsubscribe: true }));
     try {
-      const response = await fetch("/api/subscriptions", {
+      const response = await fetch("/api/subscriptions/manage", {
         method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({ action: "unsubscribe" }),
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          action: "cancel",
+          subscriptionId: subscriptionData?.id,
+        }),
       });
 
       if (!response.ok) {
-        throw new Error("Failed to unsubscribe");
+        throw new Error("Failed to cancel subscription");
       }
 
       window.location.reload();
@@ -181,7 +199,7 @@ export default function PricingPage() {
                   className="object-cover opacity-70"
                   priority
                   placeholder="blur"
-                  blurDataURL="data:image/jpeg;base64,/9j/4AAQSkZJRgABAQAAAQABAAD/4gHYSUNDX1BST0ZJTEUAAQEAAAHIAAAAAAQwAABtbnRyUkdCIFhZWiAH4AABAAEAAAAAAABhY3NwAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAQAA9tYAAQAAAADTLQAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAlkZXNjAAAA8AAAACRyWFlaAAABFAAAABRnWFlaAAABKAAAABRiWFlaAAABPAAAABR3dHB0AAABUAAAABRyVFJDAAABZAAAAChnVFJDAAABZAAAAChiVFJDAAABZAAAAChjcHJ0AAABjAAAADxtbHVjAAAAAAAAAAEAAAAMZW5VUwAAAAgAAAAcAHMAUgBHAEJYWVogAAAAAAAAb6IAADj1AAADkFhZWiAAAAAAAABimQAAt4UAABjaWFlaIAAAAAAAACSgAAAPhAAAts9YWVogAAAAAAAA9tYAAQAAAADTLXBhcmEAAAAAAAQAAAACZmYAAPKnAAANWQAAE9AAAApbAAAAAAAAAABtbHVjAAAAAAAAAAEAAAAMZW5VUwAAACAAAAAcAEcAbwBvAGcAbABlACAASQBuAGMALgAgADIAMAAxADb/2wBDABQODxIPDRQSEBIXFRQdHx4eHRoaHSQrJiEkKic0Ly4vLy4vNDk2ODU4Ni8vQUFBQC8vRUVFRUVFRUVFRUVFRUX/2wBDAR0XFyAeIB4gHh4gIB4lICAgICUmJSAgICUvJSUlJSUlLyUlJSUlJSUlJSUlJSUlJSUlJSUlJSUlJSUlJSX/wAARCAAIAAoDASIAAhEBAxEB/8QAFQABAQAAAAAAAAAAAAAAAAAAAAb/xAAUEAEAAAAAAAAAAAAAAAAAAAAA/8QAFQEBAQAAAAAAAAAAAAAAAAAAAAX/xAAUEQEAAAAAAAAAAAAAAAAAAAAA/9oADAMBAAIRAxEAPwCdABmX/9k="
+                  blurDataURL="data:image/jpeg;base64,/9j/4AAQSkZJRgABAQAAAQABAAD/4gHYSUNDX1BST0ZJTEUAAQEAAAHIAAAAAAQwAABtbnRyUkdCIFhZWiAH4AABAAEAAAAAAABhY3NwAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAQAA9tYAAQAAAADTLQAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAlkZXNjAAAA8AAAACRyWFlaAAABFAAAABRnWFlaAAABKAAAABRiWFlaAAABPAAAABR3dHB0AAABUAAAABRyVFJDAAABZAAAAChnVFJDAAABZAAAAChiVFJDAAABZAAAAChjcHJ0AAABjAAAADxtbHVjAAAAAAAAAAEAAAAMZW5VUwAAAAgAAAAcAHMAUgBHAEJYWVogAAAAAAAAb6IAADj1AAADkFhZWiAAAAAAAABimQAAt4UAABjaWFlaIAAAAAAAACSgAAAPhAAAts9YWVogAAAAAAAA9tYAAQAAAADTLXBhcmEAAAAAAAQAAAACZmYAAPKnAAANWQAAE9AAAApbAAAAAAAAAABtbHVjAAAAAAAAAAEAAAAMZW5VUwAAACAAAAAcAEcAbwBvAGcAbABlACAASQBuAGMALgAgADIAMAAxADb/2wBDABQODxIPDRQSEBIXFRQdHx4eHRoaHSQrJiEkKic0Ly4vLy4vNDk2ODU4Ni8vQUFBQC8vRUVFRUVFRUVFRUVFRUX/2wBDAR0XFyAeIB4gHh4gIB4lICAgICUmJSAgICUvJSUlJSUlLyUlJSUlJSUlJSUlJSUlJSUlJSUlJSUlJSX/wAARCAAIAAoDASIAAhEBAxEB/8QAFQABAQAAAAAAAAAAAAAAAAAAAAb/xAAUEAEAAAAAAAAAAAAAAAAAAAAA/8QAFQEBAQAAAAAAAAAAAAAAAAAAAAX/xAAUEQEAAAAAAAAAAAAAAAAAAAAA/9oADAMBAAIRAxEAPwCdABmX/9k="
                 />
               </div>
             ) : (

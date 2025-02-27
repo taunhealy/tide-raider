@@ -161,6 +161,11 @@ export async function GET(request: Request) {
         isAnonymous: true,
         isPrivate: true,
         userId: true,
+        user: {
+          select: {
+            nationality: true,
+          },
+        },
       },
       orderBy: { date: "desc" },
       take: 50,

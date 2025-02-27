@@ -3,7 +3,7 @@ import { scraperA } from "@/app/lib/scrapers/scraperA";
 import { ValidRegion } from "@/app/lib/regions";
 
 interface RegionSourceConfig {
-  region: ValidRegion;
+  region: string;
   sourceA: {
     url: string;
     scraper: (url: string, region: ValidRegion) => Promise<WindData>;
@@ -127,6 +127,34 @@ export const REGION_CONFIGS: RegionSourceConfig[] = [
     region: "Bali",
     sourceA: {
       url: "https://www.windfinder.com/forecast/bali_uluwatu",
+      scraper: scraperA,
+    },
+  },
+  {
+    region: "Puntarenas Province",
+    sourceA: {
+      url: "https://www.windfinder.com/forecast/puntarenas",
+      scraper: scraperA,
+    },
+  },
+  {
+    region: "Queensland",
+    sourceA: {
+      url: "https://www.windfinder.com/forecast/noosa_main_beach",
+      scraper: scraperA,
+    },
+  },
+  {
+    region: "San Salvador",
+    sourceA: {
+      url: "https://www.windfinder.com/forecast/san_salvador_san_salvador_el_salvador",
+      scraper: scraperA,
+    },
+  },
+  {
+    region: "Chicama",
+    sourceA: {
+      url: "https://www.windfinder.com/forecast/chicama",
       scraper: scraperA,
     },
   },

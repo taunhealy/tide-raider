@@ -16,6 +16,7 @@ import Image from "next/image";
 import { urlForImage } from "@/app/lib/urlForImage";
 import { groq } from "next-sanity";
 import { client } from "@/lib/sanity";
+import NationalitySelector from "@/app/components/profile/NationalitySelector";
 
 // Server component
 export default function ProfilePage() {
@@ -30,6 +31,7 @@ export default function ProfilePage() {
     data: userData,
     error,
     isLoading,
+    refetch,
   } = useQuery({
     queryKey: ["user", userId],
     queryFn: async () => {
@@ -53,6 +55,27 @@ export default function ProfilePage() {
     },
   });
 
+  const updateNationality = async (countryCode: string) => {
+    try {
+      const res = await fetch(`/api/user/${userId}/nationality`, {
+        method: "PATCH",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ nationality: countryCode }),
+      });
+      if (!res.ok) throw new Error("Failed to update nationality");
+
+      // Force a refetch of user data
+      await refetch();
+
+      // Force a page refresh
+      window.location.reload();
+    } catch (error) {
+      console.error("Failed to update nationality:", error);
+    }
+  };
+
   if (isLoading) {
     return (
       <div className="min-h-[calc(100vh-160px)] flex items-center justify-center">
@@ -69,7 +92,17 @@ export default function ProfilePage() {
     <div className="container mx-auto p-6 font-primary">
       <div className="flex flex-col sm:flex-row gap-6">
         <div className="flex-1">
-          <ProfileHeader userData={userData} isOwnProfile={isOwnProfile} />
+          <ProfileHeader
+            userData={userData}
+            isOwnProfile={isOwnProfile}
+            nationalitySelector={
+              <NationalitySelector
+                currentFlag={userData.nationality}
+                isOwnProfile={isOwnProfile}
+                onSelect={updateNationality}
+              />
+            }
+          />
 
           <div className="flex gap-4 mb-6">
             <Button

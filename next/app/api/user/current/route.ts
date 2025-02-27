@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { getServerSession } from "next-auth/next";
 import { authOptions } from "@/app/lib/authOptions";
 import { prisma } from "@/app/lib/prisma";
+import { SubscriptionStatus } from "@/app/types/subscription";
 
 export async function GET() {
   const session = await getServerSession(authOptions);
@@ -16,7 +17,13 @@ export async function GET() {
       hasActiveTrial: true,
       hasTrialEnded: true,
       trialEndDate: true,
+      subscriptionStatus: true,
     },
+  });
+
+  console.log("User API response:", {
+    subscriptionStatus: user?.subscriptionStatus,
+    raw: user,
   });
 
   return NextResponse.json(user);

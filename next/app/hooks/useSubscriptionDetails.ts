@@ -1,4 +1,5 @@
 import { useQuery } from "@tanstack/react-query";
+import { SubscriptionStatus } from "@/app/types/subscription";
 
 export function useSubscriptionDetails() {
   return useQuery({
@@ -11,18 +12,12 @@ export function useSubscriptionDetails() {
       }
       const data = await response.json();
 
-      // Transform PayPal subscription data to match your app's format
       return {
-        data: data.subscription
-          ? {
-              id: data.subscription.id,
-              status: data.subscription.status,
-              plan_id: data.subscription.plan_id,
-              create_time: data.subscription.create_time,
-              next_billing_time:
-                data.subscription.billing_info?.next_billing_time,
-            }
-          : null,
+        data: {
+          status: data?.data?.status || SubscriptionStatus.INACTIVE,
+          id: data?.data?.subscription?.id,
+          next_billing_time: data?.data?.subscription?.next_billing_time,
+        },
       };
     },
     refetchOnWindowFocus: false,

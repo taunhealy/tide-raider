@@ -15,8 +15,11 @@ import Image from "next/image";
 import { useSession } from "next-auth/react";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { useRouter } from "next/navigation";
-import { useMemo } from "react";
+import { useMemo, useState } from "react";
 import { ForecastData } from "@/types/wind";
+import Link from "next/link";
+import BeachDetailsModal from "@/app/components/BeachDetailsModal";
+import { beachData, type Beach } from "@/app/types/beaches";
 
 interface QuestTableProps {
   entries: LogEntry[];
@@ -26,6 +29,7 @@ interface QuestTableProps {
   showPrivateOnly?: boolean;
   onFilterChange?: () => void;
   onBeachClick: (beachName: string) => void;
+  nationality?: string;
 }
 
 interface LogEntryDisplayProps {
@@ -35,7 +39,22 @@ interface LogEntryDisplayProps {
 
 function LogEntryDisplay({ entry, isAnonymous }: LogEntryDisplayProps) {
   const displayName = isAnonymous ? "Anonymous" : entry.surferName;
-  return <span className="font-primary text-gray-900">{displayName}</span>;
+  return (
+    <div className="flex items-center gap-2">
+      <Link
+        href={isAnonymous ? "#" : `/profile/${entry.userId}`}
+        className={cn(
+          "font-primary hover:text-brand-3 transition-colors",
+          isAnonymous ? "text-gray-900 cursor-default" : "text-gray-900"
+        )}
+      >
+        {displayName}
+      </Link>
+      {entry.user?.nationality && (
+        <span className="text-xs text-gray-500">{entry.user.nationality}</span>
+      )}
+    </div>
+  );
 }
 
 function ForecastInfo({ forecast }: { forecast?: LogEntry["forecast"] }) {
@@ -168,26 +187,28 @@ const normalizeLogEntry = (entry: LogEntry): LogEntry => ({
 
 export const DEFAULT_COLUMNS: QuestLogTableColumn[] = [
   {
+    key: "date",
+    label: "Date",
+  },
+  {
+    key: "beachName",
+    label: "Beach",
+  },
+  {
+    key: "region",
+    label: "Region",
+  },
+  {
+    key: "surferName",
+    label: "Logger",
+  },
+  {
+    key: "surferRating",
+    label: "Rating",
+  },
+  {
     key: "forecastSummary",
     label: "Conditions",
-    render: (entry: LogEntry) => {
-      const forecast = entry.forecast;
-      if (!forecast?.windSpeed || !forecast?.swellHeight) {
-        return <span className="font-primary text-gray-500">—</span>;
-      }
-
-      return (
-        <>
-          <div className="font-primary">
-            {getSwellEmoji(forecast.swellHeight)} {forecast.swellHeight}m{" • "}
-            {getWindEmoji(forecast.windSpeed)} {forecast.windSpeed}kts
-          </div>
-          <div className="text-xs text-gray-500 font-primary">
-            {degreesToCardinal(parseFloat(forecast.windDirection))} winds
-          </div>
-        </>
-      );
-    },
   },
   {
     key: "comments",
@@ -203,6 +224,8 @@ export default function RaidLogTable({
   showPrivateOnly = false,
   onBeachClick,
 }: QuestTableProps) {
+  const [selectedBeach, setSelectedBeach] = useState<Beach | null>(null);
+
   const normalizedEntries = useMemo(() => {
     return entries.map(normalizeLogEntry);
   }, [entries]);
@@ -391,8 +414,14 @@ export default function RaidLogTable({
                     </td>
                     <td className="px-4 py-4 sm:px-6 whitespace-nowrap min-w-[180px]">
                       <button
-                        onClick={() => onBeachClick(entry.beachName)}
-                        className="text-brand-3 hover:underline font-primary"
+                        onClick={() => {
+                          const foundBeach = beachData.find(
+                            (b) => b.name === entry.beachName
+                          );
+                          console.log("Found beach data:", foundBeach);
+                          setSelectedBeach(foundBeach || null);
+                        }}
+                        className="font-primary text-gray-900 hover:text-brand-3 transition-colors text-left"
                       >
                         {entry.beachName}
                       </button>
@@ -400,7 +429,7 @@ export default function RaidLogTable({
                     <td className="px-4 py-4 sm:px-6 whitespace-nowrap min-w-[180px]">
                       {entry.region}
                     </td>
-                    <td className="px-4 py-4 sm:px-6 whitespace-nowrap min-w-[180px] font-primary">
+                    <td className="px-4 py-4 sm:px-6 whitespace-nowrap min-w-[180px]">
                       <LogEntryDisplay
                         entry={entry}
                         isAnonymous={entry.isAnonymous ?? false}
@@ -467,6 +496,17 @@ export default function RaidLogTable({
           </table>
         </div>
       </div>
+
+      {/* Beach Details Modal */}
+      {selectedBeach && (
+        <BeachDetailsModal
+          beach={selectedBeach}
+          isOpen={!!selectedBeach}
+          onClose={() => setSelectedBeach(null)}
+          isSubscribed={isSubscribed}
+          onSubscribe={() => {}}
+        />
+      )}
     </div>
   );
 }

@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { getServerSession } from "next-auth/next";
 import { authOptions } from "@/app/lib/authOptions";
 import { prisma } from "@/app/lib/prisma";
+import { SubscriptionStatus } from "@/app/types/subscription";
 
 export async function POST(request: Request) {
   const session = await getServerSession(authOptions);
@@ -65,7 +66,10 @@ export async function POST(request: Request) {
     if (action === "cancel") {
       await prisma.user.update({
         where: { email: session.user.email },
-        data: { paypalSubscriptionId: null },
+        data: {
+          paypalSubscriptionId: null,
+          subscriptionStatus: SubscriptionStatus.CANCELLED,
+        },
       });
     }
 

@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/app/lib/prisma";
+import { SubscriptionStatus } from "@/app/types/subscription";
 
 export async function POST(request: Request) {
   const payload = await request.json();
@@ -20,7 +21,12 @@ export async function POST(request: Request) {
           break;
         case "BILLING.SUBSCRIPTION.CANCELLED":
         case "BILLING.SUBSCRIPTION.EXPIRED":
-          await handleSubscriptionEnded(subscriptionId);
+          await handleSubscriptionEnded(
+            subscriptionId,
+            webhookEvent === "BILLING.SUBSCRIPTION.EXPIRED"
+              ? SubscriptionStatus.EXPIRED
+              : SubscriptionStatus.CANCELLED
+          );
           break;
         case "BILLING.SUBSCRIPTION.SUSPENDED":
           await handleSubscriptionSuspended(subscriptionId);
@@ -45,19 +51,21 @@ async function handleSubscriptionActive(subscriptionId: string) {
   await prisma.user.updateMany({
     where: { paypalSubscriptionId: subscriptionId },
     data: {
-      subscriptionStatus: "active",
+      subscriptionStatus: SubscriptionStatus.ACTIVE,
       hasActiveTrial: false,
       trialEndDate: null,
     },
   });
 }
 
-async function handleSubscriptionEnded(subscriptionId: string) {
+async function handleSubscriptionEnded(
+  subscriptionId: string,
+  status: SubscriptionStatus
+) {
   await prisma.user.updateMany({
     where: { paypalSubscriptionId: subscriptionId },
     data: {
-      subscriptionStatus: "cancelled",
-      paypalSubscriptionId: null,
+      subscriptionStatus: status,
     },
   });
 }
@@ -66,7 +74,7 @@ async function handleSubscriptionSuspended(subscriptionId: string) {
   await prisma.user.updateMany({
     where: { paypalSubscriptionId: subscriptionId },
     data: {
-      subscriptionStatus: "suspended",
+      subscriptionStatus: SubscriptionStatus.SUSPENDED,
     },
   });
 }

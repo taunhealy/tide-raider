@@ -96,6 +96,7 @@ export interface Beach {
     name: string;
   }[];
   hasSharkAlert?: boolean;
+  bestMonthOfYear?: string;
 }
 
 export interface AdSlot {
@@ -6931,6 +6932,49 @@ export const beachData: Beach[] = [
     ],
   },
   {
+    id: "blue-ocean",
+    name: "Blue Ocean",
+    continent: "Asia",
+    country: "Indonesia",
+    region: "Bali",
+    location: "Kuta",
+    distanceFromCT: 0, // Not applicable
+    optimalWindDirections: ["ENE", "E"],
+    optimalSwellDirections: {
+      min: 202.5, // SW
+      max: 247.5,
+      cardinal: "SW",
+    },
+    bestSeasons: ["dry-season"], // May-Oct
+    optimalTide: "High",
+    description:
+      "Reliable beach break in the heart of Kuta offering consistent waves throughout Bali's dry season. Multiple peaks along the beach provide both left and right options, with wave faces typically ranging from 2-6ft. Best conditions occur with SW groundswells and ENE offshore winds. Wave quality improves significantly around high tide when rocks become less of a hazard. Popular spot among beginners and intermediates due to its forgiving nature and easy access. Gets crowded during peak season mornings before onshore winds pick up. Several surf schools operate here, making it a common learning ground. Watch for submerged rocks at lower tides and strong rips that can form between sandbars.",
+    difficulty: "All Levels",
+    waveType: "Beach Break",
+    swellSize: {
+      min: 0.6,
+      max: 2.0,
+    },
+    idealSwellPeriod: {
+      min: 10,
+      max: 14,
+    },
+    waterTemp: {
+      summer: 29,
+      winter: 26,
+    },
+    hazards: ["Rocks", "Rip currents", "Crowds"],
+    crimeLevel: "Low",
+    sharkAttack: {
+      hasAttack: false,
+    },
+    image: "/images/beaches/blue-ocean.jpg",
+    coordinates: {
+      lat: -8.7215,
+      lng: 115.1686,
+    },
+  },
+  {
     id: "praia-morena",
     name: "Praia Morena",
     continent: "Africa",
@@ -6984,6 +7028,106 @@ export const beachData: Beach[] = [
         platform: "youtube",
       },
     ],
+  },
+  {
+    id: "jimbaran-beach",
+    name: "Jimbaran Beach",
+    continent: "Asia",
+    country: "Indonesia",
+    region: "Bali",
+    location: "Kuta",
+    distanceFromCT: 0, // Not applicable
+    optimalWindDirections: ["ESE", "E"],
+    optimalSwellDirections: {
+      min: 270, // W
+      max: 280,
+      cardinal: "W",
+    },
+    bestSeasons: ["dry-season"], // May-Oct
+    optimalTide: "All",
+    description:
+      "Sheltered beach break tucked away in Jimbaran Bay offering inconsistent but occasionally rewarding surf. Despite its protected location, requires specific west swell direction and ESE winds to work properly. When conditions align, provides both left and right peaks suitable for all tide stages. Wave faces typically range from 2-4ft when working. Less crowded than neighboring spots, making it a good option for those seeking space to practice. Popular with beginners during smaller swells, but strong rip currents demand respect and awareness. Best surfed during dry season (May-October) when groundswells are more frequent. Beach setting offers stunning sunsets and numerous seafood restaurants along the shore.",
+    difficulty: "Intermediate",
+    waveType: "Beach Break",
+    swellSize: {
+      min: 0.5,
+      max: 2,
+    },
+    idealSwellPeriod: {
+      min: 10,
+      max: 14,
+    },
+    waterTemp: {
+      summer: 29,
+      winter: 26,
+    },
+    hazards: ["Strong rip currents"],
+    crimeLevel: "Low",
+    sharkAttack: {
+      hasAttack: false,
+    },
+    image: "",
+    videos: [
+      {
+        url: "@https://www.youtube.com/watch?v=UomvCTqZLro&pp=ygUVamltYmFyYW4gYmFsaSBzdXJmaW5n ",
+        title: "Surfing Canggu, Bali || Complete Guide",
+        platform: "youtube",
+      },
+    ],
+    coordinates: {
+      lat: -8.7859,
+      lng: 115.1654,
+    },
+  },
+  {
+    id: "balangan",
+    name: "Balangan",
+    continent: "Asia",
+    country: "Indonesia",
+    region: "Bali",
+    location: "The Bukit",
+    distanceFromCT: 0, // Not applicable
+    optimalWindDirections: ["ESE", "E"],
+    optimalSwellDirections: {
+      min: 202.5, // SW
+      max: 247.5,
+      cardinal: "SW",
+    },
+    bestSeasons: ["dry-season"], // May-Oct
+    optimalTide: "Mid",
+    description:
+      "Exposed reef break on Bali's Bukit Peninsula delivering consistent left-handers throughout the dry season. Works best with SW groundswells and ESE offshore winds, producing long walls with occasional barrel sections. Wave faces range from 3-8ft, breaking over shallow reef. Main peak offers steep takeoffs leading into multiple sections suitable for intermediate to advanced surfers. Best surfed on mid-tide when reef coverage is optimal. Popular spot that can get crowded during prime conditions. Access via steep stairs from clifftop parking. Watch for exposed reef sections and strong currents during larger swells.",
+    difficulty: "Intermediate",
+    waveType: "Reef Break",
+    swellSize: {
+      min: 1.0,
+      max: 2.5,
+    },
+    idealSwellPeriod: {
+      min: 11,
+      max: 16,
+    },
+    waterTemp: {
+      summer: 29,
+      winter: 26,
+    },
+    hazards: ["Rocks", "Reef", "Crowds", "Strong currents"],
+    crimeLevel: "Low",
+    sharkAttack: {
+      hasAttack: false,
+    },
+    image: "",
+    videos: [
+      {
+        url: "@https://www.youtube.com/watch?v=HxDBRGMulUw&ab_channel=SurfRawFiles ",
+        title: "BEST Balangan of 2024? - Bali - RAWFILES - 06/SEPT/2024 - 4K",
+        platform: "youtube",
+      },
+    ],
+    coordinates: {
+      lat: -8.7947,
+      lng: 115.1212,
+    },
   },
   {
     id: "anza",
@@ -9715,6 +9859,733 @@ export const beachData: Beach[] = [
     coordinates: {
       lat: -8.7025, // Slightly south of Tandjung-Lefts
       lng: 115.2631,
+    },
+  },
+  {
+    id: "canggu",
+    name: "Canggu",
+    continent: "Asia",
+    country: "Indonesia",
+    region: "Bali",
+    location: "West Coast",
+    distanceFromCT: 0, // Not applicable
+    optimalWindDirections: ["NE", "ENE", "E"],
+    optimalSwellDirections: {
+      min: 202.5, // SW
+      max: 247.5,
+      cardinal: "SW",
+    },
+    bestSeasons: ["dry-season"], // May-Oct
+    optimalTide: "Mid",
+    description:
+      "Iconic Bali reef break offering consistent waves year-round, with peak conditions during the dry season (May-October). Multiple peaks across the reef provide both left and right-handers, with wave faces ranging from 2-8ft. Main break delivers powerful walls and occasional barrels over shallow reef, while reform sections offer more forgiving rides. Best performance on SW swells with NE winds under 15 knots. Morning sessions typically glassy before onshore winds develop. Deep channels between peaks aid paddle-outs but create strong lateral currents - use landmarks to maintain position. Popular spot that gets crowded, especially during peak season. Watch for exposed reef sections at low tide and strong rips near main peak.",
+    difficulty: "Intermediate",
+    waveType: "Reef Break",
+    swellSize: {
+      min: 0.6,
+      max: 2.4,
+    },
+    idealSwellPeriod: {
+      min: 11,
+      max: 16,
+    },
+    waterTemp: {
+      summer: 29,
+      winter: 26,
+    },
+    hazards: ["Reef", "Rip currents", "Crowds", "Strong currents"],
+    crimeLevel: "Low",
+    sharkAttack: {
+      hasAttack: false,
+    },
+    image: "",
+    coordinates: {
+      lat: -8.6478,
+      lng: 115.1385,
+    },
+    videos: [
+      {
+        url: "https://www.youtube.com/watch?v=7Ys47vW7I04&ab_channel=Surfer2000",
+        title: "Canggu Surf Scene - Bali",
+        platform: "youtube",
+      },
+      {
+        url: "https://www.youtube.com/watch?v=yi5jY0VsVGM&ab_channel=DanHarmon",
+        title: "Surfing Canggu, Bali || Complete Guide",
+        platform: "youtube",
+      },
+      {
+        url: "https://www.youtube.com/watch?v=DCY9lDBgJxo&ab_channel=SurfersofBali",
+        title: "Time & Place: Canggu In March",
+        platform: "youtube",
+      },
+    ],
+    coffeeShop: [
+      { name: "Crate Cafe" },
+      { name: "Milk & Madu" },
+      { name: "Coffee & Coconuts" },
+    ],
+  },
+  {
+    id: "bingin",
+    name: "Bingin",
+    continent: "Asia",
+    country: "Indonesia",
+    region: "Bali",
+    location: "The Bukit",
+    distanceFromCT: 0, // Not applicable
+    optimalWindDirections: ["E", "ESE"],
+    optimalSwellDirections: {
+      min: 202.5, // SW
+      max: 247.5,
+      cardinal: "SW",
+    },
+    bestSeasons: ["dry-season"], // May-Oct
+    optimalTide: "Mid",
+    description:
+      "Classic Bukit Peninsula reef break known for its perfect left-hand barrels. Highly consistent during dry season with SW groundswells and easterly winds creating ideal conditions. Wave faces range from 2-8ft, breaking over shallow reef in multiple sections. Offers short but intense rides with steep takeoffs leading into barrel sections. Very popular spot that gets crowded, especially during prime conditions. Access requires navigating steep stairs down limestone cliffs. Best surfed mid to low tide when wave shape is optimal. Watch for exposed reef and strong currents, particularly on larger swells.",
+    difficulty: "Advanced",
+    waveType: "Reef Break",
+    swellSize: {
+      min: 1.0,
+      max: 2.5,
+    },
+    idealSwellPeriod: {
+      min: 11,
+      max: 16,
+    },
+    waterTemp: {
+      summer: 29,
+      winter: 26,
+    },
+    hazards: ["Rocks", "Reef", "Crowds", "Strong currents", "Difficult access"],
+    crimeLevel: "Low",
+    sharkAttack: {
+      hasAttack: false,
+    },
+    image: "",
+    videos: [
+      {
+        url: "https://www.youtube.com/watch?v=tAaiK5MeuQc&ab_channel=SurfersofBali",
+        title: "Stubborn Perfection - Bingin, 31 July 2020",
+        platform: "youtube",
+      },
+    ],
+    coordinates: {
+      lat: -8.8103,
+      lng: 115.1089,
+    },
+    coffeeShop: [{ name: "Warung Tuti Cafe" }],
+  },
+  {
+    id: "dreamland",
+    name: "Dreamland",
+    continent: "Asia",
+    country: "Indonesia",
+    region: "Bali",
+    location: "The Bukit",
+    distanceFromCT: 0, // Not applicable
+    optimalWindDirections: ["E", "ESE"],
+    optimalSwellDirections: {
+      min: 202.5, // SW
+      max: 247.5,
+      cardinal: "SW",
+    },
+    bestSeasons: ["dry-season"], // May-Oct
+    optimalTide: "Low",
+    description:
+      "Exposed beach and reef break combination offering fairly consistent waves throughout the dry season. Features both left and right peaks breaking over reef, with wave faces typically ranging from 2-6ft. Best performance during low tide with SW groundswells meeting easterly offshore winds. Beach break section provides more forgiving waves suitable for intermediates, while reef sections demand more experience. Popular tourist location that can get crowded, especially during peak season. Deep channel assists with paddle out but creates strong lateral currents. Watch for submerged rocks at low tide, particularly around reef sections.",
+    difficulty: "Intermediate",
+    waveType: "Beach and Reef Break",
+    swellSize: {
+      min: 0.8,
+      max: 2.0,
+    },
+    idealSwellPeriod: {
+      min: 10,
+      max: 14,
+    },
+    waterTemp: {
+      summer: 29,
+      winter: 26,
+    },
+    hazards: ["Rocks", "Reef", "Crowds", "Strong currents"],
+    crimeLevel: "Low",
+    sharkAttack: {
+      hasAttack: false,
+    },
+    image: "",
+    coordinates: {
+      lat: -8.7947,
+      lng: 115.1167,
+    },
+    videos: [
+      {
+        url: "https://www.youtube.com/watch?v=WWzTXyEzVFY&ab_channel=Surfind",
+        title: "Bali surf Dreamland Beach when full tide | local surfer",
+        platform: "youtube",
+      },
+      {
+        url: "https://www.youtube.com/watch?v=5Hnx9dytcwc&ab_channel=SurfVideoBali",
+        title: "SURFING BIG WAVE RIGHT SIDE A-FRAME AT DREAMLAND BEACH",
+        platform: "youtube",
+      },
+    ],
+    coffeeShop: [{ name: "Beige Coffee Bingin, Bali" }],
+  },
+  {
+    id: "impossibles",
+    name: "Impossibles",
+    continent: "Asia",
+    country: "Indonesia",
+    region: "Bali",
+    location: "The Bukit",
+    distanceFromCT: 0, // Not applicable
+    optimalWindDirections: ["ESE", "E"],
+    optimalSwellDirections: {
+      min: 202.5, // SW
+      max: 247.5,
+      cardinal: "SW",
+    },
+    bestSeasons: ["dry-season"], // May-Oct
+    optimalTide: "Low",
+    description:
+      "World-class reef break rated 5/5 for its perfectly peeling left-handers that earned its intimidating name. Highly consistent during dry season, producing long, fast walls that require committed surfing. Best conditions occur with SW groundswells and ESE offshore winds, generating wave faces from 4-12ft. Multiple takeoff zones spread across three main sections, each offering 100+ meter rides when connecting. Low tide typically provides optimal wave shape and speed. Despite challenging nature, spot draws crowds during prime conditions. Access via steep cliff stairs shared with Bingin. Advanced spot demanding strong paddle fitness and reef break experience. Watch for exposed reef sections, particularly during low tide sets.",
+    difficulty: "Advanced",
+    waveType: "Reef Break",
+    swellSize: {
+      min: 1.2,
+      max: 4.0,
+    },
+    idealSwellPeriod: {
+      min: 12,
+      max: 18,
+    },
+    waterTemp: {
+      summer: 29,
+      winter: 26,
+    },
+    hazards: ["Rocks", "Reef", "Crowds", "Strong currents", "Difficult access"],
+    crimeLevel: "Low",
+    sharkAttack: {
+      hasAttack: false,
+    },
+    image: "",
+    coordinates: {
+      lat: -8.8183,
+      lng: 115.0891,
+    },
+  },
+  {
+    id: "padang-padang",
+    name: "Padang Padang",
+    continent: "Asia",
+    country: "Indonesia",
+    region: "Bali",
+    location: "The Bukit",
+    distanceFromCT: 0, // Not applicable
+    optimalWindDirections: ["SE", "ESE"],
+    optimalSwellDirections: {
+      min: 202.5, // SW
+      max: 247.5,
+      cardinal: "SW",
+    },
+    bestSeasons: ["dry-season"], // May-Oct
+    bestMonthOfYear: "October",
+    optimalTide: "Mid",
+    description:
+      "Legendary Bukit Peninsula reef break rated 4/5, famously known as the 'Balinese Pipeline'. Despite inconsistent nature, delivers world-class barrels when conditions align. Requires solid SW groundswell and SE winds to showcase its full potential. Wave faces range from 4-12ft, breaking over shallow reef through a narrow canyon-like channel. Best performance during mid-tide with larger swells. Access via steep concrete stairs through a dramatic cave entrance. Extremely crowded when working due to its iconic status. Advanced spot demanding expert barrel-riding skills and reef break experience. Watch for exposed reef sections and strong surge through cave entrance during sets.",
+    difficulty: "Expert",
+    waveType: "Reef Break",
+    swellSize: {
+      min: 1.5,
+      max: 4.0,
+    },
+    idealSwellPeriod: {
+      min: 12,
+      max: 18,
+    },
+    waterTemp: {
+      summer: 29,
+      winter: 26,
+    },
+    hazards: [
+      "Rocks",
+      "Sharp reef",
+      "Heavy crowds",
+      "Strong currents",
+      "Cave entrance",
+    ],
+    crimeLevel: "Low",
+    sharkAttack: {
+      hasAttack: false,
+    },
+    image: "/images/beaches/padang-padang.jpg",
+    coordinates: {
+      lat: -8.8107,
+      lng: 115.1031,
+    },
+    videos: [
+      {
+        url: "https://www.youtube.com/watch?v=HVN_TfRfZ_A&ab_channel=SurfersofBali",
+        title:
+          "Was This The Best Session Of The Year? - Padang Padang, 12 September 2020",
+        platform: "youtube",
+      },
+    ],
+  },
+  {
+    id: "the-peak",
+    name: "The Peak",
+    continent: "Asia",
+    country: "Indonesia",
+    region: "Bali",
+    location: "The Bukit",
+    distanceFromCT: 8900, // Consistent with other Bukit spots
+    optimalWindDirections: ["SE"],
+    optimalSwellDirections: {
+      min: 202.5, // SW
+      max: 247.5, // WSW
+      cardinal: "SW",
+    },
+    bestSeasons: ["winter"], // May-Oct (Dry Season)
+    bestMonthOfYear: "September",
+    optimalTide: "High",
+    description:
+      "Exposed reef and point break rated 4/5, renowned for very consistent surf conditions. Features a classic left-hand point break that thrives with Southwest groundswells and Southeast offshore winds. Prime conditions during May-October dry season. Receives clean, powerful groundswells that create long, rideable walls. Best performance at high tide. Part of The Bukit's legendary reef system. Popular spot that maintains good wave access despite crowds. Exercise caution around submerged reef structures.",
+    difficulty: "Advanced",
+    waveType: "Reef Break",
+    swellSize: {
+      min: 1.5,
+      max: 5.5,
+    },
+    idealSwellPeriod: {
+      min: 12,
+      max: 18,
+    },
+    waterTemp: {
+      summer: 30, // Matches current reading of 29.7°C
+      winter: 27,
+    },
+    hazards: ["Rocks", "Sharp reef", "Crowds"],
+    crimeLevel: "Low",
+    sharkAttack: {
+      hasAttack: false,
+    },
+    image: "",
+    coordinates: {
+      lat: -8.8215, // South of The Bombie
+      lng: 115.0888,
+    },
+  },
+  {
+    id: "lacerations",
+    name: "Lacerations",
+    continent: "Asia",
+    country: "Indonesia",
+    region: "Bali",
+    location: "Nusa Lembongan",
+    distanceFromCT: 0, // Not applicable
+    optimalWindDirections: ["ESE", "E"],
+    optimalSwellDirections: {
+      min: 202.5, // SW
+      max: 247.5,
+      cardinal: "SW",
+    },
+    bestSeasons: ["dry-season"], // May-Oct
+    bestMonthOfYear: "July", // Peak of dry season
+    optimalTide: "High",
+    description:
+      "Sheltered reef break rated 4/5 offering powerful right-handers when conditions align. Despite inconsistent nature, delivers world-class waves during dry season SW swells. Named for its shallow reef setup, wave faces range from 4-10ft breaking over sharp coral. Best performance during high tide with ESE offshore winds. Located in a channel between Nusa Lembongan and Nusa Ceningan, requiring boat access. Popular spot that draws crowds on good days. Local knowledge essential for navigating channel currents and reef hazards. Watch for moored boats and buoys in lineup. Strong localism can be present during prime conditions.",
+    difficulty: "Advanced",
+    waveType: "Reef Break",
+    swellSize: {
+      min: 1.2,
+      max: 3.5,
+    },
+    idealSwellPeriod: {
+      min: 12,
+      max: 16,
+    },
+    waterTemp: {
+      summer: 29,
+      winter: 26,
+    },
+    hazards: [
+      "Sharp reef",
+      "Strong rips",
+      "Crowds",
+      "Boat traffic",
+      "Buoys",
+      "Localism",
+    ],
+    crimeLevel: "Low",
+    sharkAttack: {
+      hasAttack: false,
+    },
+    image: "/images/beaches/lacerations.jpg",
+    coordinates: {
+      lat: -8.6785,
+      lng: 115.4555,
+    },
+  },
+  {
+    id: "mushroom-beach",
+    name: "Mushroom Beach - Nusa Lembongan",
+    continent: "Asia",
+    country: "Indonesia",
+    region: "Bali",
+    location: "Nusa Lembongan",
+    distanceFromCT: 0, // Not applicable
+    optimalWindDirections: ["SE"],
+    optimalSwellDirections: {
+      min: 247.5, // WSW
+      max: 270, // W
+      cardinal: "WSW",
+    },
+    bestSeasons: ["dry-season"], // May-Oct
+    optimalTide: "All",
+    description:
+      "Sheltered reef break offering consistent waves throughout the dry season. Benefits from protection against SW winds while maintaining clean conditions with SE offshores. Despite its proximity to more famous breaks, remains relatively uncrowded even during good conditions. Wave faces typically range from 2-6ft. Popular tourist beach location with easy access and gentle beach entry. Good option for those seeking mellower waves away from Lembongan's more challenging breaks. Watch for submerged rocks, particularly during lower tides.",
+    difficulty: "Beginner",
+    waveType: "Reef Break",
+    swellSize: {
+      min: 0.6,
+      max: 2.0,
+    },
+    idealSwellPeriod: {
+      min: 10,
+      max: 14,
+    },
+    waterTemp: {
+      summer: 29,
+      winter: 26,
+    },
+    hazards: ["Rocks"],
+    crimeLevel: "Low",
+    sharkAttack: {
+      hasAttack: false,
+    },
+    image: "",
+    videos: [
+      {
+        url: "https://www.youtube.com/watch?v=LfM0urxEZ6I&ab_channel=SurfRawFiles",
+        title: "Nusa Lembongan - Surf Guide - RAWFILES",
+        platform: "youtube",
+      },
+    ],
+    coordinates: {
+      lat: -8.6785,
+      lng: 115.4555,
+    },
+    coffeeShop: [{ name: "The Beach Shack, Nusa Lembongan" }],
+  },
+  {
+    id: "ceningan-point",
+    name: "Ceningan Point",
+    continent: "Asia",
+    country: "Indonesia",
+    region: "Bali",
+    location: "Nusa Lembongan",
+    distanceFromCT: 0, // Not applicable
+    optimalWindDirections: ["ENE", "E"],
+    optimalSwellDirections: {
+      min: 202.5, // SW
+      max: 247.5,
+      cardinal: "SW",
+    },
+    bestSeasons: ["dry-season"], // May-Oct
+    optimalTide: "All",
+    description:
+      "Exposed point break rated 3/5 known for its exceptional consistency during dry season. Located off Nusa Ceningan, this break works well with SW groundswells and ENE offshore winds. Wave faces typically range from 3-8ft, offering long, workable walls. Despite its quality and consistency, remains relatively uncrowded, partly due to its location requiring boat access. Works across all tide stages, providing versatile surfing conditions. Local knowledge important for navigating channel hazards and moored boats. Watch for strong currents around the point and respect local lineup priorities.",
+    difficulty: "Intermediate",
+    waveType: "Point Break",
+    swellSize: {
+      min: 1.0,
+      max: 2.5,
+    },
+    idealSwellPeriod: {
+      min: 11,
+      max: 16,
+    },
+    waterTemp: {
+      summer: 29,
+      winter: 26,
+    },
+    hazards: ["Strong currents", "Boat traffic", "Buoys", "Localism"],
+    crimeLevel: "Low",
+    sharkAttack: {
+      hasAttack: false,
+    },
+    image: "",
+    videos: [
+      {
+        url: "https://www.youtube.com/watch?v=yzANwZg1D_s&ab_channel=SurfVideoBali ",
+        title: "Surfing trip secret spot nusa ceningan",
+        platform: "youtube",
+      },
+    ],
+    coordinates: {
+      lat: -8.6982,
+      lng: 115.4589,
+    },
+  },
+  {
+    id: "punta-roca",
+    name: "Punta Roca",
+    continent: "North America",
+    country: "El Salvador",
+    region: "San Salvador",
+    location: "La Libertad",
+    distanceFromCT: 0, // Not applicable
+    optimalWindDirections: ["NNE", "N"],
+    optimalSwellDirections: {
+      min: 202.5, // SSW
+      max: 247.5, // WSW
+      cardinal: "SSW",
+    },
+    bestSeasons: ["dry-season"], // Typically March-October
+    optimalTide: "Mid",
+    description:
+      "World-class point break rated 4/5, known for its powerful, consistent waves. Features long, workable walls that can produce excellent barrels when conditions align. Best performance with SSW groundswells meeting NNE offshore winds. Wave faces typically range from 4-12ft breaking over reef. Popular spot that draws crowds during prime conditions. Local knowledge important for navigating hazards and respecting lineup priorities. Watch for exposed rocks, particularly during lower tides, and be mindful of local surfing etiquette.",
+    difficulty: "Advanced",
+    waveType: "Point Break",
+    swellSize: {
+      min: 1.2,
+      max: 4.0,
+    },
+    idealSwellPeriod: {
+      min: 12,
+      max: 18,
+    },
+    waterTemp: {
+      summer: 29,
+      winter: 26,
+    },
+    hazards: ["Rocks", "Strong locals", "Pollution", "Crowds"],
+    crimeLevel: "Medium",
+    sharkAttack: {
+      hasAttack: false,
+    },
+    image: "",
+    coordinates: {
+      lat: 13.4833,
+      lng: -89.3667,
+    },
+  },
+  {
+    id: "pavones",
+    name: "Pavones",
+    continent: "North America",
+    country: "Costa Rica",
+    region: "Puntarenas Province",
+    location: "Puntarenas",
+    distanceFromCT: 0, // Not applicable
+    optimalWindDirections: ["E"],
+    optimalSwellDirections: {
+      min: 202.5, // SW
+      max: 247.5,
+      cardinal: "SW",
+    },
+    bestSeasons: ["wet-season"], // Typically May-November for SW swells
+    optimalTide: "Low",
+    description:
+      "Legendary left-hand point break rated 4/5, known for producing one of the longest rides in the world when conditions align. Despite inconsistent nature, delivers world-class waves during SW groundswells. Best performance with easterly offshore winds. Located in the sheltered Golfo Dulce region. Wave faces typically range from 3-10ft breaking over rocky bottom. Popular spot that draws crowds during prime conditions. Access requires significant travel but rewards with exceptional wave quality when working.",
+    difficulty: "Intermediate",
+    waveType: "Point Break",
+    swellSize: {
+      min: 1.0,
+      max: 3.0,
+    },
+    idealSwellPeriod: {
+      min: 12,
+      max: 18,
+    },
+    waterTemp: {
+      summer: 30,
+      winter: 28,
+    },
+    hazards: ["Rocks", "Remote location", "Crowds", "Inconsistent waves"],
+    crimeLevel: "Low",
+    sharkAttack: {
+      hasAttack: false,
+    },
+    image: "",
+    coordinates: {
+      lat: 8.4097,
+      lng: -83.1328,
+    },
+  },
+  {
+    id: "medewi",
+    name: "Medewi",
+    continent: "Asia",
+    country: "Indonesia",
+    region: "Bali",
+    location: "West Coast",
+    distanceFromCT: 0, // Not applicable
+    optimalWindDirections: ["NNE", "N"],
+    optimalSwellDirections: {
+      min: 191.25, // SSW
+      max: 213.75,
+      cardinal: "SSW",
+    },
+    bestSeasons: ["dry-season"], // May-Oct
+    optimalTide: "Mid",
+    description:
+      "Exposed beach and point break rated 3/5, offering fairly consistent waves throughout the dry season. Features a left-hand point break that works best with SSW groundswells and NNE offshore winds. Wave faces typically range from 2-8ft. Best performance during mid-tide. Popular spot that can get crowded when conditions align. Watch for rocks, particularly around the point section.",
+    difficulty: "Intermediate",
+    waveType: "Beach Break",
+    swellSize: {
+      min: 0.8,
+      max: 2.5,
+    },
+    idealSwellPeriod: {
+      min: 11,
+      max: 16,
+    },
+    waterTemp: {
+      summer: 30,
+      winter: 28,
+    },
+    hazards: ["Rocks", "Crowds"],
+    crimeLevel: "Low",
+    sharkAttack: {
+      hasAttack: false,
+    },
+    image: "",
+    coordinates: {
+      lat: -8.4097,
+      lng: 114.8264,
+    },
+  },
+  {
+    id: "noosa-first-point",
+    name: "Noosa - First Point",
+    continent: "Oceania",
+    country: "Australia",
+    region: "Queensland",
+    location: "North Coast",
+    distanceFromCT: 0, // Not applicable
+    optimalWindDirections: ["S"],
+    optimalSwellDirections: {
+      min: 56.25, // ENE
+      max: 78.75,
+      cardinal: "ENE",
+    },
+    bestSeasons: ["summer", "autumn"], // Typically Dec-May for ENE swells
+    optimalTide: "Mid",
+    description:
+      "Classic point break rated 3/5, known for its reasonably consistent waves. Works best with ENE swells and southerly offshore winds, with some protection from southerly winds. Accepts both wind and groundswells equally. Wave faces typically range from 2-6ft. Popular spot that often gets crowded, especially during good conditions. Perfect for longboarding when smaller, can handle shortboards on bigger days.",
+    difficulty: "Beginner",
+    waveType: "Point Break",
+    swellSize: {
+      min: 0.6,
+      max: 2.0,
+    },
+    idealSwellPeriod: {
+      min: 8,
+      max: 12,
+    },
+    waterTemp: {
+      summer: 27,
+      winter: 21,
+    },
+    hazards: ["Sharks", "Rocks", "Jellyfish", "Crowds"],
+    crimeLevel: "Low",
+    sharkAttack: {
+      hasAttack: true,
+    },
+    image: "",
+    coordinates: {
+      lat: -26.3879,
+      lng: 153.0918,
+    },
+  },
+  {
+    id: "snapper-rocks",
+    name: "Snapper Rocks",
+    continent: "Oceania",
+    country: "Australia",
+    region: "Queensland",
+    location: "Gold Coast",
+    distanceFromCT: 0, // Not applicable
+    optimalWindDirections: ["SE"],
+    optimalSwellDirections: {
+      min: 78.75, // E
+      max: 101.25,
+      cardinal: "E",
+    },
+    bestSeasons: ["autumn", "winter"], // March-August
+    optimalTide: "All",
+    description:
+      "World-class point break rated 5/5, known for its exceptional consistency and long, workable walls. Part of the Superbank system, can connect through to Greenmount and Kirra on the right conditions. Works best with east swells and southeast offshores, accepting both wind and groundswells effectively. Wave faces typically range from 2-12ft. Extremely popular spot that draws heavy crowds. Local knowledge essential for navigating the intense lineup and multiple takeoff zones.",
+    difficulty: "Advanced",
+    waveType: "Point Break",
+    swellSize: {
+      min: 0.6,
+      max: 4.0,
+    },
+    idealSwellPeriod: {
+      min: 8,
+      max: 15,
+    },
+    waterTemp: {
+      summer: 27,
+      winter: 21,
+    },
+    hazards: ["Strong rips", "Rocks", "Heavy crowds", "Localism"],
+    crimeLevel: "Low",
+    sharkAttack: {
+      hasAttack: true,
+    },
+    image: "",
+    coordinates: {
+      lat: -28.1639,
+      lng: 153.5503,
+    },
+  },
+  {
+    id: "chicama-el-point",
+    name: "Chicama - El Point",
+    continent: "South America",
+    country: "Peru",
+    region: "Chicama",
+    location: "Chicama",
+    distanceFromCT: 0, // Not applicable
+    optimalWindDirections: ["ENE", "E"],
+    optimalSwellDirections: {
+      min: 191.25, // SSW
+      max: 213.75,
+      cardinal: "SSW",
+    },
+    bestSeasons: ["winter"], // Southern Hemisphere winter
+    optimalTide: "All",
+    description:
+      "Legendary left point break rated 4/5, known as the world's longest left. Features multiple sections combining beach reef and point break characteristics. Works best with SSW groundswells and ENE offshore winds. Wave faces typically range from 2-8ft. Despite its world-class status, remains relatively uncrowded. Multiple takeoff zones along the point offering different wave characteristics.",
+    difficulty: "Intermediate",
+    waveType: "Point Break",
+    swellSize: {
+      min: 1.0,
+      max: 3.0,
+    },
+    idealSwellPeriod: {
+      min: 12,
+      max: 18,
+    },
+    waterTemp: {
+      summer: 23,
+      winter: 19,
+    },
+    hazards: ["Rocks", "Long paddle", "Remote location"],
+    crimeLevel: "Low",
+    sharkAttack: {
+      hasAttack: false,
+    },
+    image: "",
+    coordinates: {
+      lat: -7.6982,
+      lng: -79.4422,
     },
   },
 ];

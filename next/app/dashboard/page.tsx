@@ -53,7 +53,7 @@ export default function DashboardPage() {
   const [error, setError] = useState<string | null>(null);
   const { data: subscriptionDetails, isLoading: isLoadingDetails } =
     useSubscriptionDetails();
-  const subscriptionData = subscriptionDetails?.data;
+  const subscriptionData = subscriptionDetails;
   const { mutate } = useSubscriptionManagement();
 
   // Add loading states
@@ -170,76 +170,42 @@ export default function DashboardPage() {
   };
 
   const renderSubscriptionState = () => {
+    console.log("Rendering subscription state:", {
+      subscriptionData,
+      trialStatus,
+      hasTrialEnded: subscriptionData?.hasTrialEnded,
+      hasActiveTrial: subscriptionData?.hasActiveTrial,
+    });
+
     if (subscriptionData?.status === SubscriptionStatus.ACTIVE) {
       return <ActiveSubscriptionView />;
     }
 
-    if (subscriptionData?.status === SubscriptionStatus.INACTIVE) {
-      if (trialStatus === "available") {
-        return (
-          <div className="mb-4">
-            <p className="font-primary">Ready to start your free trial?</p>
-            <Button
-              variant="outline"
-              className="w-full sm:w-auto font-primary"
-              onClick={() => handleTrial({})}
-              disabled={loadingStates.trial}
-            >
-              {loadingStates.trial
-                ? "Starting Trial..."
-                : "Start 7-Day Free Trial"}
-            </Button>
-          </div>
-        );
-      } else {
-        return (
-          <div className="mb-4">
-            <p className="font-primary text-red-600">
-              {trialStatus === "ended"
-                ? "Your free trial has expired"
-                : "No active subscription"}
-            </p>
-            <Button
-              variant="default"
-              className="w-full sm:w-auto font-primary mt-4 bg-blue-600 hover:bg-blue-700"
-              onClick={handleSubscribeWithLoading}
-              disabled={loadingStates.subscribe}
-            >
-              {loadingStates.subscribe ? "Processing..." : "Subscribe Now"}
-            </Button>
-          </div>
-        );
-      }
-    }
-
-    if (trialStatus === "active") {
+    // Check trial status
+    if (subscriptionData?.hasActiveTrial) {
       return (
         <div className="mb-4">
           <p className="font-primary">
             Your free trial is active 🐟🐟🐟
             <span className="block mt-2 text-sm text-gray-600">
               Trial ends on:{" "}
-              {trialEndDate ? formatDate(trialEndDate.toString()) : "N/A"}
+              {subscriptionData.trialEndDate
+                ? formatDate(subscriptionData.trialEndDate.toString())
+                : "N/A"}
             </span>
           </p>
-          <Button
-            variant="outline"
-            className="w-full sm:w-auto font-primary mt-4"
-            onClick={() => (window.location.href = "/pricing")}
-          >
-            Continue to Subscription
-          </Button>
         </div>
       );
     }
 
-    if (trialStatus === "available") {
+    // Trial available (not started and not ended)
+    if (!subscriptionData?.hasTrialEnded && !subscriptionData?.hasActiveTrial) {
       return (
         <div className="mb-4">
           <p className="font-primary">Ready to start your free trial?</p>
           <Button
             variant="outline"
-            className="w-full sm:w-auto font-primary"
+            className="w-full sm:w-auto font-primary mt-4"
             onClick={() => handleTrial({})}
             disabled={loadingStates.trial}
           >
@@ -251,11 +217,11 @@ export default function DashboardPage() {
       );
     }
 
-    // Trial ended or not available
+    // Trial ended or subscription inactive
     return (
       <div className="mb-4">
         <p className="font-primary text-red-600">
-          {trialStatus === "ended"
+          {subscriptionData?.hasTrialEnded
             ? "Your free trial has expired"
             : "No active subscription"}
         </p>

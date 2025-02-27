@@ -5,19 +5,19 @@ export function useSubscriptionDetails() {
   return useQuery({
     queryKey: ["subscriptionDetails"],
     queryFn: async () => {
-      const response = await fetch("/api/subscriptions/details");
+      const response = await fetch("/api/subscriptions");
       if (!response.ok) {
-        if (response.status === 404) return { data: null };
         throw new Error("Failed to fetch subscription details");
       }
-      const data = await response.json();
+      const { data } = await response.json();
 
       return {
-        data: {
-          status: data?.data?.status || SubscriptionStatus.INACTIVE,
-          id: data?.data?.subscription?.id,
-          next_billing_time: data?.data?.subscription?.next_billing_time,
-        },
+        status: data?.subscriptionStatus || SubscriptionStatus.INACTIVE,
+        id: data?.paypalSubscriptionId,
+        hasActiveTrial: data?.hasActiveTrial,
+        trialEndDate: data?.trialEndDate,
+        hasTrialEnded: data?.hasTrialEnded,
+        next_billing_time: data?.next_billing_time,
       };
     },
     refetchOnWindowFocus: false,

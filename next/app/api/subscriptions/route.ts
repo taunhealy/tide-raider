@@ -45,20 +45,22 @@ export async function POST(request: Request) {
   }
 
   try {
-    const { action, subscriptionId } = await request.json();
+    const { action, subscriptionId, isTrial } = await request.json();
 
     // Handle trial first (no PayPal needed)
-    if (action === "start-trial") {
+    if (action === "create" && isTrial) {
       const user = await prisma.user.findUnique({
         where: { email: session.user.email },
         select: {
           hasActiveTrial: true,
+          hasTrialEnded: true,
           subscriptionStatus: true,
         },
       });
 
       if (
         user?.hasActiveTrial ||
+        user?.hasTrialEnded ||
         user?.subscriptionStatus === SubscriptionStatus.ACTIVE
       ) {
         return NextResponse.json(
@@ -68,7 +70,7 @@ export async function POST(request: Request) {
       }
 
       const trialEndDate = new Date();
-      trialEndDate.setDate(trialEndDate.getDate() + 7);
+      trialEndDate.setDate(trialEndDate.getDate() + 14);
 
       await prisma.user.update({
         where: { email: session.user.email },

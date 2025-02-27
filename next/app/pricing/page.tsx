@@ -63,7 +63,12 @@ export default function PricingPage() {
       const response = await fetch("/api/subscriptions", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ action: "create" }),
+        body: JSON.stringify({
+          action: "create",
+          isTrial:
+            !subscriptionData?.hasTrialEnded &&
+            !subscriptionData?.hasActiveTrial,
+        }),
       });
       const data = await response.json();
 

@@ -6,9 +6,9 @@ export function useHandleTrial() {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: async (options?: { 
-      onMutate?: () => void,
-      onSettled?: () => void 
+    mutationFn: async (options?: {
+      onMutate?: () => void;
+      onSettled?: () => void;
     }) => {
       if (!session?.user) {
         throw new Error("Must be logged in to start trial");

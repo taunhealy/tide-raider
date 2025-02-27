@@ -51,7 +51,7 @@ export default function DashboardPage() {
   const [error, setError] = useState<string | null>(null);
   const { data: subscriptionDetails, isLoading: isLoadingDetails } =
     useSubscriptionDetails();
-  const subscriptionData = subscriptionDetails?.data?.attributes;
+  const subscriptionData = subscriptionDetails?.data;
   const { mutate } = useSubscriptionManagement();
 
   // Add loading states
@@ -268,23 +268,22 @@ export default function DashboardPage() {
                         </span>
                       </div>
 
-                      {(subscriptionData.trial_ends_at ||
-                        subscriptionData.ends_at) && (
+                      {(trialEndDate ||
+                        subscriptionData?.next_billing_time) && (
                         <p className="text-sm text-gray-600 font-primary">
-                          {subscriptionData.trial_ends_at ? (
+                          {trialStatus === "active" ? (
                             <>
                               Trial ends on:{" "}
-                              {formatDate(subscriptionData.trial_ends_at)}
+                              {trialEndDate
+                                ? formatDate(trialEndDate.toString())
+                                : "N/A"}
                             </>
-                          ) : subscriptionData.status === "cancelled" ? (
-                            <>
-                              Subscribed until:{" "}
-                              {formatDate(subscriptionData.ends_at)}
-                            </>
+                          ) : subscriptionData?.status === "CANCELLED" ? (
+                            <>Subscription ended</>
                           ) : (
                             <>
                               Next billing date:{" "}
-                              {formatDate(subscriptionData.ends_at)}
+                              {formatDate(subscriptionData?.next_billing_time)}
                             </>
                           )}
                         </p>

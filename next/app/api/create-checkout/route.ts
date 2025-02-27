@@ -21,7 +21,7 @@ export async function POST(request: Request) {
 
     // Get PayPal access token
     const tokenResponse = await fetch(
-      "https://api-m.sandbox.paypal.com/v1/oauth2/token",
+      "https://api-m.paypal.com/v1/oauth2/token",
       {
         method: "POST",
         headers: {
@@ -38,7 +38,7 @@ export async function POST(request: Request) {
 
     // Create subscription
     const response = await fetch(
-      "https://api-m.sandbox.paypal.com/v1/billing/subscriptions",
+      "https://api-m.paypal.com/v1/billing/subscriptions",
       {
         method: "POST",
         headers: {

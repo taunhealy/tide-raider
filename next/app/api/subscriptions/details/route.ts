@@ -57,7 +57,7 @@ export async function GET() {
     if (user?.paypalSubscriptionId) {
       // Get PayPal access token
       const tokenResponse = await fetch(
-        "https://api-m.sandbox.paypal.com/v1/oauth2/token",
+        "https://api-m.paypal.com/v1/oauth2/token",
         {
           method: "POST",
           headers: {
@@ -74,7 +74,7 @@ export async function GET() {
 
       // Get subscription details from PayPal
       const response = await fetch(
-        `https://api-m.sandbox.paypal.com/v1/billing/subscriptions/${user.paypalSubscriptionId}`,
+        `https://api-m.paypal.com/v1/billing/subscriptions/${user.paypalSubscriptionId}`,
         {
           headers: {
             Authorization: `Bearer ${access_token}`,

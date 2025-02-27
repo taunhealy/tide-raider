@@ -43,6 +43,12 @@ export async function POST(request: Request) {
           },
           application_context: {
             brand_name: "Tide Raider",
+            user_action: "SUBSCRIBE_NOW",
+            payment_method: {
+              payer_selected: "PAYPAL",
+              payee_preferred: "IMMEDIATE_PAYMENT_REQUIRED",
+            },
+            shipping_preference: "NO_SHIPPING",
             return_url: `${process.env.NEXTAUTH_URL}/subscription/success`,
             cancel_url: `${process.env.NEXTAUTH_URL}/subscription/cancel`,
           },

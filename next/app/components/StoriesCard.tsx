@@ -104,7 +104,7 @@ export function PostCard({ story, isAuthor, beaches }: PostCardProps) {
             >
               {story.category}
             </span>
-            <h3 className="text-base sm:text-lg font-semibold text-[var(--color-text-primary)]">
+            <h3 className="text-base sm:text-lg font-semibold text-[var(--color-text-primary)] font-primary">
               {story.title}
             </h3>
 

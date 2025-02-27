@@ -9,7 +9,21 @@ export function useSubscriptionDetails() {
         if (response.status === 404) return { data: null };
         throw new Error("Failed to fetch subscription details");
       }
-      return response.json();
+      const data = await response.json();
+
+      // Transform PayPal subscription data to match your app's format
+      return {
+        data: data.subscription
+          ? {
+              id: data.subscription.id,
+              status: data.subscription.status,
+              plan_id: data.subscription.plan_id,
+              create_time: data.subscription.create_time,
+              next_billing_time:
+                data.subscription.billing_info?.next_billing_time,
+            }
+          : null,
+      };
     },
     refetchOnWindowFocus: false,
     retry: false,

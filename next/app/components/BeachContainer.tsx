@@ -288,14 +288,6 @@ export default function BeachContainer({
     return scores;
   }, [allWindData, initialBeaches]);
 
-  // Debug effect to monitor data flow
-  useEffect(() => {
-    console.log("💫 Data state:", {
-      allWindData: !!allWindData,
-      beachScores: Object.keys(beachScores).length,
-    });
-  }, [allWindData, beachScores]);
-
   // Fetch specific region data using the same optimized flow
   const {
     data: windData,

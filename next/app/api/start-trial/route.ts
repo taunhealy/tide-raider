@@ -30,10 +30,14 @@ export async function POST(req: Request) {
       );
     }
 
-    // First check if user exists using their ID
+    // Check for existing subscription or trial
     const existingUser = await prisma.user.findUnique({
       where: { id: session.user.id },
-      select: { id: true }, // Only get necessary fields
+      select: {
+        id: true,
+        hasActiveTrial: true,
+        paypalSubscriptionId: true, // Add PayPal subscription check
+      },
     });
 
     if (!existingUser) {
@@ -46,6 +50,14 @@ export async function POST(req: Request) {
             "Set-Cookie": `next-auth.session-token=; Path=/; Expires=Thu, 01 Jan 1970 00:00:00 GMT`,
           },
         }
+      );
+    }
+
+    // Prevent trial if user has active subscription or trial
+    if (existingUser.hasActiveTrial || existingUser.paypalSubscriptionId) {
+      return NextResponse.json(
+        { error: "User already has an active subscription or trial" },
+        { status: 400 }
       );
     }
 

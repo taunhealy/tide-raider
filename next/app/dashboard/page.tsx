@@ -153,7 +153,9 @@ export default function DashboardPage() {
     }
   };
 
-  const handleSubscriptionAction = async (action: string) => {
+  const handleSubscriptionAction = async (
+    action: "cancel" | "suspend" | "activate"
+  ) => {
     if (!subscriptionData?.id) return;
     setLoadingStates((prev) => ({ ...prev, pause: true }));
     try {
@@ -256,7 +258,9 @@ export default function DashboardPage() {
                               ? "bg-blue-50 text-blue-700"
                               : subscriptionData.status === "active"
                                 ? "bg-green-50 text-green-700"
-                                : "bg-gray-50 text-gray-700"
+                                : subscriptionData.status === "suspended"
+                                  ? "bg-yellow-50 text-yellow-700"
+                                  : "bg-gray-50 text-gray-700"
                           }`}
                         >
                           {subscriptionData.status.charAt(0).toUpperCase() +
@@ -301,55 +305,46 @@ export default function DashboardPage() {
                         </Button>
                       ) : (
                         <>
-                          <Button
-                            variant="outline"
-                            className="w-full sm:w-auto font-primary text-[12px]"
-                            onClick={() => handleSubscriptionAction("pause")}
-                            disabled={loadingStates.pause}
-                          >
-                            <svg
-                              className="w-4 h-4 mr-2"
-                              viewBox="0 0 24 24"
-                              fill="none"
-                              stroke="currentColor"
-                              strokeWidth="2"
+                          {subscriptionData.status === "active" && (
+                            <Button
+                              variant="outline"
+                              className="w-full sm:w-auto font-primary text-[12px]"
+                              onClick={() =>
+                                handleSubscriptionAction("suspend")
+                              }
+                              disabled={loadingStates.pause}
                             >
-                              <path
-                                strokeLinecap="round"
-                                strokeLinejoin="round"
-                                d="M10 9v6m4-6v6m7-3a9 9 0 11-18 0 9 9 0 0118 0z"
-                              />
-                            </svg>
-                            {loadingStates.pause
-                              ? "Processing..."
-                              : "Pause Subscription"}
-                          </Button>
+                              <svg
+                                className="w-4 h-4 mr-2"
+                                viewBox="0 0 24 24"
+                                fill="none"
+                                stroke="currentColor"
+                                strokeWidth="2"
+                              >
+                                <path
+                                  strokeLinecap="round"
+                                  strokeLinejoin="round"
+                                  d="M10 9v6m4-6v6m7-3a9 9 0 11-18 0 9 9 0 0118 0z"
+                                />
+                              </svg>
+                              {loadingStates.pause
+                                ? "Processing..."
+                                : "Suspend Subscription"}
+                            </Button>
+                          )}
 
-                          <Button
-                            variant="outline"
-                            className="w-full sm:w-auto font-primary text-[12px]"
-                            onClick={() => {
-                              window.open(
-                                subscriptionData?.urls?.update_payment_method,
-                                "_blank"
-                              );
-                            }}
-                          >
-                            <svg
-                              className="w-4 h-4 mr-2"
-                              viewBox="0 0 24 24"
-                              fill="none"
-                              stroke="currentColor"
-                              strokeWidth="2"
+                          {subscriptionData.status === "suspended" && (
+                            <Button
+                              variant="outline"
+                              className="w-full sm:w-auto font-primary text-[12px]"
+                              onClick={() =>
+                                handleSubscriptionAction("activate")
+                              }
+                              disabled={loadingStates.pause}
                             >
-                              <path
-                                strokeLinecap="round"
-                                strokeLinejoin="round"
-                                d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z"
-                              />
-                            </svg>
-                            Update Payment Method
-                          </Button>
+                              Resume Subscription
+                            </Button>
+                          )}
 
                           <Button
                             variant="destructive"
@@ -377,13 +372,6 @@ export default function DashboardPage() {
                         </>
                       )}
                     </div>
-
-                    {subscriptionData.pause_resumes_at && (
-                      <p className="text-sm text-gray-600 font-primary pt-4 border-t">
-                        Subscription will resume on:{" "}
-                        {formatDate(subscriptionData.pause_resumes_at)}
-                      </p>
-                    )}
                   </div>
                 ) : (
                   <div className="p-6 border rounded-xl bg-white shadow-sm">

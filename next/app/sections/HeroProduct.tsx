@@ -7,6 +7,7 @@ import {
   isBeachSuitable,
   getScoreDisplay,
   getConditionReasons,
+  degreesToCardinal,
 } from "../lib/surfUtils";
 import type { WindData } from "../types/wind";
 import {
@@ -462,10 +463,10 @@ export default function HeroProduct() {
                                       )}
                                     </span>
                                     <span className="font-medium font-primary">
-                                      {
+                                      {degreesToCardinal(
                                         surfData?.[selectedBeachId]
                                           ?.windDirection
-                                      }{" "}
+                                      )}{" "}
                                       @ {surfData?.[selectedBeachId]?.windSpeed}
                                       kts
                                     </span>

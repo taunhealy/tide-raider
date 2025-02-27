@@ -75,6 +75,7 @@ model User {
   link                String?
   subscriptionEndsAt  DateTime?
   subscriptionStatus  String?
+  paypalSubscriptionId String?
   accounts            Account[]
   adRequests          AdRequest[]
   bnbBookings         BnbBooking[]

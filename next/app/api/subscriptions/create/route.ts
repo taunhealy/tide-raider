@@ -10,15 +10,6 @@ export async function POST(request: Request) {
   }
 
   try {
-    // Verify PayPal configuration
-    if (!process.env.PAYPAL_CLIENT_ID || !process.env.PAYPAL_CLIENT_SECRET) {
-      console.error("Missing PayPal configuration");
-      return NextResponse.json(
-        { error: "Server configuration error" },
-        { status: 500 }
-      );
-    }
-
     // Get PayPal access token
     const tokenResponse = await fetch(
       "https://api-m.sandbox.paypal.com/v1/oauth2/token",
@@ -49,14 +40,9 @@ export async function POST(request: Request) {
           plan_id: process.env.PAYPAL_PLAN_ID,
           subscriber: {
             email_address: session.user.email,
-            name: {
-              given_name: session.user.name?.split(" ")[0] || "",
-              surname: session.user.name?.split(" ").slice(1).join(" ") || "",
-            },
           },
           application_context: {
             brand_name: "Tide Raider",
-            user_action: "SUBSCRIBE_NOW",
             return_url: `${process.env.NEXTAUTH_URL}/subscription/success`,
             cancel_url: `${process.env.NEXTAUTH_URL}/subscription/cancel`,
           },
@@ -64,23 +50,21 @@ export async function POST(request: Request) {
       }
     );
 
-    if (!response.ok) {
-      const error = await response.json();
-      throw new Error(error.message || "Failed to create subscription");
-    }
-
     const subscription = await response.json();
 
-    // Return the approval URL
-    const approvalUrl = subscription.links.find(
-      (link: any) => link.rel === "approve"
-    ).href;
+    // Store subscription reference
+    await prisma.user.update({
+      where: { email: session.user.email },
+      data: { paypalSubscriptionId: subscription.id },
+    });
 
-    return NextResponse.json({ url: approvalUrl });
+    return NextResponse.json({
+      url: subscription.links.find((link: any) => link.rel === "approve").href,
+    });
   } catch (error) {
-    console.error("Checkout creation error:", error);
+    console.error("Create subscription error:", error);
     return NextResponse.json(
-      { error: "Failed to create checkout" },
+      { error: "Failed to create subscription" },
       { status: 500 }
     );
   }

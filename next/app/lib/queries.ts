@@ -297,3 +297,19 @@ export const profilePageQuery = groq`*[_type == "profile"][0] {
     alt
   }
 }`;
+
+// Add this new query for the sidebar specifically
+export const blogSidebarQuery = groq`{
+  "posts": *[_type == "post"] | order(publishedAt desc) {
+    _id,
+    title,
+    "slug": slug.current,
+    mainImage,
+    description,
+    publishedAt,
+    "trip": trip->{
+      country,
+      region
+    }
+  }
+}`;

@@ -9,13 +9,17 @@ export function useSubscriptionManagement() {
       action,
       subscriptionId,
     }: {
-      action: string;
+      action: "cancel" | "suspend" | "activate";
       subscriptionId: string;
     }) => {
       const response = await fetch("/api/subscriptions/manage", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ action, subscriptionId }),
+        body: JSON.stringify({
+          action,
+          subscriptionId,
+          provider: "paypal",
+        }),
       });
 
       if (!response.ok) {

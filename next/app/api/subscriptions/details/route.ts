@@ -3,7 +3,7 @@ import { getServerSession } from "next-auth/next";
 import { authOptions } from "@/app/lib/authOptions";
 import { prisma } from "@/app/lib/prisma";
 
-export async function GET(request: Request) {
+export async function GET() {
   try {
     const session = await getServerSession(authOptions);
     if (!session?.user?.email) {
@@ -13,15 +13,14 @@ export async function GET(request: Request) {
     const user = await prisma.user.findUnique({
       where: { email: session.user.email },
       select: {
-        lemonSubscriptionId: true,
+        paypalSubscriptionId: true,
         hasActiveTrial: true,
-        subscriptionStatus: true,
-        subscriptionEndsAt: true,
         trialEndDate: true,
+        trialStartDate: true,
       },
     });
 
-    // Handle trial expiration more rigorously
+    // Handle trial expiration
     const now = new Date();
     if (user?.trialEndDate && new Date(user.trialEndDate) < now) {
       await prisma.user.update({
@@ -42,42 +41,8 @@ export async function GET(request: Request) {
       });
     }
 
-    // Handle subscription status
-    if (user?.subscriptionStatus === "cancelled") {
-      if (user.subscriptionEndsAt && new Date(user.subscriptionEndsAt) > now) {
-        // Still within paid period
-        return NextResponse.json({
-          data: {
-            attributes: {
-              status: "active",
-              ends_at: user.subscriptionEndsAt,
-              cancelled: true,
-            },
-          },
-        });
-      } else {
-        // Past the paid period, update to expired
-        await prisma.user.update({
-          where: { email: session.user.email },
-          data: {
-            subscriptionStatus: "expired",
-            lemonSubscriptionId: null,
-          },
-        });
-      }
-    }
-
-    // Return null data if no subscription
-    if (!user?.lemonSubscriptionId && !user?.hasActiveTrial) {
-      return NextResponse.json({ data: null });
-    }
-
-    // If user has an active trial, return trial information
+    // Return trial information if active
     if (user?.hasActiveTrial) {
-      console.log("Trial data:", {
-        hasActiveTrial: user.hasActiveTrial,
-        trialEndDate: user.trialEndDate,
-      });
       return NextResponse.json({
         data: {
           attributes: {
@@ -88,33 +53,55 @@ export async function GET(request: Request) {
       });
     }
 
-    // If no subscription ID, return early
-    if (!user?.lemonSubscriptionId) {
-      return NextResponse.json(
-        { error: "No subscription found" },
-        { status: 404 }
+    // Handle PayPal subscription if no active trial
+    if (user?.paypalSubscriptionId) {
+      // Get PayPal access token
+      const tokenResponse = await fetch(
+        "https://api-m.sandbox.paypal.com/v1/oauth2/token",
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/x-www-form-urlencoded",
+            Authorization: `Basic ${Buffer.from(
+              `${process.env.PAYPAL_CLIENT_ID}:${process.env.PAYPAL_CLIENT_SECRET}`
+            ).toString("base64")}`,
+          },
+          body: "grant_type=client_credentials",
+        }
       );
-    }
 
-    // Fetch remote subscription details
-    const response = await fetch(
-      `https://api.lemonsqueezy.com/v1/subscriptions/${user.lemonSubscriptionId}`,
-      {
-        headers: {
-          Accept: "application/vnd.api+json",
-          Authorization: `Bearer ${process.env.LEMON_SQUEEZY_API_KEY}`,
-        },
+      const { access_token } = await tokenResponse.json();
+
+      // Get subscription details from PayPal
+      const response = await fetch(
+        `https://api-m.sandbox.paypal.com/v1/billing/subscriptions/${user.paypalSubscriptionId}`,
+        {
+          headers: {
+            Authorization: `Bearer ${access_token}`,
+          },
+        }
+      );
+
+      if (!response.ok) {
+        throw new Error("Failed to fetch subscription details");
       }
-    );
 
-    if (!response.ok) {
-      throw new Error("Failed to fetch subscription details");
+      const subscription = await response.json();
+      return NextResponse.json({
+        data: {
+          attributes: {
+            status: subscription.status.toLowerCase(),
+            ends_at: subscription.billing_info?.next_billing_time,
+            cancelled: subscription.status === "CANCELLED",
+          },
+        },
+      });
     }
 
-    const data = await response.json();
-    return NextResponse.json(data);
+    // No subscription or trial
+    return NextResponse.json({ data: null });
   } catch (error) {
-    console.error("Subscription details error:", error);
+    console.error("Fetch subscription error:", error);
     return NextResponse.json(
       { error: "Failed to fetch subscription details" },
       { status: 500 }

@@ -15,37 +15,38 @@ interface BlogPostsSidebarProps {
 }
 
 export default function BlogPostsSidebar({ posts }: BlogPostsSidebarProps) {
-  // Modify the query configuration
+  console.log("Initial posts prop:", posts);
+
+  // Fetch all recent blog posts
   const { data: freshPosts, isLoading } = useQuery({
     queryKey: ["blogPosts"],
     queryFn: async () => {
       const res = await fetch("/api/posts");
+      console.log("Fetch response:", res);
       if (!res.ok) throw new Error("Failed to fetch posts");
-      return res.json();
+      const data = await res.json();
+      console.log("Fetched data:", data);
+      return data;
     },
     initialData: posts,
-    // Remove staleTime: 0 to use default caching behavior
     refetchOnMount: true,
     refetchOnWindowFocus: false,
     retry: 2,
   });
 
-  // Safely access the posts array
+  console.log("Fresh posts:", freshPosts);
   const postsArray = freshPosts?.posts || posts?.posts || [];
-
-  // Filter travel posts
-  const travelPosts = postsArray.filter((post: Post) => {
-    return post.categories?.some((category) => category.title === "Travel");
-  });
+  console.log("Posts array:", postsArray);
+  const recentPosts = postsArray.slice(0, 3); // Get 3 most recent posts
 
   // Show loading state
   if (isLoading) {
     return (
       <div className="bg-[var(--color-bg-primary)] p-6 rounded-lg shadow-sm mb-6">
         <div className="flex items-center justify-between mb-6">
-          <h3 className="heading-6">Travel Posts</h3>
+          <h3 className="heading-6">Recent Posts</h3>
           <Link
-            href="/blog?category=Travel"
+            href="/blog"
             className="text-main hover:text-[var(--color-text-secondary)] hover:underline transition-colors"
           >
             View All
@@ -71,15 +72,15 @@ export default function BlogPostsSidebar({ posts }: BlogPostsSidebarProps) {
     return (
       <div className="bg-[var(--color-bg-primary)] p-6 rounded-lg shadow-sm mb-6">
         <div className="flex items-center justify-between mb-6">
-          <h3 className="heading-6">Travel Posts</h3>
+          <h3 className="heading-6">Recent Posts</h3>
           <Link
-            href="/blog?category=Travel"
+            href="/blog"
             className="text-main hover:text-[var(--color-text-secondary)] hover:underline transition-colors"
           >
             View All
           </Link>
         </div>
-        <p className="text-main text-sm">No travel posts available yet.</p>
+        <p className="text-main text-sm">No posts available yet.</p>
       </div>
     );
   }
@@ -87,9 +88,9 @@ export default function BlogPostsSidebar({ posts }: BlogPostsSidebarProps) {
   return (
     <div className="bg-[var(--color-bg-primary)] p-6 rounded-lg shadow-sm mb-6">
       <div className="flex items-center justify-between mb-6">
-        <h3 className="heading-6">Travel Posts</h3>
+        <h3 className="heading-6">Recent Posts</h3>
         <Link
-          href="/blog?category=Travel"
+          href="/blog"
           className="text-main hover:text-[var(--color-text-secondary)] hover:underline transition-colors"
         >
           View All
@@ -97,7 +98,7 @@ export default function BlogPostsSidebar({ posts }: BlogPostsSidebarProps) {
       </div>
 
       <div className="space-y-6">
-        {travelPosts.slice(0, 3).map((post: Post) => (
+        {recentPosts.map((post: Post) => (
           <Link
             key={post.slug}
             href={`/blog/${post.slug}`}

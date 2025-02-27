@@ -18,6 +18,7 @@ import { formatDate } from "../lib/utils";
 import { useSubscriptionManagement } from "../hooks/useSubscriptionManagement";
 import { useRouter } from "next/navigation";
 import { SubscriptionStatus } from "@/types/subscription";
+import { ActiveSubscriptionView } from "@/components/subscription/ActiveSubscriptionView";
 
 export default function DashboardPage() {
   const router = useRouter();
@@ -166,6 +167,108 @@ export default function DashboardPage() {
     } finally {
       setLoadingStates((prev) => ({ ...prev, pause: false }));
     }
+  };
+
+  const renderSubscriptionState = () => {
+    if (subscriptionData?.status === SubscriptionStatus.ACTIVE) {
+      return <ActiveSubscriptionView />;
+    }
+
+    if (subscriptionData?.status === SubscriptionStatus.INACTIVE) {
+      if (trialStatus === "available") {
+        return (
+          <div className="mb-4">
+            <p className="font-primary">Ready to start your free trial?</p>
+            <Button
+              variant="outline"
+              className="w-full sm:w-auto font-primary"
+              onClick={() => handleTrial({})}
+              disabled={loadingStates.trial}
+            >
+              {loadingStates.trial
+                ? "Starting Trial..."
+                : "Start 7-Day Free Trial"}
+            </Button>
+          </div>
+        );
+      } else {
+        return (
+          <div className="mb-4">
+            <p className="font-primary text-red-600">
+              {trialStatus === "ended"
+                ? "Your free trial has expired"
+                : "No active subscription"}
+            </p>
+            <Button
+              variant="default"
+              className="w-full sm:w-auto font-primary mt-4 bg-blue-600 hover:bg-blue-700"
+              onClick={handleSubscribeWithLoading}
+              disabled={loadingStates.subscribe}
+            >
+              {loadingStates.subscribe ? "Processing..." : "Subscribe Now"}
+            </Button>
+          </div>
+        );
+      }
+    }
+
+    if (trialStatus === "active") {
+      return (
+        <div className="mb-4">
+          <p className="font-primary">
+            Your free trial is active 🐟🐟🐟
+            <span className="block mt-2 text-sm text-gray-600">
+              Trial ends on:{" "}
+              {trialEndDate ? formatDate(trialEndDate.toString()) : "N/A"}
+            </span>
+          </p>
+          <Button
+            variant="outline"
+            className="w-full sm:w-auto font-primary mt-4"
+            onClick={() => (window.location.href = "/pricing")}
+          >
+            Continue to Subscription
+          </Button>
+        </div>
+      );
+    }
+
+    if (trialStatus === "available") {
+      return (
+        <div className="mb-4">
+          <p className="font-primary">Ready to start your free trial?</p>
+          <Button
+            variant="outline"
+            className="w-full sm:w-auto font-primary"
+            onClick={() => handleTrial({})}
+            disabled={loadingStates.trial}
+          >
+            {loadingStates.trial
+              ? "Starting Trial..."
+              : "Start 7-Day Free Trial"}
+          </Button>
+        </div>
+      );
+    }
+
+    // Trial ended or not available
+    return (
+      <div className="mb-4">
+        <p className="font-primary text-red-600">
+          {trialStatus === "ended"
+            ? "Your free trial has expired"
+            : "No active subscription"}
+        </p>
+        <Button
+          variant="default"
+          className="w-full sm:w-auto font-primary mt-4 bg-blue-600 hover:bg-blue-700"
+          onClick={handleSubscribeWithLoading}
+          disabled={loadingStates.subscribe}
+        >
+          {loadingStates.subscribe ? "Processing..." : "Subscribe Now"}
+        </Button>
+      </div>
+    );
   };
 
   return (
@@ -372,77 +475,7 @@ export default function DashboardPage() {
                     </div>
                   </div>
                 ) : (
-                  <div className="p-6 border rounded-xl bg-white shadow-sm">
-                    {trialStatus === "active" && (
-                      <div className="mb-4">
-                        <p className="font-primary">
-                          Your free trial is active 🐟🐟🐟
-                          <span className="block mt-2 text-sm text-gray-600">
-                            Trial ends on:{" "}
-                            {trialEndDate
-                              ? formatDate(trialEndDate.toString())
-                              : "N/A"}
-                          </span>
-                        </p>
-                        <Button
-                          variant="outline"
-                          className="w-full sm:w-auto font-primary mt-4"
-                          onClick={() => (window.location.href = "/pricing")}
-                        >
-                          Continue to Subscription
-                        </Button>
-                      </div>
-                    )}
-
-                    {trialStatus === "ended" && (
-                      <div className="mb-4">
-                        <p className="font-primary text-red-600">
-                          Your free trial has expired
-                        </p>
-                        <Button
-                          variant="default"
-                          className="w-full sm:w-auto font-primary mt-4 bg-blue-600 hover:bg-blue-700"
-                          onClick={handleSubscribeWithLoading}
-                          disabled={loadingStates.subscribe}
-                        >
-                          {loadingStates.subscribe
-                            ? "Processing..."
-                            : "Subscribe Now"}
-                        </Button>
-                      </div>
-                    )}
-
-                    {trialStatus === "available" && (
-                      <div className="mb-4">
-                        <p className="font-primary">
-                          Ready to start your free trial?
-                        </p>
-                        <Button
-                          variant="outline"
-                          className="w-full sm:w-auto font-primary"
-                          onClick={() =>
-                            handleTrial({
-                              onMutate: () =>
-                                setLoadingStates((prev) => ({
-                                  ...prev,
-                                  trial: true,
-                                })),
-                              onSettled: () =>
-                                setLoadingStates((prev) => ({
-                                  ...prev,
-                                  trial: false,
-                                })),
-                            })
-                          }
-                          disabled={loadingStates.trial}
-                        >
-                          {loadingStates.trial
-                            ? "Starting Trial..."
-                            : "Start 7-Day Free Trial"}
-                        </Button>
-                      </div>
-                    )}
-                  </div>
+                  renderSubscriptionState()
                 )}
               </div>
             )}

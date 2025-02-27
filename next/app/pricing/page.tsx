@@ -80,7 +80,7 @@ export default function PricingPage() {
   const handleUnsubscribe = async () => {
     setLoadingStates((prev) => ({ ...prev, unsubscribe: true }));
     try {
-      const response = await fetch("/api/subscriptions/manage", {
+      const response = await fetch("/api/subscriptions", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({

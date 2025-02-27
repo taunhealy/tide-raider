@@ -14,9 +14,10 @@ export function useHandleTrial() {
         throw new Error("Must be logged in to start trial");
       }
 
-      const response = await fetch("/api/start-trial", {
+      const response = await fetch("/api/subscriptions", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ action: "start-trial" }),
       });
 
       if (!response.ok) {
@@ -28,12 +29,9 @@ export function useHandleTrial() {
       return response.json();
     },
     onSuccess: () => {
-      // Invalidate and refetch user session to update trial status
       queryClient.invalidateQueries({ queryKey: ["session"] });
     },
     onSettled: () => {
-      // This is called when the mutation is complete, regardless of success or failure
-      // You can use this to perform any cleanup or side effects
       queryClient.invalidateQueries({ queryKey: ["session"] });
     },
   });

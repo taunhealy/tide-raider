@@ -18,91 +18,45 @@ export async function OPTIONS() {
   });
 }
 
-export async function POST(req: Request) {
-  const session = await getServerSession(authOptions);
-
+export async function POST(request: Request) {
   try {
-    // Validate session and user ID
-    if (!session?.user?.id) {
-      return NextResponse.json(
-        { error: "Invalid or expired session" },
-        { status: 401 }
-      );
+    const session = await getServerSession(authOptions);
+    if (!session?.user?.email) {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
-    // Check for existing subscription or trial
-    const existingUser = await prisma.user.findUnique({
-      where: { id: session.user.id },
+    const user = await prisma.user.findUnique({
+      where: { email: session.user.email },
       select: {
-        id: true,
         hasActiveTrial: true,
-        paypalSubscriptionId: true, // Add PayPal subscription check
+        subscriptionStatus: true,
       },
     });
 
-    if (!existingUser) {
-      // Session exists but user not found - invalidate session
+    if (user?.hasActiveTrial || user?.subscriptionStatus === "ACTIVE") {
       return NextResponse.json(
-        { error: "Session invalid - please sign in again" },
-        {
-          status: 401,
-          headers: {
-            "Set-Cookie": `next-auth.session-token=; Path=/; Expires=Thu, 01 Jan 1970 00:00:00 GMT`,
-          },
-        }
-      );
-    }
-
-    // Prevent trial if user has active subscription or trial
-    if (existingUser.hasActiveTrial || existingUser.paypalSubscriptionId) {
-      return NextResponse.json(
-        { error: "User already has an active subscription or trial" },
+        { error: "Trial or subscription already active" },
         { status: 400 }
       );
     }
 
-    const trialStartDate = new Date();
-    // Explicitly set time to start of day to avoid time zone issues
-    trialStartDate.setHours(0, 0, 0, 0);
+    const trialEndDate = new Date();
+    trialEndDate.setDate(trialEndDate.getDate() + 7);
 
-    const trialEndDate = new Date(trialStartDate);
-    trialEndDate.setDate(trialStartDate.getDate() + 7); // 7 days trial
-    // Set end time to end of day
-    trialEndDate.setHours(23, 59, 59, 999);
-
-    const user = await prisma.user.update({
-      where: { id: session.user.id },
+    await prisma.user.update({
+      where: { email: session.user.email },
       data: {
-        trialStartDate,
-        trialEndDate,
         hasActiveTrial: true,
+        trialEndDate: trialEndDate,
       },
     });
 
-    // Send welcome email
-    await sendTrialStartEmail(user.email, trialEndDate);
-
-    // Add proper response headers
-    return new NextResponse(JSON.stringify({ success: true }), {
-      status: 200,
-      headers: {
-        "Content-Type": "application/json",
-      },
-    });
+    return NextResponse.json({ success: true });
   } catch (error) {
-    console.error("Error starting trial:", {
-      error,
-      userEmail: session?.user?.email,
-      sessionUserId: session?.user?.id,
-    });
-    return new NextResponse(
-      JSON.stringify({ error: "Failed to start trial" }),
-      {
-        status: 500,
-        headers: {
-          "Content-Type": "application/json",
-        },
-      }
+    console.error("Start trial error:", error);
+    return NextResponse.json(
+      { error: "Failed to start trial" },
+      { status: 500 }
     );
   }
 }

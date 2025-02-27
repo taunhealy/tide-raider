@@ -1,4 +1,5 @@
 import { signIn, useSession } from "next-auth/react";
+import { toast } from "sonner";
 
 export function useHandleSubscribe() {
   const { data: session } = useSession();
@@ -10,17 +11,23 @@ export function useHandleSubscribe() {
         return;
       }
 
-      const checkoutResponse = await fetch("/api/create-checkout", {
+      const response = await fetch("/api/subscriptions", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ action: "create" }),
       });
 
-      if (!checkoutResponse.ok) throw new Error("Failed to create checkout");
-      const { url } = await checkoutResponse.json();
-      window.open(url, "_blank");
+      if (!response.ok) {
+        throw new Error("Failed to create subscription");
+      }
+
+      const { url } = await response.json();
+      if (url) {
+        window.location.href = url;
+      }
     } catch (error) {
-      console.error("Error:", error);
-      alert("Failed to start checkout process. Please try again.");
+      console.error("Subscription error:", error);
+      toast.error("Failed to start subscription. Please try again.");
     }
   };
 }

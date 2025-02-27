@@ -12,13 +12,12 @@ export function useSubscriptionManagement() {
       action: "cancel" | "suspend" | "activate";
       subscriptionId: string;
     }) => {
-      const response = await fetch("/api/subscriptions/manage", {
+      const response = await fetch("/api/subscriptions", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           action,
           subscriptionId,
-          provider: "paypal",
         }),
       });
 

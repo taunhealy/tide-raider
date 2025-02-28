@@ -96,6 +96,7 @@ model User {
   rentedRequests      RentalRequest[]     @relation("RenterRequests")
   ownedRequests       RentalRequest[]     @relation("OwnerRequests")
   sentMessages        ChatMessage[]       @relation("SentMessages")
+  comments            Comment[]
 
   @@index([email])
   @@index([skillLevel])
@@ -598,4 +599,18 @@ model Region {
   events      Event[]   // Relation to events in this region
   adRequests  AdRequest[] // Relation to ad requests for this region
   // Add other region-related relations as needed
+}
+
+model Comment {
+  id         String   @id @default(cuid())
+  text       String
+  entityId   String
+  entityType String
+  userId     String
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+  user       User     @relation(fields: [userId], references: [id])
+
+  @@index([userId])
+  @@index([entityId, entityType])
 }

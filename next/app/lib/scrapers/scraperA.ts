@@ -1,7 +1,6 @@
 import { WindData } from "../../types/wind";
 import { Browser, Page, BrowserContext } from "playwright-core";
-import { chromium } from "playwright-core";
-import chrome from "chrome-aws-lambda";
+import { chromium as playwright } from "playwright-core";
 import { createHash } from "crypto";
 import { USER_AGENTS } from "@/app/lib/constants/userAgents";
 import { ProxyManager } from "../proxy/proxyManager";
@@ -81,10 +80,10 @@ export async function scraperA(url: string, region: string): Promise<WindData> {
     proxy = proxyManager.getProxyForRegion(region);
     console.log(`Using proxy: ${proxy.host}`);
 
-    const launchOptions: Parameters<typeof chromium.launch>[0] = {
-      args: chrome.args,
-      executablePath: await chrome.executablePath,
-      headless: chrome.headless,
+    const launchOptions: Parameters<typeof playwright.launch>[0] = {
+      args: ["--no-sandbox", "--disable-setuid-sandbox"],
+      executablePath: await playwright.executablePath(),
+      headless: true,
     };
 
     if (proxy.isCloudflare) {
@@ -93,7 +92,7 @@ export async function scraperA(url: string, region: string): Promise<WindData> {
       };
     }
 
-    browser = await chromium.launch(launchOptions);
+    browser = await playwright.launch(launchOptions);
 
     // Advanced context configuration with randomization
     context = await browser.newContext({

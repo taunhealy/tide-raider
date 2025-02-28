@@ -3,7 +3,7 @@
   "installCommand": "npm install && npx playwright install chromium",
   "framework": "nextjs",
   "functions": {
-    "api/**/*": {
+    "app/api/**/*": {
       "maxDuration": 60
     }
   }

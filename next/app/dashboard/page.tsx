@@ -359,59 +359,31 @@ export default function DashboardPage() {
                     </div>
 
                     <div className="flex flex-col sm:flex-row gap-3 pt-4 border-t">
-                      {subscriptionData.status === "cancelled" ? (
-                        <Button
-                          variant="default"
-                          className="w-full sm:w-auto font-primary"
-                          onClick={handleSubscribeWithLoading}
-                          disabled={loadingStates.subscribe}
-                        >
-                          {loadingStates.subscribe
-                            ? "Processing..."
-                            : "Resubscribe"}
-                        </Button>
-                      ) : (
+                      {subscriptionData.status === SubscriptionStatus.ACTIVE ? (
                         <>
-                          {subscriptionData.status === "active" && (
-                            <Button
-                              variant="outline"
-                              className="w-full sm:w-auto font-primary text-[12px]"
-                              onClick={() =>
-                                handleSubscriptionAction("suspend")
-                              }
-                              disabled={loadingStates.pause}
+                          <Button
+                            variant="outline"
+                            className="w-full sm:w-auto font-primary text-[12px]"
+                            onClick={() => handleSubscriptionAction("suspend")}
+                            disabled={loadingStates.pause}
+                          >
+                            <svg
+                              className="w-4 h-4 mr-2"
+                              viewBox="0 0 24 24"
+                              fill="none"
+                              stroke="currentColor"
+                              strokeWidth="2"
                             >
-                              <svg
-                                className="w-4 h-4 mr-2"
-                                viewBox="0 0 24 24"
-                                fill="none"
-                                stroke="currentColor"
-                                strokeWidth="2"
-                              >
-                                <path
-                                  strokeLinecap="round"
-                                  strokeLinejoin="round"
-                                  d="M10 9v6m4-6v6m7-3a9 9 0 11-18 0 9 9 0 0118 0z"
-                                />
-                              </svg>
-                              {loadingStates.pause
-                                ? "Processing..."
-                                : "Suspend Subscription"}
-                            </Button>
-                          )}
-
-                          {subscriptionData.status === "suspended" && (
-                            <Button
-                              variant="outline"
-                              className="w-full sm:w-auto font-primary text-[12px]"
-                              onClick={() =>
-                                handleSubscriptionAction("activate")
-                              }
-                              disabled={loadingStates.pause}
-                            >
-                              Resume Subscription
-                            </Button>
-                          )}
+                              <path
+                                strokeLinecap="round"
+                                strokeLinejoin="round"
+                                d="M10 9v6m4-6v6m7-3a9 9 0 11-18 0 9 9 0 0118 0z"
+                              />
+                            </svg>
+                            {loadingStates.pause
+                              ? "Processing..."
+                              : "Suspend Subscription"}
+                          </Button>
 
                           <Button
                             variant="destructive"
@@ -437,6 +409,18 @@ export default function DashboardPage() {
                               : "Cancel Subscription"}
                           </Button>
                         </>
+                      ) : (
+                        <Button
+                          variant="default"
+                          className="w-full sm:w-auto font-primary"
+                          onClick={handleSubscribeWithLoading}
+                          disabled={loadingStates.subscribe}
+                        >
+                          {!subscriptionData?.hasTrialEnded &&
+                          !subscriptionData?.hasActiveTrial
+                            ? "Start Free Trial"
+                            : "Subscribe Now"}
+                        </Button>
                       )}
                     </div>
                   </div>

@@ -60,14 +60,34 @@ export default function PricingPage() {
   const handleSubscribeWithLoading = async () => {
     setLoadingStates((prev) => ({ ...prev, subscribe: true }));
     try {
+      // If eligible for trial, start trial
+      if (
+        !subscriptionData?.hasTrialEnded &&
+        !subscriptionData?.hasActiveTrial
+      ) {
+        const response = await fetch("/api/subscriptions", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            action: "start-trial",
+          }),
+        });
+
+        if (!response.ok) {
+          throw new Error("Failed to start trial");
+        }
+
+        // Refresh the page after successful trial start
+        window.location.reload();
+        return;
+      }
+
+      // Otherwise, create PayPal subscription
       const response = await fetch("/api/subscriptions", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           action: "create",
-          isTrial:
-            !subscriptionData?.hasTrialEnded &&
-            !subscriptionData?.hasActiveTrial,
         }),
       });
       const data = await response.json();
@@ -76,8 +96,8 @@ export default function PricingPage() {
         window.location.href = data.url;
       }
     } catch (error) {
-      console.error("Subscription creation failed:", error);
-      toast.error("Failed to create subscription. Please try again.");
+      console.error("Subscription action failed:", error);
+      toast.error("Failed to process request. Please try again.");
     } finally {
       setLoadingStates((prev) => ({ ...prev, subscribe: false }));
     }
@@ -109,31 +129,33 @@ export default function PricingPage() {
   };
 
   const getButtonText = () => {
-    console.log("Button state:", {
-      loadingStates,
-      isSubscribed,
-      trialStatus,
-      subscriptionData: {
-        hasTrialEnded: subscriptionData?.hasTrialEnded,
-        hasActiveTrial: subscriptionData?.hasActiveTrial,
-        status: subscriptionData?.status,
-      },
-    });
-
     if (loadingStates.subscribe) return "Processing...";
     if (loadingStates.unsubscribe) return "Cancelling...";
-    if (isSubscribed) return "Unsubscribe";
 
-    // Check trial status from subscription data
-    if (subscriptionData?.hasActiveTrial) return "Subscribe Now";
-    if (subscriptionData?.hasTrialEnded) return "Subscribe Now";
+    // Debug log to see what we're getting
+    console.log("Button text check:", {
+      subscriptionStatus: subscriptionDetails?.status,
+      hasTrialEnded: subscriptionDetails?.hasTrialEnded,
+      hasActiveTrial: subscriptionDetails?.hasActiveTrial,
+    });
 
-    // If no trial has been used and not subscribed, show trial button
-    if (!subscriptionData?.hasTrialEnded && !subscriptionData?.hasActiveTrial) {
-      return "Start Free Trial";
+    // If subscription is active, show unsubscribe
+    if (subscriptionDetails?.status === SubscriptionStatus.ACTIVE) {
+      return "Unsubscribe";
     }
 
-    return "Subscribe Now"; // fallback
+    // If trial has ended, show Subscribe Now
+    if (subscriptionDetails?.hasTrialEnded) {
+      return "Subscribe Now";
+    }
+
+    // If trial is active, show Subscribe Now
+    if (subscriptionDetails?.hasActiveTrial) {
+      return "Subscribe Now";
+    }
+
+    // Default to Start Free Trial
+    return "Start Free Trial";
   };
 
   return (

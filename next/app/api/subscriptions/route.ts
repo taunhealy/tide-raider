@@ -45,10 +45,10 @@ export async function POST(request: Request) {
   }
 
   try {
-    const { action, subscriptionId, isTrial } = await request.json();
+    const { action } = await request.json();
 
-    // Handle trial first (no PayPal needed)
-    if (action === "create" && isTrial) {
+    // Handle trial start
+    if (action === "start-trial") {
       const user = await prisma.user.findUnique({
         where: { email: session.user.email },
         select: {
@@ -58,13 +58,10 @@ export async function POST(request: Request) {
         },
       });
 
-      if (
-        user?.hasActiveTrial ||
-        user?.hasTrialEnded ||
-        user?.subscriptionStatus === SubscriptionStatus.ACTIVE
-      ) {
+      // Only check if trial has been used before
+      if (user?.hasActiveTrial || user?.hasTrialEnded) {
         return NextResponse.json(
-          { error: "Trial or subscription already active" },
+          { error: "Trial already used" },
           { status: 400 }
         );
       }
@@ -77,6 +74,7 @@ export async function POST(request: Request) {
         data: {
           hasActiveTrial: true,
           trialEndDate: trialEndDate,
+          subscriptionStatus: SubscriptionStatus.ACTIVE,
         },
       });
 
@@ -132,9 +130,9 @@ export async function POST(request: Request) {
           baseUrl
         );
       case "suspend":
-        return handleSuspend(subscriptionId, access_token, baseUrl);
+        return handleSuspend(session.user.email, access_token, baseUrl);
       case "activate":
-        return handleActivate(subscriptionId, access_token, baseUrl);
+        return handleActivate(session.user.email, access_token, baseUrl);
       default:
         return NextResponse.json({ error: "Invalid action" }, { status: 400 });
     }
@@ -218,12 +216,12 @@ async function handleCancel(
 }
 
 async function handleSuspend(
-  subscriptionId: string,
+  userEmail: string,
   accessToken: string,
   baseUrl: string
 ) {
   const response = await fetch(
-    `${baseUrl}/v1/billing/subscriptions/${subscriptionId}/suspend`,
+    `${baseUrl}/v1/billing/subscriptions/${userEmail}/suspend`,
     {
       method: "POST",
       headers: {
@@ -242,12 +240,12 @@ async function handleSuspend(
 }
 
 async function handleActivate(
-  subscriptionId: string,
+  userEmail: string,
   accessToken: string,
   baseUrl: string
 ) {
   const response = await fetch(
-    `${baseUrl}/v1/billing/subscriptions/${subscriptionId}/activate`,
+    `${baseUrl}/v1/billing/subscriptions/${userEmail}/activate`,
     {
       method: "POST",
       headers: {

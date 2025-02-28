@@ -5,11 +5,11 @@ export function useSubscriptionDetails() {
   return useQuery({
     queryKey: ["subscriptionDetails"],
     queryFn: async () => {
-      const response = await fetch("/api/subscriptions");
+      const response = await fetch("/api/user/current");
       if (!response.ok) {
         throw new Error("Failed to fetch subscription details");
       }
-      const { data } = await response.json();
+      const data = await response.json();
 
       return {
         status: data?.subscriptionStatus || SubscriptionStatus.INACTIVE,

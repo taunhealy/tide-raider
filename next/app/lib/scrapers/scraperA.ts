@@ -1,10 +1,11 @@
-import { WindData } from "../../types/wind";
 import { Browser, Page, BrowserContext } from "playwright-core";
 import { chromium as playwright } from "playwright-core";
-import { createHash } from "crypto";
+import chromium from "@sparticuz/chromium";
+import { WindData } from "../../types/wind";
 import { USER_AGENTS } from "@/app/lib/constants/userAgents";
 import { ProxyManager } from "../proxy/proxyManager";
 import { ProxyConfig } from "../proxy/types";
+import { createHash } from "crypto";
 
 // Add at the top of the file
 declare global {
@@ -80,16 +81,31 @@ export async function scraperA(url: string, region: string): Promise<WindData> {
     proxy = proxyManager.getProxyForRegion(region);
     console.log(`Using proxy: ${proxy.host}`);
 
-    const launchOptions: Parameters<typeof playwright.launch>[0] = {
-      args: ["--no-sandbox", "--disable-setuid-sandbox"],
-      executablePath: await playwright.executablePath(),
+    // Configure chromium for serverless
+    chromium.setGraphicsMode = false;
+    const executablePath = await chromium.executablePath();
+
+    const launchOptions = {
+      args: [
+        ...chromium.args,
+        "--disable-gpu",
+        "--disable-dev-shm-usage",
+        "--hide-scrollbars",
+        "--mute-audio",
+        "--no-sandbox",
+        "--single-process",
+        "--no-zygote",
+      ],
+      executablePath,
       headless: true,
+      defaultViewport: {
+        width: 1280,
+        height: 720,
+      },
     };
 
     if (proxy.isCloudflare) {
-      launchOptions.proxy = {
-        server: `https://${proxy.host}`,
-      };
+      launchOptions.args.push(`--proxy-server=https://${proxy.host}`);
     }
 
     browser = await playwright.launch(launchOptions);
@@ -98,33 +114,15 @@ export async function scraperA(url: string, region: string): Promise<WindData> {
     context = await browser.newContext({
       userAgent: USER_AGENTS[Math.floor(Math.random() * USER_AGENTS.length)],
       viewport: {
-        width: 1280 + Math.floor(Math.random() * 200),
-        height: 720 + Math.floor(Math.random() * 200),
+        width: 1280 + Math.floor(Math.random() * 100),
+        height: 720 + Math.floor(Math.random() * 100),
       },
       locale: "en-US",
       timezoneId: "UTC",
-      deviceScaleFactor: Math.random() > 0.5 ? 1 : 2,
-      hasTouch: Math.random() > 0.8,
     });
 
     // Anti-bot scripts
     await context.addInitScript(() => {
-      // WebGL fingerprint randomization
-      const getParameterProxy = (
-        original: WebGLRenderingContext["getParameter"]
-      ) => {
-        return function (this: WebGLRenderingContext, parameter: number) {
-          if (parameter === 37445) {
-            return `ANGLE (${Math.random() > 0.5 ? "NVIDIA" : "Intel"}) Direct3D11`;
-          }
-          if (parameter === 37446) {
-            return Math.random() > 0.5 ? "Google Inc." : "Intel Inc.";
-          }
-          return original.call(this, parameter);
-        };
-      };
-
-      // Plugin and navigator spoofing
       Object.defineProperty(navigator, "webdriver", { get: () => undefined });
       Object.defineProperty(navigator, "plugins", {
         get: () => [
@@ -133,89 +131,28 @@ export async function scraperA(url: string, region: string): Promise<WindData> {
           { name: "Native Client" },
         ],
       });
-
-      // Canvas fingerprint randomization
-      const originalGetContext = HTMLCanvasElement.prototype.getContext;
-      HTMLCanvasElement.prototype.getContext = function (
-        this: HTMLCanvasElement,
-        type: string,
-        options?: CanvasRenderingContext2DSettings
-      ) {
-        const context = originalGetContext.call(this, type, options);
-        if (context && type === "2d") {
-          const ctx = context as CanvasRenderingContext2D;
-          const originalFillText = ctx.fillText;
-          ctx.fillText = function (
-            this: CanvasRenderingContext2D,
-            text: string,
-            x: number,
-            y: number,
-            maxWidth?: number
-          ) {
-            ctx.shadowColor = `rgba(${Math.random()},${Math.random()},${Math.random()},0.01)`;
-            return originalFillText.call(this, text, x, y, maxWidth);
-          };
-        }
-        return context;
-      } as typeof HTMLCanvasElement.prototype.getContext;
     });
 
     page = await context.newPage();
 
-    // Resource blocking with randomization
+    // Resource blocking for performance
     await page.route("**/*", (route) => {
       const request = route.request();
       const resourceType = request.resourceType();
-      if (
-        ["image", "media", "font"].includes(resourceType) ||
-        (resourceType === "script" && Math.random() > 0.7)
-      ) {
+      if (["image", "media", "font"].includes(resourceType)) {
         route.abort();
       } else {
         route.continue();
       }
     });
 
-    // Randomized navigation timing
+    // Navigate with timeout
     await page.goto(url, {
-      waitUntil: Math.random() > 0.5 ? "domcontentloaded" : "load",
-      timeout: 15000,
-    });
-
-    // Add random mouse movements
-    await page.evaluate(() => {
-      const moveCount = 3 + Math.floor(Math.random() * 5);
-      for (let i = 0; i < moveCount; i++) {
-        const x = Math.random() * window.innerWidth;
-        const y = Math.random() * window.innerHeight;
-        const event = new MouseEvent("mousemove", {
-          clientX: x,
-          clientY: y,
-          bubbles: true,
-        });
-        document.dispatchEvent(event);
-      }
-    });
-
-    // Random scroll behavior
-    await page.evaluate(() => {
-      window.scrollTo({
-        top: Math.random() * document.body.scrollHeight * 0.3,
-        behavior: "smooth",
-      });
+      waitUntil: "domcontentloaded",
+      timeout: 30000,
     });
 
     // Wait for table with randomized timeout
-    await page.waitForSelector(".weathertable", {
-      state: "visible",
-      timeout: 10000 + Math.floor(Math.random() * 5000),
-    });
-
-    // Wait for CSS to load
-    await page.waitForLoadState("load", { timeout: 15000 });
-    console.log("✅ Page resources loaded");
-
-    // Wait for table with CSS loaded
     await page.waitForSelector(".weathertable", {
       state: "visible",
       timeout: 15000,
@@ -223,89 +160,31 @@ export async function scraperA(url: string, region: string): Promise<WindData> {
     console.log("✅ Found weather table");
 
     // Wait for data to populate
-    console.log("Waiting for data to load...");
     await page.waitForTimeout(4000);
-
-    // Check data presence
-    const dataCheck = await page.evaluate(() => {
-      const rows = document.querySelectorAll(".weathertable__row");
-      const times = document.querySelectorAll(".data-time .value");
-      const winds = document.querySelectorAll(".cell-wind-3 .units-ws");
-      return {
-        rowCount: rows.length,
-        timeCount: times.length,
-        windCount: winds.length,
-        sampleTime: times[0]?.getAttribute("data-value"),
-        sampleWind: winds[0]?.getAttribute("data-value"),
-      };
-    });
-    console.log("Data check:", dataCheck);
-
-    if (dataCheck.rowCount < 5) {
-      console.log("Not enough rows, waiting longer...");
-      await page.waitForTimeout(3000);
-    }
-
-    // Stop additional loading
-    await page.evaluate(() => window.stop());
-    console.log("✅ Stopped additional loading");
 
     // First decode and clean the HTML
     const cleanHtml = await page.evaluate(() => {
-      const decodeHtml = (html: string) => {
-        return html
-          .replace(/\\n/g, "")
-          .replace(/\\"/g, '"')
-          .replace(/\\/g, "")
-          .replace(/\s+/g, " ")
-          .trim();
-      };
-
-      // Try both table structures
       const table = document.querySelector(".weathertable");
       if (!table) return null;
 
       const rows = Array.from(table.querySelectorAll(".weathertable__row")).map(
         (row) => {
-          // First try Surf-Forecast selectors
-          let time = row.querySelector(".data-time .value")?.textContent;
-          let windSpeed = row.querySelector(
+          const time = row.querySelector(".data-time .value")?.textContent;
+          const windSpeed = row.querySelector(
             ".cell-wind-3 .units-ws"
           )?.textContent;
-          let windDir = row
+          const windDir = row
             .querySelector(".cell-wind-2 .directionarrow")
             ?.getAttribute("title");
-          let waveHeight = row.querySelector(
+          const waveHeight = row.querySelector(
             ".cell-waves-2 .units-wh"
           )?.textContent;
-          let wavePeriod = row.querySelector(
+          const wavePeriod = row.querySelector(
             ".cell-waves-2 .data-wavefreq"
           )?.textContent;
-          let swellDir = row
+          const swellDir = row
             .querySelector(".cell-waves-1 .directionarrow")
             ?.getAttribute("title");
-
-          // If we didn't find the data, try Windfinder selectors
-          if (!time || !windSpeed) {
-            time = row
-              .querySelector(".data-time .value")
-              ?.getAttribute("data-value");
-            windSpeed = row
-              .querySelector(".cell-wind-3 .units-ws")
-              ?.getAttribute("data-value");
-            windDir = row
-              .querySelector(".cell-wind-2 .directionarrow")
-              ?.getAttribute("title");
-            waveHeight = row
-              .querySelector(".cell-waves-2 .units-wh")
-              ?.getAttribute("data-value");
-            wavePeriod = row
-              .querySelector(".cell-waves-2 .data-wavefreq")
-              ?.textContent?.trim();
-            swellDir = row
-              .querySelector(".cell-waves-1 .directionarrow")
-              ?.getAttribute("title");
-          }
 
           return {
             time,
@@ -322,21 +201,22 @@ export async function scraperA(url: string, region: string): Promise<WindData> {
       return rows;
     });
 
-    console.log("All cleaned HTML:", cleanHtml);
+    if (!cleanHtml) {
+      throw new Error("Failed to parse weather table");
+    }
 
-    // Create today at 8am local time
+    // Create today at midnight UTC
     const today = new Date();
     today.setUTCHours(0, 0, 0, 0);
 
     let forecast: WindData | null = null;
-    cleanHtml?.forEach((row) => {
-      // Look for morning times between 05h-11h
+
+    // Find first morning forecast
+    cleanHtml.forEach((row) => {
       const timeStr = row.time?.toString() || "";
       const hour = parseInt(timeStr.replace("h", ""));
 
       if (hour >= 5 && hour <= 11) {
-        console.log("Found morning time:", hour);
-
         forecast = {
           windSpeed: parseInt(row.windSpeed || "0"),
           windDirection: parseFloat(row.windDir?.replace("°", "") || "0"),
@@ -346,14 +226,6 @@ export async function scraperA(url: string, region: string): Promise<WindData> {
           date: today,
           region,
         };
-
-        // Add debug logging
-        console.log("Raw time:", timeStr);
-        console.log("Parsed hour:", hour);
-        console.log("Raw wind direction:", row.windDir);
-        console.log("Parsed forecast:", forecast);
-
-        // Break after finding first valid morning time
         return;
       }
     });
@@ -362,33 +234,13 @@ export async function scraperA(url: string, region: string): Promise<WindData> {
       throw new Error("No morning forecast data found between 05h-11h");
     }
 
-    // Add random interaction delays
-    await page.waitForSelector(".weathertable", {
-      state: "visible",
-      timeout: 15000,
-    });
-    await page.mouse.move(100 + Math.random() * 100, 200 + Math.random() * 50, {
-      steps: 5 + Math.floor(Math.random() * 10),
-    });
-
     proxyManager.reportProxySuccess(proxy.host, Date.now() - startTime);
     return forecast;
   } catch (error) {
     if (proxy) {
       proxyManager.reportProxyFailure(proxy.host);
     }
-    // Enhanced error handling with retry logic
-    if (Math.random() > 0.6 && context) {
-      await context.clearCookies();
-      await context.setExtraHTTPHeaders({
-        "Accept-Language": `en-US;q=${0.8 + Math.random() * 0.2}`,
-        "Sec-CH-UA": `"Chromium";v="${Math.floor(Math.random() * 5 + 118)}"`,
-      });
-    }
     console.error("\n❌ Error in Playwright scraper:", error);
-    if (page) {
-      await page.screenshot({ path: "error.png" });
-    }
     throw error;
   } finally {
     if (browser) {

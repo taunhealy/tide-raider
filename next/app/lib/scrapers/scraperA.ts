@@ -72,31 +72,18 @@ export async function scraperA(url: string, region: string): Promise<WindData> {
   const startTime = Date.now();
 
   try {
-    const launchOptions = {
+    browser = await puppeteer.launch({
       args: [
         ...chromium.args,
-        "--disable-gpu",
-        "--disable-dev-shm-usage",
-        "--hide-scrollbars",
-        "--mute-audio",
-        "--no-sandbox",
         proxy.isCloudflare ? `--proxy-server=https://${proxy.host}` : "",
       ].filter(Boolean),
-      defaultViewport: {
-        width: 1280 + Math.floor(Math.random() * 100),
-        height: 720 + Math.floor(Math.random() * 100),
-      },
-      executablePath: process.env.AWS_LAMBDA_FUNCTION_VERSION
-        ? "/tmp/chromium"
-        : await chromium.executablePath(),
+      defaultViewport: chromium.defaultViewport,
+      executablePath: await chromium.executablePath(),
       headless: true,
       ignoreHTTPSErrors: true,
-    };
+    });
 
-    browser = await puppeteer.launch(launchOptions);
     const page = await browser.newPage();
-
-    // Set random user agent
     await page.setUserAgent(
       USER_AGENTS[Math.floor(Math.random() * USER_AGENTS.length)]
     );

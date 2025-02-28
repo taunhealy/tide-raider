@@ -1,9 +1,9 @@
 /** @type {import('tailwindcss').Config} */
 module.exports = {
   content: [
-    "./pages/**/*.{js,ts,jsx,tsx,mdx}",
-    "./components/**/*.{js,ts,jsx,tsx,mdx}",
-    "./app/**/*.{js,ts,jsx,tsx,mdx}",
+    "./app/**/*.{js,ts,jsx,tsx}",
+    "./pages/**/*.{js,ts,jsx,tsx}",
+    "./components/**/*.{js,ts,jsx,tsx}",
     "./styles/**/*.css",
   ],
   theme: {
@@ -16,7 +16,7 @@ module.exports = {
         "brand-3": "var(--color-tertiary)", // Replace with your brand color
       },
       fontFamily: {
-        primary: ["var(--font-inter)", "system-ui", "sans-serif"],
+        primary: ["Inter", "sans-serif"],
         secondary: ["var(--font-montserrat)", "system-ui", "sans-serif"],
       },
       fontWeight: {

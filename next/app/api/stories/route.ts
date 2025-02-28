@@ -80,6 +80,8 @@ export async function POST(request: Request) {
         create: {
           id: beachDataEntry.region,
           name: beachDataEntry.region,
+          country: beachDataEntry.country || "",
+          continent: beachDataEntry.continent || null,
         },
       });
 
@@ -90,37 +92,50 @@ export async function POST(request: Request) {
         create: {
           id: beachDataEntry.id,
           name: beachDataEntry.name,
-          region: {
-            connectOrCreate: {
-              where: { id: beachDataEntry.region },
-              create: {
-                id: beachDataEntry.region,
-                name: beachDataEntry.region,
-              },
-            },
-          },
+          regionId: beachDataEntry.region,
+          country: beachDataEntry.country || "",
+          continent: beachDataEntry.continent || "",
+          // Add other required fields with default values
+          location: "",
+          distanceFromCT: 0,
+          optimalWindDirections: [],
+          optimalSwellDirections: {},
+          bestSeasons: [],
+          optimalTide: "",
+          description: "",
+          difficulty: "",
+          waveType: "",
+          swellSize: {},
+          idealSwellPeriod: {},
+          waterTemp: {},
+          hazards: [],
+          crimeLevel: "",
+          sharkAttack: {},
+          coordinates: {},
         },
       });
     }
 
-    // Create the story
-    const story = await prisma.story.create({
-      data: {
-        title,
-        date: new Date(date),
-        details,
-        category,
-        link: link || null,
-        author: {
-          connect: { id: author.id },
-        },
-        ...(!isCustomBeach &&
-          beach !== "other" && {
-            beach: {
-              connect: { id: beach },
-            },
-          }),
+    // Create the story with region relation if beach is specified
+    const storyData: any = {
+      title,
+      date: new Date(date),
+      details,
+      category,
+      link: link || null,
+      author: {
+        connect: { id: author.id },
       },
+    };
+
+    if (!isCustomBeach && beach !== "other") {
+      const beachDataEntry = beachData.find((b) => b.id === beach);
+      storyData.beach = { connect: { id: beach } };
+      storyData.region = { connect: { id: beachDataEntry?.region } };
+    }
+
+    const story = await prisma.story.create({
+      data: storyData,
       include: {
         author: {
           select: {
@@ -131,6 +146,7 @@ export async function POST(request: Request) {
           },
         },
         beach: true,
+        region: true,
       },
     });
 

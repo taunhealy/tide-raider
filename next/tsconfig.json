@@ -30,7 +30,8 @@
     "tailwind.config.js",
     "next.config.js",
     "app/components/WaveAnimation.jsx",
-    "../BeachCard.tsx"
+    "../BeachCard.tsx",
+    "../app/components/boards/BoardCard.tsx"
   ],
   "exclude": ["node_modules"]
 }

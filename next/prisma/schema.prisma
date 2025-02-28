@@ -39,17 +39,18 @@ model AdRequest {
   categoryData          Json?
   googleAdsCampaignId   String?
   googleAdsContribution Float
-  region                String
+  regionId              String   // Changed from region String to regionId String
   title                 String?
   yearlyPrice           Float
   startDate             DateTime
   endDate               DateTime
   payfastSubscriptionId String?
   variantId             String?
+  region                Region   @relation(fields: [regionId], references: [id])
   user                  User?    @relation(fields: [userId], references: [id])
 
   @@index([payfastSubscriptionId])
-  @@index([region])
+  @@index([regionId])
   @@index([category])
   @@index([status])
 }
@@ -92,6 +93,9 @@ model User {
   surfSafaris         SurfSafariListing[]
   favorites           UserFavorite[]
   filters             UserFilters?
+  rentedRequests      RentalRequest[]     @relation("RenterRequests")
+  ownedRequests       RentalRequest[]     @relation("OwnerRequests")
+  sentMessages        ChatMessage[]       @relation("SentMessages")
 
   @@index([email])
   @@index([skillLevel])
@@ -102,7 +106,8 @@ model Event {
   title       String
   description String
   country     String
-  region      String
+  regionId    String   // Changed from region String to regionId String
+  region      Region   @relation(fields: [regionId], references: [id])
   startTime   DateTime
   link        String?
   createdAt   DateTime @default(now())
@@ -110,6 +115,7 @@ model Event {
   user        User     @relation(fields: [userId], references: [id])
 
   @@index([userId])
+  @@index([regionId])
 }
 
 model LogEntry {
@@ -278,13 +284,47 @@ model Review {
 }
 
 model Beach {
-  id         String     @id
-  regionId   String
-  name       String
-  region     Region     @relation(fields: [regionId], references: [id])
-  feedbacks  Feedback[]
-  logEntries LogEntry[]
-  stories    Story[]
+  id          String     @id
+  name        String
+  continent   String
+  country     String
+  regionId    String     // Changed from region String to regionId String
+  region      Region       @relation(fields: [regionId], references: [id])
+  location    String
+  distanceFromCT Float
+  optimalWindDirections String[]
+  optimalSwellDirections Json
+  bestSeasons String[]
+  optimalTide String
+  description String
+  difficulty  String
+  waveType    String
+  swellSize   Json
+  idealSwellPeriod Json
+  waterTemp   Json
+  hazards     String[]
+  crimeLevel  String
+  sharkAttack Json
+  image       String?
+  coordinates Json
+  videos      Json?
+  profileImage String?
+  advertisingPrice Float?
+  coffeeShop  Json?
+  hasSharkAlert Boolean?
+  bestMonthOfYear String?
+  isHiddenGem Boolean?
+  sheltered   Boolean?
+
+  feedbacks   Feedback[]
+  logEntries  LogEntry[]
+  stories     Story[]
+  boards      BeachBoardConnection[]
+
+  @@index([regionId])
+  @@index([country])
+  @@index([waveType])
+  @@index([difficulty])
 }
 
 model Account {
@@ -329,7 +369,7 @@ model Board {
   userId         String
   name           String
   type           BoardType
-  length         String
+  length         Float           // Changed from String to Float to store length in feet
   finSetup       FinType
   isForRent      Boolean         @default(false)
   rentPrice      Float?
@@ -337,6 +377,11 @@ model Board {
   rentalBookings BnbBooking[]    @relation("RentalBoard")
   user           User            @relation(fields: [userId], references: [id])
   safariBookings SafariBooking[]
+  images         String[]        // Array of Cloudflare image IDs
+  thumbnail      String?       // Main image/thumbnail ID
+  availableBeaches BeachBoardConnection[]
+  rentalRequests RentalRequest[]
+  availability   BoardAvailability[]
 
   @@index([userId])
   @@index([isForRent])
@@ -390,12 +435,15 @@ model Story {
   authorId    String
   beachName   String?
   beachId     String?
+  regionId    String?  // New field to directly associate with a region
   customBeach String?
   author      User     @relation(fields: [authorId], references: [id])
   beach       Beach?   @relation(fields: [beachId], references: [id])
+  region      Region?  @relation(fields: [regionId], references: [id]) // New relation
 
   @@index([authorId])
   @@index([beachId])
+  @@index([regionId]) // New index
 }
 
 model UserFilters {
@@ -421,12 +469,6 @@ model UserFavorite {
 
   @@index([userId])
   @@index([createdAt])
-}
-
-model Region {
-  id      String  @id
-  name    String
-  beaches Beach[]
 }
 
 enum SkillLevel {
@@ -470,4 +512,90 @@ enum FinType {
   SINGLE
   FIVE
   OTHER
+}
+
+model BeachBoardConnection {
+  id        String   @id @default(cuid())
+  boardId   String
+  beachId   String
+  board     Board    @relation(fields: [boardId], references: [id])
+  beach     Beach    @relation(fields: [beachId], references: [id])
+  
+  @@unique([beachId, boardId])
+  @@index([boardId])
+  @@index([beachId])
+}
+
+model RentalRequest {
+  id          String        @id @default(cuid())
+  boardId     String
+  renterId    String
+  ownerId     String
+  status      RequestStatus @default(PENDING)
+  startDate   DateTime
+  endDate     DateTime
+  beachId     String
+  totalCost   Json         // { zar: number, usd: number }
+  messages    ChatMessage[]
+  createdAt   DateTime     @default(now())
+  updatedAt   DateTime     @updatedAt
+  board       Board        @relation(fields: [boardId], references: [id])
+  renter      User         @relation("RenterRequests", fields: [renterId], references: [id])
+  owner       User         @relation("OwnerRequests", fields: [ownerId], references: [id])
+  
+  // New fields for better management
+  lastActionAt    DateTime @default(now())
+  expiresAt       DateTime
+  modificationCount Int     @default(0)
+  previousVersions Json?    // Store history of modifications
+  cancellationReason String?
+  
+  // Automated status tracking
+  isExpired       Boolean  @default(false)
+  hasBeenViewed   Boolean  @default(false)
+  viewedAt        DateTime?
+  
+  // Payment intent tracking (for future use)
+  paymentIntentId String?
+  depositPaid     Boolean  @default(false)
+}
+
+model ChatMessage {
+  id          String       @id @default(cuid())
+  requestId   String
+  senderId    String
+  content     String
+  createdAt   DateTime    @default(now())
+  request     RentalRequest @relation(fields: [requestId], references: [id])
+  sender      User        @relation("SentMessages", fields: [senderId], references: [id])
+}
+
+enum RequestStatus {
+  PENDING
+  ACCEPTED
+  DECLINED
+  MODIFIED
+  CANCELLED
+}
+
+model BoardAvailability {
+  id        String   @id @default(cuid())
+  boardId   String
+  startDate DateTime
+  endDate   DateTime
+  board     Board    @relation(fields: [boardId], references: [id])
+
+  @@unique([boardId, startDate, endDate])
+}
+
+model Region {
+  id          String    @id
+  name        String
+  country     String
+  continent   String?
+  beaches     Beach[]
+  stories     Story[]   // Direct relation to stories in this region
+  events      Event[]   // Relation to events in this region
+  adRequests  AdRequest[] // Relation to ad requests for this region
+  // Add other region-related relations as needed
 }

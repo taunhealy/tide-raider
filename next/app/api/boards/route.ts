@@ -1,132 +1,193 @@
-import { NextResponse } from "next/server";
-import { prisma } from "@/app/lib/prisma";
-import { getServerSession } from "next-auth";
+import { prisma } from "@/lib/prisma";
+import { getServerSession } from "next-auth/next";
 import { authOptions } from "@/app/lib/authOptions";
-import { BoardType } from "@prisma/client";
+import { beachData } from "@/app/types/beaches";
+import { BoardType, FinType } from "@prisma/client";
 
-export async function GET(request: Request) {
-  const { searchParams } = new URL(request.url);
+export async function POST(req: Request) {
+  const session = await getServerSession(authOptions);
+  if (!session?.user) {
+    return new Response("Unauthorized", { status: 401 });
+  }
+
+  const data = await req.json();
+
+  // Validate required fields
+  if (
+    !data.name ||
+    !data.type ||
+    !data.length ||
+    !data.finSetup ||
+    !data.images?.length
+  ) {
+    return new Response("Missing required fields", { status: 400 });
+  }
+
+  // Validate type and finSetup are valid enum values
+  if (!Object.values(BoardType).includes(data.type)) {
+    return new Response("Invalid board type", { status: 400 });
+  }
+
+  if (!Object.values(FinType).includes(data.finSetup)) {
+    return new Response("Invalid fin setup", { status: 400 });
+  }
+
+  // Validate length is a number
+  const length = parseFloat(data.length);
+  if (isNaN(length)) {
+    return new Response("Length must be a number", { status: 400 });
+  }
+
+  const {
+    name,
+    type,
+    finSetup,
+    images,
+    availableBeaches,
+    isForRent,
+    rentPrice,
+  } = data;
+
+  // Create or update beaches and their connections
+  const beachConnections = await Promise.all(
+    availableBeaches.map(async (beachId: string) => {
+      // Find beach data from beaches.ts
+      const beachInfo = beachData.find((b) => b.id === beachId);
+      if (!beachInfo) throw new Error(`Beach not found: ${beachId}`);
+
+      // Create or update beach in database
+      const beach = await prisma.beach.upsert({
+        where: { id: beachId },
+        update: {}, // No updates needed if exists
+        create: {
+          id: beachId,
+          name: beachInfo.name,
+          continent: beachInfo.continent,
+          country: beachInfo.country,
+          region: {
+            connect: { id: beachInfo.region },
+          },
+          location: beachInfo.location,
+          distanceFromCT: beachInfo.distanceFromCT,
+          optimalWindDirections: beachInfo.optimalWindDirections,
+          optimalSwellDirections: beachInfo.optimalSwellDirections,
+          bestSeasons: beachInfo.bestSeasons,
+          optimalTide: beachInfo.optimalTide,
+          description: beachInfo.description,
+          difficulty: beachInfo.difficulty,
+          waveType: beachInfo.waveType,
+          swellSize: beachInfo.swellSize,
+          idealSwellPeriod: beachInfo.idealSwellPeriod,
+          waterTemp: beachInfo.waterTemp,
+          hazards: beachInfo.hazards,
+          crimeLevel: beachInfo.crimeLevel,
+          sharkAttack: JSON.parse(JSON.stringify(beachInfo.sharkAttack)),
+          image: beachInfo.image || "",
+          coordinates: beachInfo.coordinates,
+          isHiddenGem: beachInfo.isHiddenGem || false,
+          sheltered: beachInfo.sheltered || false,
+        },
+      });
+
+      return beachId;
+    })
+  );
+
+  // Create board with beach connections
+  const board = await prisma.board.create({
+    data: {
+      name,
+      type,
+      length,
+      finSetup,
+      isForRent,
+      rentPrice,
+      images,
+      thumbnail: images[0],
+      userId: session.user.id,
+      availableBeaches: {
+        create: beachConnections.map((beachId) => ({
+          beachId,
+        })),
+      },
+    },
+    include: {
+      availableBeaches: {
+        include: {
+          beach: true,
+        },
+      },
+      user: {
+        select: {
+          name: true,
+          image: true,
+        },
+      },
+    },
+  });
+
+  return Response.json(board);
+}
+
+export async function GET(req: Request) {
+  const { searchParams } = new URL(req.url);
+  const beachId = searchParams.get("beachId");
+  const region = searchParams.get("region");
   const type = searchParams.get("type");
-  const maxPrice = searchParams.get("maxPrice");
 
-  const where = {
+  // Build the where clause based on filters
+  const where: any = {
     isForRent: true,
-    ...(type && { type: type as BoardType }),
-    ...(maxPrice && { rentPrice: { lte: parseFloat(maxPrice) } }),
+    user: {
+      subscriptionStatus: "ACTIVE", // Only show boards from subscribed users
+    },
   };
 
-  try {
-    const boards = await prisma.board.findMany({
-      where,
-      include: {
-        user: {
-          select: {
-            name: true,
-            email: true,
-          },
+  // Add beach filter if specified
+  if (beachId) {
+    where.availableBeaches = {
+      some: { beachId },
+    };
+  }
+
+  // Add region filter if specified
+  if (region) {
+    where.availableBeaches = {
+      some: {
+        beach: {
+          regionId: region,
         },
       },
-    });
-
-    return NextResponse.json(boards);
-  } catch (error) {
-    console.error("Error fetching boards:", error);
-    return NextResponse.json(
-      { error: "Failed to fetch boards" },
-      { status: 500 }
-    );
-  }
-}
-
-export async function POST(request: Request) {
-  const session = await getServerSession(authOptions);
-  if (!session?.user?.email) {
-    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    };
   }
 
-  try {
-    const data = await request.json();
+  // Add board type filter if specified
+  if (type) {
+    where.type = type;
+  }
 
-    const user = await prisma.user.findUnique({
-      where: { email: session.user.email },
-    });
+  // Add fin setup filter if specified
+  if (searchParams.get("finSetup")) {
+    where.finSetup = searchParams.get("finSetup");
+  }
 
-    if (!user) {
-      return NextResponse.json({ error: "User not found" }, { status: 404 });
-    }
-
-    const board = await prisma.board.create({
-      data: {
-        userId: user.id,
-        name: data.name,
-        type: data.type,
-        length: data.length,
-        finSetup: data.finSetup,
-        isForRent: true,
-        rentPrice: data.rentPrice,
-      },
-      include: {
-        user: {
-          select: {
-            name: true,
-            email: true,
-          },
+  const boards = await prisma.board.findMany({
+    where,
+    include: {
+      availableBeaches: {
+        include: {
+          beach: true,
         },
       },
-    });
-
-    return NextResponse.json(board);
-  } catch (error) {
-    console.error("Error creating board:", error);
-    return NextResponse.json(
-      { error: "Failed to create board" },
-      { status: 500 }
-    );
-  }
-}
-
-export async function PUT(request: Request) {
-  try {
-    const session = await getServerSession(authOptions);
-    if (!session?.user?.email) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-    }
-
-    const data = await request.json();
-    const { id, ...updateData } = data;
-
-    const existingBoard = await prisma.board.findUnique({
-      where: { id },
-      include: { user: true },
-    });
-
-    if (!existingBoard) {
-      return NextResponse.json({ error: "Board not found" }, { status: 404 });
-    }
-
-    if (existingBoard.user.email !== session.user.email) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-    }
-
-    const board = await prisma.board.update({
-      where: { id },
-      data: updateData,
-      include: {
-        user: {
-          select: {
-            name: true,
-            email: true,
-          },
+      user: {
+        select: {
+          name: true,
+          image: true,
+          subscriptionStatus: true,
         },
       },
-    });
+    },
+  });
 
-    return NextResponse.json(board);
-  } catch (error) {
-    console.error("Error updating board:", error);
-    return NextResponse.json(
-      { error: "Failed to update board" },
-      { status: 500 }
-    );
-  }
+  return Response.json(boards);
 }

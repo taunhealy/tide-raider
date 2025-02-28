@@ -36,12 +36,17 @@ const nextConfig = {
       fs: false,
       path: false,
       worker_threads: false,
+      "react-is": require.resolve("react-is"),
+      "web-worker": false,
     };
 
     // Ignore warnings for specific modules
     config.ignoreWarnings = [
       { module: /node_modules\/playwright-core/ },
       { module: /node_modules\/electron/ },
+      { module: /node_modules\/@sanity/ },
+      { module: /node_modules\/geotiff/ },
+      { module: /node_modules\/web-worker/ },
     ];
 
     if (isServer) {
@@ -54,6 +59,15 @@ const nextConfig = {
   },
   experimental: {
     serverComponentsExternalPackages: ["@sparticuz/chromium"],
+  },
+  transpilePackages: [
+    "@sanity/ui",
+    "@sanity/vision",
+    "next-sanity",
+    "styled-components",
+  ],
+  compiler: {
+    styledComponents: true,
   },
 };
 

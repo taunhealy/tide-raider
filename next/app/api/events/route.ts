@@ -62,10 +62,15 @@ export async function POST(request: Request) {
         title: body.title,
         description: body.description,
         country: body.country,
-        region: body.region,
+        regionId: body.region,
+        region: {
+          connect: { id: body.region },
+        },
         startTime,
         link: body.link || null,
-        userId: body.userId,
+        user: {
+          connect: { id: body.userId },
+        },
       },
     });
 

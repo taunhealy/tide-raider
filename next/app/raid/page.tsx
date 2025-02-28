@@ -44,7 +44,11 @@ const getActiveAds = cache(async () => {
         googleAdsContribution: true,
       },
     });
-    return ads.map((ad) => ({ ...ad, isAd: true as const }));
+    return ads.map((ad) => ({
+      ...ad,
+      isAd: true as const,
+      region: typeof ad.region === "object" ? ad.region.name : ad.region,
+    }));
   } catch (error) {
     console.error("Ads fetch error:", error);
     return [];

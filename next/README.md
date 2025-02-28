@@ -82,3 +82,32 @@ callbacks: {
 }
 __________________________
     
+    📁 app
+├── 📁 components
+│   ├── 📁 boards
+│   │   ├── BoardAvailabilityCalendar.tsx    # Calendar view for board availability
+│   │   ├── BoardContactForm.tsx             # Existing form to be updated
+│   │   └── BoardDetails.tsx                 # Existing board details
+│   ├── 📁 rental-request
+│   │   ├── RequestChat.tsx                  # Implemented chat component
+│   │   ├── RequestStatusBadge.tsx           # Status indicator component
+│   │   └── RequestsList.tsx                 # List of rental requests
+│   └── 📁 ui
+│       └── Calendar.tsx                     # Reusable calendar component
+├── 📁 api
+│   ├── 📁 rental-requests
+│   │   ├── route.ts                         # Implemented main request endpoint
+│   │   └── [id]/route.ts                    # Need to implement for request management
+│   ├── 📁 messages
+│   │   └── route.ts                         # Implemented chat messages endpoint
+│   └── 📁 availability
+│       └── route.ts                         # Need to implement for availability checks
+├── 📁 lib
+│   ├── availability.ts                      # Implemented availability functions
+│   ├── pusher.ts                           # Need to implement Pusher config
+│   └── email.ts                            # Need to implement email service
+└── 📁 types
+    └── rental.ts                           # Need to update with new types
+
+📁 prisma
+└── schema.prisma                           # Need to add new models

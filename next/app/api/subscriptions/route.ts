@@ -4,38 +4,26 @@ import { prisma } from "@/app/lib/prisma";
 import { authOptions } from "@/app/lib/authOptions";
 import { SubscriptionStatus } from "@/app/types/subscription";
 
-export async function GET() {
-  try {
-    const session = await getServerSession(authOptions);
-    if (!session?.user?.email) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-    }
+export async function GET(request: Request) {
+  const session = await getServerSession(authOptions);
 
-    const user = await prisma.user.findUnique({
-      where: { email: session.user.email },
-      select: {
-        paypalSubscriptionId: true,
-        subscriptionStatus: true,
-        hasActiveTrial: true,
-        trialEndDate: true,
-      },
-    });
+  // Get the base URL from environment variable, fallback to a default
+  const baseUrl =
+    process.env.NEXTAUTH_URL ||
+    process.env.NEXT_PUBLIC_BASE_URL ||
+    "http://localhost:3000";
 
-    return NextResponse.json({
-      data: {
-        subscriptionStatus: user?.subscriptionStatus,
-        paypalSubscriptionId: user?.paypalSubscriptionId,
-        hasActiveTrial: user?.hasActiveTrial,
-        trialEndDate: user?.trialEndDate,
-      },
-    });
-  } catch (error) {
-    console.error("Subscription error:", error);
-    return NextResponse.json(
-      { error: "Failed to fetch subscription" },
-      { status: 500 }
-    );
+  // If no session, redirect to login
+  if (!session?.user?.email) {
+    return NextResponse.redirect(`${baseUrl}/login`);
   }
+
+  // Add status parameter to indicate cancelled payment
+  const redirectUrl = new URL(`${baseUrl}/pricing`);
+  redirectUrl.searchParams.set("status", "payment-cancelled");
+
+  // Redirect to pricing page with status
+  return NextResponse.redirect(redirectUrl.toString());
 }
 
 export async function POST(request: Request) {

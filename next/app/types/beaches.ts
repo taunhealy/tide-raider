@@ -9947,7 +9947,7 @@ export const beachData: Beach[] = [
     difficulty: "Advanced",
     waveType: "Reef Break",
     swellSize: {
-      min: 1.0,
+      min: 1.4,
       max: 2.5,
     },
     idealSwellPeriod: {
@@ -10054,7 +10054,7 @@ export const beachData: Beach[] = [
     difficulty: "Advanced",
     waveType: "Reef Break",
     swellSize: {
-      min: 1.2,
+      min: 1.4,
       max: 4.0,
     },
     idealSwellPeriod: {
@@ -10200,7 +10200,7 @@ export const beachData: Beach[] = [
     difficulty: "Advanced",
     waveType: "Reef Break",
     swellSize: {
-      min: 1.2,
+      min: 1.4,
       max: 3.5,
     },
     idealSwellPeriod: {
@@ -10250,7 +10250,7 @@ export const beachData: Beach[] = [
     difficulty: "Beginner",
     waveType: "Reef Break",
     swellSize: {
-      min: 0.6,
+      min: 1.4,
       max: 2.0,
     },
     idealSwellPeriod: {
@@ -10351,7 +10351,7 @@ export const beachData: Beach[] = [
     difficulty: "Advanced",
     waveType: "Point Break",
     swellSize: {
-      min: 1.2,
+      min: 1.4,
       max: 4.0,
     },
     idealSwellPeriod: {
@@ -10394,7 +10394,7 @@ export const beachData: Beach[] = [
     difficulty: "Intermediate",
     waveType: "Point Break",
     swellSize: {
-      min: 1.0,
+      min: 1.5,
       max: 3.0,
     },
     idealSwellPeriod: {
@@ -10437,8 +10437,8 @@ export const beachData: Beach[] = [
     difficulty: "Intermediate",
     waveType: "Beach Break",
     swellSize: {
-      min: 0.8,
-      max: 2.5,
+      min: 1.4,
+      max: 4,
     },
     idealSwellPeriod: {
       min: 11,
@@ -10480,11 +10480,11 @@ export const beachData: Beach[] = [
     difficulty: "Beginner",
     waveType: "Point Break",
     swellSize: {
-      min: 0.6,
-      max: 2.0,
+      min: 1.4,
+      max: 2.7,
     },
     idealSwellPeriod: {
-      min: 8,
+      min: 10,
       max: 12,
     },
     waterTemp: {
@@ -10527,7 +10527,7 @@ export const beachData: Beach[] = [
       max: 4.0,
     },
     idealSwellPeriod: {
-      min: 8,
+      min: 10,
       max: 15,
     },
     waterTemp: {
@@ -10566,8 +10566,8 @@ export const beachData: Beach[] = [
     difficulty: "Intermediate",
     waveType: "Point Break",
     swellSize: {
-      min: 1.0,
-      max: 3.0,
+      min: 1.4,
+      max: 3.2,
     },
     idealSwellPeriod: {
       min: 12,

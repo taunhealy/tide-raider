@@ -25,7 +25,9 @@
     "sanity": "^3.67.1",
     "sanity-plugin-asset-source-unsplash": "^3.0.3",
     "sanity-plugin-simpler-color-input": "^3.0.0",
-    "styled-components": "^6.1.8"
+    "styled-components": "^6.1.8",
+    "@sparticuz/chromium": "^119.0.0",
+    "puppeteer-core": "^19.8.0"
   },
   "devDependencies": {
     "@sanity/eslint-config-studio": "^5.0.0",

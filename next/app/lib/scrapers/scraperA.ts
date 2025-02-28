@@ -86,7 +86,9 @@ export async function scraperA(url: string, region: string): Promise<WindData> {
         width: 1280 + Math.floor(Math.random() * 100),
         height: 720 + Math.floor(Math.random() * 100),
       },
-      executablePath: await chromium.executablePath(),
+      executablePath: process.env.AWS_LAMBDA_FUNCTION_VERSION
+        ? "/tmp/chromium"
+        : await chromium.executablePath(),
       headless: true,
       ignoreHTTPSErrors: true,
     };

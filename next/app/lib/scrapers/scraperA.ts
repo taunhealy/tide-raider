@@ -105,8 +105,7 @@ export async function scraperA(url: string, region: string): Promise<WindData> {
     // Block unnecessary resources
     await page.setRequestInterception(true);
     page.on("request", (request) => {
-      const resourceType = request.resourceType();
-      if (["image", "media", "font"].includes(resourceType)) {
+      if (["image", "stylesheet", "font"].includes(request.resourceType())) {
         request.abort();
       } else {
         request.continue();

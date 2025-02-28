@@ -1,8 +1,7 @@
 import { WindData } from "../../types/wind";
 import { Browser, Page, BrowserContext } from "playwright-core";
-import chromium from "@sparticuz/chromium";
-import { chromium as playwrightChromium } from "playwright-core";
-
+import { chromium } from "playwright-core";
+import chrome from "chrome-aws-lambda";
 import { createHash } from "crypto";
 import { USER_AGENTS } from "@/app/lib/constants/userAgents";
 import { ProxyManager } from "../proxy/proxyManager";
@@ -82,14 +81,10 @@ export async function scraperA(url: string, region: string): Promise<WindData> {
     proxy = proxyManager.getProxyForRegion(region);
     console.log(`Using proxy: ${proxy.host}`);
 
-    // Configure chromium for Vercel
-    chromium.setHeadlessMode = true;
-    chromium.setGraphicsMode = false;
-
-    const launchOptions: Parameters<typeof playwrightChromium.launch>[0] = {
-      headless: true,
-      args: chromium.args,
-      executablePath: await chromium.executablePath(),
+    const launchOptions: Parameters<typeof chromium.launch>[0] = {
+      args: chrome.args,
+      executablePath: await chrome.executablePath,
+      headless: chrome.headless,
     };
 
     if (proxy.isCloudflare) {
@@ -98,7 +93,7 @@ export async function scraperA(url: string, region: string): Promise<WindData> {
       };
     }
 
-    browser = await playwrightChromium.launch(launchOptions);
+    browser = await chromium.launch(launchOptions);
 
     // Advanced context configuration with randomization
     context = await browser.newContext({

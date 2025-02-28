@@ -1,4 +1,4 @@
-import puppeteer from "puppeteer-core";
+import puppeteerCore from "puppeteer-core";
 import chromium from "@sparticuz/chromium";
 import { WindData } from "../../types/wind";
 import { USER_AGENTS } from "@/app/lib/constants/userAgents";
@@ -65,6 +65,30 @@ const getBrowserPath = () => {
   return process.env.PLAYWRIGHT_BROWSERS_PATH || "./playwright";
 };
 
+async function getBrowser() {
+  if (process.env.NODE_ENV === "development") {
+    // For local development, use Chrome/Chromium installed on the system
+    return puppeteerCore.launch({
+      headless: true,
+      args: ["--no-sandbox"],
+      // On Windows, you might need to specify the path to Chrome/Chromium
+      executablePath:
+        process.platform === "win32"
+          ? "C:\\Program Files\\Google\\Chrome\\Application\\chrome.exe" // Default Chrome path
+          : "/usr/bin/google-chrome", // Default Linux Chrome path
+    });
+  } else {
+    // Production Vercel environment
+    return puppeteerCore.launch({
+      args: [...chromium.args, "--no-sandbox"],
+      defaultViewport: chromium.defaultViewport,
+      executablePath: await chromium.executablePath(),
+      headless: true,
+      ignoreHTTPSErrors: true,
+    });
+  }
+}
+
 export async function scraperA(url: string, region: string): Promise<WindData> {
   console.log("\n=== Starting Puppeteer Scraper ===");
   let browser = null;
@@ -72,18 +96,7 @@ export async function scraperA(url: string, region: string): Promise<WindData> {
   const startTime = Date.now();
 
   try {
-    browser = await puppeteer.launch({
-      args: [
-        ...chromium.args,
-        "--no-sandbox",
-        "--disable-setuid-sandbox",
-        proxy.isCloudflare ? `--proxy-server=https://${proxy.host}` : "",
-      ].filter(Boolean),
-      defaultViewport: chromium.defaultViewport,
-      executablePath: await chromium.executablePath(),
-      headless: true,
-      ignoreHTTPSErrors: true,
-    });
+    browser = await getBrowser();
 
     const page = await browser.newPage();
     await page.setUserAgent(

@@ -36,19 +36,9 @@ export function SubscriptionProvider({
     queryFn: async () => {
       const userRes = await fetch("/api/user/current");
       const userData = await userRes.json();
-      const subRes = await fetch("/api/subscriptions/details");
-      const subData = await subRes.json();
-
-      console.log("React Query data:", {
-        userData,
-        subData,
-        userStatus: userData?.subscriptionStatus,
-        subStatus: subData?.data?.status,
-      });
 
       return {
         user: userData,
-        subscription: subData,
       };
     },
     enabled: !!session?.user,

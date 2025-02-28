@@ -61,6 +61,10 @@ const getBrowserArgs = () => {
 
 const proxyManager = new ProxyManager();
 
+const getBrowserPath = () => {
+  return process.env.PLAYWRIGHT_BROWSERS_PATH || "./playwright";
+};
+
 export async function scraperA(url: string, region: string): Promise<WindData> {
   console.log("\n=== Starting Playwright Scraper ===");
   console.log("URL:", url);
@@ -76,18 +80,19 @@ export async function scraperA(url: string, region: string): Promise<WindData> {
     proxy = proxyManager.getProxyForRegion(region);
     console.log(`Using proxy: ${proxy.host}`);
 
-    const launchOptions: any = {
+    const launchOptions: Parameters<typeof chromium.launch>[0] = {
       headless: true,
       args: [
         "--no-sandbox",
-        "--disable-blink-features=AutomationControlled",
+        "--disable-setuid-sandbox",
         "--disable-dev-shm-usage",
-        `--window-size=${1280 + Math.floor(Math.random() * 200)},${720 + Math.floor(Math.random() * 200)}`,
-        Math.random() > 0.5 ? "--disable-accelerated-2d-canvas" : "",
-      ].filter(Boolean),
+      ],
+      chromiumSandbox: false,
+      executablePath: process.env.PLAYWRIGHT_BROWSERS_PATH
+        ? `${process.env.PLAYWRIGHT_BROWSERS_PATH}/chromium/chrome`
+        : undefined,
     };
 
-    // Only add proxy if using Cloudflare Worker
     if (proxy.isCloudflare) {
       launchOptions.proxy = {
         server: `https://${proxy.host}`,

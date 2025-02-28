@@ -75,6 +75,8 @@ export async function scraperA(url: string, region: string): Promise<WindData> {
     browser = await puppeteer.launch({
       args: [
         ...chromium.args,
+        "--no-sandbox",
+        "--disable-setuid-sandbox",
         proxy.isCloudflare ? `--proxy-server=https://${proxy.host}` : "",
       ].filter(Boolean),
       defaultViewport: chromium.defaultViewport,

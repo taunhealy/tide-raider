@@ -52,6 +52,9 @@ const nextConfig = {
     }
     return config;
   },
+  experimental: {
+    serverComponentsExternalPackages: ["@sparticuz/chromium"],
+  },
 };
 
 process.env.NODE_OPTIONS = "--no-deprecation";

@@ -28,14 +28,28 @@ const nextConfig = {
       },
     ],
   },
-  webpack: (config) => {
+  webpack: (config, { isServer }) => {
+    // Handle electron and other missing modules
     config.resolve.fallback = {
       ...config.resolve.fallback,
+      electron: false,
       fs: false,
       path: false,
       worker_threads: false,
     };
-    config.ignoreWarnings = [{ module: /node_modules\/web-worker/ }];
+
+    // Ignore warnings for specific modules
+    config.ignoreWarnings = [
+      { module: /node_modules\/playwright-core/ },
+      { module: /node_modules\/electron/ },
+    ];
+
+    if (isServer) {
+      config.module.rules.push({
+        test: /\.(ttf|html)$/,
+        use: "null-loader",
+      });
+    }
     return config;
   },
 };

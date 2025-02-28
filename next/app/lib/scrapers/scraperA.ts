@@ -1,5 +1,5 @@
 import { WindData } from "../../types/wind";
-import { Browser, Page, BrowserContext } from "playwright";
+import { Browser, Page, BrowserContext } from "playwright-core";
 import chromium from "@sparticuz/chromium";
 import { chromium as playwrightChromium } from "playwright-core";
 
@@ -82,12 +82,14 @@ export async function scraperA(url: string, region: string): Promise<WindData> {
     proxy = proxyManager.getProxyForRegion(region);
     console.log(`Using proxy: ${proxy.host}`);
 
-    const executablePath = await chromium.executablePath();
+    // Configure chromium for Vercel
+    chromium.setHeadlessMode = true;
+    chromium.setGraphicsMode = false;
 
     const launchOptions: Parameters<typeof playwrightChromium.launch>[0] = {
       headless: true,
       args: chromium.args,
-      executablePath,
+      executablePath: await chromium.executablePath(),
     };
 
     if (proxy.isCloudflare) {

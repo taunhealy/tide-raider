@@ -11,6 +11,8 @@ const inter = Inter({
   variable: "--font-primary",
   display: "swap",
   weight: ["400", "500", "600", "700", "900"],
+  preload: true,
+  fallback: ["system-ui", "sans-serif"],
 });
 
 const montserrat = Montserrat({
@@ -34,6 +36,12 @@ export default function RootLayout({
   return (
     <html lang="en" className={`${inter.variable} ${montserrat.variable}`}>
       <head>
+        <link rel="preconnect" href="https://fonts.googleapis.com" />
+        <link
+          rel="preconnect"
+          href="https://fonts.gstatic.com"
+          crossOrigin="anonymous"
+        />
         <link rel="icon" type="image/x-icon" href="/favicon.ico" />
         <link
           rel="icon"

@@ -17,13 +17,14 @@ import { urlForImage } from "@/app/lib/urlForImage";
 import { groq } from "next-sanity";
 import { client } from "@/lib/sanity";
 import NationalitySelector from "@/app/components/profile/NationalitySelector";
+import UserBoards from "@/app/components/profile/UserBoards";
 
 // Server component
 export default function ProfilePage() {
   const { userId } = useParams<{ userId: string }>();
   const { data: session } = useSession();
   const [activeTab, setActiveTab] = useState<
-    "account" | "favourites" | "logs" | "chronicles"
+    "account" | "logs" | "boards" | "chronicles" | "favourites"
   >("account");
   const [avatarUrl, setAvatarUrl] = useState("");
 
@@ -104,7 +105,7 @@ export default function ProfilePage() {
             }
           />
 
-          <div className="flex gap-4 mb-6">
+          <div className="flex gap-4 mb-6 overflow-x-auto">
             <Button
               variant={activeTab === "account" ? "default" : "outline"}
               onClick={() => setActiveTab("account")}
@@ -128,6 +129,12 @@ export default function ProfilePage() {
               onClick={() => setActiveTab("chronicles")}
             >
               Chronicles
+            </Button>
+            <Button
+              variant={activeTab === "boards" ? "default" : "outline"}
+              onClick={() => setActiveTab("boards")}
+            >
+              Boards
             </Button>
           </div>
 
@@ -154,6 +161,12 @@ export default function ProfilePage() {
             {activeTab === "chronicles" && (
               <div className="w-full overflow-x-auto px-4">
                 <StoriesContainer beaches={[]} userId={userId} />
+              </div>
+            )}
+
+            {activeTab === "boards" && (
+              <div className="w-full overflow-x-auto px-4">
+                <UserBoards userId={userId} isOwnProfile={isOwnProfile} />
               </div>
             )}
           </div>

@@ -184,6 +184,18 @@
     width: 100%;
     background-color: var(--color-tertiary);
   }
+
+  .btn-filter-active {
+    @apply bg-gray-50 text-gray-700 border border-gray-200;
+  }
+
+  .btn-filter-inactive {
+    @apply bg-white border border-gray-200 text-gray-700 hover:bg-gray-50;
+  }
+
+  .btn-clear-filters {
+    @apply w-full px-4 py-2 bg-gray-100 text-gray-700 rounded-md hover:bg-gray-200 transition-colors;
+  }
 }
 
 @layer utilities {

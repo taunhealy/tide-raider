@@ -1,21 +1,21 @@
-import { NextResponse } from "next/server";
+import { NextRequest, NextResponse } from "next/server";
+import { getServerSession } from "next-auth";
+import { authOptions } from "@/app/lib/authOptions";
 import { prisma } from "@/lib/prisma";
 import { sendRentalRequestEmail } from "@/lib/email";
-import { getServerSession } from "next-auth/next";
-import { authOptions } from "@/app/lib/authOptions";
 import type { Session } from "next-auth";
 
-// Helper function to check board availability
-async function checkBoardAvailability(
-  boardId: string,
+// Helper function to check rental item availability
+async function checkRentalItemAvailability(
+  rentalItemId: string,
   startDate: Date,
   endDate: Date
 ): Promise<boolean> {
   // Check if there are any overlapping rental requests
-  const existingRequests = await prisma.rentalRequest.findMany({
+  const existingRequests = await prisma.rentalItemRequest.findMany({
     where: {
-      boardId,
-      status: { in: ["PENDING", "ACCEPTED"] },
+      rentalItemId: rentalItemId,
+      status: { in: ["PENDING", "APPROVED"] },
       OR: [
         {
           // Request starts during existing rental
@@ -29,71 +29,187 @@ async function checkBoardAvailability(
   return existingRequests.length === 0;
 }
 
-export async function POST(req: Request) {
+export async function GET(req: NextRequest) {
   try {
-    const session = (await getServerSession(authOptions)) as Session & {
-      user?: {
-        id?: string;
-      };
-    };
+    const session = await getServerSession(authOptions);
 
     if (!session?.user?.id) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
-    const userId = session.user.id;
-    const { boardId, startDate, endDate, beachId, totalCost } =
+    const searchParams = req.nextUrl.searchParams;
+    const type = searchParams.get("type") || "all"; // 'all', 'renter', 'owner'
+    const status = searchParams.get("status"); // Optional filter by status
+
+    // Build the where clause
+    let where: any = {};
+
+    if (type === "renter") {
+      where.renterId = session.user.id;
+    } else if (type === "owner") {
+      where.ownerId = session.user.id;
+    } else {
+      // 'all' - show both renter and owner requests
+      where.OR = [{ renterId: session.user.id }, { ownerId: session.user.id }];
+    }
+
+    if (status) {
+      where.status = status;
+    }
+
+    const requests = await prisma.rentalItemRequest.findMany({
+      where,
+      include: {
+        rentalItem: {
+          select: {
+            id: true,
+            name: true,
+            thumbnail: true,
+            itemType: true,
+          },
+        },
+        renter: {
+          select: {
+            id: true,
+            name: true,
+            image: true,
+          },
+        },
+        owner: {
+          select: {
+            id: true,
+            name: true,
+            image: true,
+          },
+        },
+        beach: {
+          select: {
+            id: true,
+            name: true,
+          },
+        },
+      },
+      orderBy: {
+        updatedAt: "desc",
+      },
+    });
+
+    return NextResponse.json(requests);
+  } catch (error) {
+    console.error("Error fetching rental requests:", error);
+    return NextResponse.json(
+      { error: "Failed to fetch rental requests" },
+      { status: 500 }
+    );
+  }
+}
+
+export async function POST(req: NextRequest) {
+  try {
+    const session = await getServerSession(authOptions);
+
+    if (!session?.user?.id) {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    }
+
+    const { rentalItemId, startDate, endDate, beachId, totalCost } =
       await req.json();
 
-    // Validate dates
-    const isAvailable = await checkBoardAvailability(
-      boardId,
-      new Date(startDate),
-      new Date(endDate)
-    );
+    // Get the rental item to verify it exists and get owner ID
+    const rentalItem = await prisma.rentalItem.findUnique({
+      where: { id: rentalItemId },
+      select: { userId: true, isActive: true },
+    });
 
-    if (!isAvailable) {
+    if (!rentalItem) {
       return NextResponse.json(
-        { error: "Board is not available for these dates" },
+        { error: "Rental item not found" },
+        { status: 404 }
+      );
+    }
+
+    if (!rentalItem.isActive) {
+      return NextResponse.json(
+        { error: "This item is not available for rent" },
         { status: 400 }
       );
     }
 
-    // Get board owner
-    const board = await prisma.board.findUnique({
-      where: { id: boardId },
-      select: { userId: true, name: true },
-    });
-
-    if (!board) {
-      return NextResponse.json({ error: "Board not found" }, { status: 404 });
+    // Prevent renting your own item
+    if (rentalItem.userId === session.user.id) {
+      return NextResponse.json(
+        { error: "You cannot rent your own item" },
+        { status: 400 }
+      );
     }
 
-    // Create rental request
-    const request = await prisma.rentalRequest.create({
+    // Check if the beach is available for this rental item
+    const beachConnection = await prisma.beachRentalConnection.findFirst({
+      where: {
+        rentalItemId,
+        beachId,
+      },
+    });
+
+    if (!beachConnection) {
+      return NextResponse.json(
+        { error: "This item is not available at the selected location" },
+        { status: 400 }
+      );
+    }
+
+    // Check if the item is available for the requested dates
+    const overlappingAvailability =
+      await prisma.rentalItemAvailability.findFirst({
+        where: {
+          rentalItemId,
+          OR: [
+            {
+              startDate: { lte: new Date(startDate) },
+              endDate: { gte: new Date(startDate) },
+            },
+            {
+              startDate: { lte: new Date(endDate) },
+              endDate: { gte: new Date(endDate) },
+            },
+            {
+              startDate: { gte: new Date(startDate) },
+              endDate: { lte: new Date(endDate) },
+            },
+          ],
+        },
+      });
+
+    if (overlappingAvailability) {
+      return NextResponse.json(
+        { error: "This item is not available for the selected dates" },
+        { status: 400 }
+      );
+    }
+
+    // Create the rental request
+    const rentalRequest = await prisma.rentalItemRequest.create({
       data: {
-        boardId,
-        renterId: userId,
-        ownerId: board.userId,
+        rentalItemId,
+        renterId: session.user.id,
+        ownerId: rentalItem.userId,
         status: "PENDING",
         startDate: new Date(startDate),
         endDate: new Date(endDate),
         beachId,
         totalCost,
-        expiresAt: new Date(Date.now() + 48 * 60 * 60 * 1000), // 48 hours from now
-      },
-      include: {
-        owner: true,
-        board: true,
+        expiresAt: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000), // Default expiry 7 days from now
+        lastActionAt: new Date(),
+        modificationCount: 0,
       },
     });
 
     // Send email notification
-    await sendRentalRequestEmail(request);
+    await sendRentalRequestEmail(rentalRequest);
 
-    return NextResponse.json(request);
+    return NextResponse.json(rentalRequest);
   } catch (error) {
-    console.error("Failed to create rental request:", error);
+    console.error("Error creating rental request:", error);
     return NextResponse.json(
       { error: "Failed to create rental request" },
       { status: 500 }

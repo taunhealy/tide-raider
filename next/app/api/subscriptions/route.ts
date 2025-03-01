@@ -37,17 +37,21 @@ export async function POST(request: Request) {
 
     // Handle trial start
     if (action === "start-trial") {
+      // First check if the user exists in the database
       const user = await prisma.user.findUnique({
         where: { email: session.user.email },
-        select: {
-          hasActiveTrial: true,
-          hasTrialEnded: true,
-          subscriptionStatus: true,
-        },
       });
 
-      // Only check if trial has been used before
-      if (user?.hasActiveTrial || user?.hasTrialEnded) {
+      // If user doesn't exist in the database, return an error
+      if (!user) {
+        return NextResponse.json(
+          { error: "User not found in database" },
+          { status: 404 }
+        );
+      }
+
+      // Check if trial has been used before
+      if (user.hasActiveTrial || user.hasTrialEnded) {
         return NextResponse.json(
           { error: "Trial already used" },
           { status: 400 }
@@ -208,8 +212,18 @@ async function handleSuspend(
   accessToken: string,
   baseUrl: string
 ) {
+  // Get the subscription ID from the database first
+  const user = await prisma.user.findUnique({
+    where: { email: userEmail },
+    select: { paypalSubscriptionId: true },
+  });
+
+  if (!user || !user.paypalSubscriptionId) {
+    throw new Error("No active subscription found");
+  }
+
   const response = await fetch(
-    `${baseUrl}/v1/billing/subscriptions/${userEmail}/suspend`,
+    `${baseUrl}/v1/billing/subscriptions/${user.paypalSubscriptionId}/suspend`,
     {
       method: "POST",
       headers: {
@@ -232,8 +246,18 @@ async function handleActivate(
   accessToken: string,
   baseUrl: string
 ) {
+  // Get the subscription ID from the database first
+  const user = await prisma.user.findUnique({
+    where: { email: userEmail },
+    select: { paypalSubscriptionId: true },
+  });
+
+  if (!user || !user.paypalSubscriptionId) {
+    throw new Error("No active subscription found");
+  }
+
   const response = await fetch(
-    `${baseUrl}/v1/billing/subscriptions/${userEmail}/activate`,
+    `${baseUrl}/v1/billing/subscriptions/${user.paypalSubscriptionId}/activate`,
     {
       method: "POST",
       headers: {

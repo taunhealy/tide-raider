@@ -13,6 +13,7 @@ import RaidLink from "./RaidLink";
 import Image from "next/image";
 
 const NAVIGATION_ITEMS = [
+  { href: "/rentals", label: "Rentals" },
   { href: "/raidlogs", label: "Raid Logs" },
   { href: "/chronicles", label: "Chronicles" },
   { href: "/blog", label: "Blog" },

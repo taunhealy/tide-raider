@@ -1,56 +1,65 @@
 import Image from "next/image";
 import Link from "next/link";
-import { Board } from "@prisma/client";
+import { CloudflareImage } from "@/app/components/CloudflareImage";
+import { BoardWithRelations } from "@/app/types/boards";
 
 interface BoardCardProps {
-  board: Board & {
-    user?: {
-      name: string;
-      image?: string | null;
-    };
-    availableBeaches?: {
-      beach: {
-        name: string;
-        region: {
-          name: string;
-        };
-      };
-    }[];
-  };
+  board: BoardWithRelations;
 }
 
 export function BoardCard({ board }: BoardCardProps) {
+  console.log("Board data in card:", board);
+
+  // Check if board has all required properties
+  if (!board || !board.id || !board.name) {
+    console.error("Invalid board data:", board);
+    return <div>Invalid board data</div>;
+  }
+
   return (
     <Link href={`/boards/${board.id}`}>
-      <div className="bg-white rounded-lg shadow-md overflow-hidden hover:shadow-lg transition-shadow duration-300 h-full flex flex-col">
+      <div className="bg-[var(--color-bg-primary)] rounded-lg shadow-md overflow-hidden hover:shadow-lg transition-shadow duration-300 h-full flex flex-col border border-[var(--color-border-light)]">
         {/* Board Image */}
         <div className="relative h-48 w-full">
           {board.thumbnail ? (
-            <Image
-              src={board.thumbnail}
-              alt={board.name}
-              fill
-              className="object-cover"
-            />
+            <div className="w-full h-full relative">
+              <CloudflareImage
+                id={board.thumbnail}
+                alt={board.name}
+                className="object-cover"
+              />
+              <div className="absolute top-2 right-2 flex flex-col gap-1">
+                {board.isForRent && (
+                  <div className="bg-blue-500 text-white px-2 py-1 rounded-md text-small">
+                    For Rent
+                  </div>
+                )}
+                {board.isForSale && (
+                  <div className="bg-green-500 text-white px-2 py-1 rounded-md text-small">
+                    For Sale
+                  </div>
+                )}
+              </div>
+            </div>
           ) : (
-            <div className="w-full h-full bg-gray-200 flex items-center justify-center">
-              <span className="text-gray-400">No image available</span>
+            <div className="w-full h-full bg-[var(--color-bg-secondary)] flex items-center justify-center">
+              <span className="text-[var(--color-text-tertiary)] font-primary">
+                No image available
+              </span>
             </div>
           )}
         </div>
 
         {/* Board Details */}
         <div className="p-4 flex-grow">
-          <h3 className="text-lg font-semibold mb-1 font-primary">
-            {board.name}
-          </h3>
-          <p className="text-sm text-gray-600 mb-2 font-primary">
+          <h3 className="heading-5 mb-1">{board.name}</h3>
+          <p className="text-small text-[var(--color-text-secondary)] mb-2">
             {board.length}ft {board.type.toLowerCase().replace("_", " ")}
           </p>
 
           {/* Location */}
           {board.availableBeaches && board.availableBeaches.length > 0 && (
-            <p className="text-sm text-gray-500 font-primary">
+            <p className="text-small text-[var(--color-text-tertiary)]">
               <span className="font-medium">Location:</span>{" "}
               {board.availableBeaches[0].beach.name},{" "}
               {board.availableBeaches[0].beach.region.name}
@@ -69,9 +78,9 @@ export function BoardCard({ board }: BoardCardProps) {
                   className="rounded-full mr-2"
                 />
               ) : (
-                <div className="w-6 h-6 bg-gray-200 rounded-full mr-2"></div>
+                <div className="w-6 h-6 bg-[var(--color-bg-secondary)] rounded-full mr-2"></div>
               )}
-              <span className="text-sm text-gray-600 font-primary">
+              <span className="text-small text-[var(--color-text-secondary)]">
                 {board.user.name}
               </span>
             </div>
@@ -79,13 +88,18 @@ export function BoardCard({ board }: BoardCardProps) {
         </div>
 
         {/* Price */}
-        {board.isForRent && board.rentPrice && (
-          <div className="bg-blue-50 p-3 border-t border-blue-100">
+        <div className="bg-[var(--color-bg-secondary)] p-3 border-t border-[var(--color-border-light)]">
+          {board.isForRent && board.rentPrice && (
             <p className="text-blue-600 font-semibold font-primary">
               R{board.rentPrice}/day
             </p>
-          </div>
-        )}
+          )}
+          {board.isForSale && board.salePrice && (
+            <p className="text-green-600 font-semibold font-primary">
+              R{board.salePrice}
+            </p>
+          )}
+        </div>
       </div>
     </Link>
   );

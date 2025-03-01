@@ -1,10 +1,10 @@
-import { NextResponse } from "next/server";
-import { prisma } from "@/lib/prisma";
-import { getServerSession } from "next-auth/next";
+import { NextRequest, NextResponse } from "next/server";
+import { getServerSession } from "next-auth";
 import { authOptions } from "@/app/lib/authOptions";
+import { prisma } from "@/lib/prisma";
 
 export async function POST(
-  req: Request,
+  req: NextRequest,
   { params }: { params: { id: string } }
 ) {
   try {
@@ -14,34 +14,33 @@ export async function POST(
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
-    const requestId = params.id;
     const { content } = await req.json();
 
-    // Verify the request exists and user is authorized
-    const rentalRequest = await prisma.rentalRequest.findUnique({
-      where: { id: requestId },
-      select: {
-        ownerId: true,
-        renterId: true,
-      },
+    // Get the request to verify user is involved
+    const request = await prisma.rentalItemRequest.findUnique({
+      where: { id: params.id },
     });
 
-    if (!rentalRequest) {
-      return NextResponse.json({ error: "Request not found" }, { status: 404 });
+    if (!request) {
+      return NextResponse.json(
+        { error: "Rental request not found" },
+        { status: 404 }
+      );
     }
 
-    const userId = session.user.id;
-
-    // Check if user is part of this conversation
-    if (userId !== rentalRequest.ownerId && userId !== rentalRequest.renterId) {
+    // Check if user is authorized to send messages
+    if (
+      request.renterId !== session.user.id &&
+      request.ownerId !== session.user.id
+    ) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 403 });
     }
 
     // Create the message
-    const message = await prisma.chatMessage.create({
+    const message = await prisma.rentalChatMessage.create({
       data: {
-        requestId,
-        senderId: userId,
+        requestId: params.id,
+        senderId: session.user.id,
         content,
       },
       include: {
@@ -53,6 +52,12 @@ export async function POST(
           },
         },
       },
+    });
+
+    // Update the request's updatedAt timestamp
+    await prisma.rentalItemRequest.update({
+      where: { id: params.id },
+      data: { updatedAt: new Date() },
     });
 
     return NextResponse.json(message);

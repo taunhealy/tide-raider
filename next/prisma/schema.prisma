@@ -3,9 +3,8 @@ generator client {
 }
 
 datasource db {
-  provider  = "postgresql"
-  url       = env("DATABASE_URL")
-  directUrl = env("DIRECT_URL")
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
 }
 
 model BeachGoodRating {
@@ -63,6 +62,7 @@ model User {
   image               String?
   nationality         String?
   password            String?
+  comments            Comment[]
   skillLevel          SkillLevel?
   createdAt           DateTime            @default(now())
   updatedAt           DateTime            @updatedAt
@@ -80,23 +80,20 @@ model User {
   paypalSubscriptionId String?
   accounts            Account[]
   adRequests          AdRequest[]
-  bnbBookings         BnbBooking[]
-  bnbListings         BnbListing[]
   boards              Board[]
   events              Event[]
   logEntries          LogEntry[]
   membership          Membership?
-  reviews             Review[]
   safariBookings      SafariBooking[]
   sessions            Session[]
   stories             Story[]
   surfSafaris         SurfSafariListing[]
   favorites           UserFavorite[]
   filters             UserFilters?
-  rentedRequests      RentalRequest[]     @relation("RenterRequests")
-  ownedRequests       RentalRequest[]     @relation("OwnerRequests")
-  sentMessages        ChatMessage[]       @relation("SentMessages")
-  comments            Comment[]
+  rentalItems         RentalItem[]
+  rentedItemRequests  RentalItemRequest[]  @relation("RenterItemRequests")
+  ownedItemRequests   RentalItemRequest[]  @relation("OwnerItemRequests")
+  rentalChatMessages  RentalChatMessage[]
 
   @@index([email])
   @@index([skillLevel])
@@ -172,56 +169,6 @@ model SafariBooking {
   @@index([status])
   @@index([boardId])
 }
-
-model BnbBooking {
-  id          String        @id @default(cuid())
-  listingId   String
-  userId      String
-  startDate   DateTime
-  endDate     DateTime
-  boardId     String?
-  rentBoardId String?
-  notes       String?
-  status      BookingStatus @default(PENDING)
-  createdAt   DateTime      @default(now())
-  updatedAt   DateTime      @updatedAt
-  board       Board?        @relation("UserOwnBoard", fields: [boardId], references: [id])
-  listing     BnbListing    @relation(fields: [listingId], references: [id])
-  rentBoard   Board?        @relation("RentalBoard", fields: [rentBoardId], references: [id])
-  user        User          @relation(fields: [userId], references: [id])
-
-  @@index([listingId])
-  @@index([userId])
-  @@index([status])
-}
-
-model BnbListing {
-  id                     String               @id @default(cuid())
-  hostId                 String
-  title                  String
-  description            String
-  location               String
-  profileImage           String?
-  images                 String
-  sleepingArrangement    SleepingType
-  breakfastOptions       String
-  price                  Float?
-  isFree                 Boolean              @default(false)
-  hasVehicleTransport    Boolean              @default(false)
-  canTransportLongboard  Boolean              @default(false)
-  canTransportShortboard Boolean              @default(false)
-  isActive               Boolean              @default(true)
-  createdAt              DateTime             @default(now())
-  updatedAt              DateTime             @updatedAt
-  beaches                BeachBnbConnection[]
-  bookings               BnbBooking[]
-  host                   User                 @relation(fields: [hostId], references: [id], onDelete: Cascade)
-  reviews                Review[]
-
-  @@index([hostId])
-  @@index([isActive])
-}
-
 model SurfSafariListing {
   id                     String                  @id @default(cuid())
   guideId                String
@@ -237,7 +184,6 @@ model SurfSafariListing {
   createdAt              DateTime                @default(now())
   updatedAt              DateTime                @updatedAt
   beaches                BeachSafariConnection[]
-  reviews                Review[]
   bookings               SafariBooking[]
   guide                  User                    @relation(fields: [guideId], references: [id], onDelete: Cascade)
 
@@ -255,33 +201,6 @@ model BeachSafariConnection {
   @@unique([beachId, safariId])
   @@index([safariId])
   @@index([beachId])
-}
-
-model BeachBnbConnection {
-  id        String     @id @default(cuid())
-  beachId   String
-  listingId String
-  distance  Float?
-  listing   BnbListing @relation(fields: [listingId], references: [id])
-
-  @@unique([beachId, listingId])
-  @@index([listingId])
-  @@index([beachId])
-}
-
-model Review {
-  id           String             @id @default(cuid())
-  userId       String
-  rating       Int
-  comment      String?
-  createdAt    DateTime           @default(now())
-  bnbListingId String?
-  safariId     String?
-  bnbListing   BnbListing?        @relation(fields: [bnbListingId], references: [id])
-  safari       SurfSafariListing? @relation(fields: [safariId], references: [id])
-  user         User               @relation(fields: [userId], references: [id])
-
-  @@index([userId])
 }
 
 model Beach {
@@ -320,7 +239,8 @@ model Beach {
   feedbacks   Feedback[]
   logEntries  LogEntry[]
   stories     Story[]
-  boards      BeachBoardConnection[]
+  rentalItems       BeachRentalConnection[]
+  rentalItemRequests RentalItemRequest[]
 
   @@index([regionId])
   @@index([country])
@@ -370,22 +290,16 @@ model Board {
   userId         String
   name           String
   type           BoardType
-  length         Float           // Changed from String to Float to store length in feet
+  length         Float
   finSetup       FinType
-  isForRent      Boolean         @default(false)
-  rentPrice      Float?
-  userBookings   BnbBooking[]    @relation("UserOwnBoard")
-  rentalBookings BnbBooking[]    @relation("RentalBoard")
+  images         String[]
+  thumbnail      String?
   user           User            @relation(fields: [userId], references: [id])
+  
+  // Only keep safari bookings
   safariBookings SafariBooking[]
-  images         String[]        // Array of Cloudflare image IDs
-  thumbnail      String?       // Main image/thumbnail ID
-  availableBeaches BeachBoardConnection[]
-  rentalRequests RentalRequest[]
-  availability   BoardAvailability[]
-
+  
   @@index([userId])
-  @@index([isForRent])
 }
 
 model ForecastA {
@@ -515,78 +429,107 @@ enum FinType {
   OTHER
 }
 
-model BeachBoardConnection {
-  id        String   @id @default(cuid())
-  boardId   String
-  beachId   String
-  board     Board    @relation(fields: [boardId], references: [id])
-  beach     Beach    @relation(fields: [beachId], references: [id])
+model RentalItem {
+  id                String                  @id @default(cuid())
+  name              String
+  description       String?
+  thumbnail         String?
+  images            String[]
+  isActive          Boolean                 @default(true)
+  rentPrice         Float
+  createdAt         DateTime                @default(now())
+  updatedAt         DateTime                @updatedAt
+  userId            String
+  itemType          String                  // Using String instead of enum for flexibility
+  specifications    Json                    // Type-specific details
   
-  @@unique([beachId, boardId])
-  @@index([boardId])
+  // Relations
+  user              User                    @relation(fields: [userId], references: [id], onDelete: Cascade)
+  availableBeaches  BeachRentalConnection[]
+  rentalRequests    RentalItemRequest[]
+  availability      RentalItemAvailability[]
+  
+  @@index([userId])
+  @@index([itemType])
+  @@index([isActive])
+}
+
+model BeachRentalConnection {
+  id            String      @id @default(cuid())
+  rentalItemId  String
+  beachId       String
+  rentalItem    RentalItem  @relation(fields: [rentalItemId], references: [id], onDelete: Cascade)
+  beach         Beach       @relation(fields: [beachId], references: [id])
+  
+  @@unique([rentalItemId, beachId])
+  @@index([rentalItemId])
   @@index([beachId])
 }
 
-model RentalRequest {
-  id          String        @id @default(cuid())
-  boardId     String
-  renterId    String
-  ownerId     String
-  status      RequestStatus @default(PENDING)
-  startDate   DateTime
-  endDate     DateTime
-  beachId     String
-  totalCost   Json         // { zar: number, usd: number }
-  messages    ChatMessage[]
-  createdAt   DateTime     @default(now())
-  updatedAt   DateTime     @updatedAt
-  board       Board        @relation(fields: [boardId], references: [id])
-  renter      User         @relation("RenterRequests", fields: [renterId], references: [id])
-  owner       User         @relation("OwnerRequests", fields: [ownerId], references: [id])
+model RentalItemRequest {
+  id            String        @id @default(cuid())
+  rentalItemId  String
+  renterId      String
+  ownerId       String
+  status        RequestStatus @default(PENDING)
+  startDate     DateTime
+  endDate       DateTime
+  beachId       String        // Pickup/dropoff location
+  totalCost     Json          // { zar: number, usd: number }
+  messages      RentalChatMessage[]
+  createdAt     DateTime      @default(now())
+  updatedAt     DateTime      @updatedAt
   
-  // New fields for better management
-  lastActionAt    DateTime @default(now())
-  expiresAt       DateTime
-  modificationCount Int     @default(0)
-  previousVersions Json?    // Store history of modifications
-  cancellationReason String?
+  // Relations
+  rentalItem    RentalItem    @relation(fields: [rentalItemId], references: [id])
+  renter        User          @relation("RenterItemRequests", fields: [renterId], references: [id])
+  owner         User          @relation("OwnerItemRequests", fields: [ownerId], references: [id])
+  beach         Beach         @relation(fields: [beachId], references: [id])
   
-  // Automated status tracking
-  isExpired       Boolean  @default(false)
-  hasBeenViewed   Boolean  @default(false)
-  viewedAt        DateTime?
+  // Management fields
+  lastActionAt        DateTime @default(now())
+  expiresAt           DateTime
+  modificationCount   Int      @default(0)
+  previousVersions    Json?    // Store history of modifications
+  cancellationReason  String?
   
-  // Payment intent tracking (for future use)
-  paymentIntentId String?
-  depositPaid     Boolean  @default(false)
+  // Status tracking
+  isExpired           Boolean  @default(false)
+  hasBeenViewed       Boolean  @default(false)
+  viewedAt            DateTime?
+  
+  // Payment tracking
+  paymentIntentId     String?
+  depositPaid         Boolean  @default(false)
+  
+  @@index([rentalItemId])
+  @@index([renterId])
+  @@index([ownerId])
+  @@index([beachId])
+  @@index([status])
 }
 
-model ChatMessage {
-  id          String       @id @default(cuid())
+model RentalItemAvailability {
+  id           String     @id @default(cuid())
+  rentalItemId String
+  startDate    DateTime
+  endDate      DateTime
+  rentalItem   RentalItem @relation(fields: [rentalItemId], references: [id], onDelete: Cascade)
+  
+  @@index([rentalItemId])
+}
+
+model RentalChatMessage {
+  id          String            @id @default(cuid())
   requestId   String
   senderId    String
   content     String
-  createdAt   DateTime    @default(now())
-  request     RentalRequest @relation(fields: [requestId], references: [id])
-  sender      User        @relation("SentMessages", fields: [senderId], references: [id])
-}
-
-enum RequestStatus {
-  PENDING
-  ACCEPTED
-  DECLINED
-  MODIFIED
-  CANCELLED
-}
-
-model BoardAvailability {
-  id        String   @id @default(cuid())
-  boardId   String
-  startDate DateTime
-  endDate   DateTime
-  board     Board    @relation(fields: [boardId], references: [id])
-
-  @@unique([boardId, startDate, endDate])
+  createdAt   DateTime          @default(now())
+  request     RentalItemRequest @relation(fields: [requestId], references: [id], onDelete: Cascade)
+  sender      User              @relation(fields: [senderId], references: [id])
+  
+  @@index([requestId])
+  @@index([senderId])
 }
 
 model Region {
@@ -613,4 +556,12 @@ model Comment {
 
   @@index([userId])
   @@index([entityId, entityType])
+}
+
+enum RequestStatus {
+  PENDING
+  APPROVED
+  REJECTED
+  CANCELLED
+  COMPLETED
 }

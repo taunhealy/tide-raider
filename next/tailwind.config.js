@@ -16,7 +16,7 @@ module.exports = {
         "brand-3": "var(--color-tertiary)", // Replace with your brand color
       },
       fontFamily: {
-        primary: ["Inter", "sans-serif"],
+        primary: ["var(--font-inter)", "Inter", "sans-serif"],
         secondary: ["var(--font-montserrat)", "system-ui", "sans-serif"],
       },
       fontWeight: {

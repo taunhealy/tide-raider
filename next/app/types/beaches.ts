@@ -5591,7 +5591,7 @@ export const beachData: Beach[] = [
     ],
   },
   {
-    id: "shipwreck",
+    id: "shipwreck-liberia",
     name: "Shipwreck",
     continent: "Africa",
     country: "Liberia",
@@ -9118,7 +9118,7 @@ export const beachData: Beach[] = [
     },
   },
   {
-    id: "shipwreck",
+    id: "shipwreck-angola",
     name: "Shipwreck",
     continent: "Africa",
     country: "Angola",
@@ -10587,6 +10587,832 @@ export const beachData: Beach[] = [
       lat: -7.6982,
       lng: -79.4422,
     },
+  },
+  {
+    id: "tjornuvik-bay",
+    name: "Tjornuvik Bay",
+    continent: "Europe",
+    country: "Faroe Islands",
+    region: "Streymoy",
+    location: "Streymoy",
+    distanceFromCT: 10500, // Approximate distance from Cape Town
+    optimalWindDirections: ["SSE"],
+    optimalSwellDirections: {
+      min: 315, // NNW
+      max: 337.5, // NNW
+      cardinal: "NNW",
+    },
+    bestSeasons: ["all"], // "no particular seasonal pattern"
+    optimalTide: "All", // "Good surf at all stages of the tide"
+    description:
+      "Fairly exposed beach break that only works when conditions are just right with no particular seasonal pattern. Offshore winds are from the south southeast. The short fetch makes for windswells rather than groundswells and the ideal wave direction is from the north northwest. The beach breaks offer lefts and rights. An uncrowded break, even when it is working.",
+    difficulty: "Intermediate",
+    waveType: "Beach Break",
+    swellSize: {
+      min: 1.0,
+      max: 4.0,
+    },
+    idealSwellPeriod: {
+      min: 8,
+      max: 12,
+    },
+    waterTemp: {
+      summer: 11,
+      winter: 7, // Based on current reading of 7.0°C
+    },
+    hazards: ["Cold water", "Remote location", "Inconsistent waves"],
+    crimeLevel: "Low",
+    sharkAttack: {
+      hasAttack: false,
+    },
+    image: "",
+    coordinates: {
+      lat: 62.2906, // Approximate coordinates for Tjornuvik
+      lng: -7.1522,
+    },
+  },
+  {
+    id: "husavik-shorey",
+    name: "Húsavik Shorey",
+    continent: "Europe",
+    country: "Faroe Islands",
+    region: "Sandoy",
+    location: "Sandoy",
+    distanceFromCT: 10500, // Approximate distance from Cape Town
+    optimalWindDirections: ["WSW"],
+    optimalSwellDirections: {
+      min: 56.25, // ENE
+      max: 78.75, // ENE
+      cardinal: "ENE",
+    },
+    bestSeasons: ["all"], // No specific season mentioned
+    optimalTide: "All", // No specific tide mentioned
+    description:
+      "Reasonably exposed sandbar break rated 1/5, known for very reliable surf conditions. Features both left and right-handers breaking over sandbar. Works best with East-northeast swells meeting West-southwest offshore winds. Despite its low rating, maintains very consistent wave production. Remains uncrowded even when working well. Exercise caution around rocks.",
+    difficulty: "Beginner", // Assuming based on the low rating
+    waveType: "Beach Break", // Sandbar is a type of beach break
+    swellSize: {
+      min: 0.8,
+      max: 3.0,
+    },
+    idealSwellPeriod: {
+      min: 8,
+      max: 12,
+    },
+    waterTemp: {
+      summer: 11,
+      winter: 7, // Based on current reading of 7.0°C
+    },
+    hazards: ["Rocks", "Cold water", "Remote location"],
+    crimeLevel: "Low",
+    sharkAttack: {
+      hasAttack: false,
+    },
+    image: "",
+    coordinates: {
+      lat: 61.8025, // Approximate coordinates for Húsavik on Sandoy
+      lng: -6.759,
+    },
+  },
+  {
+    id: "famjin-left",
+    name: "Fámjin Left",
+    continent: "Europe",
+    country: "Faroe Islands",
+    region: "Suðuroy",
+    location: "Suðuroy",
+    distanceFromCT: 10500, // Approximate distance from Cape Town
+    optimalWindDirections: ["ESE"],
+    optimalSwellDirections: {
+      min: 270, // W
+      max: 270, // W
+      cardinal: "W",
+    },
+    bestSeasons: ["all"], // "can work at any time of the year"
+    optimalTide: "All", // No specific tide mentioned
+    description:
+      "Exposed point break rated 3/5, offering fairly consistent surf throughout the year. Works best with West groundswells meeting East-southeast offshore winds. Despite the description as a point break, note states 'there is no point break' - likely referring to a specific feature. Remains uncrowded even when working well. Exercise caution around rocks.",
+    difficulty: "Intermediate", // Based on the 3/5 rating
+    waveType: "Point Break",
+    swellSize: {
+      min: 1.0,
+      max: 3.5,
+    },
+    idealSwellPeriod: {
+      min: 10,
+      max: 14,
+    },
+    waterTemp: {
+      summer: 12,
+      winter: 7, // Based on current reading of 7.4°C
+    },
+    hazards: ["Rocks", "Cold water", "Remote location"],
+    crimeLevel: "Low",
+    sharkAttack: {
+      hasAttack: false,
+    },
+    image: "",
+    coordinates: {
+      lat: 61.8833, // Approximate coordinates for Fámjin
+      lng: -6.8833,
+    },
+  },
+  {
+    id: "birsay-bay",
+    name: "Birsay Bay",
+    continent: "Europe",
+    country: "United Kingdom",
+    region: "Scotland",
+    location: "Orkney Islands",
+    distanceFromCT: 10200, // Approximate distance from Cape Town
+    optimalWindDirections: ["SE"],
+    optimalSwellDirections: {
+      min: 292.5, // WNW
+      max: 292.5, // WNW
+      cardinal: "WNW",
+    },
+    bestSeasons: ["all"], // "can work at any time of the year"
+    optimalTide: "All", // No specific tide mentioned
+    description:
+      "Exposed beach break rated 4/5, offering fairly consistent surf throughout the year. Works best with West-northwest swells meeting Southeast offshore winds. Receives both windswells and groundswells in equal measure. Located on the northern coast of Orkney Mainland. Despite its quality, remains relatively uncrowded due to remote location.",
+    difficulty: "Intermediate", // Based on the 4/5 rating
+    waveType: "Beach Break",
+    swellSize: {
+      min: 1.2,
+      max: 4.0,
+    },
+    idealSwellPeriod: {
+      min: 10,
+      max: 14,
+    },
+    waterTemp: {
+      summer: 14,
+      winter: 8, // Based on current reading of 8.1°C
+    },
+    hazards: ["Cold water", "Remote location", "Strong currents"],
+    crimeLevel: "Low",
+    sharkAttack: {
+      hasAttack: false,
+    },
+    videos: [
+      {
+        url: "https://www.youtube.com/watch?v=VynU_K5M51U&ab_channel=ErrantSurf",
+        title: "Surfing in Orkney Islands",
+        platform: "youtube",
+      },
+    ],
+    image: "",
+    coordinates: {
+      lat: 59.1333, // Approximate coordinates for Birsay Bay
+      lng: -3.3167,
+    },
+  },
+  {
+    id: "bay-of-skaill",
+    name: "Bay of Skaill",
+    continent: "Europe",
+    country: "United Kingdom",
+    region: "Scotland",
+    location: "Orkney Islands",
+    distanceFromCT: 10200, // Approximate distance from Cape Town
+    optimalWindDirections: ["SSE"],
+    optimalSwellDirections: {
+      min: 292.5, // WNW
+      max: 292.5, // WNW
+      cardinal: "WNW",
+    },
+    bestSeasons: ["all"], // "can work at any time of the year"
+    optimalTide: "All", // No specific tide mentioned
+    description:
+      "Exposed beach break rated 4/5, offering fairly consistent surf throughout the year. Works best with West-northwest swells meeting South-southeast offshore winds. Receives both windswells and groundswells in equal measure. Located on the western coast of Orkney Mainland. Despite its quality, remains very rarely crowded due to remote location.",
+    difficulty: "Intermediate", // Based on the 4/5 rating
+    waveType: "Beach Break",
+    swellSize: {
+      min: 1.2,
+      max: 4.0,
+    },
+    idealSwellPeriod: {
+      min: 10,
+      max: 14,
+    },
+    waterTemp: {
+      summer: 14,
+      winter: 8, // Based on current reading of 7.9°C
+    },
+    hazards: ["Cold water", "Remote location", "Strong currents"],
+    crimeLevel: "Low",
+    sharkAttack: {
+      hasAttack: false,
+    },
+    image: "",
+    coordinates: {
+      lat: 59.0514, // Coordinates for Bay of Skaill
+      lng: -3.3428,
+    },
+  },
+  {
+    id: "rackwick",
+    name: "Rackwick",
+    continent: "Europe",
+    country: "United Kingdom",
+    region: "Scotland",
+    location: "Orkney Islands",
+    distanceFromCT: 10200, // Approximate distance from Cape Town
+    optimalWindDirections: ["NE"],
+    optimalSwellDirections: {
+      min: 292.5, // WNW
+      max: 292.5, // WNW
+      cardinal: "WNW",
+    },
+    bestSeasons: ["all"], // "can work at any time of the year"
+    optimalTide: "All", // No specific tide mentioned
+    description:
+      "Exposed break rated 4/5, offering fairly consistent surf throughout the year. Works best with West-northwest swells meeting Northeast offshore winds. Receives both windswells and groundswells in equal measure. Benefits from some shelter against southeast winds. Located in the Orkney Islands. Despite its quality, remains uncrowded even when working well. Exercise caution around submerged rocks.",
+    difficulty: "Intermediate", // Based on the 4/5 rating
+    waveType: "Reef Break", // Assuming based on submerged rocks hazard
+    swellSize: {
+      min: 1.2,
+      max: 4.0,
+    },
+    idealSwellPeriod: {
+      min: 10,
+      max: 14,
+    },
+    waterTemp: {
+      summer: 14,
+      winter: 8, // Based on current reading of 7.9°C
+    },
+    hazards: ["Submerged rocks", "Cold water", "Remote location"],
+    crimeLevel: "Low",
+    sharkAttack: {
+      hasAttack: false,
+    },
+    image: "",
+    coordinates: {
+      lat: 58.9833, // Approximate coordinates for Rackwick
+      lng: -3.3833,
+    },
+  },
+  {
+    id: "crescent-head",
+    name: "Crescent Head",
+    continent: "Oceania",
+    country: "Australia",
+    region: "New South Wales",
+    location: "Port Macquarie",
+    distanceFromCT: 0, // Not applicable
+    optimalWindDirections: ["W"],
+    optimalSwellDirections: {
+      min: 101.25, // ESE
+      max: 123.75, // ESE
+      cardinal: "ESE",
+    },
+    bestSeasons: ["autumn", "winter"], // As mentioned in description
+    optimalTide: "All", // "Good surf at all stages of the tide"
+    description:
+      "Exposed point break rated 2/5, offering reasonably consistent surf throughout autumn and winter. Works best with East-southeast swells meeting West offshore winds. Receives both local windswells and distant groundswells in equal measure. Despite its modest rating, can get quite crowded when conditions align. Watch out for rocks and sharks in the lineup.",
+    difficulty: "Intermediate", // Assuming based on point break type
+    waveType: "Point Break",
+    swellSize: {
+      min: 1.0,
+      max: 3.0,
+    },
+    idealSwellPeriod: {
+      min: 10,
+      max: 14,
+    },
+    waterTemp: {
+      summer: 26, // Based on current reading of 25.1°C
+      winter: 20,
+    },
+    hazards: ["Rocks", "Sharks", "Crowds"],
+    crimeLevel: "Low",
+    sharkAttack: {
+      hasAttack: true, // Australia has shark activity
+    },
+    image: "",
+    coordinates: {
+      lat: -31.1869, // Coordinates for Crescent Head
+      lng: 152.9731,
+    },
+  },
+  {
+    id: "malibu",
+    name: "Malibu",
+    continent: "North America",
+    country: "United States",
+    region: "California",
+    location: "LA County",
+    distanceFromCT: 0, // Not applicable
+    optimalWindDirections: ["N"],
+    optimalSwellDirections: {
+      min: 202.5, // SW
+      max: 247.5, // SW
+      cardinal: "SW",
+    },
+    bestSeasons: ["summer"], // As mentioned in description
+    optimalTide: "All", // No specific tide mentioned
+    description:
+      "Exposed point break rated 4/5, offering very consistent surf throughout the year with optimal conditions during summer. Works best with Southwest groundswells meeting North offshore winds. One of California's most iconic breaks, known for its perfect peeling waves. Despite its quality, gets extremely crowded, especially during weekends and good conditions. Watch out for pollution after rain and rocks at certain sections.",
+    difficulty: "Intermediate",
+    waveType: "Point Break",
+    swellSize: {
+      min: 0.6,
+      max: 3.0,
+    },
+    idealSwellPeriod: {
+      min: 12,
+      max: 16,
+    },
+    waterTemp: {
+      summer: 20,
+      winter: 14, // Based on current reading of 14.6°C
+    },
+    hazards: ["Crowds", "Pollution", "Rocks"],
+    crimeLevel: "Low",
+    sharkAttack: {
+      hasAttack: false, // Shark attacks are rare in this area
+    },
+    image: "",
+    coordinates: {
+      lat: 34.0259,
+      lng: -118.7798,
+    },
+  },
+  {
+    id: "cardiff-reef",
+    name: "Cardiff Reef",
+    continent: "North America",
+    country: "United States",
+    region: "California",
+    location: "San Diego County",
+    distanceFromCT: 0, // Not applicable
+    optimalWindDirections: ["E"],
+    optimalSwellDirections: {
+      min: 292.5, // WNW
+      max: 292.5, // WNW
+      cardinal: "WNW",
+    },
+    bestSeasons: ["winter"], // As mentioned in description
+    optimalTide: "All", // "Good surf at all stages of the tide"
+    description:
+      "Exposed reef break rated 2/5, offering very consistent surf throughout the year with optimal conditions during winter. Works best with West-northwest groundswells meeting East offshore winds. Features both left and right reef breaks, with lefts generally considered superior. Groundswells are more frequent than windswells. Despite its modest rating, can get crowded, especially during weekends and good conditions. Watch out for rocks and crowds in the lineup.",
+    difficulty: "Intermediate", // Assuming based on reef break type
+    waveType: "Reef Break",
+    swellSize: {
+      min: 0.6,
+      max: 2.5,
+    },
+    idealSwellPeriod: {
+      min: 12,
+      max: 16,
+    },
+    waterTemp: {
+      summer: 21,
+      winter: 15, // Based on current reading of 15.2°C
+    },
+    hazards: ["Rocks", "Crowds"],
+    crimeLevel: "Low",
+    sharkAttack: {
+      hasAttack: false, // Shark attacks are rare in this area
+    },
+    image: "",
+    coordinates: {
+      lat: 33.0147,
+      lng: -117.2792,
+    },
+  },
+  {
+    id: "arrawarra",
+    name: "Arrawarra",
+    continent: "Oceania",
+    country: "Australia",
+    region: "New South Wales",
+    location: "North Coast",
+    distanceFromCT: 0, // Not applicable
+    optimalWindDirections: ["SSW"],
+    optimalSwellDirections: {
+      min: 78.75, // E
+      max: 101.25, // E
+      cardinal: "E",
+    },
+    bestSeasons: ["all"], // No specific season mentioned
+    optimalTide: "All", // No specific tide mentioned
+    description:
+      "Exposed point break rated 4/5, offering pretty consistent surf throughout the year. Works best with East swells meeting South-southwest offshore winds, with some shelter from southerly winds. Receives both windswells and groundswells in equal measure. Despite its quality, gets crowded when working well. Exercise caution around rocks, sharks, and respect local surfers.",
+    difficulty: "Intermediate", // Based on point break type and rating
+    waveType: "Point Break",
+    swellSize: {
+      min: 1.0,
+      max: 3.0,
+    },
+    idealSwellPeriod: {
+      min: 10,
+      max: 14,
+    },
+    waterTemp: {
+      summer: 26, // Based on current reading of 25.8°C
+      winter: 20,
+    },
+    hazards: ["Rocks", "Sharks", "Localism", "Crowds"],
+    crimeLevel: "Low",
+    sharkAttack: {
+      hasAttack: true, // Australia has shark activity
+    },
+    image: "",
+    coordinates: {
+      lat: -30.0573, // Coordinates for Arrawarra
+      lng: 153.1979,
+    },
+  },
+  {
+    id: "emerald-beach",
+    name: "Emerald Beach",
+    continent: "Oceania",
+    country: "Australia",
+    region: "New South Wales",
+    location: "North Coast",
+    distanceFromCT: 0, // Not applicable
+    optimalWindDirections: ["SSW"],
+    optimalSwellDirections: {
+      min: 33.75, // NE
+      max: 56.25, // NE
+      cardinal: "NE",
+    },
+    bestSeasons: ["summer"], // As mentioned in description
+    optimalTide: "Mid", // Assuming mid tide works best for point breaks
+    description:
+      "Exposed point break rated 4/5, offering fairly consistent surf throughout the year with optimal conditions during summer. Features a quality left-hand point break that works best with Northeast groundswells meeting South-southwest offshore winds, with some shelter from southerly winds. Located approximately 15km north of Coffs Harbour, this scenic beach is part of the Coffs Coast Regional Park and is known for its resident population of eastern grey kangaroos that often graze near the beach at dawn and dusk. Despite its quality, gets crowded when working well. Exercise caution as shark sightings are common in the area.",
+    difficulty: "Intermediate", // Based on point break type and rating
+    waveType: "Point Break",
+    swellSize: {
+      min: 1.0,
+      max: 3.0,
+    },
+    idealSwellPeriod: {
+      min: 10,
+      max: 14,
+    },
+    waterTemp: {
+      summer: 26, // Based on current reading of 25.7°C
+      winter: 20,
+    },
+    hazards: ["Sharks", "Crowds"],
+    crimeLevel: "Low",
+    sharkAttack: {
+      hasAttack: true, // Australia has shark activity and sharks mentioned in description
+    },
+    image: "",
+    coordinates: {
+      lat: -30.1697, // Coordinates for Emerald Beach
+      lng: 153.1791,
+    },
+    coffeeShop: [
+      {
+        name: "White Salt", // Popular local cafe near the beach
+      },
+    ],
+    videos: [
+      {
+        url: "https://www.youtube.com/watch?v=example", // Replace with actual video if available
+        title: "Emerald Beach Surfing - North Coast NSW",
+        platform: "youtube",
+      },
+    ],
+  },
+  {
+    id: "burleigh-heads",
+    name: "Burleigh Heads",
+    continent: "Oceania",
+    country: "Australia",
+    region: "Queensland",
+    location: "Gold Coast",
+    distanceFromCT: 0, // Not applicable
+    optimalWindDirections: ["SW"],
+    optimalSwellDirections: {
+      min: 146.25, // SSE
+      max: 168.75, // SSE
+      cardinal: "SSE",
+    },
+    bestSeasons: ["winter"], // As mentioned in description
+    optimalTide: "All", // "Good surf at all stages of the tide"
+    description:
+      "Fairly exposed point break rated 5/5, offering consistent surf throughout the year with optimal conditions during winter. Works best with South-southeast swells meeting Southwest offshore winds, with some shelter from southerly winds. Receives a mix of groundswells and windswells. One of Australia's most iconic point breaks, producing world-class right-hand barrels when conditions align. Located within Burleigh Head National Park, the break wraps around the headland creating perfect peeling waves. The area is famous for hosting the Burleigh Pro surfing competition and offers spectacular viewing from the headland where spectators gather to watch surfers tackle 'The Point'. Beyond surfing, visitors can explore the Burleigh Head National Park's rainforest walking tracks with panoramic coastal views and opportunities to spot wildlife including sea eagles, brush turkeys, and even migrating whales between June and November. Despite its quality, gets extremely crowded, especially during good conditions. Exercise caution around rips, rocks, sharks, and respect local surfers.",
+    difficulty: "Advanced", // Based on point break type and perfect 5/5 rating
+    waveType: "Point Break",
+    swellSize: {
+      min: 1.0,
+      max: 4.0,
+    },
+    idealSwellPeriod: {
+      min: 10,
+      max: 14,
+    },
+    waterTemp: {
+      summer: 27, // Based on current reading of 26.8°C
+      winter: 21,
+    },
+    hazards: ["Rip currents", "Rocks", "Sharks", "Localism", "Crowds"],
+    crimeLevel: "Low",
+    sharkAttack: {
+      hasAttack: true, // Australia has shark activity
+    },
+    image: "",
+    coordinates: {
+      lat: -28.1014, // Coordinates for Burleigh Heads
+      lng: 153.4503,
+    },
+    videos: [
+      {
+        url: "https://www.youtube.com/watch?v=Ys1w9A4DrO4",
+        title: "Burleigh Heads - Pumping Cyclone Seth Swell",
+        platform: "youtube",
+      },
+    ],
+    coffeeShop: [
+      {
+        name: "Burleigh Social", // Popular local cafe near the beach
+      },
+      {
+        name: "Board Short Barista", // Another well-known coffee spot
+      },
+    ],
+  },
+  {
+    id: "the-spit",
+    name: "The Spit",
+    continent: "Oceania",
+    country: "Australia",
+    region: "Queensland",
+    location: "Gold Coast",
+    distanceFromCT: 0, // Not applicable
+    optimalWindDirections: ["W", "NW"],
+    optimalSwellDirections: {
+      min: 78.75, // E
+      max: 101.25, // E
+      cardinal: "E",
+    },
+    bestSeasons: ["all"], // No specific season mentioned
+    optimalTide: "All", // "Good surf at all stages of the tide"
+    description:
+      "Exposed river break rated 2/5, offering consistent surf throughout the year. Works best with East groundswells meeting West or Northwest offshore winds. Features predominantly left-breaking waves where the river meets the ocean. Located at the northern end of the Gold Coast, this unique break forms at the entrance to the Nerang River and the Gold Coast Seaway. Despite its modest rating, gets crowded, especially during good conditions. Exercise caution around sharks, rip currents, rocks, and various obstacles in the water.",
+    difficulty: "Intermediate", // Based on river break type
+    waveType: "River Break",
+    swellSize: {
+      min: 0.8,
+      max: 2.5,
+    },
+    idealSwellPeriod: {
+      min: 8,
+      max: 12,
+    },
+    waterTemp: {
+      summer: 27, // Based on current reading of 26.8°C
+      winter: 21,
+    },
+    hazards: ["Sharks", "Rip currents", "Rocks", "Obstacles", "Crowds"],
+    crimeLevel: "Low",
+    sharkAttack: {
+      hasAttack: true, // Australia has shark activity
+    },
+    image: "",
+    coordinates: {
+      lat: -27.9667, // Coordinates for The Spit, Gold Coast
+      lng: 153.4333,
+    },
+    videos: [
+      {
+        url: "https://www.youtube.com/watch?v=Rl7OT1xyrvk",
+        title: "The Spit Gold Coast - Surfing",
+        platform: "youtube",
+      },
+    ],
+    coffeeShop: [
+      {
+        name: "Seaway Kiosk", // Local cafe near The Spit
+      },
+    ],
+  },
+  {
+    id: "south-stradbroke",
+    name: "South Stradbroke",
+    continent: "Oceania",
+    country: "Australia",
+    region: "Queensland",
+    location: "Gold Coast",
+    distanceFromCT: 0, // Not applicable
+    optimalWindDirections: ["W"],
+    optimalSwellDirections: {
+      min: 78.75, // E
+      max: 101.25, // E
+      cardinal: "E",
+    },
+    bestSeasons: ["all"], // No specific season mentioned
+    optimalTide: "All", // "Good surf at all stages of the tide"
+    description:
+      "Exposed beach break rated 3/5, offering pretty consistent surf throughout the year. Works best with East swells meeting West offshore winds. Receives both local windswells and distant groundswells in equal measure. Features both left and right breaking waves along the sandy beach. Located on the ocean side of South Stradbroke Island, this break is accessible by boat from the Gold Coast Seaway. Despite its somewhat remote access, can get crowded when conditions align. Exercise caution around sharks, rocks, and respect local surfers.",
+    difficulty: "Intermediate", // Based on beach break type and 3/5 rating
+    waveType: "Beach Break",
+    swellSize: {
+      min: 1.0,
+      max: 3.0,
+    },
+    idealSwellPeriod: {
+      min: 8,
+      max: 12,
+    },
+    waterTemp: {
+      summer: 27, // Based on current reading of 26.8°C
+      winter: 21,
+    },
+    hazards: ["Sharks", "Rocks", "Localism", "Crowds"],
+    crimeLevel: "Low",
+    sharkAttack: {
+      hasAttack: true, // Australia has shark activity
+    },
+    image: "",
+    coordinates: {
+      lat: -27.9333, // Coordinates for South Stradbroke Island
+      lng: 153.4333,
+    },
+    videos: [
+      {
+        url: "https://www.youtube.com/watch?v=Rl7OT1xyrvk",
+        title: "South Stradbroke Island - Gold Coast Surfing",
+        platform: "youtube",
+      },
+    ],
+    coffeeShop: [
+      {
+        name: "Tipplers Cafe", // Local cafe on South Stradbroke Island
+      },
+    ],
+  },
+  {
+    id: "akkorokamui",
+    name: "Akkorokamui",
+    continent: "Oceania",
+    country: "Australia",
+    region: "Queensland",
+    location: "Gold Coast",
+    distanceFromCT: 0, // Not applicable
+    optimalWindDirections: ["W"],
+    optimalSwellDirections: {
+      min: 56.25, // ENE
+      max: 78.75, // ENE
+      cardinal: "ENE",
+    },
+    bestSeasons: ["all"], // No specific season mentioned
+    optimalTide: "All", // No specific tide mentioned
+    description:
+      "Exposed reef break rated 5/5, though rarely breaks. Works best with East-northeast swells meeting West offshore winds, with no shelter from cross shore breezes. Receives a mix of groundswells and windswells. Despite the description as a reef break, note states 'no reef break here' - likely referring to a specific feature. Remains uncrowded even when working well. Exercise caution around rip currents, rocks, man-made obstacles like buoys, and sharks.",
+    difficulty: "Advanced", // Based on the perfect 5/5 rating and rarely breaking nature
+    waveType: "Reef Break",
+    swellSize: {
+      min: 2.0, // Likely needs significant swell to break
+      max: 5.0,
+    },
+    idealSwellPeriod: {
+      min: 12, // Likely needs longer period swells to break
+      max: 16,
+    },
+    waterTemp: {
+      summer: 27, // Based on current reading of 26.8°C
+      winter: 21,
+    },
+    hazards: ["Rip currents", "Rocks", "Man-made obstacles", "Sharks"],
+    crimeLevel: "Low",
+    sharkAttack: {
+      hasAttack: true, // Australia has shark activity
+    },
+    image: "",
+    coordinates: {
+      lat: -28.0, // Approximate coordinates for Gold Coast
+      lng: 153.43,
+    },
+  },
+  {
+    id: "surfers-paradise",
+    name: "Surfers Paradise",
+    continent: "Oceania",
+    country: "Australia",
+    region: "Queensland",
+    location: "Gold Coast",
+    distanceFromCT: 0, // Not applicable
+    optimalWindDirections: ["W"],
+    optimalSwellDirections: {
+      min: 78.75, // E
+      max: 101.25, // E
+      cardinal: "E",
+    },
+    bestSeasons: ["all"], // No specific season mentioned
+    optimalTide: "All", // "Good surf at all stages of the tide"
+    description:
+      "Exposed beach break rated 2/5, offering dependable surf throughout the year. Works best with East groundswells meeting West offshore winds. Features both left and right breaking waves along the sandy beach. Located in the heart of the Gold Coast's most famous tourist district, this beach is backed by high-rise buildings and bustling entertainment areas. Despite its modest rating, gets very crowded, especially during weekends and holidays. Exercise caution around rip currents, rocks, various obstacles, sharks, and respect local surfers.",
+    difficulty: "Beginner", // Based on beach break type and 2/5 rating
+    waveType: "Beach Break",
+    swellSize: {
+      min: 0.8,
+      max: 2.5,
+    },
+    idealSwellPeriod: {
+      min: 8,
+      max: 12,
+    },
+    waterTemp: {
+      summer: 27, // Based on current reading of 26.8°C
+      winter: 21,
+    },
+    hazards: [
+      "Rip currents",
+      "Rocks",
+      "Obstacles",
+      "Localism",
+      "Sharks",
+      "Crowds",
+    ],
+    crimeLevel: "Low",
+    sharkAttack: {
+      hasAttack: true, // Australia has shark activity
+    },
+    image: "",
+    coordinates: {
+      lat: -28.0011, // Coordinates for Surfers Paradise
+      lng: 153.4305,
+    },
+    videos: [
+      {
+        url: "https://www.youtube.com/watch?v=example", // Replace with actual video if available
+        title: "Surfing at Surfers Paradise - Gold Coast",
+        platform: "youtube",
+      },
+    ],
+    coffeeShop: [
+      {
+        name: "Paradox Coffee Roasters", // Popular cafe in Surfers Paradise
+      },
+      {
+        name: "ESPL Coffee Brewers", // Another local coffee spot
+      },
+    ],
+  },
+  {
+    id: "southport-main-beach",
+    name: "Southport Main Beach",
+    continent: "Oceania",
+    country: "Australia",
+    region: "Queensland",
+    location: "Gold Coast",
+    distanceFromCT: 0, // Not applicable
+    optimalWindDirections: ["W"],
+    optimalSwellDirections: {
+      min: 101.25, // ESE
+      max: 123.75, // ESE
+      cardinal: "ESE",
+    },
+    bestSeasons: ["all"], // Works all around the year
+    optimalTide: "All", // "Good surf at all stages of the tide"
+    description:
+      "Exposed beach break rated 3/5, offering very consistent surf throughout the year. Works best with East-southeast swells meeting West offshore winds. Receives both windswells and groundswells in equal measure. Features both left and right breaking waves along the sandy beach. Located in the northern section of the Gold Coast, this beach is protected by shark nets and offers reliable waves for surfers of various skill levels. Despite its consistent nature, can get quite crowded when conditions align. Exercise caution around rip currents which are common in the area.",
+    difficulty: "Intermediate", // Based on beach break type and 3/5 rating
+    waveType: "Beach Break",
+    swellSize: {
+      min: 0.8,
+      max: 3.0,
+    },
+    idealSwellPeriod: {
+      min: 8,
+      max: 12,
+    },
+    waterTemp: {
+      summer: 27, // Based on current reading of 26.8°C
+      winter: 21,
+    },
+    hazards: ["Rip currents", "Crowds"],
+    crimeLevel: "Low",
+    sharkAttack: {
+      hasAttack: false, // Noted as "Shark protected" in the description
+    },
+    image: "",
+    coordinates: {
+      lat: -27.9667, // Coordinates for Southport Main Beach
+      lng: 153.4167,
+    },
+    videos: [
+      {
+        url: "https://www.youtube.com/watch?v=example", // Replace with actual video if available
+        title: "Surfing at Southport Main Beach - Gold Coast",
+        platform: "youtube",
+      },
+    ],
+    coffeeShop: [
+      {
+        name: "Cardamom Pod", // Popular cafe near Southport
+      },
+      {
+        name: "Blackboard Coffee", // Another local coffee spot
+      },
+    ],
   },
 ];
 

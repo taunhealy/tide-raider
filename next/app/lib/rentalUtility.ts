@@ -1,16 +1,27 @@
-export function calculateRentalCost(weeks: number): {
-  zarAmount: number;
+import { PACKAGE_PRICES, RentalItemType } from "@/app/lib/rentals/constants";
+
+export function calculateRentalCost(
+  weeks: number,
+  itemType: RentalItemType
+): {
   usdAmount: number;
 } {
-  // Ensure minimum 2 weeks
-  const effectiveWeeks = Math.max(2, Math.ceil(weeks));
+  // Calculate number of 2-week packages needed
+  const boardRentalPackageQty = Math.ceil(weeks / 2);
 
-  // Base rates per week
-  const ZAR_RATE_PER_WEEK = 700;
-  const USD_RATE_PER_WEEK = 37.43;
+  // Get the package rate for this item type
+  const packageRate = PACKAGE_PRICES[itemType]; // Default to surfboard rate if type not found
 
   return {
-    zarAmount: ZAR_RATE_PER_WEEK * effectiveWeeks,
-    usdAmount: USD_RATE_PER_WEEK * effectiveWeeks,
+    usdAmount: packageRate * boardRentalPackageQty,
   };
+}
+
+// Calculate daily price based on the package price
+export function calculateDailyPrice(itemType: RentalItemType): number {
+  // Get the package rate for this item type (2-week package)
+  const packageRate = PACKAGE_PRICES[itemType];
+
+  // Calculate daily rate (package rate divided by 14 days)
+  return Math.round(packageRate / 14);
 }

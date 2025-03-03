@@ -7,6 +7,7 @@ import { authOptions } from "@/app/lib/authOptions";
 import { prisma } from "@/lib/prisma";
 import { RentalRequestActions } from "@/app/components/rentals/RentalRequestActions";
 import { RentalRequestChat } from "@/app/components/rentals/RentalRequestChat";
+import { RentalRequestWithRelations } from "@/app/types/rentals";
 
 export async function generateMetadata({ params }: { params: { id: string } }) {
   const request = await prisma.rentalItemRequest.findUnique({
@@ -43,7 +44,7 @@ export default async function RentalRequestPage({
   }
 
   // Fetch the rental request
-  const request = await prisma.rentalItemRequest.findUnique({
+  const request = (await prisma.rentalItemRequest.findUnique({
     where: { id: params.id },
     include: {
       rentalItem: {
@@ -100,7 +101,7 @@ export default async function RentalRequestPage({
         },
       },
     },
-  });
+  })) as unknown as RentalRequestWithRelations;
 
   if (!request) {
     return notFound();

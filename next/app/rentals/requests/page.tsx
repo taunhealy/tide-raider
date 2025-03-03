@@ -8,9 +8,14 @@ export const metadata = {
   description: "Manage your rental requests",
 };
 
-export default async function RentalRequestsPage() {
+export default async function RentalRequestsPage({
+  searchParams,
+}: {
+  searchParams: { type?: string };
+}) {
   try {
     const session = await getServerSession(authOptions);
+    const requestType = searchParams.type || "all";
 
     // Redirect if not logged in
     if (!session?.user?.id) {
@@ -30,19 +35,31 @@ export default async function RentalRequestsPage() {
           <div className="flex space-x-4 border-b">
             <Link
               href="/rentals/requests"
-              className="py-2 px-4 border-b-2 border-[var(--color-tertiary)] font-medium"
+              className={`py-2 px-4 border-b-2 ${
+                requestType === "all"
+                  ? "border-[var(--color-tertiary)] font-medium"
+                  : "border-transparent text-[var(--color-text-secondary)]"
+              }`}
             >
               All Requests
             </Link>
             <Link
               href="/rentals/requests?type=renter"
-              className="py-2 px-4 border-transparent text-[var(--color-text-secondary)]"
+              className={`py-2 px-4 border-b-2 ${
+                requestType === "renter"
+                  ? "border-[var(--color-tertiary)] font-medium"
+                  : "border-transparent text-[var(--color-text-secondary)]"
+              }`}
             >
               Items I'm Renting
             </Link>
             <Link
               href="/rentals/requests?type=owner"
-              className="py-2 px-4 border-transparent text-[var(--color-text-secondary)]"
+              className={`py-2 px-4 border-b-2 ${
+                requestType === "owner"
+                  ? "border-[var(--color-tertiary)] font-medium"
+                  : "border-transparent text-[var(--color-text-secondary)]"
+              }`}
             >
               My Items Being Rented
             </Link>
@@ -52,7 +69,8 @@ export default async function RentalRequestsPage() {
         {/* Simplified content without database queries */}
         <div className="bg-[var(--color-bg-secondary)] p-8 rounded-md text-center">
           <p className="text-[var(--color-text-secondary)]">
-            You don't have any rental requests yet.
+            You don't have any rental requests
+            {requestType !== "all" ? ` for this category` : ""} yet.
           </p>
           <Link
             href="/rentals"

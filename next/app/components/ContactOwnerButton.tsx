@@ -1,31 +1,33 @@
 "use client";
 
 import { useState } from "react";
-import { BoardContactForm } from "./boards/BoardContactForm";
 
 interface ContactOwnerButtonProps {
   ownerEmail: string;
   ownerName: string;
-  contactType?: "email" | "boardRental";
-  boardId?: string;
-  availableBeaches?: Array<{ id: string; name: string }>;
+  isSignedIn?: boolean;
+  isSubscriber?: boolean;
+  isTrialing?: boolean;
 }
 
 export function ContactOwnerButton({
   ownerEmail,
   ownerName,
-  contactType = "email",
-  boardId,
-  availableBeaches = [],
+  isSignedIn = false,
+  isSubscriber = false,
+  isTrialing = false,
 }: ContactOwnerButtonProps) {
   const [isEmailVisible, setIsEmailVisible] = useState(false);
-  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [showAuthMessage, setShowAuthMessage] = useState(false);
+
+  const canViewEmail = isSignedIn && (isSubscriber || isTrialing);
 
   const handleClick = () => {
-    if (contactType === "email") {
+    if (canViewEmail) {
       setIsEmailVisible(true);
-    } else if (contactType === "boardRental") {
-      setIsModalOpen(true);
+      setShowAuthMessage(false);
+    } else {
+      setShowAuthMessage(true);
     }
   };
 
@@ -35,11 +37,22 @@ export function ContactOwnerButton({
         onClick={handleClick}
         className="btn-tertiary px-4 py-2 text-[16px] leading-6"
       >
-        {contactType === "boardRental" ? "Request Rental" : "Contact Owner"}
+        Contact Owner
       </button>
 
+      {/* Auth Message */}
+      {showAuthMessage && (
+        <div className="mt-2 p-3 bg-amber-50 border border-amber-200 rounded-md text-left">
+          <p className="text-[var(--color-text-primary)] text-sm">
+            {!isSignedIn
+              ? "Please sign in to contact the owner."
+              : "You need an active subscription to contact owners."}
+          </p>
+        </div>
+      )}
+
       {/* Email Display */}
-      {contactType === "email" && isEmailVisible && (
+      {isEmailVisible && canViewEmail && (
         <div className="mt-2 space-y-2">
           <p className="text-[var(--color-text-primary)]">
             Contact {ownerName} at:
@@ -50,38 +63,6 @@ export function ContactOwnerButton({
           >
             {ownerEmail}
           </a>
-        </div>
-      )}
-
-      {/* Rental Modal */}
-      {contactType === "boardRental" && isModalOpen && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center p-4">
-          <div className="bg-white rounded-lg max-w-md w-full max-h-[90vh] overflow-y-auto">
-            <div className="p-6">
-              <div className="flex justify-between items-center mb-4">
-                <h2 className="text-xl font-semibold text-[var(--color-text-primary)]">
-                  Request Board Rental
-                </h2>
-                <button
-                  onClick={() => setIsModalOpen(false)}
-                  className="text-gray-500 hover:text-gray-700"
-                >
-                  ×
-                </button>
-              </div>
-              {boardId && (
-                <BoardContactForm
-                  boardId={boardId}
-                  availableBeaches={availableBeaches}
-                  onSubmit={(formData) => {
-                    // Handle form submission
-                    console.log(formData);
-                    setIsModalOpen(false);
-                  }}
-                />
-              )}
-            </div>
-          </div>
         </div>
       )}
     </div>

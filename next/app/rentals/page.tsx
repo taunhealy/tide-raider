@@ -3,6 +3,9 @@ import { getServerSession } from "next-auth/next";
 import { authOptions } from "@/app/lib/authOptions";
 import { prisma } from "@/lib/prisma";
 import RentalsClient from "./RentalsClient";
+import { RentalItemWithRelations } from "@/app/types/rentals";
+import Link from "next/link";
+import { ITEM_CATEGORIES } from "@/app/lib/rentals/constants";
 
 export const metadata = {
   title: "Rentals | Tide Raider",
@@ -61,6 +64,11 @@ async function fetchRegions() {
   return regions;
 }
 
+interface Region {
+  id: string;
+  name: string;
+}
+
 export default async function RentalsPage() {
   const session = await getServerSession(authOptions);
   const [rentalItems, regions] = await Promise.all([
@@ -68,13 +76,39 @@ export default async function RentalsPage() {
     fetchRegions(),
   ]);
 
+  // Format item categories for display
+  const formattedItemCategories = ITEM_CATEGORIES.map((category) => {
+    // Convert SNAKE_CASE to Title Case (e.g., STAND_UP_PADDLE to Stand Up Paddle)
+    return {
+      value: category,
+      label: category
+        .split("_")
+        .map((word) => word.charAt(0) + word.slice(1).toLowerCase())
+        .join(" "),
+    };
+  });
+
   return (
-    <Suspense fallback={<div>Loading...</div>}>
-      <RentalsClient
-        initialRentalItems={rentalItems}
-        initialRegions={regions}
-        session={session}
-      />
-    </Suspense>
+    <div className="max-w-7xl mx-auto p-6 font-primary">
+      <div className="flex justify-between items-center mb-6">
+        <h1 className="text-3xl font-bold">Rental Listings</h1>
+        {session?.user && (
+          <Link href="/rentals/new" className="btn-primary">
+            Add New Rental Item
+          </Link>
+        )}
+      </div>
+
+      <Suspense fallback={<div>Loading...</div>}>
+        <RentalsClient
+          initialRentalItems={
+            rentalItems as unknown as RentalItemWithRelations[]
+          }
+          initialRegions={regions as Region[]}
+          itemCategories={formattedItemCategories}
+          session={session}
+        />
+      </Suspense>
+    </div>
   );
 }

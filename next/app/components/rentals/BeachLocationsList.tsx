@@ -4,8 +4,19 @@ import { useState } from "react";
 import { beachData } from "@/app/types/beaches";
 import BeachDetailsModal from "@/app/components/BeachDetailsModal";
 
-export function BeachLocationsList({ beaches }) {
-  const [selectedBeach, setSelectedBeach] = useState(null);
+interface BeachLocation {
+  beach: {
+    id: string;
+    name: string;
+    location: string;
+    country: string;
+  };
+}
+
+export function BeachLocationsList({ beaches }: { beaches: BeachLocation[] }) {
+  const [selectedBeach, setSelectedBeach] = useState<
+    (typeof beachData)[0] | null
+  >(null);
 
   return (
     <>

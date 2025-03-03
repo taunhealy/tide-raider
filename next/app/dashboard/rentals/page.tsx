@@ -5,6 +5,8 @@ import { authOptions } from "@/app/lib/authOptions";
 import { prisma } from "@/lib/prisma";
 import { RentalItemCard } from "@/app/components/rentals/RentalItemCard";
 import { SubscriptionStatus } from "@/app/types/subscription";
+import { calculateDailyPrice } from "@/app/lib/rentalUtility";
+import { RentalItemType } from "@/types/rentals";
 
 export const metadata = {
   title: "Manage Rentals | Dashboard",
@@ -54,6 +56,7 @@ export default async function ManageRentalsPage() {
               name: true,
               region: {
                 select: {
+                  id: true,
                   name: true,
                 },
               },
@@ -134,7 +137,16 @@ export default async function ManageRentalsPage() {
               )}
               <Link href={`/dashboard/rentals/${item.id}`}>
                 <div className="border rounded-lg overflow-hidden shadow-sm hover:shadow-md transition">
-                  <RentalItemCard item={item} />
+                  <RentalItemCard
+                    item={{
+                      ...item,
+                      description: item.description || undefined,
+                      availableBeaches: item.availableBeaches,
+                      rentalRequests: undefined,
+                      dailyPrice: calculateDailyPrice(item.itemType as any),
+                      itemType: item.itemType as RentalItemType,
+                    }}
+                  />
                   <div className="p-4 bg-gray-50 border-t">
                     <div className="flex justify-between items-center">
                       <span

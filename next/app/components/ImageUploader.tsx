@@ -1,7 +1,6 @@
 "use client";
 
 import { useState } from "react";
-import Image from "next/image";
 import { useDropzone } from "react-dropzone";
 import { XMarkIcon } from "@heroicons/react/24/outline";
 
@@ -30,24 +29,33 @@ export function ImageUploader({
 
     try {
       const uploadPromises = files.map(async (file) => {
+        // Create a unique filename
+        const timestamp = new Date().getTime();
+        const randomString = Math.random().toString(36).substring(2, 8);
+        const filename = `rental-items/${timestamp}-${randomString}-${file.name.replace(/\s+/g, "-")}`;
+
+        // Create form data for the upload
         const formData = new FormData();
         formData.append("file", file);
-        formData.append("upload_preset", "rental_items"); // Set your Cloudinary upload preset
+        formData.append("path", filename);
 
-        const response = await fetch(
-          `https://api.cloudinary.com/v1_1/${process.env.NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME}/image/upload`,
-          {
-            method: "POST",
-            body: formData,
-          }
-        );
+        // Upload to R2 via our API
+        const response = await fetch("/api/upload", {
+          method: "POST",
+          body: formData,
+        });
 
         if (!response.ok) {
-          throw new Error("Failed to upload image");
+          const errorData = await response.json();
+          console.error("Upload error:", errorData);
+          throw new Error(
+            `Failed to upload image: ${errorData.error || "Unknown error"}`
+          );
         }
 
         const data = await response.json();
-        return data.secure_url;
+        // Construct the full URL using the R2 public URL
+        return `${process.env.NEXT_PUBLIC_R2_URL}/${data.path}`;
       });
 
       const uploadedUrls = await Promise.all(uploadPromises);
@@ -108,12 +116,14 @@ export function ImageUploader({
           {images.map((url, index) => (
             <div key={index} className="relative group">
               <div className="aspect-w-1 aspect-h-1 w-full overflow-hidden rounded-lg bg-gray-100">
-                <Image
+                <img
                   src={url}
                   alt={`Image ${index + 1}`}
-                  width={200}
-                  height={200}
                   className="object-cover w-full h-full"
+                  onError={(e) => {
+                    console.error(`Error loading image: ${url}`);
+                    e.currentTarget.src = "/images/image-placeholder.png";
+                  }}
                 />
               </div>
               <button

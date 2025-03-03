@@ -15,8 +15,7 @@
 @layer base {
   :root {
     /* Fonts */
-    --font-inter: var(--font-primary), "Inter", system-ui, -apple-system,
-      BlinkMacSystemFont, sans-serif;
+    --font-inter: "Inter", sans-serif;
     --font-montserrat: var(--font-secondary), "Montserrat", system-ui,
       -apple-system, BlinkMacSystemFont, sans-serif;
 
@@ -186,15 +185,15 @@
   }
 
   .btn-filter-active {
-    @apply bg-gray-50 text-gray-700 border border-gray-200;
+    @apply bg-gray-50 text-gray-700 border border-gray-200 px-4 py-2 rounded-md font-primary text-[14px] transition-colors duration-200;
   }
 
   .btn-filter-inactive {
-    @apply bg-white border border-gray-200 text-gray-700 hover:bg-gray-50;
+    @apply bg-white border border-gray-200 text-gray-700 hover:bg-gray-50 px-4 py-2 rounded-md font-primary text-[14px] transition-colors duration-200;
   }
 
   .btn-clear-filters {
-    @apply w-full px-4 py-2 bg-gray-100 text-gray-700 rounded-md hover:bg-gray-200 transition-colors;
+    @apply w-full px-4 py-2 bg-gray-100 text-gray-700 rounded-md hover:bg-gray-200 transition-colors font-primary text-[14px] font-medium;
   }
 }
 
@@ -449,4 +448,8 @@
 
 canvas {
   background: transparent !important;
+}
+
+body {
+  font-family: var(--font-inter);
 }

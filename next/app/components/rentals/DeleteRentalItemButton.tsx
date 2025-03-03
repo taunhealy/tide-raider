@@ -25,7 +25,9 @@ export function DeleteRentalItemButton({ id }: { id: string }) {
       router.refresh();
     } catch (error) {
       console.error("Error deleting rental item:", error);
-      alert(error.message || "Failed to delete rental item");
+      alert(
+        error instanceof Error ? error.message : "Failed to delete rental item"
+      );
       setIsDeleting(false);
       setShowConfirm(false);
     }

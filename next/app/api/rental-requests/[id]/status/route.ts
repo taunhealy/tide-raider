@@ -20,12 +20,12 @@ export async function PATCH(
     const { status } = await req.json();
 
     // Fetch the current request to check permissions
-    const currentRequest = await prisma.rentalRequest.findUnique({
+    const currentRequest = await prisma.rentalItemRequest.findUnique({
       where: { id: requestId },
       select: {
         ownerId: true,
         renterId: true,
-        boardId: true,
+        rentalItemId: true,
         startDate: true,
         endDate: true,
         status: true,
@@ -64,9 +64,9 @@ export async function PATCH(
 
     // If request is accepted, create board availability record
     if (status === "ACCEPTED") {
-      await prisma.boardAvailability.create({
+      await prisma.rentalItemAvailability.create({
         data: {
-          boardId: currentRequest.boardId,
+          rentalItemId: currentRequest.rentalItemId,
           startDate: currentRequest.startDate,
           endDate: currentRequest.endDate,
         },

@@ -1,32 +1,10 @@
 import { format } from "date-fns";
 import Image from "next/image";
 import Link from "next/link";
-import type { RentalRequest } from "@prisma/client";
+import type { RentalRequestWithRelations } from "@/app/types/rentals";
 
 interface RequestDetailsProps {
-  request:
-    | (RentalRequest & {
-        board?: {
-          id: string;
-          name: string;
-          type: string;
-          images: string[];
-          thumbnail?: string;
-        };
-        owner?: {
-          id: string;
-          name: string;
-          email: string;
-          image?: string;
-        };
-        renter?: {
-          id: string;
-          name: string;
-          email: string;
-          image?: string;
-        };
-      })
-    | null;
+  request: RentalRequestWithRelations | null;
 }
 
 export function RequestDetails({ request }: RequestDetailsProps) {
@@ -161,17 +139,17 @@ export function RequestDetails({ request }: RequestDetailsProps) {
 
           <div className="mt-4 flex flex-wrap gap-3">
             <Link
-              href={`/boards/${request.boardId}`}
-              className="text-blue-600 hover:underline"
+              href={`/rentals/${request.rentalItemId}`}
+              className="text-black hover:underline font-primary"
             >
-              View Board Details
+              View Rental Item Details
             </Link>
 
             {/* Add a link to view the beach if available */}
             {request.beachId && (
               <Link
                 href={`/beaches/${request.beachId}`}
-                className="text-blue-600 hover:underline"
+                className="text-black-600 hover:underline font-primary"
               >
                 View Beach Location
               </Link>

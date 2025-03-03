@@ -303,7 +303,10 @@ export function LocationFilter({
 
       {/* Clear Filters button - only show if any filter is active */}
       {hasActiveFilters && (
-        <button onClick={onClearFilters} className="btn-filter-active">
+        <button
+          onClick={onClearFilters}
+          className="btn-filter-active text-[14px]"
+        >
           Clear all filters
         </button>
       )}

@@ -4,6 +4,7 @@ import { authOptions } from "@/app/lib/authOptions";
 import { prisma } from "@/lib/prisma";
 import { sendRentalRequestEmail } from "@/lib/email";
 import type { Session } from "next-auth";
+import { RentalRequestWithRelations } from "@/app/types/rentals";
 
 // Helper function to check rental item availability
 async function checkRentalItemAvailability(
@@ -188,7 +189,7 @@ export async function POST(req: NextRequest) {
     }
 
     // Create the rental request
-    const rentalRequest = await prisma.rentalItemRequest.create({
+    const rentalRequest = (await prisma.rentalItemRequest.create({
       data: {
         rentalItemId,
         renterId: session.user.id,
@@ -202,10 +203,63 @@ export async function POST(req: NextRequest) {
         lastActionAt: new Date(),
         modificationCount: 0,
       },
-    });
+      include: {
+        renter: {
+          select: {
+            id: true,
+            name: true,
+            email: true,
+            image: true,
+          },
+        },
+        owner: {
+          select: {
+            id: true,
+            name: true,
+            email: true,
+            image: true,
+          },
+        },
+        rentalItem: {
+          select: {
+            id: true,
+            name: true,
+            thumbnail: true,
+            itemType: true,
+          },
+        },
+        beach: {
+          select: {
+            id: true,
+            name: true,
+            region: {
+              select: {
+                name: true,
+              },
+            },
+          },
+        },
+        messages: {
+          include: {
+            sender: {
+              select: {
+                id: true,
+                name: true,
+                image: true,
+              },
+            },
+          },
+        },
+      },
+    })) as unknown as RentalRequestWithRelations;
 
-    // Send email notification
-    await sendRentalRequestEmail(rentalRequest);
+    try {
+      // Send email notification with error handling
+      await sendRentalRequestEmail(rentalRequest);
+    } catch (emailError) {
+      console.error("Email error:", emailError);
+      // Continue with the request even if email fails
+    }
 
     return NextResponse.json(rentalRequest);
   } catch (error) {

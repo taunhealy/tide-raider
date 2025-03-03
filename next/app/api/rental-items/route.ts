@@ -150,74 +150,62 @@ export async function POST(req: NextRequest) {
       availableBeaches,
     } = await req.json();
 
-    // First, ensure all selected beaches exist in the database
+    // Ensure beaches exist in the database
     if (availableBeaches && availableBeaches.length > 0) {
       for (const beachId of availableBeaches) {
-        // Check if beach exists in database
-        const existingBeach = await prisma.beach.findUnique({
-          where: { id: beachId },
-        });
+        const beachInfo = beachData.find((b) => b.id === beachId);
 
-        // If beach doesn't exist, create it from beachData
-        if (!existingBeach) {
-          const beachInfo = beachData.find((b) => b.id === beachId);
-          if (beachInfo) {
-            // First check if the region exists
-            const existingRegion = await prisma.region.findUnique({
-              where: { id: beachInfo.region },
-            });
+        if (beachInfo) {
+          // Upsert the region
+          await prisma.region.upsert({
+            where: { id: beachInfo.region },
+            update: {}, // No updates if it exists
+            create: {
+              id: beachInfo.region,
+              name: beachInfo.region,
+              country: beachInfo.country,
+              continent: beachInfo.continent || null,
+            },
+          });
 
-            // If region doesn't exist, create it
-            if (!existingRegion) {
-              await prisma.region.create({
-                data: {
-                  id: beachInfo.region,
-                  name: beachInfo.region,
-                  country: beachInfo.country,
-                  continent: beachInfo.continent || null,
-                },
-              });
-              console.log(`Created region: ${beachInfo.region}`);
-            }
-
-            // Now create the beach
-            await prisma.beach.create({
-              data: {
-                id: beachInfo.id,
-                name: beachInfo.name,
-                location: beachInfo.location,
-                country: beachInfo.country,
-                regionId: beachInfo.region,
-                continent: beachInfo.continent || "",
-                distanceFromCT: beachInfo.distanceFromCT || 0,
-                optimalWindDirections: beachInfo.optimalWindDirections || [],
-                optimalSwellDirections: beachInfo.optimalSwellDirections || {},
-                bestSeasons: beachInfo.bestSeasons || [],
-                optimalTide: beachInfo.optimalTide || "",
-                description: beachInfo.description || "",
-                difficulty: beachInfo.difficulty || "",
-                waveType: beachInfo.waveType || "",
-                swellSize: beachInfo.swellSize || {},
-                idealSwellPeriod: beachInfo.idealSwellPeriod || {},
-                waterTemp: beachInfo.waterTemp || {},
-                hazards: beachInfo.hazards || [],
-                crimeLevel: beachInfo.crimeLevel || "",
-                sharkAttack: beachInfo.sharkAttack
-                  ? JSON.parse(JSON.stringify(beachInfo.sharkAttack))
-                  : {},
-                coordinates: beachInfo.coordinates || {},
-                image: beachInfo.image,
-                profileImage: beachInfo.profileImage,
-                videos: beachInfo.videos,
-              },
-            });
-            console.log(`Created beach: ${beachInfo.name}`);
-          }
+          // Upsert the beach
+          await prisma.beach.upsert({
+            where: { id: beachInfo.id },
+            update: {}, // No updates if it exists
+            create: {
+              id: beachInfo.id,
+              name: beachInfo.name,
+              location: beachInfo.location,
+              country: beachInfo.country,
+              regionId: beachInfo.region,
+              continent: beachInfo.continent || "",
+              distanceFromCT: beachInfo.distanceFromCT || 0,
+              optimalWindDirections: beachInfo.optimalWindDirections || [],
+              optimalSwellDirections: beachInfo.optimalSwellDirections || {},
+              bestSeasons: beachInfo.bestSeasons || [],
+              optimalTide: beachInfo.optimalTide || "",
+              description: beachInfo.description || "",
+              difficulty: beachInfo.difficulty || "",
+              waveType: beachInfo.waveType || "",
+              swellSize: beachInfo.swellSize || {},
+              idealSwellPeriod: beachInfo.idealSwellPeriod || {},
+              waterTemp: beachInfo.waterTemp || {},
+              hazards: beachInfo.hazards || [],
+              crimeLevel: beachInfo.crimeLevel || "",
+              sharkAttack: beachInfo.sharkAttack
+                ? JSON.parse(JSON.stringify(beachInfo.sharkAttack))
+                : {},
+              coordinates: beachInfo.coordinates || {},
+              image: beachInfo.image,
+              profileImage: beachInfo.profileImage,
+              videos: beachInfo.videos,
+            },
+          });
         }
       }
     }
 
-    // Now create the rental item with beach connections
+    // Create the rental item
     const rentalItem = await prisma.rentalItem.create({
       data: {
         name,
@@ -229,22 +217,58 @@ export async function POST(req: NextRequest) {
         specifications,
         isActive: true,
         userId: session.user.id,
-        availableBeaches: {
-          create: availableBeaches.map((beachId: string) => ({
-            beachId,
-          })),
-        },
       },
+    });
+
+    // Create beach connections one by one to handle potential errors
+    if (availableBeaches && availableBeaches.length > 0) {
+      for (const beachId of availableBeaches) {
+        try {
+          await prisma.beachRentalConnection.create({
+            data: {
+              rentalItemId: rentalItem.id,
+              beachId,
+            },
+          });
+        } catch (err) {
+          console.log(`Skipping duplicate beach connection: ${beachId}`);
+          // Continue with other beaches even if one fails
+        }
+      }
+    }
+
+    // Fetch the complete rental item with its relationships
+    const completeRentalItem = await prisma.rentalItem.findUnique({
+      where: { id: rentalItem.id },
       include: {
+        user: {
+          select: {
+            name: true,
+            image: true,
+          },
+        },
         availableBeaches: {
           include: {
-            beach: true,
+            beach: {
+              select: {
+                id: true,
+                name: true,
+                region: {
+                  select: {
+                    id: true,
+                    name: true,
+                    country: true,
+                    continent: true,
+                  },
+                },
+              },
+            },
           },
         },
       },
     });
 
-    return NextResponse.json(rentalItem);
+    return NextResponse.json(completeRentalItem);
   } catch (error) {
     console.error("Error creating rental item:", error);
     return NextResponse.json(

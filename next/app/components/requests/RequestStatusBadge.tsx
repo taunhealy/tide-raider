@@ -1,7 +1,13 @@
 import { RequestStatus } from "@prisma/client";
 
 interface RequestStatusBadgeProps {
-  status?: RequestStatus;
+  status?:
+    | RequestStatus
+    | "PENDING"
+    | "APPROVED"
+    | "REJECTED"
+    | "CANCELLED"
+    | "COMPLETED";
 }
 
 export function RequestStatusBadge({ status }: RequestStatusBadgeProps) {
@@ -12,6 +18,23 @@ export function RequestStatusBadge({ status }: RequestStatusBadgeProps) {
       color: "bg-yellow-100 text-yellow-800",
       label: "Pending",
     },
+    APPROVED: {
+      color: "bg-green-100 text-green-800",
+      label: "Approved",
+    },
+    REJECTED: {
+      color: "bg-red-100 text-red-800",
+      label: "Rejected",
+    },
+    CANCELLED: {
+      color: "bg-gray-100 text-gray-800",
+      label: "Cancelled",
+    },
+    COMPLETED: {
+      color: "bg-blue-100 text-blue-800",
+      label: "Completed",
+    },
+    // Keep these for backward compatibility
     ACCEPTED: {
       color: "bg-green-100 text-green-800",
       label: "Accepted",
@@ -19,10 +42,6 @@ export function RequestStatusBadge({ status }: RequestStatusBadgeProps) {
     DECLINED: {
       color: "bg-red-100 text-red-800",
       label: "Declined",
-    },
-    CANCELLED: {
-      color: "bg-gray-100 text-gray-800",
-      label: "Cancelled",
     },
     MODIFIED: {
       color: "bg-blue-100 text-blue-800",
@@ -34,7 +53,10 @@ export function RequestStatusBadge({ status }: RequestStatusBadgeProps) {
     },
   };
 
-  const config = statusConfig[status];
+  const config = statusConfig[status] || {
+    color: "bg-gray-100 text-gray-800",
+    label: status,
+  };
 
   return (
     <span

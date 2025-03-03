@@ -4,14 +4,14 @@ import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { Beach } from "@prisma/client";
 import { ImageUploader } from "@/app/components/ImageUploader";
-import {
-  RentalItemWithRelations,
-  SurfboardSpecifications,
-  MotorbikeSpecifications,
-  ScooterSpecifications,
-  RentalSpecifications,
-} from "@/app/types/rentals";
+import { RentalItemWithRelations } from "@/app/types/rentals";
 import { beachData } from "@/app/types/beaches";
+import {
+  PACKAGE_PRICES,
+  ITEM_SPECIFICATIONS,
+  ITEM_CATEGORIES,
+} from "@/app/lib/rentals/constants";
+import { RentalItemType } from "@/app/types/rentals";
 
 interface RentalItemFormProps {
   beaches?: Beach[];
@@ -24,8 +24,8 @@ export function RentalItemForm({ beaches, initialData }: RentalItemFormProps) {
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
   const [images, setImages] = useState<string[]>(initialData?.images || []);
-  const [itemType, setItemType] = useState<string>(
-    initialData?.itemType || "SURFBOARD"
+  const [itemType, setItemType] = useState<RentalItemType>(
+    (initialData?.itemType as RentalItemType) || "SURFBOARD"
   );
 
   // Form fields
@@ -33,23 +33,22 @@ export function RentalItemForm({ beaches, initialData }: RentalItemFormProps) {
   const [description, setDescription] = useState(
     initialData?.description || ""
   );
-  const [rentPrice, setRentPrice] = useState(initialData?.rentPrice || 0);
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedBeaches, setSelectedBeaches] = useState<string[]>(
-    initialData?.availableBeaches?.map((c) => c.beach.id) || []
+    initialData?.availableBeaches?.map((c) => c.beach.name) || []
   );
 
   // Type-specific specifications
-  const [specifications, setSpecifications] = useState<RentalSpecifications>(
-    (initialData?.specifications as RentalSpecifications) || {}
+  const [specifications, setSpecifications] = useState<Record<string, any>>(
+    (initialData?.specifications as Record<string, any>) || {}
   );
 
   // Filter beaches based on search term
   const filteredBeaches = beachData.filter(
     (beach) =>
       beach.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      beach.location.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      beach.country.toLowerCase().includes(searchTerm.toLowerCase())
+      beach.location?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      beach.country?.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
   // Handle form submission
@@ -59,16 +58,32 @@ export function RentalItemForm({ beaches, initialData }: RentalItemFormProps) {
     setError("");
 
     try {
+      // Ensure we have valid beaches
+      if (selectedBeaches.length === 0) {
+        throw new Error("Please select at least one pickup/dropoff location");
+      }
+
+      // Get the full beach objects from beachData based on selected names
+      // Use a Set to ensure unique beach IDs
+      const uniqueBeachNames = [...new Set(selectedBeaches)];
+      const selectedBeachData = beachData.filter((beach) =>
+        uniqueBeachNames.includes(beach.name)
+      );
+
       const formData = {
         name,
         description,
-        rentPrice: parseFloat(rentPrice.toString()),
+        rentPrice: PACKAGE_PRICES[itemType as keyof typeof PACKAGE_PRICES] || 0,
         images,
         thumbnail: images.length > 0 ? images[0] : null,
         itemType,
         specifications,
-        availableBeaches: selectedBeaches,
+        availableBeaches: selectedBeachData.map((beach) => ({
+          id: beach.id,
+        })),
       };
+
+      console.log("Submitting form data:", formData);
 
       const url = initialData
         ? `/api/rental-items/${initialData.id}`
@@ -101,235 +116,79 @@ export function RentalItemForm({ beaches, initialData }: RentalItemFormProps) {
 
   // Render different specification forms based on item type
   const renderSpecificationsForm = () => {
-    switch (itemType) {
-      case "SURFBOARD":
-        return (
-          <div className="space-y-5">
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1.5">
-                Board Type
-              </label>
+    const itemSpecs =
+      ITEM_SPECIFICATIONS[itemType as keyof typeof ITEM_SPECIFICATIONS];
+
+    if (!itemSpecs) return null;
+
+    return (
+      <div className="space-y-5">
+        {itemSpecs.fields.map((field) => (
+          <div key={field.name} className="mt-5 first:mt-0">
+            <label className="block text-sm font-medium text-gray-700 mb-1.5">
+              {field.label}
+            </label>
+
+            {field.type === "select" && (
               <select
-                className="modal-select w-full px-3 py-2.5 bg-[var(--color-bg-secondary)] border border-[var(--color-border-light)] rounded-md input-focus-ring"
-                value={(specifications as SurfboardSpecifications)?.type || ""}
+                className="modal-select w-full px-3 py-2.5 bg-[var(--color-bg-secondary)] border border-[var(--color-border-light)] rounded-md input-focus-ring font-primary"
+                value={specifications?.[field.name] || ""}
                 onChange={(e) =>
                   setSpecifications({
-                    ...(specifications as SurfboardSpecifications),
-                    type: e.target.value,
+                    ...specifications,
+                    [field.name]: e.target.value,
                   })
                 }
               >
-                <option value="">Select Type</option>
-                <option value="SHORTBOARD">Shortboard</option>
-                <option value="LONGBOARD">Longboard</option>
-                <option value="FISH">Fish</option>
-                <option value="FUNBOARD">Funboard</option>
-                <option value="SUP">SUP</option>
-                <option value="GUN">Gun</option>
-                <option value="MINI_MAL">Mini Mal</option>
+                <option value="">Select {field.label}</option>
+                {field.options?.map((option) => (
+                  <option key={option.value} value={option.value}>
+                    {option.label}
+                  </option>
+                ))}
               </select>
-            </div>
+            )}
 
-            <div className="mt-5">
-              <label className="block text-sm font-medium text-gray-700 mb-1.5">
-                Length (inches)
-              </label>
+            {field.type === "number" && (
               <input
                 type="number"
-                className="modal-input w-full px-3 py-2.5 bg-[var(--color-bg-secondary)] border border-[var(--color-border-light)] rounded-md input-focus-ring"
-                value={
-                  (specifications as SurfboardSpecifications)?.length || ""
-                }
+                className="modal-input w-full px-3 py-2.5 bg-[var(--color-bg-secondary)] border border-[var(--color-border-light)] rounded-md input-focus-ring font-primary"
+                value={specifications?.[field.name] || ""}
                 onChange={(e) =>
                   setSpecifications({
-                    ...(specifications as SurfboardSpecifications),
-                    length: parseFloat(e.target.value),
+                    ...specifications,
+                    [field.name]: parseFloat(e.target.value),
                   })
                 }
               />
-            </div>
+            )}
 
-            <div className="mt-5">
-              <label className="block text-sm font-medium text-gray-700 mb-1.5">
-                Fin Setup
-              </label>
-              <select
-                className="modal-select w-full px-3 py-2.5 bg-[var(--color-bg-secondary)] border border-[var(--color-border-light)] rounded-md input-focus-ring"
-                value={
-                  (specifications as SurfboardSpecifications)?.finSetup || ""
-                }
-                onChange={(e) =>
-                  setSpecifications({
-                    ...(specifications as SurfboardSpecifications),
-                    finSetup: e.target.value,
-                  })
-                }
-              >
-                <option value="">Select Fin Setup</option>
-                <option value="THRUSTER">Thruster</option>
-                <option value="TWIN">Twin</option>
-                <option value="QUAD">Quad</option>
-                <option value="SINGLE">Single</option>
-                <option value="FIVE">Five</option>
-                <option value="OTHER">Other</option>
-              </select>
-            </div>
+            {field.type === "boolean" && (
+              <div className="flex items-center">
+                <input
+                  type="checkbox"
+                  id={`field-${field.name}`}
+                  checked={!!specifications?.[field.name]}
+                  onChange={(e) =>
+                    setSpecifications({
+                      ...specifications,
+                      [field.name]: e.target.checked,
+                    })
+                  }
+                  className="h-4 w-4 text-[var(--color-tertiary)] focus:ring-[var(--color-tertiary)] border-gray-300 rounded"
+                />
+                <label
+                  htmlFor={`field-${field.name}`}
+                  className="ml-2 text-sm text-gray-700 font-primary"
+                >
+                  {field.label}
+                </label>
+              </div>
+            )}
           </div>
-        );
-
-      case "MOTORBIKE":
-        return (
-          <div className="space-y-5">
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1.5">
-                Make
-              </label>
-              <input
-                type="text"
-                className="modal-input w-full px-3 py-2.5 bg-[var(--color-bg-secondary)] border border-[var(--color-border-light)] rounded-md input-focus-ring"
-                value={(specifications as MotorbikeSpecifications)?.make || ""}
-                onChange={(e) =>
-                  setSpecifications({
-                    ...(specifications as MotorbikeSpecifications),
-                    make: e.target.value,
-                  })
-                }
-              />
-            </div>
-
-            <div className="mt-5">
-              <label className="block text-sm font-medium text-gray-700 mb-1.5">
-                Model
-              </label>
-              <input
-                type="text"
-                className="modal-input w-full px-3 py-2.5 bg-[var(--color-bg-secondary)] border border-[var(--color-border-light)] rounded-md input-focus-ring"
-                value={(specifications as MotorbikeSpecifications)?.model || ""}
-                onChange={(e) =>
-                  setSpecifications({
-                    ...(specifications as MotorbikeSpecifications),
-                    model: e.target.value,
-                  })
-                }
-              />
-            </div>
-
-            <div className="mt-5">
-              <label className="block text-sm font-medium text-gray-700 mb-1.5">
-                Year
-              </label>
-              <input
-                type="number"
-                className="modal-input w-full px-3 py-2.5 bg-[var(--color-bg-secondary)] border border-[var(--color-border-light)] rounded-md input-focus-ring"
-                value={(specifications as MotorbikeSpecifications)?.year || ""}
-                onChange={(e) =>
-                  setSpecifications({
-                    ...(specifications as MotorbikeSpecifications),
-                    year: parseInt(e.target.value),
-                  })
-                }
-              />
-            </div>
-
-            <div className="mt-5">
-              <label className="block text-sm font-medium text-gray-700 mb-1.5">
-                Engine Size (cc)
-              </label>
-              <input
-                type="number"
-                className="modal-input w-full px-3 py-2.5 bg-[var(--color-bg-secondary)] border border-[var(--color-border-light)] rounded-md input-focus-ring"
-                value={
-                  (specifications as MotorbikeSpecifications)?.engineSize || ""
-                }
-                onChange={(e) =>
-                  setSpecifications({
-                    ...(specifications as MotorbikeSpecifications),
-                    engineSize: parseInt(e.target.value),
-                  })
-                }
-              />
-            </div>
-          </div>
-        );
-
-      case "SCOOTER":
-        return (
-          <div className="space-y-5">
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1.5">
-                Make
-              </label>
-              <input
-                type="text"
-                className="modal-input w-full px-3 py-2.5 bg-[var(--color-bg-secondary)] border border-[var(--color-border-light)] rounded-md input-focus-ring"
-                value={(specifications as ScooterSpecifications)?.make || ""}
-                onChange={(e) =>
-                  setSpecifications({
-                    ...(specifications as ScooterSpecifications),
-                    make: e.target.value,
-                  })
-                }
-              />
-            </div>
-
-            <div className="mt-5">
-              <label className="block text-sm font-medium text-gray-700 mb-1.5">
-                Model
-              </label>
-              <input
-                type="text"
-                className="modal-input w-full px-3 py-2.5 bg-[var(--color-bg-secondary)] border border-[var(--color-border-light)] rounded-md input-focus-ring"
-                value={(specifications as ScooterSpecifications)?.model || ""}
-                onChange={(e) =>
-                  setSpecifications({
-                    ...(specifications as ScooterSpecifications),
-                    model: e.target.value,
-                  })
-                }
-              />
-            </div>
-
-            <div className="mt-5">
-              <label className="block text-sm font-medium text-gray-700 mb-1.5">
-                Year
-              </label>
-              <input
-                type="number"
-                className="modal-input w-full px-3 py-2.5 bg-[var(--color-bg-secondary)] border border-[var(--color-border-light)] rounded-md input-focus-ring"
-                value={(specifications as ScooterSpecifications)?.year || ""}
-                onChange={(e) =>
-                  setSpecifications({
-                    ...(specifications as ScooterSpecifications),
-                    year: parseInt(e.target.value),
-                  })
-                }
-              />
-            </div>
-
-            <div className="mt-5">
-              <label className="block text-sm font-medium text-gray-700 mb-1.5">
-                Max Speed (km/h)
-              </label>
-              <input
-                type="number"
-                className="modal-input w-full px-3 py-2.5 bg-[var(--color-bg-secondary)] border border-[var(--color-border-light)] rounded-md input-focus-ring"
-                value={
-                  (specifications as ScooterSpecifications)?.maxSpeed || ""
-                }
-                onChange={(e) =>
-                  setSpecifications({
-                    ...(specifications as ScooterSpecifications),
-                    maxSpeed: parseInt(e.target.value),
-                  })
-                }
-              />
-            </div>
-          </div>
-        );
-
-      default:
-        return null;
-    }
+        ))}
+      </div>
+    );
   };
 
   return (
@@ -351,23 +210,19 @@ export function RentalItemForm({ beaches, initialData }: RentalItemFormProps) {
           Item Type
         </label>
         <select
-          className="modal-select w-full px-3 py-2 bg-[var(--color-bg-secondary)] border border-[var(--color-border-light)] rounded-md input-focus-ring"
+          className="modal-select w-full px-3 py-2 bg-[var(--color-bg-secondary)] border border-[var(--color-border-light)] rounded-md input-focus-ring font-primary"
           value={itemType}
           onChange={(e) => {
-            setItemType(e.target.value);
+            setItemType(e.target.value as RentalItemType);
             // Reset specifications when type changes
-            if (e.target.value === "SURFBOARD") {
-              setSpecifications({} as SurfboardSpecifications);
-            } else if (e.target.value === "MOTORBIKE") {
-              setSpecifications({} as MotorbikeSpecifications);
-            } else if (e.target.value === "SCOOTER") {
-              setSpecifications({} as ScooterSpecifications);
-            }
+            setSpecifications({});
           }}
         >
-          <option value="SURFBOARD">Surfboard</option>
-          <option value="MOTORBIKE">Motorbike</option>
-          <option value="SCOOTER">Scooter</option>
+          {ITEM_CATEGORIES.map((type) => (
+            <option key={type} value={type}>
+              {type.replace(/_/g, " ")}
+            </option>
+          ))}
         </select>
       </div>
 
@@ -398,22 +253,23 @@ export function RentalItemForm({ beaches, initialData }: RentalItemFormProps) {
 
       <div>
         <label className="block text-sm font-medium text-gray-700 mb-1">
-          Rental Price (per day)
+          Rental Price (per 2-week package)
         </label>
         <div className="mt-1 relative rounded-md shadow-sm">
           <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-            <span className="text-gray-500 sm:text-sm">R</span>
+            <span className="text-gray-500 sm:text-sm">$</span>
           </div>
           <input
-            type="number"
+            type="text"
             className="pl-7 block w-full rounded-md bg-[var(--color-bg-secondary)] border border-[var(--color-border-light)] input-focus-ring py-2 px-3"
-            value={rentPrice}
-            onChange={(e) => setRentPrice(parseFloat(e.target.value))}
-            required
-            min="0"
-            step="0.01"
+            value={PACKAGE_PRICES[itemType as keyof typeof PACKAGE_PRICES] || 0}
+            disabled
+            readOnly
           />
         </div>
+        <p className="text-sm text-gray-500 mt-1">
+          Fixed price based on item type
+        </p>
       </div>
 
       <div>
@@ -441,13 +297,13 @@ export function RentalItemForm({ beaches, initialData }: RentalItemFormProps) {
                 <input
                   type="checkbox"
                   id={`beach-${beach.id}`}
-                  checked={selectedBeaches.includes(beach.id)}
+                  checked={selectedBeaches.includes(beach.name)}
                   onChange={(e) => {
                     if (e.target.checked) {
-                      setSelectedBeaches([...selectedBeaches, beach.id]);
+                      setSelectedBeaches([...selectedBeaches, beach.name]);
                     } else {
                       setSelectedBeaches(
-                        selectedBeaches.filter((id) => id !== beach.id)
+                        selectedBeaches.filter((name) => name !== beach.name)
                       );
                     }
                   }}
@@ -459,7 +315,7 @@ export function RentalItemForm({ beaches, initialData }: RentalItemFormProps) {
                 >
                   <span className="font-medium">{beach.name}</span>
                   <span className="text-gray-500 ml-1">
-                    ({beach.location}, {beach.country})
+                    ({beach.location || ""}, {beach.country || ""})
                   </span>
                 </label>
               </div>
@@ -477,8 +333,8 @@ export function RentalItemForm({ beaches, initialData }: RentalItemFormProps) {
               Selected beaches ({selectedBeaches.length}):
             </p>
             <div className="flex flex-wrap gap-2">
-              {selectedBeaches.map((beachId) => {
-                const beach = beachData.find((b) => b.id === beachId);
+              {selectedBeaches.map((beachName) => {
+                const beach = beachData.find((b) => b.name === beachName);
                 return beach ? (
                   <div
                     key={beach.id}
@@ -489,7 +345,7 @@ export function RentalItemForm({ beaches, initialData }: RentalItemFormProps) {
                       type="button"
                       onClick={() =>
                         setSelectedBeaches(
-                          selectedBeaches.filter((id) => id !== beach.id)
+                          selectedBeaches.filter((name) => name !== beach.name)
                         )
                       }
                       className="ml-1 text-gray-500 hover:text-gray-700"
@@ -503,7 +359,7 @@ export function RentalItemForm({ beaches, initialData }: RentalItemFormProps) {
           </div>
         )}
 
-        {beachData && beachData.length > 0 && selectedBeaches.length === 0 && (
+        {selectedBeaches.length === 0 && (
           <p className="mt-2 text-sm text-red-500">
             Please select at least one pickup/dropoff location
           </p>

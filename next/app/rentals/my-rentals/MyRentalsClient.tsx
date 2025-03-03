@@ -4,6 +4,8 @@ import { useState } from "react";
 import Link from "next/link";
 import Image from "next/image";
 import { useQuery } from "@tanstack/react-query";
+import { calculateRentalCost } from "@/app/lib/rentalUtility";
+import { RentalItemWithRelations } from "@/app/types/rentals";
 
 export default function MyRentalsClient() {
   // Fetch user's rental items
@@ -18,7 +20,7 @@ export default function MyRentalsClient() {
       if (!response.ok) {
         throw new Error("Failed to fetch rentals");
       }
-      return response.json();
+      return response.json() as Promise<RentalItemWithRelations[]>;
     },
   });
 
@@ -61,8 +63,8 @@ export default function MyRentalsClient() {
       <div className="flex justify-between items-center mb-8">
         <h1 className="text-3xl font-bold">My Rental Listings</h1>
         <Link
-          href="/dashboard/rentals/new"
-          className="btn-tertiary px-4 py-2 rounded-md"
+          href="/rentals/new"
+          className="btn-filter-inactive px-4 py-2 rounded-md"
         >
           List New Item
         </Link>
@@ -73,7 +75,7 @@ export default function MyRentalsClient() {
           {rentalItems.map((item) => (
             <div
               key={item.id}
-              className="border rounded-lg overflow-hidden hover:shadow-md transition"
+              className="border rounded-lg overflow-hidden hover:shadow-sm transition"
             >
               <Link href={`/rentals/${item.id}`}>
                 <div className="relative h-48 bg-gray-100">
@@ -96,12 +98,13 @@ export default function MyRentalsClient() {
               <div className="p-4">
                 <div className="flex justify-between items-start">
                   <h3 className="font-medium text-lg">{item.name}</h3>
-                  <span className="text-[var(--color-tertiary)] font-medium">
-                    ${item.rentPrice}/day
+                  <span className="text-[var(--color-secondary)] font-medium font-primary">
+                    ${calculateRentalCost(2, item.itemType).usdAmount} for 2
+                    weeks
                   </span>
                 </div>
 
-                <p className="text-sm text-[var(--color-text-secondary)] mt-1">
+                <p className="text-sm text-[var(--color-text-tertiary)] mt-2s">
                   {item.itemType}
                 </p>
 
@@ -124,13 +127,13 @@ export default function MyRentalsClient() {
                 <div className="mt-4 flex space-x-2">
                   <Link
                     href={`/dashboard/rentals/${item.id}`}
-                    className="text-sm btn-tertiary px-3 py-1 rounded"
+                    className="text-sm btn-filter-inactive px-3 py-1 rounded"
                   >
                     Edit
                   </Link>
                   <Link
                     href={`/rentals/${item.id}`}
-                    className="text-sm btn-tertiary px-3 py-1 rounded"
+                    className="text-sm btn-filter-inactive px-3 py-1 rounded"
                   >
                     View
                   </Link>
@@ -145,8 +148,8 @@ export default function MyRentalsClient() {
             You don't have any rental listings yet.
           </p>
           <Link
-            href="/dashboard/rentals/new"
-            className="btn-tertiary inline-block mt-4 px-4 py-2 rounded-md"
+            href="/rentals/new"
+            className="btn-filter-inactive inline-block mt-4 px-4 py-2 rounded-md"
           >
             Create Your First Listing
           </Link>

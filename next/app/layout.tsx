@@ -8,11 +8,9 @@ import { Toaster } from "sonner";
 
 const inter = Inter({
   subsets: ["latin"],
-  variable: "--font-primary",
   display: "swap",
   weight: ["400", "500", "600", "700", "900"],
-  preload: true,
-  fallback: ["system-ui", "sans-serif"],
+  variable: "--font-inter",
 });
 
 const montserrat = Montserrat({

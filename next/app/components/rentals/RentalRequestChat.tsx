@@ -3,6 +3,7 @@
 import { useState, useRef, useEffect } from "react";
 import Image from "next/image";
 import { format } from "date-fns";
+import { RentalMessageWithSender } from "@/app/types/rentals";
 
 interface Message {
   id: string;
@@ -17,7 +18,7 @@ interface Message {
 
 interface RentalRequestChatProps {
   requestId: string;
-  messages: Message[];
+  messages: RentalMessageWithSender[];
   currentUserId: string;
 }
 
@@ -26,7 +27,12 @@ export function RentalRequestChat({
   messages: initialMessages,
   currentUserId,
 }: RentalRequestChatProps) {
-  const [messages, setMessages] = useState<Message[]>(initialMessages);
+  const [messages, setMessages] = useState<Message[]>(
+    initialMessages.map((msg) => ({
+      ...msg,
+      createdAt: msg.createdAt.toString(),
+    }))
+  );
   const [newMessage, setNewMessage] = useState("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
@@ -64,9 +70,9 @@ export function RentalRequestChat({
       const sentMessage = await response.json();
       setMessages([...messages, sentMessage]);
       setNewMessage("");
-    } catch (error) {
-      console.error("Error sending message:", error);
-      setError(error.message || "Failed to send message");
+    } catch (err: unknown) {
+      console.error("Error sending message:", err);
+      setError(err instanceof Error ? err.message : "Failed to send message");
     } finally {
       setLoading(false);
     }

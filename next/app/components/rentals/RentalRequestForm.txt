@@ -6,7 +6,6 @@ import { format } from "date-fns";
 import { Beach } from "@prisma/client";
 import { RentalItemType, RENTAL_POLICIES } from "@/app/lib/rentals/constants";
 import { calculateRentalCost } from "@/app/lib/rentalUtility";
-import { Button } from "@/app/components/ui/Button";
 
 interface RentalRequestFormProps {
   rentalItemId: string;
@@ -22,7 +21,6 @@ export function RentalRequestForm({
   const router = useRouter();
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
-  const [success, setSuccess] = useState(false);
   const [startDate, setStartDate] = useState<Date | null>(null);
   const [numberOfWeeks, setNumberOfWeeks] = useState(
     RENTAL_POLICIES.MIN_RENTAL_WEEKS
@@ -77,11 +75,7 @@ export function RentalRequestForm({
       }
 
       const data = await response.json();
-      setSuccess(true);
-      // Short delay before redirecting to show the "Requested" state
-      setTimeout(() => {
-        router.push(`/rentals/requests/${data.id}`);
-      }, 1000);
+      router.push(`/rentals/requests/${data.id}`);
     } catch (err: unknown) {
       setError(err instanceof Error ? err.message : "An error occurred");
     } finally {
@@ -227,14 +221,13 @@ export function RentalRequestForm({
       </div>
 
       <div className="flex justify-end pt-2">
-        <Button
+        <button
           type="submit"
-          variant="outline"
-          disabled={loading || !startDate || !selectedBeachId || success}
-          className="font-primary"
+          disabled={loading || !startDate || !selectedBeachId}
+          className="px-6 py-3 bg-primary hover:bg-primary/90 text-white font-medium rounded-lg shadow-sm transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
         >
-          {loading ? "Submitting..." : success ? "Requested" : "Request Rental"}
-        </Button>
+          {loading ? "Submitting..." : "Request Rental"}
+        </button>
       </div>
     </form>
   );

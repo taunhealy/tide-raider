@@ -1,57 +1,57 @@
-import { NextResponse } from "next/server";
-import { getServerSession } from "next-auth/next";
-import { authOptions } from "@/app/lib/authOptions";
-import { validateFile, generateFileName } from "@/app/lib/file";
+import { NextRequest, NextResponse } from "next/server";
 import { S3Client, PutObjectCommand } from "@aws-sdk/client-s3";
+import { getServerSession } from "next-auth";
+import { authOptions } from "@/app/lib/authOptions";
 
+// Initialize S3 client for R2
 const s3 = new S3Client({
   region: "auto",
-  endpoint: `https://${process.env.R2_ACCOUNT_ID}.r2.cloudflarestorage.com`,
+  endpoint: process.env.R2_ENDPOINT,
   credentials: {
     accessKeyId: process.env.R2_ACCESS_KEY_ID || "",
     secretAccessKey: process.env.R2_SECRET_ACCESS_KEY || "",
   },
-  forcePathStyle: true,
 });
 
-export async function POST(request: Request) {
+export async function POST(req: NextRequest) {
   try {
+    // Check authentication
     const session = await getServerSession(authOptions);
-    if (!session?.user?.email) {
+    if (!session?.user) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
-    const formData = await request.formData();
+    // Parse the multipart form data
+    const formData = await req.formData();
     const file = formData.get("file") as File;
+    const path = formData.get("path") as string;
 
-    const validation = validateFile(file);
-    if (!validation.valid) {
-      return NextResponse.json({ error: validation.error }, { status: 400 });
+    if (!file) {
+      return NextResponse.json({ error: "No file provided" }, { status: 400 });
     }
 
+    // Convert file to buffer
     const buffer = Buffer.from(await file.arrayBuffer());
-    const fileName = `sessions/${generateFileName(file.name)}`;
 
+    // Upload to R2 with public-read ACL
     const command = new PutObjectCommand({
       Bucket: process.env.R2_BUCKET_NAME,
-      Key: fileName,
+      Key: path,
       Body: buffer,
       ContentType: file.type,
+      ACL: "public-read", // Make the object publicly accessible
     });
 
     await s3.send(command);
 
-    const imageUrl = `${process.env.NEXT_PUBLIC_R2_URL}/${fileName}`;
-    console.log("Generated image URL:", imageUrl);
-
-    return NextResponse.json({ imageUrl });
+    return NextResponse.json({
+      success: true,
+      path: path,
+    });
   } catch (error) {
-    console.error("Upload error:", error);
+    console.error("Error uploading file:", error);
     return NextResponse.json(
-      {
-        error: "Failed to upload image",
-        details: error instanceof Error ? error.message : String(error),
-      },
+      { error: "Failed to upload file" },
       { status: 500 }
     );
   }

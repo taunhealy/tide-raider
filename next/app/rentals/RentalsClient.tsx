@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from "react";
 import Link from "next/link";
+import { useRouter, useSearchParams } from "next/navigation";
 import { RentalItemCard } from "@/app/components/rentals/RentalItemCard";
 import { RegionFilter } from "@/app/components/shared/RegionFilter";
 import { SearchFilterSidebar } from "@/app/components/shared/SearchFilterSidebar";
@@ -13,6 +14,8 @@ import {
   LocationFilter,
   LocationFilterType,
 } from "@/app/components/rentals/LocationFilter";
+import { Session } from "next-auth";
+import { ITEM_CATEGORIES } from "@/app/lib/rentals/constants";
 
 type Region = {
   id: string;
@@ -28,41 +31,77 @@ type SessionType = {
   };
 } | null;
 
+interface RentalsClientProps {
+  initialRentalItems: RentalItemWithRelations[];
+  initialRegions: { id: string; name: string }[];
+  session: Session | null;
+  itemCategories: { value: string; label: string }[];
+}
+
 export default function RentalsClient({
   initialRentalItems,
   initialRegions,
   session,
-}: {
-  initialRentalItems: RentalItemWithRelations[];
-  initialRegions: Region[];
-  session: SessionType;
-}) {
+  itemCategories,
+}: RentalsClientProps) {
+  const router = useRouter();
+  const searchParams = useSearchParams();
+
+  // Initialize state from URL params
   const [rentalItems, setRentalItems] = useState(initialRentalItems || []);
   const [loading, setLoading] = useState(false);
-  const [selectedRegion, setSelectedRegion] = useState<string | null>(null);
+  const [selectedRegion, setSelectedRegion] = useState<string | null>(
+    searchParams.get("region")
+  );
   const [regions] = useState(initialRegions || []);
   const [activeFilters, setActiveFilters] = useState({
-    itemType: null,
+    itemType: searchParams.get("itemType"),
   });
   const [locationFilters, setLocationFilters] = useState<LocationFilterType>({
-    continent: null,
-    country: null,
-    region: null,
-    beach: null,
+    continent: searchParams.get("continent"),
+    country: searchParams.get("country"),
+    region: searchParams.get("region"),
+    beach: searchParams.get("beach"),
   });
 
   const filters = [
     {
       id: "itemType",
       name: "Item Type",
-      options: [
-        { value: "SURFBOARD", label: "Surfboard" },
-        { value: "MOTORBIKE", label: "Motorbike" },
-        { value: "SCOOTER", label: "Scooter" },
-      ],
+      options: itemCategories,
     },
   ];
 
+  // Update URL when filters change
+  useEffect(() => {
+    const params = new URLSearchParams();
+
+    if (activeFilters.itemType) {
+      params.set("itemType", activeFilters.itemType);
+    }
+
+    if (locationFilters.continent) {
+      params.set("continent", locationFilters.continent);
+    }
+
+    if (locationFilters.country) {
+      params.set("country", locationFilters.country);
+    }
+
+    if (locationFilters.region) {
+      params.set("region", locationFilters.region);
+    }
+
+    if (locationFilters.beach) {
+      params.set("beach", locationFilters.beach);
+    }
+
+    // Update URL without refreshing the page
+    const url = params.toString() ? `?${params.toString()}` : "/rentals";
+    router.push(url, { scroll: false });
+  }, [activeFilters, locationFilters, router]);
+
+  // Fetch filtered items when filters change
   useEffect(() => {
     // Only run the fetch when filters change
     if (
@@ -74,8 +113,11 @@ export default function RentalsClient({
       locationFilters.beach
     ) {
       fetchFilteredRentalItems();
+    } else {
+      // Reset to initial data if no filters selected
+      setRentalItems(initialRentalItems);
     }
-  }, [selectedRegion, activeFilters, locationFilters, initialRentalItems]);
+  }, [selectedRegion, activeFilters, locationFilters]);
 
   const fetchFilteredRentalItems = async () => {
     setLoading(true);
@@ -178,11 +220,6 @@ export default function RentalsClient({
   const handleRegionChange = (region: string | null) => {
     setSelectedRegion(region);
     setLocationFilters((prev) => ({ ...prev, region }));
-
-    if (!region && !activeFilters.itemType && !hasActiveLocationFilters()) {
-      // Reset to initial data if no filters selected
-      setRentalItems(initialRentalItems);
-    }
   };
 
   const handleLocationFilterChange = (
@@ -206,16 +243,6 @@ export default function RentalsClient({
 
       return newFilters;
     });
-
-    if (
-      !value &&
-      !selectedRegion &&
-      !activeFilters.itemType &&
-      !hasActiveLocationFilters(type)
-    ) {
-      // Reset to initial data if no filters selected
-      setRentalItems(initialRentalItems);
-    }
   };
 
   const hasActiveLocationFilters = (excludeType?: keyof LocationFilterType) => {
@@ -229,11 +256,6 @@ export default function RentalsClient({
       ...prev,
       [filterId]: value,
     }));
-
-    if (!value && !selectedRegion && !hasActiveLocationFilters()) {
-      // Reset to initial data if no filters selected
-      setRentalItems(initialRentalItems);
-    }
   };
 
   const clearAllFilters = () => {
@@ -247,17 +269,11 @@ export default function RentalsClient({
       region: null,
       beach: null,
     });
+
+    // Clear URL params and reset to initial data
+    router.push("/rentals", { scroll: false });
     setRentalItems(initialRentalItems);
   };
-
-  // Group items by type for display
-  const surfboards = rentalItems.filter(
-    (item) => item.itemType === "SURFBOARD"
-  );
-  const motorbikes = rentalItems.filter(
-    (item) => item.itemType === "MOTORBIKE"
-  );
-  const scooters = rentalItems.filter((item) => item.itemType === "SCOOTER");
 
   return (
     <div className="flex min-h-screen font-primary">
@@ -267,15 +283,11 @@ export default function RentalsClient({
           <h1 className="text-2xl font-bold">Rentals</h1>
           {session ? (
             <Link href="/rentals/new">
-              <Button className="bg-[var(--color-tertiary)] text-white">
-                List Your Item
-              </Button>
+              <Button variant="outline">List Your Item</Button>
             </Link>
           ) : (
             <Link href="/login">
-              <Button className="bg-[var(--color-tertiary)] text-white">
-                Sign In to List Items
-              </Button>
+              <Button variant="outline">Sign In to List Items</Button>
             </Link>
           )}
         </div>
@@ -309,14 +321,8 @@ export default function RentalsClient({
                       No rental items available with the selected filters.
                     </p>
                     <button
-                      onClick={() => {
-                        setSelectedRegion(null);
-                        setActiveFilters({
-                          itemType: null,
-                        });
-                        setRentalItems(initialRentalItems);
-                      }}
-                      className="mt-4 text-blue-600 hover:text-blue-800"
+                      onClick={clearAllFilters}
+                      className="mt-4 text-black hover:text-gray-700"
                     >
                       Clear filters
                     </button>
@@ -324,73 +330,45 @@ export default function RentalsClient({
                 )}
               </div>
             ) : (
-              // Show categorized items
+              // Show categorized items dynamically
               <>
-                {surfboards.length > 0 && (
-                  <section className="mb-12">
-                    <div className="flex justify-between items-center mb-4">
-                      <h2 className="text-2xl font-semibold">Surfboards</h2>
-                      <button
-                        onClick={() =>
-                          handleFilterChange("itemType", "SURFBOARD")
-                        }
-                        className="text-blue-600 hover:underline"
-                      >
-                        View All
-                      </button>
-                    </div>
+                {ITEM_CATEGORIES.map((category) => {
+                  const categoryItems = rentalItems.filter(
+                    (item) => item.itemType === category
+                  );
 
-                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                      {surfboards.slice(0, 6).map((item) => (
-                        <RentalItemCard key={item.id} item={item} />
-                      ))}
-                    </div>
-                  </section>
-                )}
+                  if (categoryItems.length === 0) return null;
 
-                {motorbikes.length > 0 && (
-                  <section className="mb-12">
-                    <div className="flex justify-between items-center mb-4">
-                      <h2 className="text-2xl font-semibold">Motorbikes</h2>
-                      <button
-                        onClick={() =>
-                          handleFilterChange("itemType", "MOTORBIKE")
-                        }
-                        className="text-blue-600 hover:underline"
-                      >
-                        View All
-                      </button>
-                    </div>
+                  // Format category name for display (e.g., STAND_UP_PADDLE -> Stand Up Paddle)
+                  const displayName = category
+                    .split("_")
+                    .map((word) => word.charAt(0) + word.slice(1).toLowerCase())
+                    .join(" ");
 
-                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                      {motorbikes.slice(0, 6).map((item) => (
-                        <RentalItemCard key={item.id} item={item} />
-                      ))}
-                    </div>
-                  </section>
-                )}
+                  return (
+                    <section key={category} className="mb-12">
+                      <div className="flex justify-between items-center mb-4">
+                        <h2 className="text-2xl font-semibold">
+                          {displayName}s
+                        </h2>
+                        <button
+                          onClick={() =>
+                            handleFilterChange("itemType", category)
+                          }
+                          className="text-black hover:underline"
+                        >
+                          View All
+                        </button>
+                      </div>
 
-                {scooters.length > 0 && (
-                  <section className="mb-12">
-                    <div className="flex justify-between items-center mb-4">
-                      <h2 className="text-2xl font-semibold">Scooters</h2>
-                      <button
-                        onClick={() =>
-                          handleFilterChange("itemType", "SCOOTER")
-                        }
-                        className="text-blue-600 hover:underline"
-                      >
-                        View All
-                      </button>
-                    </div>
-
-                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                      {scooters.slice(0, 6).map((item) => (
-                        <RentalItemCard key={item.id} item={item} />
-                      ))}
-                    </div>
-                  </section>
-                )}
+                      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                        {categoryItems.map((item) => (
+                          <RentalItemCard key={item.id} item={item} />
+                        ))}
+                      </div>
+                    </section>
+                  );
+                })}
 
                 {rentalItems.length === 0 && (
                   <div className="text-center py-12">
@@ -402,15 +380,11 @@ export default function RentalsClient({
                     </p>
                     {session ? (
                       <Link href="/rentals/new">
-                        <Button className="bg-[var(--color-tertiary)] text-white">
-                          List Your Item
-                        </Button>
+                        <Button variant="outline">List Your Item</Button>
                       </Link>
                     ) : (
                       <Link href="/login">
-                        <Button className="bg-[var(--color-tertiary)] text-white">
-                          Sign In to List Items
-                        </Button>
+                        <Button variant="outline">Sign In to List Items</Button>
                       </Link>
                     )}
                   </div>

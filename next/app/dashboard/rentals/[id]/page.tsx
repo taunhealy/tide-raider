@@ -6,6 +6,7 @@ import { prisma } from "@/lib/prisma";
 import { RentalItemForm } from "@/app/components/rentals/RentalItemForm";
 import { DeleteRentalItemButton } from "@/app/components/rentals/DeleteRentalItemButton";
 import { BeachLocationsList } from "@/app/components/rentals/BeachLocationsList";
+import { RentalItemWithRelations } from "@/app/types/rentals";
 
 export async function generateMetadata({ params }: { params: { id: string } }) {
   const rentalItem = await prisma.rentalItem.findUnique({
@@ -41,9 +42,19 @@ export default async function EditRentalItemPage({
   const rentalItem = await prisma.rentalItem.findUnique({
     where: { id: params.id },
     include: {
+      user: {
+        select: {
+          name: true,
+          image: true,
+        },
+      },
       availableBeaches: {
         include: {
-          beach: true,
+          beach: {
+            include: {
+              region: true,
+            },
+          },
         },
       },
     },
@@ -89,29 +100,32 @@ export default async function EditRentalItemPage({
   });
 
   return (
-    <div className="max-w-7xl mx-auto p-6">
-      <div className="flex justify-between items-center mb-8">
-        <h1 className="heading-4 font-bold">Edit Rental Item</h1>
-        <div className="flex space-x-4">
+    <div className="max-w-7xl mx-auto p-6 font-primary">
+      <div className="flex justify-between items-center mb-6">
+        <div>
+          <h1 className="text-2xl font-bold">Edit Rental Item</h1>
+          <p className="text-[var(--color-text-secondary)]">
+            Update your rental listing details
+          </p>
+        </div>
+        <div className="flex space-x-3">
           <Link
             href={`/rentals/${params.id}`}
-            className="px-4 py-2 rounded-md border border-[var(--color-border-medium)] text-[var(--color-text-primary)] hover:bg-[var(--color-bg-secondary)] transition-colors"
+            className="btn-filter-inactive px-4 py-2 rounded-md"
           >
             View Listing
           </Link>
-          <Link
-            href="/dashboard/rentals"
-            className="px-4 py-2 rounded-md border border-[var(--color-border-medium)] text-[var(--color-text-primary)] hover:bg-[var(--color-bg-secondary)] transition-colors"
-          >
-            Back to Rentals
-          </Link>
+          <DeleteRentalItemButton id={params.id} />
         </div>
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
         <div className="lg:col-span-2">
           <div className="bg-[var(--color-bg-primary)] rounded-lg shadow-sm p-6 mb-6 border border-[var(--color-border-light)]">
-            <RentalItemForm beaches={beaches} initialData={rentalItem} />
+            <RentalItemForm
+              beaches={beaches}
+              initialData={rentalItem as unknown as RentalItemWithRelations}
+            />
           </div>
         </div>
 
@@ -127,78 +141,51 @@ export default async function EditRentalItemPage({
                     href={`/rentals/requests/${request.id}`}
                   >
                     <div className="border border-[var(--color-border-light)] rounded-lg p-4 hover:shadow-md transition-shadow">
-                      <div className="flex justify-between items-center mb-2">
-                        <div className="flex items-center">
-                          {request.renter.image && (
-                            <img
-                              src={request.renter.image}
-                              alt={request.renter.name}
-                              className="w-8 h-8 rounded-full mr-2"
-                            />
-                          )}
-                          <span className="text-[var(--color-text-primary)]">
-                            {request.renter.name}
-                          </span>
-                        </div>
-                        <span
-                          className={`px-2 py-1 rounded-full text-xs font-medium ${
-                            request.status === "PENDING"
-                              ? "bg-yellow-100 text-yellow-800"
-                              : request.status === "APPROVED"
-                                ? "bg-green-100 text-green-800"
-                                : request.status === "REJECTED"
-                                  ? "bg-red-100 text-red-800"
-                                  : request.status === "CANCELLED"
-                                    ? "bg-gray-100 text-gray-800"
-                                    : "bg-blue-100 text-blue-800"
-                          }`}
-                        >
-                          {request.status}
+                      <div className="flex items-center mb-2">
+                        {request.renter.image ? (
+                          <img
+                            src={request.renter.image}
+                            alt={request.renter.name || "User"}
+                            className="w-8 h-8 rounded-full mr-2"
+                          />
+                        ) : (
+                          <div className="w-8 h-8 bg-gray-200 rounded-full mr-2 flex items-center justify-center">
+                            <span className="text-xs text-gray-500">
+                              {request.renter.name?.charAt(0) || "U"}
+                            </span>
+                          </div>
+                        )}
+                        <span className="font-medium">
+                          {request.renter.name}
                         </span>
                       </div>
-
-                      <div className="text-small text-[var(--color-text-secondary)]">
-                        <p>
-                          {new Date(request.startDate).toLocaleDateString()} -{" "}
-                          {new Date(request.endDate).toLocaleDateString()}
-                        </p>
-                        <p>Location: {request.beach.name}</p>
-                        <p className="font-medium mt-1">
-                          Total: R{request.totalCost.zar}
-                        </p>
+                      <p className="text-sm">
+                        {format(new Date(request.startDate), "MMM d")} -{" "}
+                        {format(new Date(request.endDate), "MMM d, yyyy")}
+                      </p>
+                      <p className="text-sm text-[var(--color-text-secondary)]">
+                        Pickup at: {request.beach.name}
+                      </p>
+                      <div
+                        className={`mt-2 text-xs px-2 py-1 rounded-full inline-block ${
+                          request.status === "PENDING"
+                            ? "bg-yellow-100 text-yellow-800"
+                            : request.status === "APPROVED"
+                              ? "bg-green-100 text-green-800"
+                              : "bg-red-100 text-red-800"
+                        }`}
+                      >
+                        {request.status}
                       </div>
                     </div>
                   </Link>
                 ))}
               </div>
             ) : (
-              <p className="text-[var(--color-text-tertiary)] text-small">
+              <p className="text-[var(--color-text-secondary)]">
                 No rental requests yet.
               </p>
             )}
-
-            <div className="mt-4">
-              <Link
-                href="/rentals/requests?type=owner"
-                className="text-[var(--color-tertiary)] hover:underline text-small"
-              >
-                View all requests
-              </Link>
-            </div>
-          </div>
-
-          <div className="bg-[var(--color-bg-primary)] rounded-lg shadow-sm p-6 mb-6 border border-[var(--color-border-light)]">
-            <h2 className="heading-5 mb-4">Available Locations</h2>
-            <BeachLocationsList beaches={rentalItem.availableBeaches} />
-          </div>
-
-          <div className="bg-[var(--color-bg-primary)] rounded-lg shadow-sm p-6 border border-[var(--color-border-light)]">
-            <h2 className="heading-5 mb-4">Danger Zone</h2>
-            <p className="text-[var(--color-text-secondary)] text-small mb-4">
-              Deleting this rental item will permanently remove it from our
-              system. This action cannot be undone.
-            </p>
-            <DeleteRentalItemButton id={params.id} />
           </div>
         </div>
       </div>

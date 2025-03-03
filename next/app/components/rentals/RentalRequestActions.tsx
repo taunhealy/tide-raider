@@ -38,7 +38,7 @@ export function RentalRequestActions({
       router.refresh();
     } catch (error) {
       console.error("Error updating request:", error);
-      setError(error.message || "Failed to update request");
+      setError(error instanceof Error ? error.message : "Failed to update request");
     } finally {
       setLoading(false);
     }

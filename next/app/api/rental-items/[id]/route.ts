@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/app/lib/authOptions";
 import { prisma } from "@/lib/prisma";
+import { beachData } from "@/app/types/beaches"; // Import beachData
 
 export async function GET(
   req: NextRequest,
@@ -65,21 +66,6 @@ export async function PUT(
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
-    // Verify ownership
-    const existingItem = await prisma.rentalItem.findFirst({
-      where: {
-        id: params.id,
-        userId: session.user.id,
-      },
-    });
-
-    if (!existingItem) {
-      return NextResponse.json(
-        { error: "Item not found or you do not have permission to edit it" },
-        { status: 404 }
-      );
-    }
-
     const {
       name,
       description,
@@ -89,38 +75,152 @@ export async function PUT(
       itemType,
       specifications,
       availableBeaches,
-      isActive,
     } = await req.json();
 
-    // Update the rental item
-    const updatedItem = await prisma.rentalItem.update({
+    // Get the rental item to check ownership
+    const rentalItem = await prisma.rentalItem.findUnique({
       where: { id: params.id },
-      data: {
-        name,
-        description,
-        rentPrice,
-        images: Array.isArray(images) ? images : existingItem.images,
-        thumbnail,
-        itemType,
-        specifications,
-        isActive: isActive ?? existingItem.isActive,
-        availableBeaches: {
-          deleteMany: {}, // Remove all existing connections
-          create: availableBeaches.map((beachId: string) => ({
-            beachId,
-          })),
+    });
+
+    if (!rentalItem) {
+      return NextResponse.json(
+        { error: "Rental item not found" },
+        { status: 404 }
+      );
+    }
+
+    if (rentalItem.userId !== session.user.id) {
+      return NextResponse.json(
+        { error: "You can only update your own rental items" },
+        { status: 403 }
+      );
+    }
+
+    // Extract just the beach IDs from the availableBeaches array and ensure they're unique
+    const beachIds = [
+      ...new Set(
+        availableBeaches.map((beach: any) =>
+          typeof beach === "string" ? beach : beach.id
+        )
+      ),
+    ] as string[];
+
+    // Check which beaches exist in the database
+    const existingBeaches = await prisma.beach.findMany({
+      where: {
+        id: {
+          in: beachIds,
         },
       },
-      include: {
-        availableBeaches: {
-          include: {
-            beach: true,
-          },
-        },
+      select: {
+        id: true,
       },
     });
 
-    return NextResponse.json(updatedItem);
+    const existingBeachIds = existingBeaches.map((beach) => beach.id);
+    const missingBeachIds = beachIds.filter(
+      (id) => !existingBeachIds.includes(id)
+    );
+
+    // Only upsert beaches that don't exist yet
+    for (const beachId of missingBeachIds) {
+      const beachInfo = beachData.find((b) => b.id === beachId);
+
+      if (beachInfo) {
+        // Check if region exists
+        const existingRegion = await prisma.region.findUnique({
+          where: { id: beachInfo.region },
+        });
+
+        // Upsert the region if it doesn't exist
+        if (!existingRegion) {
+          await prisma.region.create({
+            data: {
+              id: beachInfo.region,
+              name: beachInfo.region,
+              country: beachInfo.country,
+              continent: beachInfo.continent || null,
+            },
+          });
+        }
+
+        // Create the beach
+        await prisma.beach.create({
+          data: {
+            id: beachInfo.id,
+            name: beachInfo.name,
+            location: beachInfo.location,
+            country: beachInfo.country,
+            regionId: beachInfo.region,
+            continent: beachInfo.continent || "",
+            distanceFromCT: beachInfo.distanceFromCT || 0,
+            optimalWindDirections: beachInfo.optimalWindDirections || [],
+            optimalSwellDirections: beachInfo.optimalSwellDirections || {},
+            bestSeasons: beachInfo.bestSeasons || [],
+            optimalTide: beachInfo.optimalTide || "",
+            description: beachInfo.description || "",
+            difficulty: beachInfo.difficulty || "",
+            waveType: beachInfo.waveType || "",
+            swellSize: beachInfo.swellSize || {},
+            idealSwellPeriod: beachInfo.idealSwellPeriod || {},
+            waterTemp: beachInfo.waterTemp || {},
+            hazards: beachInfo.hazards || [],
+            crimeLevel: beachInfo.crimeLevel || "",
+            sharkAttack: beachInfo.sharkAttack
+              ? JSON.parse(JSON.stringify(beachInfo.sharkAttack))
+              : {},
+            coordinates: beachInfo.coordinates || {},
+            image: beachInfo.image,
+            profileImage: beachInfo.profileImage,
+            videos: beachInfo.videos,
+          },
+        });
+      }
+    }
+
+    // Update the rental item with a transaction to handle the beach connections
+    const updatedRentalItem = await prisma.$transaction(async (tx) => {
+      // First delete all existing beach connections
+      await tx.beachRentalConnection.deleteMany({
+        where: { rentalItemId: params.id },
+      });
+
+      // Then update the rental item
+      const updated = await tx.rentalItem.update({
+        where: { id: params.id },
+        data: {
+          name,
+          description,
+          rentPrice,
+          images: Array.isArray(images) ? images : [],
+          thumbnail,
+          itemType,
+          specifications,
+          isActive: true,
+        },
+        include: {
+          availableBeaches: {
+            include: {
+              beach: true,
+            },
+          },
+        },
+      });
+
+      // Create beach connections separately to avoid unique constraint issues
+      for (const beachId of beachIds) {
+        await tx.beachRentalConnection.create({
+          data: {
+            rentalItemId: params.id,
+            beachId: beachId,
+          },
+        });
+      }
+
+      return updated;
+    });
+
+    return NextResponse.json(updatedRentalItem);
   } catch (error) {
     console.error("Error updating rental item:", error);
     return NextResponse.json(
@@ -156,24 +256,14 @@ export async function DELETE(
       );
     }
 
-    // Check if there are any active rental requests
-    const activeRequests = await prisma.rentalItemRequest.findMany({
+    // First, delete all rental requests for this item
+    await prisma.rentalItemRequest.deleteMany({
       where: {
         rentalItemId: params.id,
-        status: {
-          in: ["PENDING", "APPROVED"],
-        },
       },
     });
 
-    if (activeRequests.length > 0) {
-      return NextResponse.json(
-        { error: "Cannot delete item with active rental requests" },
-        { status: 400 }
-      );
-    }
-
-    // Delete the rental item
+    // Then delete the rental item
     await prisma.rentalItem.delete({
       where: { id: params.id },
     });

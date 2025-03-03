@@ -7,6 +7,9 @@ import { prisma } from "@/lib/prisma";
 import { RentalRequestForm } from "@/app/components/rentals/RentalRequestForm";
 import { ContactOwnerButton } from "@/app/components/ContactOwnerButton";
 import { SubscriptionStatus } from "@/app/types/subscription";
+import { Button } from "@/app/components/ui/Button";
+import { RentalImagesDisplay } from "@/app/components/rentals/RentalImagesDisplay";
+import BeachLocationLinks from "@/app/components/rentals/BeachLocationLinks";
 
 export async function generateMetadata({ params }: { params: { id: string } }) {
   const rentalItem = await prisma.rentalItem.findUnique({
@@ -32,6 +35,7 @@ export default async function RentalItemPage({
   params: { id: string };
 }) {
   const session = await getServerSession(authOptions);
+  const isAuthenticated = !!session?.user;
 
   try {
     const rentalItem = await prisma.rentalItem.findUnique({
@@ -69,8 +73,9 @@ export default async function RentalItemPage({
 
     // Check if user is subscribed (for rental functionality)
     let isSubscribed = false;
+    let user = null;
     if (session?.user?.id) {
-      const user = await prisma.user.findUnique({
+      user = await prisma.user.findUnique({
         where: { id: session.user.id },
         select: { subscriptionStatus: true, hasActiveTrial: true },
       });
@@ -144,173 +149,170 @@ export default async function RentalItemPage({
 
     return (
       <div className="max-w-7xl mx-auto p-6 font-primary">
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-          {/* Image Gallery */}
-          <div className="space-y-4">
-            <div className="relative h-80 bg-gray-100 rounded-lg overflow-hidden">
-              {rentalItem.thumbnail ? (
-                <Image
-                  src={`https://imagedelivery.net/your-account-hash/${rentalItem.thumbnail}/public`}
-                  alt={rentalItem.name}
-                  fill
-                  sizes="(max-width: 768px) 100vw, 50vw"
-                  className="object-cover"
-                />
-              ) : (
-                <div className="flex items-center justify-center h-full bg-gray-200">
-                  <span className="text-gray-400">No image</span>
-                </div>
-              )}
-            </div>
-
-            {rentalItem.images.length > 1 && (
-              <div className="grid grid-cols-4 gap-2">
-                {rentalItem.images.map((imageId) => (
-                  <div
-                    key={imageId}
-                    className="relative h-20 bg-gray-100 rounded overflow-hidden"
-                  >
-                    <Image
-                      src={`https://imagedelivery.net/your-account-hash/${imageId}/public`}
-                      alt={rentalItem.name}
-                      fill
-                      sizes="25vw"
-                      className="object-cover"
-                    />
-                  </div>
-                ))}
-              </div>
-            )}
-          </div>
-
-          {/* Item Details */}
-          <div className="space-y-6">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+          {/* Item Details - Left Column */}
+          <div className="md:col-span-1 space-y-6">
             <div>
-              <div className="flex items-center">
-                <span className="bg-blue-100 text-blue-800 text-xs font-medium px-2.5 py-0.5 rounded">
+              <div className="flex items-center gap-2">
+                <span className="bg-[var(--color-bg-secondary)] text-[var(--color-text-primary)] text-xs font-medium px-2.5 py-0.5 rounded-full">
                   {rentalItem.itemType}
                 </span>
                 {rentalItem.isActive ? (
-                  <span className="ml-2 bg-green-100 text-green-800 text-xs font-medium px-2.5 py-0.5 rounded">
+                  <span className="bg-green-100 text-green-800 text-xs font-medium px-2.5 py-0.5 rounded-full">
                     Available
                   </span>
                 ) : (
-                  <span className="ml-2 bg-red-100 text-red-800 text-xs font-medium px-2.5 py-0.5 rounded">
+                  <span className="bg-red-100 text-red-800 text-xs font-medium px-2.5 py-0.5 rounded-full">
                     Unavailable
                   </span>
                 )}
               </div>
-              <h1 className="text-3xl font-bold mt-2">{rentalItem.name}</h1>
-              <p className="text-2xl font-semibold text-blue-600 mt-2">
-                R{rentalItem.rentPrice}/day
+              <h1 className="text-3xl font-bold mt-2 text-[var(--color-text-primary)]">
+                {rentalItem.name}
+              </h1>
+              <p className="text-xl font-semibold text-[var(--color-secondary)] mt-2">
+                ${rentalItem.rentPrice} per 2 weeks
+              </p>
+              <p className="text-[var(--color-text-secondary)] text-sm">
+                Minimum 2 weeks rental.
               </p>
             </div>
 
             {rentalItem.description && (
-              <div>
-                <h2 className="text-xl font-semibold mb-2">Description</h2>
-                <p className="text-gray-700">{rentalItem.description}</p>
+              <div className="border-t border-[var(--color-border-light)] pt-4">
+                <h2 className="text-xl font-semibold mb-2 text-[var(--color-text-primary)]">
+                  Description
+                </h2>
+                <p className="text-[var(--color-text-secondary)]">
+                  {rentalItem.description}
+                </p>
               </div>
             )}
 
-            <div>
-              <h2 className="text-xl font-semibold mb-2">Specifications</h2>
+            <div className="border-t border-[var(--color-border-light)] pt-4">
+              <h2 className="text-xl font-semibold mb-2 text-[var(--color-text-primary)]">
+                Specifications
+              </h2>
               {formattedSpecs}
             </div>
 
-            <div>
-              <h2 className="text-xl font-semibold mb-2">
+            <div className="border-t border-[var(--color-border-light)] pt-4">
+              <h2 className="text-xl font-semibold mb-2 text-[var(--color-text-primary)]">
                 Available Pickup/Dropoff Locations
               </h2>
-              <div className="flex flex-wrap gap-2">
-                {rentalItem.availableBeaches.map((connection) => (
-                  <span
-                    key={connection.beach.id}
-                    className="bg-gray-100 px-3 py-1 rounded-full text-sm"
-                  >
-                    {connection.beach.name}
-                  </span>
-                ))}
-              </div>
+              <BeachLocationLinks
+                beaches={rentalItem.availableBeaches.map((connection) => ({
+                  id: connection.beach.id,
+                  name: connection.beach.name,
+                  region: connection.beach.region,
+                }))}
+              />
             </div>
+          </div>
 
-            <div className="flex items-center space-x-3 pt-4 border-t">
-              {rentalItem.user.image && (
-                <Image
-                  src={rentalItem.user.image}
-                  alt={rentalItem.user.name}
-                  width={40}
-                  height={40}
-                  className="rounded-full"
-                />
-              )}
-              <div>
-                <p className="font-medium">Listed by {rentalItem.user.name}</p>
-              </div>
-            </div>
+          {/* Image Gallery - Middle Column */}
+          <div className="md:col-span-1">
+            <RentalImagesDisplay
+              thumbnail={rentalItem.thumbnail}
+              images={rentalItem.images}
+              itemName={rentalItem.name}
+            />
+          </div>
 
-            {/* Rental Request Form - only show if user is logged in, subscribed, and not the owner */}
-            {session ? (
-              session.user.id !== rentalItem.user.id ? (
-                isSubscribed ? (
-                  <div className="bg-blue-50 p-4 rounded-lg mt-6">
-                    <h2 className="text-xl font-semibold mb-4">
+          {/* Request to Rent Section - Right Column */}
+          {isAuthenticated ? (
+            session.user.id !== rentalItem.user.id ? (
+              isSubscribed ? (
+                <div className="md:col-span-1">
+                  <details className="bg-[var(--color-bg-primary)] rounded-lg border border-[var(--color-border-light)] overflow-hidden transition-all duration-300 hover:border-[var(--color-border-medium)] hover:shadow-sm">
+                    <summary className="px-5 py-4 bg-[var(--color-bg-secondary)] cursor-pointer font-medium text-lg flex items-center justify-between text-[var(--color-text-primary)]">
                       Request to Rent
-                    </h2>
-                    <RentalRequestForm
-                      rentalItemId={rentalItem.id}
-                      availableBeaches={rentalItem.availableBeaches.map(
-                        (c) => ({
-                          id: c.beach.id,
-                          name: c.beach.name,
-                        })
-                      )}
-                      dailyPrice={rentalItem.rentPrice}
+                      <svg
+                        className="h-5 w-5 text-[var(--color-text-secondary)]"
+                        fill="none"
+                        viewBox="0 0 24 24"
+                        stroke="currentColor"
+                      >
+                        <path
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          strokeWidth={2}
+                          d="M19 9l-7 7-7-7"
+                        />
+                      </svg>
+                    </summary>
+                    <div className="p-5">
+                      <RentalRequestForm
+                        rentalItemId={rentalItem.id}
+                        availableBeaches={rentalItem.availableBeaches.map(
+                          (c) => ({
+                            id: c.beach.id,
+                            name: c.beach.name,
+                          })
+                        )}
+                        itemType={rentalItem.itemType}
+                      />
+                    </div>
+                  </details>
+
+                  {/* Contact Owner Button */}
+                  <div className="mt-4">
+                    <ContactOwnerButton
+                      ownerEmail={rentalItem.user.email}
+                      ownerName={rentalItem.user.name}
+                      isSignedIn={!!session}
+                      isSubscriber={
+                        user?.subscriptionStatus === SubscriptionStatus.ACTIVE
+                      }
+                      isTrialing={user?.hasActiveTrial}
                     />
                   </div>
-                ) : (
-                  <div className="bg-yellow-50 p-4 rounded-lg mt-6">
-                    <p>You need an active subscription to request rentals.</p>
+                </div>
+              ) : (
+                <div className="md:col-span-1">
+                  <div className="bg-yellow-50 p-6 rounded-lg border border-yellow-100">
+                    <p className="font-medium text-yellow-800 mb-2">
+                      Subscription Required
+                    </p>
+                    <p className="text-sm mb-4 text-yellow-700">
+                      You need an active subscription to request rentals.
+                    </p>
                     <Link
                       href="/pricing"
-                      className="btn-primary mt-2 inline-block"
+                      className="inline-flex items-center justify-center px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-[var(--color-tertiary)] hover:bg-[var(--color-tertiary-dark)] transition-colors"
                     >
                       View Subscription Plans
                     </Link>
                   </div>
-                )
-              ) : (
-                <div className="bg-blue-50 p-4 rounded-lg mt-6">
-                  <p>
-                    This is your listing. You can manage it from your dashboard.
-                  </p>
-                  <Link
-                    href="/dashboard/rentals"
-                    className="btn-primary mt-2 inline-block"
-                  >
-                    Go to Dashboard
-                  </Link>
                 </div>
               )
             ) : (
-              <div className="bg-gray-50 p-4 rounded-lg mt-6">
-                <p>Please sign in to request this rental.</p>
-                <Link href="/login" className="btn-primary mt-2 inline-block">
+              <div className="md:col-span-1">
+                <div className="bg-[var(--color-bg-secondary)] p-6 rounded-lg border border-[var(--color-border-light)]">
+                  <p className="mb-4 text-[var(--color-text-primary)]">
+                    This is your listing. You can manage it from your dashboard.
+                  </p>
+                  <Link href={`/dashboard/rentals/${rentalItem.id}`}>
+                    <Button variant="default" size="default">
+                      Edit Listing
+                    </Button>
+                  </Link>
+                </div>
+              </div>
+            )
+          ) : (
+            <div className="md:col-span-1">
+              <div className="p-4 bg-[var(--color-bg-secondary)] rounded-lg text-center">
+                <p className="mb-2">Please sign in to contact the owner.</p>
+                <Link
+                  href={`/login?callbackUrl=/rentals/${params.id}`}
+                  className="btn-primary"
+                >
                   Sign In
                 </Link>
               </div>
-            )}
-
-            {/* Contact Owner Button - always show if not the owner */}
-            {session?.user?.id !== rentalItem.user.id && (
-              <div className="mt-4">
-                <ContactOwnerButton
-                  ownerEmail={rentalItem.user.email}
-                  ownerName={rentalItem.user.name}
-                />
-              </div>
-            )}
-          </div>
+            </div>
+          )}
         </div>
       </div>
     );

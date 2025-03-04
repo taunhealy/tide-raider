@@ -13,21 +13,53 @@ interface AdCampaign {
     timeOfDay?: string[];
   };
 }
-export interface Ad {
+
+export interface AdRequest {
   id: string;
-  category: string;
   companyName: string;
-  imageUrl: string | null | undefined;
+  contactEmail: string;
+  imageUrl?: string | null;
   linkUrl: string;
-  title: string | null;
-  region: string;
+  status: string;
+  createdAt: Date;
+  updatedAt: Date;
+  rejectionReason?: string | null;
+  userId?: string | null;
+  category: string;
+  categoryData?: any;
+  googleAdsCampaignId?: string | null;
+  googleAdsContribution: number;
+  regionId: string;
+  title?: string | null;
+  yearlyPrice: number;
   startDate: Date;
   endDate: Date;
+  payfastSubscriptionId?: string | null;
+  paypalSubscriptionId?: string | null;
+  variantId?: string | null;
+  ad?: Ad;
+}
+
+export interface Ad {
+  id: string;
+  requestId: string;
+  companyName: string;
+  title?: string | null;
+  category: string;
+  linkUrl: string;
+  imageUrl?: string | null;
+  regionId: string;
+  country?: string | null;
   status: string;
-  categoryData: any;
-  yearlyPrice: number;
-  googleAdsContribution: number;
-  isAd: true;
+  startDate: Date;
+  endDate: Date;
+  paypalSubscriptionId?: string | null;
+  createdAt: Date;
+  updatedAt: Date;
+  userId?: string | null;
+  targetedBeaches: string[];
+  adRequest?: AdRequest;
+  isAd?: boolean; // For UI purposes
 }
 
 export interface AdImpression {
@@ -36,6 +68,23 @@ export interface AdImpression {
   timestamp: number;
   duration: number;
   userId?: string;
+}
+
+export interface AdvertisingFormData {
+  title: string;
+  websiteUrl: string;
+}
+
+export interface CreateAdRequestPayload {
+  title: string;
+  companyName?: string;
+  contactEmail?: string;
+  linkUrl: string;
+  category: string;
+  regionId: string;
+  targetedBeaches: string[];
+  status?: string;
+  yearlyPrice?: number;
 }
 
 export type { AdCampaign };

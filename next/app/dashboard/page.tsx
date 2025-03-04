@@ -26,9 +26,9 @@ export default function DashboardPage() {
   const router = useRouter();
   const { data: session, update } = useSession();
   const { trialStatus, trialEndDate } = useSubscription();
-  const [activeTab, setActiveTab] = useState<"account" | "billing" | "rentals">(
-    "account"
-  );
+  const [activeTab, setActiveTab] = useState<
+    "account" | "billing" | "rentals" | "ads"
+  >("account");
   const [username, setUsername] = useState<string>("");
   const queryClient = useQueryClient();
   const handleSubscribe = useHandleSubscribe();
@@ -269,6 +269,13 @@ export default function DashboardPage() {
             >
               Rentals
             </Button>
+            <Button
+              variant={activeTab === "ads" ? "default" : "outline"}
+              onClick={() => setActiveTab("ads")}
+              className="w-full sm:w-auto"
+            >
+              Ads
+            </Button>
           </div>
 
           <div className="min-h-[400px] w-full max-w-full sm:min-w-[500px] sm:max-w-[500px]">
@@ -505,6 +512,38 @@ export default function DashboardPage() {
                     </Button>
                   </div>
                 )}
+              </div>
+            )}
+
+            {activeTab === "ads" && (
+              <div className="space-y-4">
+                <div className="flex flex-col gap-4">
+                  <Link
+                    href="/dashboard/ads"
+                    className="flex items-center justify-between p-4 border rounded-md hover:bg-gray-50 transition-colors"
+                  >
+                    <div>
+                      <h3 className="font-medium">Manage Advertisements</h3>
+                      <p className="text-sm text-gray-600">
+                        View and edit your advertising campaigns
+                      </p>
+                    </div>
+                    <ChevronRightIcon className="h-5 w-5 text-gray-400" />
+                  </Link>
+
+                  <Link
+                    href="/advertising"
+                    className="flex items-center justify-between p-4 border rounded-md hover:bg-gray-50 transition-colors"
+                  >
+                    <div>
+                      <h3 className="font-medium">Create New Ad</h3>
+                      <p className="text-sm text-gray-600">
+                        Create a new advertising campaign for your business
+                      </p>
+                    </div>
+                    <ChevronRightIcon className="h-5 w-5 text-gray-400" />
+                  </Link>
+                </div>
               </div>
             )}
           </div>

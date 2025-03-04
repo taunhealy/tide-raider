@@ -1,4 +1,5 @@
 import {defineType, defineField} from 'sanity'
+import {RegionReferenceInput} from '../../components/RegionReferenceInput'
 
 export default defineType({
   name: 'post',
@@ -226,6 +227,17 @@ export default defineType({
       title: 'Trip',
       type: 'reference',
       to: [{type: 'trip'}],
+    }),
+    // Region reference
+    defineField({
+      name: 'countries',
+      title: 'Related Countries',
+      description: 'Associate this post with specific countries',
+      type: 'array',
+      of: [{type: 'string'}],
+      components: {
+        input: RegionReferenceInput,
+      },
     }),
   ],
   preview: {

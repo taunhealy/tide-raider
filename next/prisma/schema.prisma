@@ -32,26 +32,68 @@ model AdRequest {
   createdAt             DateTime @default(now())
   updatedAt             DateTime @updatedAt
   rejectionReason       String?
-  lemonSubscriptionId   String?
   userId                String?
   category              String
   categoryData          Json?
   googleAdsCampaignId   String?
   googleAdsContribution Float
-  regionId              String   // Changed from region String to regionId String
+  regionId              String
   title                 String?
   yearlyPrice           Float
   startDate             DateTime
   endDate               DateTime
   payfastSubscriptionId String?
+  paypalSubscriptionId  String?
   variantId             String?
   region                Region   @relation(fields: [regionId], references: [id])
   user                  User?    @relation(fields: [userId], references: [id])
+  ad Ad?
 
-  @@index([payfastSubscriptionId])
   @@index([regionId])
   @@index([category])
   @@index([status])
+}
+
+model Ad {
+  id                   String           @id @default(uuid())
+  requestId            String           @unique
+  companyName          String
+  title                String?
+  category             String
+  linkUrl              String
+  imageUrl             String?
+  regionId             String
+  country              String?
+  status               String           @default("active")
+  startDate            DateTime
+  endDate              DateTime
+  paypalSubscriptionId String?
+  createdAt            DateTime         @default(now())
+  updatedAt            DateTime         @updatedAt
+  userId               String?
+  targetedBeaches      String[]
+  region               Region           @relation(fields: [regionId], references: [id])
+  user                 User?            @relation(fields: [userId], references: [id])
+  adRequest            AdRequest        @relation(fields: [requestId], references: [id])
+  beachConnections     AdBeachConnection[]
+
+  @@index([regionId])
+  @@index([category])
+  @@index([status])
+  @@index([userId])
+  @@index([country])
+}
+
+model AdBeachConnection {
+  id      String @id @default(uuid())
+  adId    String
+  beachId String
+  ad      Ad     @relation(fields: [adId], references: [id], onDelete: Cascade)
+  beach   Beach  @relation(fields: [beachId], references: [id])
+
+  @@unique([adId, beachId])
+  @@index([adId])
+  @@index([beachId])
 }
 
 model User {
@@ -80,6 +122,7 @@ model User {
   paypalSubscriptionId String?
   accounts            Account[]
   adRequests          AdRequest[]
+  ads                 Ad[]
   boards              Board[]
   events              Event[]
   logEntries          LogEntry[]
@@ -241,6 +284,7 @@ model Beach {
   stories     Story[]
   rentalItems       BeachRentalConnection[]
   rentalItemRequests RentalItemRequest[]
+  adConnections AdBeachConnection[]
 
   @@index([regionId])
   @@index([country])
@@ -541,6 +585,7 @@ model Region {
   stories     Story[]   // Direct relation to stories in this region
   events      Event[]   // Relation to events in this region
   adRequests  AdRequest[] // Relation to ad requests for this region
+  ads         Ad[]
   // Add other region-related relations as needed
 }
 

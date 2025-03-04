@@ -96,6 +96,14 @@ export interface Beach {
   coffeeShop?: {
     name: string;
   }[];
+  shaper?: {
+    name: string;
+    url?: string;
+  }[];
+  beer?: {
+    name: string;
+    url?: string;
+  }[];
   hasSharkAlert?: boolean;
   bestMonthOfYear?: string;
 }
@@ -167,6 +175,12 @@ export const beachData: Beach[] = [
       lat: -34.1083,
       lng: 18.4702,
     },
+    shaper: [
+      {
+        name: "Wawa Waves",
+        url: "https://www.wawawave.com/index.html",
+      },
+    ],
     videos: [
       {
         url: "https://www.youtube.com/watch?v=2uqps13F8WU&ab_channel=021DRONE",
@@ -176,6 +190,12 @@ export const beachData: Beach[] = [
     ],
     profileImage: "/images/profile/hero-cover.jpg", // Removed /public prefix
     coffeeShop: [{ name: "Harvest Café, Muizenberg" }],
+    beer: [
+      {
+        name: "Jack Black Beer",
+        url: "https://jackblackbeer.com/?srsltid=AfmBOorD3plPrF2vmxOr_MrbqSaLxAMnslwC99syTmtfU15O-_OXQBlS",
+      },
+    ],
   },
   {
     id: "long-beach",

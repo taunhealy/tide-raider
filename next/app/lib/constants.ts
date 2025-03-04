@@ -32,16 +32,16 @@ export const WAVE_TYPE_ICONS = {
   "Point Break": "/images/wave-types/point-break.jpg",
   "Reef Break": "/images/wave-types/reef-break.jpg",
   "Beach and Reef Break": "/images/wave-types/beach-reef-break.jpg",
-  "Beach and Point Break": "https://media.tideraider.com/wave-type-beach-point.jpg",
+  "Beach and Point Break":
+    "https://media.tideraider.com/wave-type-beach-point.jpg",
 } as const;
 
 export type WaveType = keyof typeof WAVE_TYPE_ICONS;
 
 export const STORY_CATEGORIES = [
-  "Longest Wave",
-  "Best Barrels",
   "Wildlife Encounters",
   "Hidden Gems",
+  "Rad Towns",
   "Epic Road Trips",
   "Coastal Adventures",
   "Cultural Experiences",
@@ -56,7 +56,10 @@ export const STORY_CATEGORIES = [
   "Restricted Access Spots",
   "Crime",
   "UFO Sightings 👽🛸",
-  "Lovely Surf Camps",
+  "Great Surf Camps",
+  "Surf Vlog",
+  "Surf Photography",
+  "Storm Alert"
 ];
 
 export type StoryCategory = (typeof STORY_CATEGORIES)[number];
@@ -87,34 +90,23 @@ export const AD_CATEGORIES = {
   SURF_CAMP: {
     id: "surf_camp",
     label: "Surf Camp",
-    monthlyPrice: 100,
-    fields: ["title", "description", "websiteUrl"],
+    monthlyPrice: 500,
+    fields: ["title", "websiteUrl"],
     adPosition: "sidebar",
-    googleAdsContribution: 30, // 30% of monthly price
   },
   SHAPER: {
     id: "shaper",
     label: "Surfboard Shaper",
-    monthlyPrice: 100,
-    fields: ["title", "description", "websiteUrl"],
+    monthlyPrice: 250,
+    fields: ["title", "websiteUrl"],
     adPosition: "sidebar",
-    googleAdsContribution: 30,
   },
-  PRODUCTS: {
-    id: "products",
-    label: "Surf Products",
-    monthlyPrice: 150,
-    fields: ["title", "description", "websiteUrl"],
+  BEER: {
+    id: "beer",
+    label: "Beer",
+    monthlyPrice: 500,
+    fields: ["title", "websiteUrl"],
     adPosition: "sidebar",
-    googleAdsContribution: 45,
-  },
-  FOUR_BY_FOUR: {
-    id: "four_by_four",
-    label: "4x4 Services",
-    monthlyPrice: 150,
-    fields: ["title", "description", "websiteUrl"],
-    adPosition: "sidebar",
-    googleAdsContribution: 45,
   },
 } as const;
 

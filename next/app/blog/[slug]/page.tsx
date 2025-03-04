@@ -39,6 +39,7 @@ export default async function BlogPost({
         url: "/images/placeholder.jpg",
       },
     },
+    content: post.content || [],
   };
 
   const sortedWidgets = safePost.sidebarWidgets?.sort(
@@ -116,61 +117,65 @@ export default async function BlogPost({
           )}
 
           <div className="prose prose-sm sm:prose-base lg:prose-lg max-w-none font-primary">
-            {safePost.content.map(
-              (
-                section: {
-                  sectionHeading?: string;
-                  content: PortableTextBlock[];
-                  sectionImages?: SectionImage[];
-                  videoLink?: string;
-                },
-                index: number
-              ) => (
-                <div key={index} className="mt-6 sm:mt-8">
-                  {section.sectionHeading && (
-                    <h2 className="text-[1.5rem] sm:text-[1.875rem] leading-[1.3] font-bold mb-3 sm:mb-4">
-                      {section.sectionHeading}
-                    </h2>
-                  )}
+            {safePost.content ? (
+              safePost.content.map(
+                (
+                  section: {
+                    sectionHeading?: string;
+                    content: PortableTextBlock[];
+                    sectionImages?: SectionImage[];
+                    videoLink?: string;
+                  },
+                  index: number
+                ) => (
+                  <div key={index} className="mt-6 sm:mt-8">
+                    {section.sectionHeading && (
+                      <h2 className="text-[1.5rem] sm:text-[1.875rem] leading-[1.3] font-bold mb-3 sm:mb-4">
+                        {section.sectionHeading}
+                      </h2>
+                    )}
 
-                  <CustomPortableText value={section.content} />
+                    <CustomPortableText value={section.content} />
 
-                  {section.videoLink && (
-                    <div className="my-4 sm:my-6">
-                      <iframe
-                        src={`https://www.youtube.com/embed/${getVideoId(section.videoLink)}`}
-                        title="YouTube Video"
-                        className="w-full aspect-video"
-                        frameBorder="0"
-                        allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-                        allowFullScreen
-                      />
-                    </div>
-                  )}
-
-                  {section.sectionImages &&
-                    section.sectionImages.map((image, imgIndex) => (
-                      <div key={imgIndex} className="my-4 sm:my-6">
-                        <div className="relative aspect-[16/9]">
-                          <Image
-                            src={
-                              image.uploadedImage?.asset?.url ||
-                              "/images/placeholder.jpg"
-                            }
-                            alt={image.uploadedImage?.alt || ""}
-                            fill
-                            className="object-cover rounded-lg"
-                          />
-                        </div>
-                        {image.uploadedImage?.caption && (
-                          <p className="text-sm text-gray-500 mt-2 px-2">
-                            {image.uploadedImage.caption}
-                          </p>
-                        )}
+                    {section.videoLink && (
+                      <div className="my-4 sm:my-6">
+                        <iframe
+                          src={`https://www.youtube.com/embed/${getVideoId(section.videoLink)}`}
+                          title="YouTube Video"
+                          className="w-full aspect-video"
+                          frameBorder="0"
+                          allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                          allowFullScreen
+                        />
                       </div>
-                    ))}
-                </div>
+                    )}
+
+                    {section.sectionImages &&
+                      section.sectionImages.map((image, imgIndex) => (
+                        <div key={imgIndex} className="my-4 sm:my-6">
+                          <div className="relative aspect-[16/9]">
+                            <Image
+                              src={
+                                image.uploadedImage?.asset?.url ||
+                                "/images/placeholder.jpg"
+                              }
+                              alt={image.uploadedImage?.alt || ""}
+                              fill
+                              className="object-cover rounded-lg"
+                            />
+                          </div>
+                          {image.uploadedImage?.caption && (
+                            <p className="text-sm text-gray-500 mt-2 px-2">
+                              {image.uploadedImage.caption}
+                            </p>
+                          )}
+                        </div>
+                      ))}
+                  </div>
+                )
               )
+            ) : (
+              <p>No content available for this post.</p>
             )}
 
             {safePost.trip && <TripDetails trip={safePost.trip} />}

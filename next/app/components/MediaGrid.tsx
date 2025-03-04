@@ -6,6 +6,8 @@ import { getVideoThumbnail } from "@/app/lib/videoUtils";
 import dynamic from "next/dynamic";
 import { Beach } from "@/app/types/beaches";
 import { useSession } from "next-auth/react";
+import { Ad } from "@/app/types/ads";
+import { useQuery } from "@tanstack/react-query";
 
 interface MediaGridProps {
   videos?: { url: string; title: string; platform: "youtube" | "vimeo" }[];
@@ -17,10 +19,21 @@ function MediaGridBase({ videos, beach }: MediaGridProps) {
   const { data: session } = useSession();
   const [hoveredIndex, setHoveredIndex] = useState<number | null>(null);
 
+  // Fetch ads for this beach
+  const { data: ads = [] } = useQuery<Ad[]>({
+    queryKey: ["ads", beach.id],
+    queryFn: async () => {
+      const response = await fetch(`/api/advertising/ads?beachId=${beach.id}`);
+      if (!response.ok) throw new Error("Failed to fetch ads");
+      return response.json();
+    },
+  });
+
   const { items, shownAdClientIds } = getMediaGridItems(
     videos,
     beach.coffeeShop,
-    beach
+    beach,
+    ads
   );
 
   return (
@@ -29,45 +42,104 @@ function MediaGridBase({ videos, beach }: MediaGridProps) {
         {items.map((item, index) => {
           // Coffee Shop
           if ("type" in item && item.type === "coffeeShop") {
+            const isAd = "isAd" in item && item.isAd;
+            const url =
+              "url" in item && item.url
+                ? item.url
+                : `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(
+                    `${item.name}, ${beach.region}`
+                  )}`;
+
             return (
               <a
                 key={`coffee-${index}`}
-                href={`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(
-                  `${beach.coffeeShop?.[0].name}, ${beach.region}`
-                )}`}
+                href={url}
                 target="_blank"
                 rel="noopener noreferrer"
                 className="relative aspect-video rounded-lg overflow-hidden bg-gray-100 flex items-center justify-center group"
               >
-                <div className="flex flex-col items-center gap-1 sm:gap-2 p-2 sm:p-4">
-                  <div className="w-8 h-8 sm:w-12 sm:h-12 rounded-full bg-white flex items-center justify-center">
-                    <svg
-                      className="w-4 h-4 sm:w-6 sm:h-6 text-gray-600"
-                      fill="none"
-                      stroke="currentColor"
-                      viewBox="0 0 24 24"
-                    >
-                      <path
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        strokeWidth={2}
-                        d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"
-                      />
-                      <path
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        strokeWidth={2}
-                        d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"
-                      />
-                    </svg>
-                  </div>
-
-                  <h4 className="text-sm sm:text-base text-gray-700 font-semibold group-hover:text-gray-900 transition-colors text-center">
-                    {beach.coffeeShop?.[0].name}
-                  </h4>
-                  <span>
-                    <h6 className="text-sm sm:text-base">⚡☕⚡</h6>
+                <div className="text-center p-4">
+                  <h3 className="font-medium text-sm mb-1 font-primary">
+                    {item.name}
+                  </h3>
+                  <span className="text-xs text-gray-500 font-primary">
+                    Coffee Shop
                   </span>
+                  {isAd && (
+                    <span className="text-xs text-gray-400 block font-primary">
+                      Sponsored
+                    </span>
+                  )}
+                </div>
+              </a>
+            );
+          }
+
+          // Shaper
+          if ("type" in item && item.type === "shaper") {
+            const isAd = "isAd" in item && item.isAd;
+            const url =
+              "url" in item && item.url
+                ? item.url
+                : `https://www.google.com/search?q=${encodeURIComponent(
+                    `${item.name} surfboard shaper`
+                  )}`;
+
+            return (
+              <a
+                key={`shaper-${index}`}
+                href={url}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="relative aspect-video rounded-lg overflow-hidden bg-gray-100 flex items-center justify-center group"
+              >
+                <div className="text-center p-4">
+                  <h3 className="font-medium text-sm mb-1 font-primary">
+                    {item.name}
+                  </h3>
+                  <span className="text-xs text-gray-500 font-primary">
+                    Shaper
+                  </span>
+                  {isAd && (
+                    <span className="text-xs text-gray-400 block font-primary">
+                      Sponsored
+                    </span>
+                  )}
+                </div>
+              </a>
+            );
+          }
+
+          // Beer
+          if ("type" in item && item.type === "beer") {
+            const isAd = "isAd" in item && item.isAd;
+            const url =
+              "url" in item && item.url
+                ? item.url
+                : `https://www.google.com/search?q=${encodeURIComponent(
+                    `${item.name} beer`
+                  )}`;
+
+            return (
+              <a
+                key={`beer-${index}`}
+                href={url}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="relative aspect-video rounded-lg overflow-hidden bg-gray-100 flex items-center justify-center group"
+              >
+                <div className="text-center p-4">
+                  <h3 className="font-medium text-sm mb-1 font-primary">
+                    {item.name}
+                  </h3>
+                  <span className="text-xs text-gray-500 font-primary">
+                    Beer
+                  </span>
+                  {isAd && (
+                    <span className="text-xs text-gray-400 block font-primary">
+                      Sponsored
+                    </span>
+                  )}
                 </div>
               </a>
             );
@@ -76,22 +148,28 @@ function MediaGridBase({ videos, beach }: MediaGridProps) {
           // Video
           return (
             <a
-              key={"url" in item ? item.url : ""}
+              key={`video-${index}`}
               href={"url" in item ? item.url : "#"}
               target="_blank"
               rel="noopener noreferrer"
-              className="relative aspect-video rounded-lg overflow-hidden cursor-pointer group"
-              onClick={(e) => e.stopPropagation()}
+              className="relative aspect-video rounded-lg overflow-hidden group"
+              onMouseEnter={() => setHoveredIndex(index)}
+              onMouseLeave={() => setHoveredIndex(null)}
             >
-              <img
-                src={getVideoThumbnail(
-                  "url" in item ? item.url : "",
-                  "platform" in item ? item.platform : "youtube"
-                )}
-                alt={"title" in item ? item.title : item.name || "Surf video"}
-                className="w-full h-full object-cover"
+              {/* Thumbnail */}
+              <div
+                className="absolute inset-0 bg-cover bg-center"
+                style={{
+                  backgroundImage: `url(${getVideoThumbnail(
+                    "url" in item && item.url ? item.url : "",
+                    "platform" in item && item.platform
+                      ? item.platform
+                      : "youtube"
+                  )})`,
+                }}
               />
-              {/* Brand color overlay */}
+
+              {/* Overlay */}
               <div
                 className="
                 absolute inset-0 bg-[var(--color-brand)]
@@ -130,8 +208,8 @@ function MediaGridBase({ videos, beach }: MediaGridProps) {
                 group-hover:translate-y-0
               "
               >
-                <h3 className="text-white text-sm font-medium">
-                  {"title" in item ? item.title : item.name || "Watch video"}
+                <h3 className="text-white text-sm font-medium font-primary">
+                  {"title" in item ? item.title : "Watch video"}
                 </h3>
               </div>
             </a>

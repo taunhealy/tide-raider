@@ -89,7 +89,7 @@ export default function StickyForecastWidget({
             <div className="font-medium">
               {getSwellEmoji(forecast.swellHeight)} {forecast.swellHeight}m @{" "}
               {forecast.swellPeriod}s{" "}
-              {getDirectionEmoji((forecast.swellDirection + 180) % 360)}
+              {getDirectionEmoji(forecast.swellDirection)}
             </div>
           </div>
         </div>

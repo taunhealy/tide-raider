@@ -65,11 +65,11 @@ export default function RegionalSidebar({
               href="/advertising"
               className="block bg-[var(--color-bg-primary)] rounded-lg p-6 text-center hover:bg-gray-50 transition-colors border border-gray-200"
             >
-              <p className="text-small mb-2">
+              <p className="text-small mb-2 font-primary">
                 {AD_CATEGORIES[ad.category as keyof typeof AD_CATEGORIES].label}{" "}
                 in {selectedRegion}?
               </p>
-              <p className="heading-7 text-[var(--color-text-secondary)]">
+              <p className="heading-7 text-[var(--color-text-secondary)] font-primary">
                 Sponsor this space
               </p>
             </a>
@@ -83,16 +83,11 @@ export default function RegionalSidebar({
             target="_blank"
             rel="noopener noreferrer"
             className="block bg-[var(--color-bg-primary)] rounded-lg p-6 hover:shadow-md transition-shadow border border-gray-200"
-            onClick={() => {
-              fetch("/api/ads/click", {
-                method: "POST",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ adId: ad.id }),
-              }).catch(console.error);
-            }}
           >
-            <h3 className="heading-7 mb-2">{ad.title || ad.companyName}</h3>
-            <p className="text-main">
+            <h3 className="heading-7 mb-2 font-primary">
+              {ad.title || ad.companyName}
+            </h3>
+            <p className="text-main font-primary">
               {AD_CATEGORIES[ad.category as keyof typeof AD_CATEGORIES].label}
             </p>
           </a>

@@ -605,14 +605,57 @@ export default function BeachContainer({
   // Update the forecast widget section
   const [forecastSource, setForecastSource] = useState<"A" | "B">("A");
 
+  useEffect(() => {
+    // Only add parameters that have values
+    const params = new URLSearchParams();
+
+    // Only add filters that are actually selected
+    if (filters.continent.length > 0) {
+      params.set("continent", filters.continent[0]);
+    }
+
+    if (filters.country.length > 0) {
+      params.set("country", filters.country[0]);
+    }
+
+    if (filters.region.length > 0) {
+      params.set("region", filters.region[0]);
+    }
+
+    // Add other filter parameters only if they have values
+    if (filters.waveType.length > 0) {
+      params.set("waveType", filters.waveType.join(","));
+    }
+
+    if (filters.difficulty.length > 0) {
+      params.set("difficulty", filters.difficulty.toString());
+    }
+
+    // Update the URL without refreshing the page
+    const newUrl =
+      window.location.pathname +
+      (params.toString() ? `?${params.toString()}` : "");
+
+    window.history.pushState({}, "", newUrl);
+  }, [filters]);
+
   return (
     <div className="bg-[var(--color-bg-secondary)] p-6 mx-auto relative min-h-[calc(100vh-72px)] flex flex-col">
       {/* Main Layout */}
       <div className="flex flex-col lg:flex-row gap-6 lg:gap-[54px]">
         {/* Left Sidebar */}
-        {/* Blog Section */}
         <aside className="hidden lg:block lg:w-[300px] flex-shrink-0">
-          <BlogPostsSidebar posts={blogPosts} />
+          <div className="hidden lg:block">
+            <BlogPostsSidebar
+              posts={blogPosts}
+              selectedCountry={
+                filters.country.length > 0 ? filters.country[0] : undefined
+              }
+              selectedContinent={
+                filters.continent.length > 0 ? filters.continent[0] : undefined
+              }
+            />
+          </div>
           <div className="space-y-6">
             <FavouriteSurfVideosSidebar />
             <GoldSeeker />

@@ -19,7 +19,7 @@ interface ChatMessage {
   sender?: {
     id: string;
     name: string;
-    image?: string;
+    image?: string | null;
   };
 }
 

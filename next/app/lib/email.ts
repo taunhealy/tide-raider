@@ -1,6 +1,6 @@
 import { Resend } from "resend";
 import sgMail from "@sendgrid/mail";
-import { RentalRequest } from "@prisma/client";
+import { RentalItemRequest } from "@prisma/client";
 
 const resend = new Resend(process.env.RESEND_API_KEY);
 
@@ -17,7 +17,7 @@ export async function sendEmail({
 }) {
   try {
     const { data } = await resend.emails.send({
-      from: "Tide Raider <ads@tideraider.com>",
+      from: "Tide Raider <admin@tideraider.com>",
       to,
       subject,
       html,
@@ -63,9 +63,9 @@ export async function sendTrialEndingSoonEmail(
 }
 
 export async function sendRequestExpiredNotification(
-  request: RentalRequest & {
+  request: RentalItemRequest & {
     renter: { email: string };
-    board: { name: string };
+    rentalItem: { name: string };
   }
 ) {
   try {
@@ -75,9 +75,9 @@ export async function sendRequestExpiredNotification(
       subject: "Rental Request Expired",
       html: `
         <h1>Rental Request Expired</h1>
-        <p>Your rental request for the board "${request.board.name}" has expired.</p>
+        <p>Your rental request for the item "${request.rentalItem.name}" has expired.</p>
         <p>Please submit a new request if you're still interested.</p>
-        <a href="${process.env.NEXT_PUBLIC_BASE_URL}/boards/${request.boardId}">View Board</a>
+        <a href="${process.env.NEXT_PUBLIC_BASE_URL}/rentals/${request.id}">View Rental</a>
       `,
     });
     return { success: true, data };
@@ -88,9 +88,9 @@ export async function sendRequestExpiredNotification(
 }
 
 export async function sendRentalRequestEmail(
-  request: RentalRequest & {
+  request: RentalItemRequest & {
     owner: { email: string };
-    board: { name: string };
+    rentalItem: { name: string };
   }
 ) {
   try {
@@ -100,7 +100,7 @@ export async function sendRentalRequestEmail(
       subject: "New Rental Request",
       html: `
         <h1>New Rental Request</h1>
-        <p>You have received a new rental request for your board "${request.board.name}".</p>
+        <p>You have received a new rental request for your item "${request.rentalItem.name}".</p>
         <p>Rental period: ${request.startDate.toLocaleDateString()} to ${request.endDate.toLocaleDateString()}</p>
         <a href="${process.env.NEXT_PUBLIC_BASE_URL}/dashboard/rental-requests/${request.id}">View Request</a>
       `,

@@ -745,8 +745,8 @@ export default function BeachContainer({
                 </div>
 
                 {/* Wave Type Icons - Separate section above beach grid */}
-                <div className="mb-9">
-                  <div className="flex flex-wrap gap-2 sm:gap-3">
+                <div className="mb-6">
+                  <div className="flex flex-wrap gap-2">
                     {waveTypes.map((waveType) => (
                       <button
                         key={waveType}
@@ -759,7 +759,7 @@ export default function BeachContainer({
                           setFilters({ ...filters, waveType: newWaveTypes });
                         }}
                         className={`
-                          relative w-[80px] h-[80px] sm:w-[100px] sm:h-[100px] lg:w-[121px] lg:h-[121px] 
+                          relative w-[60px] h-[60px] sm:w-[70px] sm:h-[70px] lg:w-[80px] lg:h-[80px] 
                           rounded-lg overflow-hidden cursor-pointer
                           hover:opacity-90 transition-all duration-200
                           ${
@@ -779,7 +779,7 @@ export default function BeachContainer({
                         <div className="absolute inset-0 flex items-center justify-center opacity-0 hover:opacity-100 transition-opacity duration-300">
                           <div className="absolute inset-0 bg-black opacity-30"></div>
                           <div className="absolute inset-0 bg-[var(--color-tertiary)] opacity-50"></div>
-                          <span className="relative z-10 text-white text-xs sm:text-sm font-medium px-2 text-center">
+                          <span className="relative z-10 text-white text-xs font-medium px-2 text-center font-primary">
                             {waveType}
                           </span>
                         </div>

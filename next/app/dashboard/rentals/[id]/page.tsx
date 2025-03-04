@@ -7,6 +7,7 @@ import { RentalItemForm } from "@/app/components/rentals/RentalItemForm";
 import { DeleteRentalItemButton } from "@/app/components/rentals/DeleteRentalItemButton";
 import { BeachLocationsList } from "@/app/components/rentals/BeachLocationsList";
 import { RentalItemWithRelations } from "@/app/types/rentals";
+import { format } from "date-fns";
 
 export async function generateMetadata({ params }: { params: { id: string } }) {
   const rentalItem = await prisma.rentalItem.findUnique({

@@ -160,30 +160,32 @@ export async function POST(req: NextRequest) {
     }
 
     // Check if the item is available for the requested dates
-    const overlappingAvailability =
-      await prisma.rentalItemAvailability.findFirst({
-        where: {
-          rentalItemId,
-          OR: [
-            {
-              startDate: { lte: new Date(startDate) },
-              endDate: { gte: new Date(startDate) },
-            },
-            {
-              startDate: { lte: new Date(endDate) },
-              endDate: { gte: new Date(endDate) },
-            },
-            {
-              startDate: { gte: new Date(startDate) },
-              endDate: { lte: new Date(endDate) },
-            },
-          ],
-        },
-      });
+    // First, check if there's an availability record that covers the entire requested period
+    const availabilityExists = await prisma.rentalItemAvailability.findFirst({
+      where: {
+        rentalItemId,
+        startDate: { lte: new Date(startDate) },
+        endDate: { gte: new Date(endDate) },
+      },
+    });
 
-    if (overlappingAvailability) {
+    if (!availabilityExists) {
       return NextResponse.json(
         { error: "This item is not available for the selected dates" },
+        { status: 400 }
+      );
+    }
+
+    // Then check if there are any overlapping approved or pending rental requests
+    const isAvailable = await checkRentalItemAvailability(
+      rentalItemId,
+      new Date(startDate),
+      new Date(endDate)
+    );
+
+    if (!isAvailable) {
+      return NextResponse.json(
+        { error: "This item is already booked for the selected dates" },
         { status: 400 }
       );
     }
@@ -255,7 +257,7 @@ export async function POST(req: NextRequest) {
 
     try {
       // Send email notification with error handling
-      await sendRentalRequestEmail(rentalRequest);
+      await sendRentalRequestEmail(rentalRequest as any);
     } catch (emailError) {
       console.error("Email error:", emailError);
       // Continue with the request even if email fails

@@ -6,6 +6,7 @@ export class ProxyManager {
   private statsMap: Map<string, ProxyStats>;
   private readonly MAX_FAILS = 3;
   private readonly FAIL_RESET_TIME = 1000 * 60 * 30; // 30 minutes
+  private currentIndex: { [key: string]: number } = {};
 
   constructor() {
     this.proxies = [...PROXY_SERVERS];
@@ -24,35 +25,19 @@ export class ProxyManager {
   }
 
   public getProxyForRegion(region: string): ProxyConfig {
-    // Get proxies that are active and haven't failed too many times
-    const availableProxies = this.proxies.filter(
-      (p) => p.isActive && p.failCount < this.MAX_FAILS
-    );
-
-    if (availableProxies.length === 0) {
-      this.resetFailCounts();
-      throw new Error("No available proxies");
+    // Initialize index for region if it doesn't exist
+    if (!(region in this.currentIndex)) {
+      this.currentIndex[region] = 0;
     }
 
-    // Try to find a proxy in the same region first
-    const regionalProxy = availableProxies.find((p) =>
-      this.isProxyInRegion(p.location, region)
-    );
+    // Get proxy and increment index
+    const proxy = this.proxies[this.currentIndex[region]];
 
-    if (regionalProxy) {
-      regionalProxy.lastUsed = new Date();
-      return regionalProxy;
-    }
+    // Rotate to next proxy
+    this.currentIndex[region] =
+      (this.currentIndex[region] + 1) % this.proxies.length;
 
-    // If no regional proxy, get least recently used proxy
-    const leastRecentlyUsed = availableProxies.sort((a, b) => {
-      const aTime = a.lastUsed?.getTime() || 0;
-      const bTime = b.lastUsed?.getTime() || 0;
-      return aTime - bTime;
-    })[0];
-
-    leastRecentlyUsed.lastUsed = new Date();
-    return leastRecentlyUsed;
+    return proxy;
   }
 
   private isProxyInRegion(

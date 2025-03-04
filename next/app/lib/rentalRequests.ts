@@ -4,13 +4,13 @@ import { RequestStatus } from "@prisma/client";
 
 // Define the missing type
 interface CreateRentalRequestData {
-  boardId: string;
+  rentalItemId: string;
   renterId: string;
   ownerId: string;
   startDate: Date;
   endDate: Date;
   beachId: string;
-  totalCost: any; // You can make this more specific if needed
+  totalCost: any; // This could be more specific
 }
 
 export async function handleRequestExpiration() {
@@ -18,7 +18,7 @@ export async function handleRequestExpiration() {
 
   try {
     // Find expired requests
-    const expiredRequests = await prisma.rentalRequest.findMany({
+    const expiredRequests = await prisma.rentalItemRequest.findMany({
       where: {
         status: "PENDING",
         createdAt: {
@@ -41,11 +41,11 @@ export async function handleRequestExpiration() {
             name: true,
           },
         },
-        board: {
+        rentalItem: {
           select: {
             id: true,
             name: true,
-            type: true,
+            itemType: true,
           },
         },
       },
@@ -53,7 +53,7 @@ export async function handleRequestExpiration() {
 
     // Update requests in bulk
     if (expiredRequests.length > 0) {
-      await prisma.rentalRequest.updateMany({
+      await prisma.rentalItemRequest.updateMany({
         where: {
           id: {
             in: expiredRequests.map((req) => req.id),
@@ -82,11 +82,11 @@ export async function handleRequestExpiration() {
 
 // Add other request-related utility functions here
 export async function createRentalRequest(data: CreateRentalRequestData) {
-  return prisma.rentalRequest.create({
+  return prisma.rentalItemRequest.create({
     data: {
       ...data,
       expiresAt: new Date(Date.now() + 48 * 60 * 60 * 1000), // 48 hours from now
-      status: "PENDING",
+      status: "PENDING" as RequestStatus,
     },
   });
 }
@@ -96,7 +96,7 @@ export async function updateRequestStatus(
   status: RequestStatus,
   reason?: string
 ) {
-  return prisma.rentalRequest.update({
+  return prisma.rentalItemRequest.update({
     where: { id: requestId },
     data: {
       status,

@@ -16,16 +16,18 @@ import {
   getDirectionEmoji,
 } from "@/app/lib/forecastUtils";
 import gsap from "gsap";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useQueries } from "@tanstack/react-query";
 
 const FEATURED_BEACHES = [
   "jeffreys-bay",
-  "llandudno",
+  "muizenberg",
   "ponta-do-ouro",
-  "skeleton-bay",
+  "uluwatu",
+  "raglan-manu-bay",
   "cabo-ledo",
+  "skeleton-bay",
   "flame-bowls",
-  "elands-bay",
+  "llandudno",
 ];
 
 export default function HeroProduct() {
@@ -33,74 +35,70 @@ export default function HeroProduct() {
   const [sliderIndex, setSliderIndex] = useState(0);
   const [cardsPerView, setCardsPerView] = useState(1);
 
-  const beaches = beachData.filter((beach) =>
-    FEATURED_BEACHES.includes(beach.id)
-  );
+  const beaches = FEATURED_BEACHES.map((id) =>
+    beachData.find((beach) => beach.id === id)
+  ).filter((beach) => beach !== undefined) as typeof beachData;
   const currentBeach = beaches.find((b) => b.id === selectedBeachId);
 
   // Get all unique regions from featured beaches
   const regions = [...new Set(beaches.map((b) => b.region))];
   const initialRegion = regions[0];
 
-  // Fetch only the initial region's data
-  const { data: initialRegionData, isLoading: isInitialLoading } = useQuery({
-    queryKey: ["surf-conditions", initialRegion],
-    queryFn: async () => {
-      try {
-        const res = await fetch(
-          `/api/surf-conditions?region=${encodeURIComponent(initialRegion)}`
-        );
-        if (!res.ok) throw new Error(`HTTP error! status: ${res.status}`);
-        return res.json();
-      } catch (error) {
-        console.error("Error fetching surf conditions:", error);
-        return null;
-      }
-    },
-    staleTime: 60 * 1000 * 5, // 5 minutes
+  // Replace the two separate queries with a single query function
+  const fetchRegionData = async (region: string) => {
+    if (!region) return null;
+    try {
+      const res = await fetch(
+        `/api/surf-conditions?region=${encodeURIComponent(region)}`
+      );
+      if (!res.ok) throw new Error(`HTTP error! status: ${res.status}`);
+      return res.json();
+    } catch (error) {
+      console.error(`Error fetching surf conditions for ${region}:`, error);
+      return null;
+    }
+  };
+
+  // Use React Query's useQueries to fetch multiple regions efficiently
+  const regionQueries = useQueries({
+    queries: [...new Set([initialRegion, currentBeach?.region])]
+      .filter(Boolean)
+      .map((region) => ({
+        queryKey: ["surf-conditions", region],
+        queryFn: () => fetchRegionData(region as string),
+        staleTime: 60 * 1000 * 5, // 5 minutes
+        refetchOnWindowFocus: false,
+        refetchOnMount: false,
+      })),
   });
 
-  // Fetch data for other regions when needed
-  const { data: selectedRegionData, isLoading: isSelectedLoading } = useQuery({
-    queryKey: ["surf-conditions", currentBeach?.region],
-    queryFn: async () => {
-      if (!currentBeach?.region) return null;
-      try {
-        const res = await fetch(
-          `/api/surf-conditions?region=${encodeURIComponent(currentBeach.region)}`
-        );
-        if (!res.ok) throw new Error(`HTTP error! status: ${res.status}`);
-        return res.json();
-      } catch (error) {
-        console.error("Error fetching surf conditions:", error);
-        return null;
-      }
-    },
-    enabled: !!currentBeach?.region,
-    staleTime: 60 * 1000 * 5, // 5 minutes
-    refetchOnWindowFocus: false,
-    refetchOnMount: false,
-  });
-
-  // Merge data from regions
+  // Combine the data from all region queries
   const surfData = useMemo(() => {
-    return beaches.reduce(
-      (acc, beach) => {
-        if (beach.region === initialRegion) {
-          acc[beach.id] = initialRegionData || null;
-        } else if (beach.region === currentBeach?.region) {
-          acc[beach.id] = selectedRegionData || null;
-        } else {
-          acc[beach.id] = null;
+    const regionDataMap = regionQueries.reduce(
+      (acc, query, index) => {
+        const region = [
+          ...new Set([initialRegion, currentBeach?.region]),
+        ].filter(Boolean)[index];
+        if (region) {
+          acc[region as string] = query.data;
         }
         return acc;
       },
       {} as Record<string, WindData | null>
     );
-  }, [beaches, initialRegionData, selectedRegionData, currentBeach?.region]);
+
+    // Map beach IDs to their region data
+    return beaches.reduce(
+      (acc, beach) => {
+        acc[beach.id] = regionDataMap[beach.region] || null;
+        return acc;
+      },
+      {} as Record<string, WindData | null>
+    );
+  }, [beaches, regionQueries, initialRegion, currentBeach?.region]);
 
   // Update loading state
-  const isLoading = isInitialLoading || isSelectedLoading;
+  const isLoading = regionQueries.some((query) => query.isLoading);
 
   const imageRef = useRef(null);
 
@@ -220,8 +218,8 @@ export default function HeroProduct() {
                                 ${selectedBeachId === beach.id ? "bg-[var(--color-tertiary)]" : "bg-white/5 hover:bg-white/10"}
                                 flex flex-col md:block`}
                             >
-                              {/* Mobile button text */}
-                              <div className="md:hidden p-3 text-center">
+                              {/* Mobile button text - Improved centering */}
+                              <div className="md:hidden p-3 text-center flex-1 flex flex-col justify-center">
                                 <h3 className="font-primary text-sm font-medium text-gray-900">
                                   {beach.name}
                                 </h3>
@@ -421,11 +419,11 @@ export default function HeroProduct() {
                           <div className="w-full md:w-2/3 lg:w-1/2">
                             {selectedBeachId && surfData?.[selectedBeachId] && (
                               <div className="bg-white/5 backdrop-blur-sm p-2 md:p-3 lg:p-4 rounded-xl border border-white/20">
-                                <div className="gap-1.5 md:gap-2 mb-2 md:mb-3 lg:mb-4 flex items-center space-x-2">
+                                <div className="gap-2 md:gap-3 mb-1 md:mb-2 lg:mb-3 flex items-center">
                                   <span className="text-xs md:text-sm lg:text-base font-medium text-white font-primary">
                                     Today's Rating
                                   </span>
-                                  <span className="text-base md:text-lg bg-[var(--color-tertiary)] px-2.5 py-1 rounded-lg shadow-sm">
+                                  <span className="text-base md:text-lg bg-[var(--color-tertiary)] px-2 py-0.5 rounded-lg shadow-sm">
                                     {(() => {
                                       const score =
                                         getBeachScore(selectedBeachId);
@@ -439,7 +437,7 @@ export default function HeroProduct() {
                                     })()}
                                   </span>
                                 </div>
-                                <p className="text-xs md:text-sm mb-4 md:mb-6 text-white/80">
+                                <p className="text-xs md:text-sm mb-3 md:mb-4 text-white/80">
                                   {(() => {
                                     const score =
                                       getBeachScore(selectedBeachId);

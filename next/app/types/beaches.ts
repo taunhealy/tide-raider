@@ -21,6 +21,7 @@ export const WAVE_TYPES = [
   "Reef Break",
   "Point Break",
   "Beach and Reef Break",
+  "Beach and Point Break",
 ] as const;
 
 export type WaveType = (typeof WAVE_TYPES)[number];
@@ -59,7 +60,7 @@ export interface Beach {
     | "Advanced"
     | "All Levels"
     | "Expert";
-  waveType: string;
+  waveType: WaveType;
   swellSize: {
     min: number;
     max: number;
@@ -553,10 +554,10 @@ export const beachData: Beach[] = [
     region: "Western Cape",
     location: "Camps Bay",
     distanceFromCT: 7,
-    optimalWindDirections: ["SE", "SSE", "S"],
+    optimalWindDirections: ["E"],
     optimalSwellDirections: {
-      min: 157.5,
-      max: 247.5,
+      min: 200,
+      max: 245,
     },
     bestSeasons: ["winter"],
     optimalTide: "Mid",
@@ -9289,7 +9290,8 @@ export const beachData: Beach[] = [
     sharkAttack: {
       hasAttack: false,
     },
-    image: "",
+    image:
+      "https://media.tideraider.com/Leonardo_Phoenix_10_Reminiscent_of_Studio_Ghiblis_style_of_be_1.jpg",
     coordinates: {
       lat: -8.8156,
       lng: 115.0892,
@@ -9298,6 +9300,11 @@ export const beachData: Beach[] = [
       {
         url: "https://www.youtube.com/watch?v=dcPAxBJO6iY&pp=ygUUVWx1d2F0dSBCYWxpIHN1cmZpbmc%3D",
         title: "The Reality Of Surfing Uluwatu, Bali",
+        platform: "youtube",
+      },
+      {
+        url: "https://www.youtube.com/watch?v=nGwRL2Ize_E&ab_channel=SurfersofBali",
+        title: "Sweet Peaks - Uluwatu",
         platform: "youtube",
       },
     ],
@@ -10415,6 +10422,13 @@ export const beachData: Beach[] = [
       lat: 8.4097,
       lng: -83.1328,
     },
+    videos: [
+      {
+        url: "https://www.youtube.com/watch?v=8AmSwojuEMQ&ab_channel=RawSurf",
+        title: "Pavones Surfing",
+        platform: "youtube",
+      },
+    ],
   },
   {
     id: "medewi",
@@ -10673,6 +10687,13 @@ export const beachData: Beach[] = [
       lat: 61.8025, // Approximate coordinates for Húsavik on Sandoy
       lng: -6.759,
     },
+    videos: [
+      {
+        url: "https://www.youtube.com/watch?v=4sLxWD6T8P0&ab_channel=DedicationPhotography",
+        title: "Surfing in Sandoy",
+        platform: "youtube",
+      },
+    ],
   },
   {
     id: "famjin-left",
@@ -11074,8 +11095,14 @@ export const beachData: Beach[] = [
     ],
     videos: [
       {
-        url: "https://www.youtube.com/watch?v=example", // Replace with actual video if available
-        title: "Emerald Beach Surfing - North Coast NSW",
+        url: "https://www.youtube.com/watch?v=EP_jDIeZEDk&ab_channel=RossJeffery", // Replace with actual video if available
+        title: "emerald beach surf",
+        platform: "youtube",
+      },
+      {
+        url: "https://www.youtube.com/watch?v=TayKBwz3_hY&pp=ygUnRW1lcmFsZCBCZWFjaCBTdXJmaW5nIC0gTm9ydGggQ29hc3QgTlNX", // Replace with actual video if available
+        title:
+          "Surfer recounts 'scary' encounter with five-metre great white | 9 News Australia",
         platform: "youtube",
       },
     ],
@@ -11124,7 +11151,7 @@ export const beachData: Beach[] = [
     },
     videos: [
       {
-        url: "https://www.youtube.com/watch?v=Ys1w9A4DrO4",
+        url: "https://www.youtube.com/watch?v=Dm_RX1UqiCk&ab_channel=DylanBrayshaw",
         title: "Burleigh Heads - Pumping Cyclone Seth Swell",
         platform: "youtube",
       },
@@ -11157,7 +11184,7 @@ export const beachData: Beach[] = [
     description:
       "Exposed river break rated 2/5, offering consistent surf throughout the year. Works best with East groundswells meeting West or Northwest offshore winds. Features predominantly left-breaking waves where the river meets the ocean. Located at the northern end of the Gold Coast, this unique break forms at the entrance to the Nerang River and the Gold Coast Seaway. Despite its modest rating, gets crowded, especially during good conditions. Exercise caution around sharks, rip currents, rocks, and various obstacles in the water.",
     difficulty: "Intermediate", // Based on river break type
-    waveType: "River Break",
+    waveType: "Beach Break",
     swellSize: {
       min: 0.8,
       max: 2.5,
@@ -11182,7 +11209,7 @@ export const beachData: Beach[] = [
     },
     videos: [
       {
-        url: "https://www.youtube.com/watch?v=Rl7OT1xyrvk",
+        url: "https://www.youtube.com/watch?v=E9lBm6GvwfI&ab_channel=LifeintheWave",
         title: "The Spit Gold Coast - Surfing",
         platform: "youtube",
       },
@@ -11237,7 +11264,7 @@ export const beachData: Beach[] = [
     },
     videos: [
       {
-        url: "https://www.youtube.com/watch?v=Rl7OT1xyrvk",
+        url: "https://www.youtube.com/watch?v=5YbUXGb_sYI&ab_channel=SurfwithSebChadwick",
         title: "South Stradbroke Island - Gold Coast Surfing",
         platform: "youtube",
       },
@@ -11342,7 +11369,7 @@ export const beachData: Beach[] = [
     },
     videos: [
       {
-        url: "https://www.youtube.com/watch?v=example", // Replace with actual video if available
+        url: "https://www.youtube.com/watch?v=AF97zL87D10&ab_channel=SurfwithSebChadwick", // Replace with actual video if available
         title: "Surfing at Surfers Paradise - Gold Coast",
         platform: "youtube",
       },
@@ -11400,7 +11427,7 @@ export const beachData: Beach[] = [
     },
     videos: [
       {
-        url: "https://www.youtube.com/watch?v=example", // Replace with actual video if available
+        url: "https://www.youtube.com/watch?v=_yZZyje4ndU&ab_channel=SurfwithSebChadwick", // Replace with actual video if available
         title: "Surfing at Southport Main Beach - Gold Coast",
         platform: "youtube",
       },
@@ -11411,6 +11438,336 @@ export const beachData: Beach[] = [
       },
       {
         name: "Blackboard Coffee", // Another local coffee spot
+      },
+    ],
+  },
+  {
+    id: "el-zunzal",
+    name: "El Zunzal",
+    continent: "North America",
+    country: "El Salvador",
+    region: "Costa del Balsamo",
+    location: "Costa del Balsamo",
+    distanceFromCT: 0, // Not applicable
+    optimalWindDirections: ["NNE", "N"],
+    optimalSwellDirections: {
+      min: 202.5, // SSW
+      max: 225, // SSW
+      cardinal: "SSW",
+    },
+    bestSeasons: ["all"], // No specific season mentioned
+    optimalTide: "Low", // "Best around low tide"
+    description:
+      "Exposed point break rated 3/5, offering consistent surf throughout the year. Works best with South-southwest groundswells meeting North-northeast offshore winds. Located along the Costa del Balsamo coastline, this break receives primarily distant groundswells. Best performance during low tide. Despite its quality, can get crowded when conditions align. Exercise caution around rocks in the lineup and along the shore.",
+    difficulty: "Intermediate", // Based on point break type and 3/5 rating
+    waveType: "Point Break",
+    swellSize: {
+      min: 1.0,
+      max: 3.0,
+    },
+    idealSwellPeriod: {
+      min: 12,
+      max: 16,
+    },
+    waterTemp: {
+      summer: 29, // Based on current reading of 29.0°C
+      winter: 27,
+    },
+    hazards: ["Rocks", "Crowds"],
+    crimeLevel: "Medium", // El Salvador generally has medium crime levels
+    sharkAttack: {
+      hasAttack: false,
+    },
+    image: "",
+    coordinates: {
+      lat: 13.4917, // Approximate coordinates for El Zunzal
+      lng: -89.4417,
+    },
+    videos: [
+      {
+        url: "https://www.youtube.com/watch?v=ed0EYodRfYo&ab_channel=DanHarmon", // Replace with actual video if available
+        title:
+          "Surfing in El Salvador (Surf City) || What’s it Actually Like!?",
+        platform: "youtube",
+      },
+    ],
+    coffeeShop: [
+      {
+        name: "Zunzal Beach Cafe", // Local cafe near El Zunzal
+      },
+    ],
+  },
+  {
+    id: "punta-mango",
+    name: "Punta Mango",
+    continent: "North America",
+    country: "El Salvador",
+    region: "Costa del Balsamo",
+    location: "Costa del Balsamo",
+    distanceFromCT: 0, // Not applicable
+    optimalWindDirections: ["NNW", "N"],
+    optimalSwellDirections: {
+      min: 168.75, // S
+      max: 191.25, // S
+      cardinal: "S",
+    },
+    bestSeasons: ["all"], // No specific season mentioned
+    optimalTide: "All", // No specific tide mentioned
+    description:
+      "Exposed point break rated 2/5, offering dependable surf throughout the year. Works best with South groundswells meeting North-northwest offshore winds. Located along the Costa del Balsamo coastline, this break receives primarily distant groundswells. One of the less crowded spots in El Salvador, making it a good option for those seeking to avoid crowds. Exercise caution around rocks in the lineup and along the shore.",
+    difficulty: "Intermediate", // Based on point break type
+    waveType: "Point Break",
+    swellSize: {
+      min: 1.0,
+      max: 3.0,
+    },
+    idealSwellPeriod: {
+      min: 12,
+      max: 16,
+    },
+    waterTemp: {
+      summer: 30, // Based on current reading of 29.5°C
+      winter: 27,
+    },
+    hazards: ["Rocks"],
+    crimeLevel: "Medium", // El Salvador generally has medium crime levels
+    sharkAttack: {
+      hasAttack: false,
+    },
+    image: "",
+    coordinates: {
+      lat: 13.4333, // Approximate coordinates for Punta Mango
+      lng: -88.3333,
+    },
+    videos: [
+      {
+        url: "https://www.youtube.com/watch?v=jZoKbXl4acA&ab_channel=OSCAR", // Replace with actual video if available
+        title: "Surfing Punta Mango - El Salvador",
+        platform: "youtube",
+      },
+    ],
+    coffeeShop: [
+      {
+        name: "Mango Point Cafe", // Local cafe near Punta Mango
+      },
+    ],
+  },
+  {
+    id: "las-flores",
+    name: "Las Flores",
+    continent: "North America",
+    country: "El Salvador",
+    region: "Costa del Balsamo",
+    location: "Costa del Balsamo",
+    distanceFromCT: 0, // Not applicable
+    optimalWindDirections: ["N"],
+    optimalSwellDirections: {
+      min: 202.5, // SSW
+      max: 225, // SSW
+      cardinal: "SSW",
+    },
+    bestSeasons: ["all"], // No specific season mentioned
+    optimalTide: "All", // "The quality of the surf isn't affected by the tide"
+    description:
+      "Exposed beach and point break rated 3/5, offering fairly consistent surf throughout the year. Works best with South-southwest groundswells meeting North offshore winds, with some shelter from west winds. Groundswells are more common than windswells. Features predominantly left-breaking waves. Located along the Costa del Balsamo coastline in El Salvador, this break offers quality waves without the crowds, making it a hidden gem for those in the know. Exercise caution around dangerous rip currents in the area.",
+    difficulty: "Intermediate", // Based on beach and point break type and 3/5 rating
+    waveType: "Beach and Point Break",
+    swellSize: {
+      min: 1.0,
+      max: 3.5,
+    },
+    idealSwellPeriod: {
+      min: 12,
+      max: 16,
+    },
+    waterTemp: {
+      summer: 30, // Based on current reading of 29.5°C
+      winter: 27,
+    },
+    hazards: ["Rip currents"],
+    crimeLevel: "Medium", // El Salvador generally has medium crime levels
+    sharkAttack: {
+      hasAttack: false,
+    },
+    image: "",
+    coordinates: {
+      lat: 13.4917, // Approximate coordinates for Las Flores
+      lng: -89.3833,
+    },
+    videos: [
+      {
+        url: "https://www.youtube.com/watch?v=jiIGy2gQiGE&ab_channel=ShaneReynolds", // Replace with actual video if available
+        title: "Surfing Las Flores - El Salvador",
+        platform: "youtube",
+      },
+    ],
+    coffeeShop: [
+      {
+        name: "Flores Beach Cafe", // Local cafe near Las Flores
+      },
+    ],
+  },
+  {
+    id: "el-zonte",
+    name: "El Zonte",
+    continent: "North America",
+    country: "El Salvador",
+    region: "Costa del Balsamo",
+    location: "Costa del Balsamo",
+    distanceFromCT: 0, // Not applicable
+    optimalWindDirections: ["NNE"],
+    optimalSwellDirections: {
+      min: 202.5, // SSW
+      max: 225, // SSW
+      cardinal: "SSW",
+    },
+    bestSeasons: ["all"], // No specific season mentioned
+    optimalTide: "High", // "Best around high tide when the tide is rising"
+    description:
+      "Exposed reef, point and rivermouth break rated 3/5, offering very consistent surf throughout the year. Works best with South-southwest groundswells meeting North-northeast offshore winds. Most of the surf here comes from groundswells. Features a left-hand reef break. Located along the Costa del Balsamo coastline in El Salvador, this diverse break performs best around high tide when the tide is rising. Despite its quality, can get quite busy when conditions align. Exercise caution around rip currents and rocks in the lineup and along the shore.",
+    difficulty: "Intermediate", // Based on the complex break type and 3/5 rating
+    waveType: "Reef Break",
+    swellSize: {
+      min: 1.0,
+      max: 3.5,
+    },
+    idealSwellPeriod: {
+      min: 12,
+      max: 16,
+    },
+    waterTemp: {
+      summer: 29, // Based on current reading of 28.9°C
+      winter: 27,
+    },
+    hazards: ["Rip currents", "Rocks", "Crowds"],
+    crimeLevel: "Medium", // El Salvador generally has medium crime levels
+    sharkAttack: {
+      hasAttack: false,
+    },
+    image: "",
+    coordinates: {
+      lat: 13.4944, // Approximate coordinates for El Zonte
+      lng: -89.4444,
+    },
+    videos: [
+      {
+        url: "https://www.youtube.com/watch?v=RjSN47ejLF4&ab_channel=SurfersofPanama", // Replace with actual video if available
+        title: "Surfing El Zonte - El Salvador",
+        platform: "youtube",
+      },
+    ],
+    coffeeShop: [
+      {
+        name: "Zonte Point Cafe", // Local cafe near El Zonte
+      },
+    ],
+  },
+  {
+    id: "barra-beach",
+    name: "Barra Beach",
+    continent: "Africa",
+    country: "Mozambique",
+    region: "Inhambane Province",
+    location: "Inhambane Province",
+    distanceFromCT: 0, // Not applicable
+    optimalWindDirections: ["SSW"],
+    optimalSwellDirections: {
+      min: 123.75, // SE
+      max: 146.25, // SE
+      cardinal: "SE",
+    },
+    bestSeasons: ["winter"], // "Winter is the favoured time of year for surfing here"
+    optimalTide: "Low", // "Best around low tide"
+    description:
+      "Quite exposed sandbar beach break rated 4/5, offering inconsistent surf with winter being the favored season. Works best with Southeast swells meeting South-southwest offshore winds. Receives a mix of groundswells and windswells. Features predominantly right-breaking waves. Located in Inhambane Province, Mozambique, this high-quality break performs best around low tide. Despite its quality, rarely gets crowded, offering a peaceful surfing experience. Exercise caution around sharks in the area.",
+    difficulty: "Intermediate", // Based on sandbar type and 4/5 rating
+    waveType: "Beach Break",
+    swellSize: {
+      min: 1.0,
+      max: 3.5,
+    },
+    idealSwellPeriod: {
+      min: 10,
+      max: 14,
+    },
+    waterTemp: {
+      summer: 29, // Based on current reading of 28.3°C
+      winter: 24, // Estimated winter temp for Mozambique
+    },
+    hazards: ["Sharks"],
+    crimeLevel: "Medium", // Mozambique generally has medium crime levels
+    sharkAttack: {
+      hasAttack: true, // Mozambique has shark activity
+    },
+    image: "",
+    coordinates: {
+      lat: -23.7969, // Approximate coordinates for Barra Beach, Inhambane
+      lng: 35.5444,
+    },
+    videos: [
+      {
+        url: "https://www.youtube.com/watch?v=OwRgAlCYQRE&ab_channel=Badgertales%F0%9F%A6%A1", // Replace with actual video if available
+        title: "Surfing Barra Beach - Mozambique",
+        platform: "youtube",
+      },
+    ],
+  },
+  {
+    id: "raglan-manu-bay",
+    name: "Manu Bay, Raglan",
+    continent: "Oceania",
+    country: "New Zealand",
+    region: "Waikato",
+    location: "Raglan",
+    distanceFromCT: 0, // Not applicable
+    optimalWindDirections: ["SE"],
+    optimalSwellDirections: {
+      min: 213.75, // SW
+      max: 236.25, // SW
+      cardinal: "SW",
+    },
+    bestSeasons: ["all"], // "can work at any time of the year"
+    optimalTide: "Low", // "Best around low tide"
+    description:
+      "Quite exposed point break rated 5/5, offering fairly consistent surf throughout the year. Works best with Southwest groundswells meeting Southeast offshore winds, though waves can be good even in light onshore conditions. Features predominantly left-breaking waves. Located on New Zealand's North Island west coast, this world-class break is one of the country's most famous left-hand point breaks, offering long rides when conditions align. Best performance around low tide. Can get crowded during optimal conditions. Exercise caution around rocks and respect locals in the lineup.",
+    difficulty: "Advanced", // Based on point break type and 5/5 rating
+    waveType: "Point Break",
+    swellSize: {
+      min: 1.5,
+      max: 4.0,
+    },
+    idealSwellPeriod: {
+      min: 10,
+      max: 16,
+    },
+    waterTemp: {
+      summer: 21, // Based on current reading of 21.4°C
+      winter: 16, // Estimated winter temp for NZ west coast
+    },
+    hazards: ["Rocks", "Localism", "Crowds"],
+    crimeLevel: "Low", // New Zealand generally has low crime levels
+    sharkAttack: {
+      hasAttack: false, // Shark attacks are rare in this area
+    },
+    image:
+      "https://media.tideraider.com/Leonardo_Phoenix_10_Reminiscent_of_Studio_Ghiblis_style_of_be_3.jpg",
+    coordinates: {
+      lat: -37.8274, // Coordinates for Manu Bay, Raglan
+      lng: 174.8019,
+    },
+    videos: [
+      {
+        url: "https://www.youtube.com/watch?v=_cbsyUritIk&ab_channel=NikHazell", // Actual video of Manu Bay
+        title: "Surfing Manu Bay - Raglan, New Zealand",
+        platform: "youtube",
+      },
+    ],
+    coffeeShop: [
+      {
+        name: "Raglan Roast", // Popular coffee shop in Raglan
+      },
+      {
+        name: "The Shack", // Another local cafe
       },
     ],
   },

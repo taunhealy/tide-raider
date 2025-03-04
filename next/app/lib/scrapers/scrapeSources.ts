@@ -145,6 +145,13 @@ export const REGION_CONFIGS: RegionSourceConfig[] = [
     },
   },
   {
+    region: "Waikato",
+    sourceA: {
+      url: "https://www.windfinder.com/forecast/raglan_waikato_new_zealand",
+      scraper: scraperA,
+    },
+  },
+  {
     region: "San Salvador",
     sourceA: {
       url: "https://www.windfinder.com/forecast/san_salvador_san_salvador_el_salvador",
@@ -152,9 +159,72 @@ export const REGION_CONFIGS: RegionSourceConfig[] = [
     },
   },
   {
+    region: "Costa del Balsamo",
+    sourceA: {
+      url: "https://www.windfinder.com/forecast/el_zonte",
+      scraper: scraperA,
+    },
+  },
+  {
     region: "Chicama",
     sourceA: {
       url: "https://www.windfinder.com/forecast/chicama",
+      scraper: scraperA,
+    },
+  },
+  {
+    region: "Andalucia",
+    sourceA: {
+      url: "https://www.windfinder.com/forecast/fuentes_de_andalucia",
+      scraper: scraperA,
+    },
+  },
+  {
+    region: "Granada",
+    sourceA: {
+      url: "https://www.windfinder.com/forecast/paripé",
+      scraper: scraperA,
+    },
+  },
+  {
+    region: "California",
+    sourceA: {
+      url: "https://www.windfinder.com/forecast/california_maryland_usa",
+      scraper: scraperA,
+    },
+  },
+  {
+    region: "New South Wales",
+    sourceA: {
+      url: "https://www.windfinder.com/forecast/bondi_beach",
+      scraper: scraperA,
+    },
+  },
+  {
+    region: "Scotland",
+    sourceA: {
+      url: "https://www.windfinder.com/forecast/oban_airport",
+      scraper: scraperA,
+    },
+  },
+  {
+    region: "Suðuroy",
+    sourceA: {
+      url: "https://www.windfinder.com/forecast/vagur_suduroy_faroe_islands",
+      scraper: scraperA,
+    },
+  },
+  {
+    region: "Streymoy",
+    sourceA: {
+      url: "https://www.windfinder.com/forecast/torshavn",
+      scraper: scraperA,
+    },
+  },
+  {
+    region: "Sandoy",
+    sourceA: {
+      url: "https://www.windfinder.com/forecast/kollafjordhur_streymoy_faroe_islands",
       scraper: scraperA,
     },
   },

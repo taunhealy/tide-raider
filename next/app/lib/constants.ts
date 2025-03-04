@@ -32,6 +32,7 @@ export const WAVE_TYPE_ICONS = {
   "Point Break": "/images/wave-types/point-break.jpg",
   "Reef Break": "/images/wave-types/reef-break.jpg",
   "Beach and Reef Break": "/images/wave-types/beach-reef-break.jpg",
+  "Beach and Point Break": "https://media.tideraider.com/wave-type-beach-point.jpg",
 } as const;
 
 export type WaveType = keyof typeof WAVE_TYPE_ICONS;

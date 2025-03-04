@@ -20,13 +20,13 @@ export function RequestDetails({ request }: RequestDetailsProps) {
   return (
     <div className="bg-white rounded-lg shadow-sm p-6 my-4 font-primary">
       <div className="flex flex-col md:flex-row gap-6">
-        {/* Board Image */}
+        {/* Item Image */}
         <div className="w-full md:w-1/3">
-          {request.board?.thumbnail ? (
+          {request.rentalItem?.thumbnail ? (
             <div className="relative h-48 w-full rounded-lg overflow-hidden">
               <Image
-                src={request.board.thumbnail}
-                alt={request.board?.name || "Board"}
+                src={request.rentalItem.thumbnail}
+                alt={request.rentalItem?.name || "Rental Item"}
                 fill
                 className="object-cover"
               />
@@ -41,7 +41,7 @@ export function RequestDetails({ request }: RequestDetailsProps) {
         {/* Request Details */}
         <div className="w-full md:w-2/3">
           <h2 className="text-xl font-semibold mb-4">
-            {request.board?.name || "Board Rental Request"}
+            {request.rentalItem?.name || "Rental Request"}
           </h2>
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">

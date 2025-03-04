@@ -265,6 +265,53 @@ async function getForecastsForRegion(region: ValidRegion) {
   return await scraperA(html, region);
 }
 
+// Add this function to implement request deduplication
+async function dedupedEnsureGoodRatings(
+  region: string,
+  date: Date,
+  conditions: any
+) {
+  const lockKey = `rating-lock:${region}:${date.toISOString().split("T")[0]}`;
+
+  // Try to acquire lock
+  const acquired = await redis.set(lockKey, "1", {
+    nx: true, // Only set if key doesn't exist (lowercase)
+    ex: 60, // Expire after 60 seconds (lowercase)
+  });
+
+  // If we didn't get the lock, another process is already handling it
+  if (!acquired) {
+    console.log(
+      `🔒 Rating generation for ${region} on ${date.toISOString().split("T")[0]} already in progress`
+    );
+    return;
+  }
+
+  try {
+    // Check if ratings exist for this date/region
+    const existingRatings = await prisma.beachGoodRating.count({
+      where: {
+        date: date,
+        region: region,
+      },
+    });
+
+    if (existingRatings === 0) {
+      console.log(
+        `🔄 No ratings found for ${region} on ${date}, regenerating...`
+      );
+      await storeGoodBeachRatings(conditions, region, date);
+    } else {
+      console.log(`✅ Ratings already exist for ${region} on ${date}`);
+    }
+  } catch (error) {
+    console.error("Rating ensure check failed:", error);
+  } finally {
+    // Release the lock when done
+    await redis.del(lockKey);
+  }
+}
+
 export async function GET(request: Request) {
   const { searchParams } = new URL(request.url);
   const region = searchParams.get("region") as ValidRegion;
@@ -286,6 +333,10 @@ export async function GET(request: Request) {
         { status: 404 }
       );
     }
+
+    // Use the deduped version instead
+    await dedupedEnsureGoodRatings(region, conditions.date, conditions);
+
     return NextResponse.json(conditions);
   } catch (error) {
     console.error("Detailed error in GET route:", error);
@@ -293,26 +344,5 @@ export async function GET(request: Request) {
       { error: "Failed to fetch conditions" },
       { status: 500 }
     );
-  }
-}
-
-async function ensureGoodRatings(region: string, date: Date, conditions: any) {
-  try {
-    // Check if ratings exist for this date/region
-    const existingRatings = await prisma.beachGoodRating.count({
-      where: {
-        date: date,
-        region: region,
-      },
-    });
-
-    if (existingRatings === 0) {
-      console.log(
-        `🔄 No ratings found for ${region} on ${date}, regenerating...`
-      );
-      await storeGoodBeachRatings(conditions.forecast, region, date);
-    }
-  } catch (error) {
-    console.error("Rating ensure check failed:", error);
   }
 }

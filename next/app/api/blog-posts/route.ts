@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createClient } from "next-sanity";
-import { HARDCODED_COUNTRIES } from "@/app/lib/countries";
+import { HARDCODED_COUNTRIES } from "@/lib/location/countries/constants";
 
 const client = createClient({
   projectId: process.env.NEXT_PUBLIC_SANITY_PROJECT_ID,

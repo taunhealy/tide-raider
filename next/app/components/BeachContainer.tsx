@@ -24,12 +24,12 @@ import {
   X,
 } from "lucide-react";
 import Insights from "./Insights";
-import { INITIAL_FILTERS } from "@/app/lib/constants";
+import { INITIAL_FILTERS } from "@/lib/constants";
 import RegionFilter from "./RegionFilter";
 import SearchBar from "./SearchBar";
-import { WaveType } from "@/app/lib/constants";
+import { WaveType } from "@/lib/constants";
 import Image from "next/image";
-import { WAVE_TYPE_ICONS, DEFAULT_PROFILE_IMAGE } from "@/app/lib/constants";
+import { WAVE_TYPE_ICONS, DEFAULT_PROFILE_IMAGE } from "@/lib/constants";
 import { useSearchParams } from "next/navigation";
 import BlogPostsSidebar from "./BlogPostsSidebar";
 import GoldSeeker from "./GoldSeeker";

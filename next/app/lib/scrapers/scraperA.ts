@@ -1,9 +1,9 @@
 import puppeteerCore from "puppeteer-core";
 import chromium from "@sparticuz/chromium";
 import { WindData } from "../../types/wind";
-import { USER_AGENTS } from "@/app/lib/constants/userAgents";
-import { ProxyManager } from "../proxy/proxyManager";
-import { ProxyConfig } from "../proxy/types";
+import { USER_AGENTS } from "@/app/lib/proxy/userAgents";
+import { ProxyManager } from "@/app/lib/proxy/proxyManager";
+import { ProxyConfig } from "@/app/lib/proxy/types";
 import { createHash } from "crypto";
 
 // Add at the top of the file

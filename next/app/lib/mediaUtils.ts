@@ -67,7 +67,9 @@ export function getMediaGridItems(
       isAd: true,
       adId: coffeeAd.id,
     });
-    shownAdClientIds.add(coffeeAd.userId);
+    if (coffeeAd.userId) {
+      shownAdClientIds.add(coffeeAd.userId);
+    }
   } else if (coffeeShops?.length > 0) {
     // Use a regular coffee shop
     items.push({
@@ -87,7 +89,9 @@ export function getMediaGridItems(
       isAd: true,
       adId: shaperAd.id,
     });
-    shownAdClientIds.add(shaperAd.userId);
+    if (shaperAd.userId) {
+      shownAdClientIds.add(shaperAd.userId);
+    }
   } else if (beach.shaper && beach.shaper.length > 0) {
     // Use a regular shaper
     items.push({
@@ -108,7 +112,9 @@ export function getMediaGridItems(
       isAd: true,
       adId: beerAd.id,
     });
-    shownAdClientIds.add(beerAd.userId);
+    if (beerAd.userId) {
+      shownAdClientIds.add(beerAd.userId);
+    }
   } else if (beach.beer && beach.beer.length > 0) {
     // Use a regular beer
     items.push({

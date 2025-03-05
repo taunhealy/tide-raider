@@ -11,7 +11,7 @@ import {
   DEFAULT_PROFILE_IMAGE,
   WAVE_TYPE_ICONS,
   WaveType,
-} from "@/app/lib/constants";
+} from "@/lib/constants";
 
 interface BeachDetailsModalProps {
   beach: Beach;

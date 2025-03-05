@@ -7,7 +7,7 @@ import {
   WAVE_TYPE_ICONS,
   WaveType,
   DEFAULT_PROFILE_IMAGE,
-} from "@/app/lib/constants";
+} from "@/lib/constants";
 import Image from "next/image";
 import { ChevronDown } from "lucide-react";
 import { Button } from "@/app/components/ui/Button";

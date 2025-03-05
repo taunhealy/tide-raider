@@ -1,7 +1,7 @@
 "use client";
 
 import { Ad } from "@/app/types/ads";
-import { AD_CATEGORIES } from "@/app/lib/constants";
+import { AD_CATEGORIES } from "@/app/lib/advertising/constants";
 import { format } from "date-fns";
 
 interface AdCardProps {
@@ -24,7 +24,7 @@ export function AdCard({ ad }: AdCardProps) {
           />
         </div>
       ) : (
-        <div className="aspect-video bg-gradient-to-r from-blue-500 to-indigo-600 flex items-center justify-center">
+        <div className="aspect-video bg-gradient-to-r from-blue-500 to-black flex items-center justify-center">
           <span className="text-white font-bold text-xl">{ad.companyName}</span>
         </div>
       )}
@@ -39,7 +39,7 @@ export function AdCard({ ad }: AdCardProps) {
               {category?.label || ad.category}
             </p>
           </div>
-          <span className="bg-blue-100 text-blue-800 text-xs px-2 py-1 rounded">
+          <span className="bg-blue-100 text-black text-xs px-2 py-1 rounded">
             {ad.regionId}
           </span>
         </div>
@@ -55,7 +55,7 @@ export function AdCard({ ad }: AdCardProps) {
               href={ad.linkUrl}
               target="_blank"
               rel="noopener noreferrer"
-              className="text-blue-600 hover:underline"
+              className="text-black hover:underline"
               onClick={(e) => e.stopPropagation()}
             >
               {ad.linkUrl}

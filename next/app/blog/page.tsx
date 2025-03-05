@@ -39,7 +39,8 @@ const blogPageQuery = groq`{
       "trip": trip->{
         country,
         region
-      }
+      },
+      countries
     },
     "allCategories": *[_type == "postCategory"] {
       _id,

@@ -290,7 +290,7 @@ export default async function RentalRequestPage({
             <div className="space-y-4">
               <div className="flex items-start">
                 <div className="flex flex-col items-center mr-4">
-                  <div className="bg-blue-500 rounded-full h-4 w-4"></div>
+                  <div className="bg-black rounded-full h-4 w-4"></div>
                   <div className="h-full w-0.5 bg-gray-200"></div>
                 </div>
                 <div>
@@ -312,7 +312,7 @@ export default async function RentalRequestPage({
                             ? "bg-red-500"
                             : request.status === "CANCELLED"
                               ? "bg-gray-500"
-                              : "bg-blue-500"
+                              : "bg-black"
                       }`}
                     ></div>
                     <div className="h-full w-0.5 bg-gray-200"></div>

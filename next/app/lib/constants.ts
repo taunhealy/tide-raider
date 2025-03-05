@@ -59,55 +59,8 @@ export const STORY_CATEGORIES = [
   "Great Surf Camps",
   "Surf Vlog",
   "Surf Photography",
-  "Storm Alert"
+  "Storm Alert",
 ];
 
 export type StoryCategory = (typeof STORY_CATEGORIES)[number];
 
-export const GOOGLE_ADS_CONFIG = {
-  dailyBudget: 23, // Combined daily budget from all contributions
-  keywords: [
-    "surfing south africa",
-    "surf spots sa",
-    "learn to surf",
-    "surf gear",
-    "surf equipment",
-    "surf lessons",
-    "surf camps",
-    "surfboard shapers",
-    "4x4 surf spots",
-    "surf forecast",
-    "surf travel",
-    "surf travel south africa",
-    "surf spots cape town",
-    "surf spots transkei",
-  ],
-  location: "South Africa",
-  language: "en",
-} as const;
-
-export const AD_CATEGORIES = {
-  SURF_CAMP: {
-    id: "surf_camp",
-    label: "Surf Camp",
-    monthlyPrice: 500,
-    fields: ["title", "websiteUrl"],
-    adPosition: "sidebar",
-  },
-  SHAPER: {
-    id: "shaper",
-    label: "Surfboard Shaper",
-    monthlyPrice: 250,
-    fields: ["title", "websiteUrl"],
-    adPosition: "sidebar",
-  },
-  BEER: {
-    id: "beer",
-    label: "Beer",
-    monthlyPrice: 500,
-    fields: ["title", "websiteUrl"],
-    adPosition: "sidebar",
-  },
-} as const;
-
-export type AdCategory = keyof typeof AD_CATEGORIES;

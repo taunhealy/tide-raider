@@ -8,6 +8,7 @@ import { Beach } from "@/app/types/beaches";
 import { useSession } from "next-auth/react";
 import { Ad } from "@/app/types/ads";
 import { useQuery } from "@tanstack/react-query";
+import { AD_CATEGORIES } from "@/app/lib/advertising/constants";
 
 interface MediaGridProps {
   videos?: { url: string; title: string; platform: "youtube" | "vimeo" }[];
@@ -38,7 +39,7 @@ function MediaGridBase({ videos, beach }: MediaGridProps) {
 
   return (
     <>
-      <div className="grid grid-cols-2 gap-2 mt-4">
+      <div className="grid grid-cols-2 gap-2 mt-2">
         {items.map((item, index) => {
           // Coffee Shop
           if ("type" in item && item.type === "coffeeShop") {
@@ -59,11 +60,11 @@ function MediaGridBase({ videos, beach }: MediaGridProps) {
                 className="relative aspect-video rounded-lg overflow-hidden bg-gray-100 flex items-center justify-center group"
               >
                 <div className="text-center p-4">
-                  <h3 className="font-medium text-sm mb-1 font-primary">
+                  <h3 className="font-medium text-sm mb-0.5 font-primary">
                     {item.name}
                   </h3>
                   <span className="text-xs text-gray-500 font-primary">
-                    Coffee Shop
+                    {AD_CATEGORIES.COFFEE_SHOP.emoji} Coffee Shop
                   </span>
                   {isAd && (
                     <span className="text-xs text-gray-400 block font-primary">
@@ -94,11 +95,11 @@ function MediaGridBase({ videos, beach }: MediaGridProps) {
                 className="relative aspect-video rounded-lg overflow-hidden bg-gray-100 flex items-center justify-center group"
               >
                 <div className="text-center p-4">
-                  <h3 className="font-medium text-sm mb-1 font-primary">
+                  <h3 className="font-medium text-sm mb-0.5 font-primary">
                     {item.name}
                   </h3>
                   <span className="text-xs text-gray-500 font-primary">
-                    Shaper
+                    {AD_CATEGORIES.SHAPER.emoji} Shaper
                   </span>
                   {isAd && (
                     <span className="text-xs text-gray-400 block font-primary">
@@ -129,11 +130,11 @@ function MediaGridBase({ videos, beach }: MediaGridProps) {
                 className="relative aspect-video rounded-lg overflow-hidden bg-gray-100 flex items-center justify-center group"
               >
                 <div className="text-center p-4">
-                  <h3 className="font-medium text-sm mb-1 font-primary">
+                  <h3 className="font-medium text-sm mb-0.5 font-primary">
                     {item.name}
                   </h3>
                   <span className="text-xs text-gray-500 font-primary">
-                    Beer
+                    {AD_CATEGORIES.BEER.emoji} Beer
                   </span>
                   {isAd && (
                     <span className="text-xs text-gray-400 block font-primary">

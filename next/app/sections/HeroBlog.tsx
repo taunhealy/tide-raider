@@ -31,6 +31,7 @@ interface HeroPost
     | "publishedAt"
     | "description"
     | "categories"
+    | "countries"
   > {
   hoverImage: any; // Additional field specific to HeroBlog
   trip?: Trip;
@@ -192,21 +193,13 @@ export default function Blog({ data }: BlogProps) {
                           alt={post.title || "Blog post image"}
                           className="w-full h-full object-cover transition-transform duration-300"
                         />
-                        {post.trip &&
-                          (post.trip.country || post.trip.region) && (
-                            <div className="absolute top-4 right-4 flex gap-2 text-xs text-white z-20">
-                              {post.trip.country && (
-                                <span className="font-primary bg-black/50 px-3 py-1 rounded-full backdrop-blur-sm">
-                                  {post.trip.country}
-                                </span>
-                              )}
-                              {post.trip.region && !post.trip.country && (
-                                <span className="font-primary bg-black/50 px-3 py-1 rounded-full backdrop-blur-sm">
-                                  {post.trip.region}
-                                </span>
-                              )}
-                            </div>
-                          )}
+                        {post.countries && post.countries.length > 0 && (
+                          <div className="absolute top-4 right-4 flex gap-2 text-xs text-white z-20">
+                            <span className="font-primary bg-black/50 px-3 py-1 rounded-full backdrop-blur-sm">
+                              {post.countries[0]}
+                            </span>
+                          </div>
+                        )}
                       </>
                     )}
 

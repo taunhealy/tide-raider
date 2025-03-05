@@ -21,7 +21,7 @@ const getBlogPosts = cache(async () => {
 // Cache the ads fetch
 const getActiveAds = cache(async () => {
   try {
-    const ads = await prisma.adRequest.findMany({
+    const ads = await prisma.ad.findMany({
       where: {
         status: "active",
         endDate: {
@@ -30,24 +30,29 @@ const getActiveAds = cache(async () => {
       },
       select: {
         id: true,
+        requestId: true,
+        createdAt: true,
+        updatedAt: true,
         category: true,
         companyName: true,
         imageUrl: true,
         linkUrl: true,
         title: true,
-        region: true,
+        regionId: true,
+        region: {
+          select: { name: true },
+        },
         startDate: true,
         endDate: true,
         status: true,
-        categoryData: true,
-        yearlyPrice: true,
-        googleAdsContribution: true,
+        targetedBeaches: true,
+        userId: true,
       },
     });
     return ads.map((ad) => ({
       ...ad,
       isAd: true as const,
-      region: typeof ad.region === "object" ? ad.region.name : ad.region,
+      region: ad.region.name,
     }));
   } catch (error) {
     console.error("Ads fetch error:", error);

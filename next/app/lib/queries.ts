@@ -10,6 +10,7 @@ const postFields = groq`
   },
   publishedAt,
   description,
+  countries,
   categories[]-> {
     title,
     "slug": slug.current
@@ -117,6 +118,7 @@ export const blogListingQuery = groq`{
 export const postQuery = groq`*[_type == "post" && defined(slug.current) && slug.current == $slug][0]{
   ${postFields},
   "slug": slug.current,
+  countries,
   content[]{
     ...,
     _type,
@@ -313,3 +315,28 @@ export const blogSidebarQuery = groq`{
     }
   }
 }`;
+
+// Query for posts by category slug
+export const postsByCategorySlugQuery = groq`
+*[_type == "post" && references(*[_type == "postCategory" && slug.current == $categorySlug]._id)] {
+  _id,
+  title,
+  "slug": slug.current,
+  mainImage {
+    ...,
+    asset->
+  },
+  publishedAt,
+  description,
+  categories[]-> {
+    title,
+    "slug": slug.current
+  },
+  "trip": trip->{
+    title,
+    country,
+    region,
+    destination
+  }
+} | order(publishedAt desc)
+`;

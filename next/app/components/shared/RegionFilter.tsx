@@ -74,7 +74,7 @@ export function RegionFilter({
           onClick={() => onRegionChange(region.id)}
           className={`px-4 py-1 rounded-full text-sm transition-colors ${
             selectedRegion === region.id
-              ? "bg-blue-600 text-white"
+              ? "bg-black text-white"
               : "bg-gray-100 hover:bg-gray-200 text-gray-800"
           }`}
         >

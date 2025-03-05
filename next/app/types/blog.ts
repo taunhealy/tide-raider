@@ -96,6 +96,7 @@ export interface Post {
   sectionImages?: SectionImage[];
   country?: string;
   region?: string;
+  countries: string[];
 }
 
 export interface ContentSection {

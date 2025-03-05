@@ -96,7 +96,7 @@ export function RequestChat({
               <div
                 className={`max-w-[80%] rounded-lg p-3 ${
                   message.senderId === session?.user?.id
-                    ? "bg-blue-100 text-blue-900"
+                    ? "bg-blue-100 text-black"
                     : "bg-gray-100"
                 }`}
               >

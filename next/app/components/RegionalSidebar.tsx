@@ -1,9 +1,8 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import Image from "next/image";
 import { Ad } from "@/app/types/ads";
-import { AD_CATEGORIES } from "@/app/lib/constants";
+import { AD_CATEGORIES } from "@/app/lib/advertising/constants";
 
 interface RegionalSidebarProps {
   selectedRegion: string;
@@ -24,8 +23,8 @@ export default function RegionalSidebar({
     // Filter ads based on selected region and category
     const regionAds =
       ads?.filter((ad) => {
-        const categoryData = ad.categoryData as Record<string, any>;
-        return categoryData?.location?.includes(selectedRegion);
+        // Check if the ad's regionId matches the selected region
+        return ad.regionId === selectedRegion;
       }) ?? [];
 
     // Group ads by category and select one from each

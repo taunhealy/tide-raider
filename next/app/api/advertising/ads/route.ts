@@ -26,7 +26,9 @@ export async function GET(request: Request) {
       // Fetch ads for a specific region
       ads = await prisma.ad.findMany({
         where: {
-          region: region,
+          region: {
+            name: region,
+          },
           status: "active",
           endDate: {
             gt: new Date(),

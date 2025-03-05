@@ -6,6 +6,7 @@ import Image from "next/image";
 import { useQuery } from "@tanstack/react-query";
 import { calculateRentalCost } from "@/app/lib/rentalUtility";
 import { RentalItemWithRelations } from "@/app/types/rentals";
+import { Button } from "@/app/components/ui/Button";
 
 export default function MyRentalsClient() {
   // Fetch user's rental items
@@ -59,23 +60,22 @@ export default function MyRentalsClient() {
   }
 
   return (
-    <div className="max-w-7xl mx-auto p-6 font-primary">
-      <div className="flex justify-between items-center mb-8">
-        <h1 className="text-3xl font-bold">My Rental Listings</h1>
-        <Link
-          href="/rentals/new"
-          className="btn-filter-inactive px-4 py-2 rounded-md"
-        >
-          List New Item
+    <div className="max-w-7xl mx-auto p-4 sm:p-6 font-primary">
+      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-4 gap-4">
+        <h1 className="text-xl sm:text-2xl font-bold">My Rental Listings</h1>
+        <Link href="/rentals/new" className="w-full sm:w-auto">
+          <Button variant="outline" className="w-full sm:w-auto">
+            List New Item
+          </Button>
         </Link>
       </div>
 
       {rentalItems && rentalItems.length > 0 ? (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
           {rentalItems.map((item) => (
             <div
               key={item.id}
-              className="border rounded-lg overflow-hidden hover:shadow-sm transition"
+              className="border rounded-lg overflow-hidden hover:shadow-sm transition bg-white"
             >
               <Link href={`/rentals/${item.id}`}>
                 <div className="relative h-48 bg-gray-100">
@@ -96,15 +96,15 @@ export default function MyRentalsClient() {
               </Link>
 
               <div className="p-4">
-                <div className="flex justify-between items-start">
+                <div className="flex flex-col gap-1">
                   <h3 className="font-medium text-lg">{item.name}</h3>
-                  <span className="text-[var(--color-secondary)] font-medium font-primary">
+                  <span className="text-[var(--color-text-secondary)] text-sm">
                     ${calculateRentalCost(2, item.itemType).usdAmount} for 2
                     weeks
                   </span>
                 </div>
 
-                <p className="text-sm text-[var(--color-text-tertiary)] mt-2s">
+                <p className="text-sm text-[var(--color-text-tertiary)] mt-2">
                   {item.itemType}
                 </p>
 
@@ -124,18 +124,19 @@ export default function MyRentalsClient() {
                   </div>
                 )}
 
-                <div className="mt-4 flex space-x-2">
+                <div className="mt-4 flex gap-2">
                   <Link
                     href={`/dashboard/rentals/${item.id}`}
-                    className="text-sm btn-filter-inactive px-3 py-1 rounded"
+                    className="flex-1"
                   >
-                    Edit
+                    <Button variant="outline" className="w-full">
+                      Edit
+                    </Button>
                   </Link>
-                  <Link
-                    href={`/rentals/${item.id}`}
-                    className="text-sm btn-filter-inactive px-3 py-1 rounded"
-                  >
-                    View
+                  <Link href={`/rentals/${item.id}`} className="flex-1">
+                    <Button variant="outline" className="w-full">
+                      View
+                    </Button>
                   </Link>
                 </div>
               </div>
@@ -147,11 +148,8 @@ export default function MyRentalsClient() {
           <p className="text-[var(--color-text-secondary)]">
             You don't have any rental listings yet.
           </p>
-          <Link
-            href="/rentals/new"
-            className="btn-filter-inactive inline-block mt-4 px-4 py-2 rounded-md"
-          >
-            Create Your First Listing
+          <Link href="/rentals/new" className="mt-4 inline-block">
+            <Button variant="outline">Create Your First Listing</Button>
           </Link>
         </div>
       )}

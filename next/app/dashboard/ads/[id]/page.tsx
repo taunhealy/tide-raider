@@ -3,7 +3,7 @@ import Link from "next/link";
 import { getServerSession } from "next-auth/next";
 import { authOptions } from "@/app/lib/authOptions";
 import { prisma } from "@/app/lib/prisma";
-import { AD_CATEGORIES } from "@/app/lib/constants";
+import { AD_CATEGORIES } from "@/app/lib/advertising/constants";
 import { format } from "date-fns";
 
 export async function generateMetadata({ params }: { params: { id: string } }) {

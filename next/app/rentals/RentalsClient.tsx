@@ -276,30 +276,36 @@ export default function RentalsClient({
   };
 
   return (
-    <div className="flex min-h-screen font-primary">
+    <div className="flex flex-col lg:flex-row min-h-screen font-primary">
       {/* Main Content */}
-      <div className="flex-1 p-6">
-        <div className="flex justify-between items-center mb-4">
-          <h1 className="text-2xl font-bold">Rentals</h1>
+      <div className="flex-1 p-4 sm:p-6">
+        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-4 gap-4">
+          <h1 className="text-xl sm:text-2xl font-bold">Rentals</h1>
           {session ? (
-            <Link href="/rentals/new">
-              <Button variant="outline">List Your Item</Button>
+            <Link href="/rentals/new" className="w-full sm:w-auto">
+              <Button variant="outline" className="w-full sm:w-auto">
+                List Your Item
+              </Button>
             </Link>
           ) : (
-            <Link href="/login">
-              <Button variant="outline">Sign In to List Items</Button>
+            <Link href="/login" className="w-full sm:w-auto">
+              <Button variant="outline" className="w-full sm:w-auto">
+                Sign In to List Items
+              </Button>
             </Link>
           )}
         </div>
 
         {/* Location Filter Component */}
-        <LocationFilter
-          locationFilters={locationFilters}
-          onLocationFilterChange={handleLocationFilterChange}
-          initialRentalItems={rentalItems}
-          onClearFilters={clearAllFilters}
-          hasOtherActiveFilters={!!activeFilters.itemType}
-        />
+        <div className="bg-gray-50 p-3 sm:p-4 rounded-lg mb-6 sm:mb-8">
+          <LocationFilter
+            locationFilters={locationFilters}
+            onLocationFilterChange={handleLocationFilterChange}
+            initialRentalItems={rentalItems}
+            onClearFilters={clearAllFilters}
+            hasOtherActiveFilters={!!activeFilters.itemType}
+          />
+        </div>
 
         {/* Rental Items Grid */}
         {loading ? (
@@ -307,16 +313,15 @@ export default function RentalsClient({
             <RippleLoader isLoading={true} />
           </div>
         ) : (
-          <div className="mt-6">
+          <div className="mt-4 sm:mt-6">
             {activeFilters.itemType ? (
-              // Show filtered items
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
                 {rentalItems.length > 0 ? (
                   rentalItems.map((item) => (
                     <RentalItemCard key={item.id} item={item} />
                   ))
                 ) : (
-                  <div className="col-span-3 text-center py-12">
+                  <div className="col-span-3 text-left sm:text-center py-12">
                     <p className="text-gray-500">
                       No rental items available with the selected filters.
                     </p>
@@ -330,7 +335,6 @@ export default function RentalsClient({
                 )}
               </div>
             ) : (
-              // Show categorized items dynamically
               <>
                 {ITEM_CATEGORIES.map((category) => {
                   const categoryItems = rentalItems.filter(
@@ -346,22 +350,22 @@ export default function RentalsClient({
                     .join(" ");
 
                   return (
-                    <section key={category} className="mb-12">
-                      <div className="flex justify-between items-center mb-4">
-                        <h2 className="text-2xl font-semibold">
+                    <section key={category} className="mb-8 sm:mb-12">
+                      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-4 gap-2">
+                        <h2 className="text-xl sm:text-2xl font-semibold">
                           {displayName}s
                         </h2>
                         <button
                           onClick={() =>
                             handleFilterChange("itemType", category)
                           }
-                          className="text-black hover:underline"
+                          className="text-black hover:underline text-sm sm:text-base"
                         >
                           View All
                         </button>
                       </div>
 
-                      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
                         {categoryItems.map((item) => (
                           <RentalItemCard key={item.id} item={item} />
                         ))}
@@ -371,20 +375,30 @@ export default function RentalsClient({
                 })}
 
                 {rentalItems.length === 0 && (
-                  <div className="text-center py-12">
-                    <h2 className="text-2xl font-semibold mb-4">
+                  <div className="text-left sm:text-center py-8 sm:py-12">
+                    <h2 className="text-xl sm:text-2xl font-semibold mb-3 sm:mb-4">
                       No rental items available
                     </h2>
-                    <p className="text-gray-600 mb-6">
+                    <p className="text-gray-600 mb-4 sm:mb-6">
                       Be the first to list your item for rent!
                     </p>
                     {session ? (
-                      <Link href="/rentals/new">
-                        <Button variant="outline">List Your Item</Button>
+                      <Link
+                        href="/rentals/new"
+                        className="block w-full sm:inline-block sm:w-auto"
+                      >
+                        <Button variant="outline" className="w-full sm:w-auto">
+                          List Your Item
+                        </Button>
                       </Link>
                     ) : (
-                      <Link href="/login">
-                        <Button variant="outline">Sign In to List Items</Button>
+                      <Link
+                        href="/login"
+                        className="block w-full sm:inline-block sm:w-auto"
+                      >
+                        <Button variant="outline" className="w-full sm:w-auto">
+                          Sign In to List Items
+                        </Button>
                       </Link>
                     )}
                   </div>
@@ -400,6 +414,7 @@ export default function RentalsClient({
         filters={filters}
         onFilterChange={handleFilterChange}
         activeFilters={activeFilters}
+        className="order-first lg:order-last"
       />
     </div>
   );

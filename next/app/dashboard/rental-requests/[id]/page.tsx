@@ -192,7 +192,7 @@ export default function RentalRequestPage({
             <div className="space-y-4">
               <div className="flex items-start">
                 <div className="flex flex-col items-center mr-4">
-                  <div className="bg-blue-500 rounded-full h-4 w-4"></div>
+                  <div className="bg-black rounded-full h-4 w-4"></div>
                   <div className="h-full w-0.5 bg-gray-200"></div>
                 </div>
                 <div>
@@ -238,7 +238,7 @@ export default function RentalRequestPage({
             </div>
           </div>
 
-          <div className="bg-blue-50 rounded-lg p-6">
+          <div className="bg-black rounded-lg p-6">
             <h2 className="text-xl font-semibold mb-4">Need Help?</h2>
             <p className="mb-4">
               If you have any issues with this rental, please contact our

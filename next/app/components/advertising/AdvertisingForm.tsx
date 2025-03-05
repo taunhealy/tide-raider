@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { AD_CATEGORIES, type AdCategory } from "@/app/lib/constants";
+import { AD_CATEGORIES, type AdCategory } from "@/app/lib/advertising/constants";
 import { useQuery } from "@tanstack/react-query";
 import { useSession } from "next-auth/react";
 import { Beach } from "@/app/types/beaches";

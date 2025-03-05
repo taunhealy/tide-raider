@@ -6,8 +6,9 @@ import type { Post } from "@/app/types/blog";
 import type { Trip } from "@/app/types/blog";
 import { useQuery } from "@tanstack/react-query";
 import { useCallback } from "react";
-import { HARDCODED_COUNTRIES } from "@/app/lib/countries";
+import { HARDCODED_COUNTRIES } from "@/lib/location/countries/constants";
 import { PortableText } from "@portabletext/react";
+import { formatCountryList } from "@/app/lib/formatters";
 
 interface BlogPostsSidebarProps {
   posts: {
@@ -87,6 +88,33 @@ export default function BlogPostsSidebar({
     refetchOnWindowFocus: false,
   });
 
+  // Fetch travel category posts when no country-specific posts are found
+  const { data: travelPosts, isLoading: isLoadingTravel } = useQuery({
+    queryKey: ["travelCategoryPosts"],
+    queryFn: async () => {
+      const res = await fetch("/api/posts?category=travel");
+      if (!res.ok) throw new Error("Failed to fetch travel posts");
+      const data = await res.json();
+      console.log("Travel category posts response:", data);
+      return {
+        posts: Array.isArray(data.posts)
+          ? data.posts
+          : Array.isArray(data)
+            ? data
+            : [],
+        trip: posts.trip,
+        categories: posts.categories,
+      };
+    },
+    // Add these options for performance
+    staleTime: 5 * 60 * 1000,
+    gcTime: 10 * 60 * 1000,
+    refetchOnMount: false,
+    refetchOnWindowFocus: false,
+    retry: 1,
+    enabled: true,
+  });
+
   // Determine which posts to display
   const displayData =
     selectedCountry || selectedContinent ? filteredPosts : freshPosts;
@@ -99,7 +127,7 @@ export default function BlogPostsSidebar({
   const recentPosts = postsArray.slice(0, 3); // Get 3 most recent posts
 
   // Show loading state
-  if (isLoading || isLoadingAll) {
+  if (isLoading || isLoadingAll || isLoadingTravel) {
     return (
       <div className="bg-[var(--color-bg-primary)] p-6 rounded-lg shadow-sm mb-6">
         <div className="flex items-center justify-between mb-6">
@@ -110,7 +138,7 @@ export default function BlogPostsSidebar({
           </h3>
           <Link
             href="/blog"
-            className="text-main hover:text-[var(--color-text-secondary)] hover:underline transition-colors"
+            className="text-[12px] hover:text-[var(--color-text-secondary)] hover:underline transition-colors"
           >
             View All
           </Link>
@@ -132,37 +160,33 @@ export default function BlogPostsSidebar({
 
   // Show empty state if no posts data at all
   if (!postsArray.length) {
-    // If we have a country filter but no posts, fetch and show recent posts instead
+    // If we have a country filter but no posts, fetch and show travel posts instead
     if (selectedCountry || selectedContinent) {
-      console.log(
-        "No posts for selected country/continent. freshPosts:",
-        freshPosts
-      );
+      console.log("Travel posts data:", travelPosts);
 
-      // Check if freshPosts is an array or has a posts property
-      const fallbackPosts = Array.isArray(freshPosts)
-        ? freshPosts
-        : freshPosts?.posts || [];
+      // Use travel posts as fallback instead of freshPosts
+      const fallbackPosts = travelPosts?.posts || [];
+      console.log("Fallback posts:", fallbackPosts);
 
       return (
         <div className="bg-[var(--color-bg-primary)] p-6 rounded-lg shadow-sm mb-6">
           <div className="flex items-center justify-between mb-6">
             <h3 className="heading-6">
               {selectedCountry
-                ? `Recent Posts`
+                ? `Travel Posts`
                 : selectedContinent
-                  ? `No posts for ${selectedContinent}. Showing recent posts instead:`
-                  : "Recent Posts"}
+                  ? `No posts for ${selectedContinent}. Showing travel posts instead:`
+                  : "Travel Posts"}
             </h3>
             <Link
-              href="/blog"
+              href="/blog?category=travel"
               className="text-main hover:text-[var(--color-text-secondary)] hover:underline transition-colors font-primary"
             >
               View All
             </Link>
           </div>
 
-          {/* Show recent posts from freshPosts if available */}
+          {/* Show travel posts if available */}
           {fallbackPosts.length > 0 ? (
             <div className="space-y-6">
               {fallbackPosts.slice(0, 3).map((post: Post) => (
@@ -192,6 +216,11 @@ export default function BlogPostsSidebar({
                       <h4 className="heading-7 mb-1 truncate group-hover:text-[var(--color-text-secondary)] transition-colors">
                         {post.title}
                       </h4>
+                      {post.countries && post.countries.length > 0 && (
+                        <div className="text-[12px] text-[var(--color-text-tertiary)] mb-1 font-primary">
+                          {formatCountryList(post.countries)}
+                        </div>
+                      )}
                       {post.description && (
                         <p className="text-main text-[12px] line-clamp-2 font-primary">
                           {typeof post.description === "string" ? (
@@ -215,7 +244,7 @@ export default function BlogPostsSidebar({
             </div>
           ) : (
             <p className="text-main text-sm font-primary">
-              No posts available yet.
+              No travel posts available yet.
             </p>
           )}
         </div>
@@ -281,6 +310,11 @@ export default function BlogPostsSidebar({
                 <h4 className="heading-7 mb-1 truncate group-hover:text-[var(--color-text-secondary)] transition-colors">
                   {post.title}
                 </h4>
+                {post.countries && post.countries.length > 0 && (
+                  <div className="text-[12px] text-[var(--color-text-tertiary)] mb-1 font-primary">
+                    {formatCountryList(post.countries)}
+                  </div>
+                )}
                 {post.description && (
                   <p className="text-main text-[12px] line-clamp-2 font-primary">
                     {typeof post.description === "string" ? (

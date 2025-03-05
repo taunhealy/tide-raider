@@ -18,7 +18,7 @@ import {
   DEFAULT_PROFILE_IMAGE,
   WAVE_TYPE_ICONS,
   WaveType,
-} from "@/app/lib/constants";
+} from "@/lib/constants";
 import { MediaGrid } from "@/app/components/MediaGrid";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import type { LogEntry } from "@/app/types/questlogs";
@@ -502,10 +502,7 @@ export default function BeachCard({
       )}
 
       {!shouldBeLocked && (
-        <MediaGrid
-          beach={beach}
-          videos={beach.videos || []}
-        />
+        <MediaGrid beach={beach} videos={beach.videos || []} />
       )}
     </>
   );

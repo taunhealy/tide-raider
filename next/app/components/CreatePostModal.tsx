@@ -6,7 +6,7 @@ import { useQueryClient, useMutation } from "@tanstack/react-query";
 import { X, Loader2, Link as LinkIcon } from "lucide-react";
 import { cn } from "@/app/lib/utils";
 import type { Beach } from "@/app/types/beaches";
-import { STORY_CATEGORIES, type StoryCategory } from "@/app/lib/constants";
+import { STORY_CATEGORIES, type StoryCategory } from "@/lib/constants";
 import { StoryBeach } from "../types/stories";
 import confetti from "canvas-confetti";
 

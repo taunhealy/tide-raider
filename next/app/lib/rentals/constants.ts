@@ -17,6 +17,19 @@ export const ITEM_CATEGORIES = [
   "SKATEBOARD",
 ] as const;
 
+// Define emojis for each category
+export const ITEM_CATEGORIES_EMOJI: Record<RentalItemType, string> = {
+  SURFBOARD: "🏄‍♂️",
+  WETSUIT: "🌊",
+  BODYBOARD: "🏊‍♂️",
+  STAND_UP_PADDLE: "🏄‍♀️",
+  KAYAK: "🛶",
+  FOIL: "🌬️",
+  SCOOTER: "🛴",
+  MOTORBIKE: "🏍️",
+  SKATEBOARD: "🛹",
+};
+
 // Create a type from the constant
 export type RentalItemType = (typeof ITEM_CATEGORIES)[number];
 

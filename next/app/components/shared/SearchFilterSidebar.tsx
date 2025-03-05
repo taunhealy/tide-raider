@@ -13,12 +13,14 @@ interface SearchFilterSidebarProps {
   filters: Filter[];
   onFilterChange: (filterId: string, value: string | null) => void;
   activeFilters?: Record<string, string | null>;
+  className?: string;
 }
 
 export function SearchFilterSidebar({
   filters,
   onFilterChange,
   activeFilters = {},
+  className,
 }: SearchFilterSidebarProps) {
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedFilters, setSelectedFilters] = useState<
@@ -39,7 +41,9 @@ export function SearchFilterSidebar({
   };
 
   return (
-    <div className="w-64 bg-white border-l border-gray-200 p-4 font-primary">
+    <div
+      className={`w-64 bg-white border-l border-gray-200 p-4 font-primary ${className || ""}`}
+    >
       <h2 className="text-lg font-semibold mb-4">Filters</h2>
 
       {/* Search */}

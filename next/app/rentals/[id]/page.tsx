@@ -10,6 +10,10 @@ import { SubscriptionStatus } from "@/app/types/subscription";
 import { Button } from "@/app/components/ui/Button";
 import { RentalImagesDisplay } from "@/app/components/rentals/RentalImagesDisplay";
 import BeachLocationLinks from "@/app/components/rentals/BeachLocationLinks";
+import {
+  RENTAL_POLICIES,
+  ITEM_CATEGORIES_EMOJI,
+} from "@/app/lib/rentals/constants";
 
 export async function generateMetadata({ params }: { params: { id: string } }) {
   const rentalItem = await prisma.rentalItem.findUnique({
@@ -153,8 +157,15 @@ export default async function RentalItemPage({
           {/* Item Details - Left Column */}
           <div className="md:col-span-1 space-y-6">
             <div>
-              <div className="flex items-center gap-2">
+              <div
+                className="flex items-center gap-2"
+                role="status"
+                aria-label="Item status"
+              >
                 <span className="bg-[var(--color-bg-secondary)] text-[var(--color-text-primary)] text-xs font-medium px-2.5 py-0.5 rounded-full">
+                  {ITEM_CATEGORIES_EMOJI[
+                    rentalItem.itemType as keyof typeof ITEM_CATEGORIES_EMOJI
+                  ] || ""}{" "}
                   {rentalItem.itemType}
                 </span>
                 {rentalItem.isActive ? (
@@ -170,11 +181,11 @@ export default async function RentalItemPage({
               <h1 className="text-3xl font-bold mt-2 text-[var(--color-text-primary)]">
                 {rentalItem.name}
               </h1>
-              <p className="text-xl font-semibold text-[var(--color-secondary)] mt-2">
-                ${rentalItem.rentPrice} per 2 weeks
+              <p className="text-[16px] font-semibold text-[var(--color-secondary)] mt-2">
+                ${rentalItem.rentPrice}
               </p>
               <p className="text-[var(--color-text-secondary)] text-sm">
-                Minimum 2 weeks rental.
+                Per {RENTAL_POLICIES.MIN_RENTAL_WEEKS} weeks rental.
               </p>
             </div>
 
@@ -193,7 +204,9 @@ export default async function RentalItemPage({
               <h2 className="text-xl font-semibold mb-2 text-[var(--color-text-primary)]">
                 Specifications
               </h2>
-              {formattedSpecs}
+              <div role="list" aria-label="Item specifications">
+                {formattedSpecs}
+              </div>
             </div>
 
             <div className="border-t border-[var(--color-border-light)] pt-4">
@@ -232,6 +245,8 @@ export default async function RentalItemPage({
                         fill="none"
                         viewBox="0 0 24 24"
                         stroke="currentColor"
+                        aria-hidden="true"
+                        role="img"
                       >
                         <path
                           strokeLinecap="round"

@@ -127,7 +127,7 @@ export default function PaymentSuccessPage() {
         <div className="mt-8">
           <Link
             href="/advertising"
-            className="px-6 py-3 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors font-primary"
+            className="px-6 py-3 bg-black text-white rounded-md hover:bg-black transition-colors font-primary"
           >
             Return to Advertising
           </Link>

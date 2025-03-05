@@ -21,6 +21,7 @@ import { SubscriptionStatus } from "@/types/subscription";
 import { ActiveSubscriptionView } from "@/components/subscription/ActiveSubscriptionView";
 import { ChevronRightIcon } from "@heroicons/react/24/outline";
 import Link from "next/link";
+import { RoleManager } from "@/app/components/dashboard/RoleManager";
 
 export default function DashboardPage() {
   const router = useRouter();
@@ -104,6 +105,7 @@ export default function DashboardPage() {
     const refreshData = async () => {
       await update(); // Update the session
       queryClient.invalidateQueries({ queryKey: ["subscriptionDetails"] });
+      queryClient.invalidateQueries({ queryKey: ["user", session?.user?.id] });
       router.refresh(); // Refresh the page
     };
 
@@ -112,7 +114,7 @@ export default function DashboardPage() {
     channel.onmessage = refreshData;
 
     return () => channel.close();
-  }, [update, queryClient, router]);
+  }, [update, queryClient, router, session?.user?.id]);
 
   const handleUsernameUpdate = async () => {
     if (!username.trim()) {
@@ -230,8 +232,8 @@ export default function DashboardPage() {
             : "No active subscription"}
         </p>
         <Button
-          variant="default"
-          className="w-full sm:w-auto font-primary mt-4 bg-blue-600 hover:bg-blue-700"
+          variant="outline"
+          className="w-full sm:w-auto font-primary mt-4"
           onClick={handleSubscribeWithLoading}
           disabled={loadingStates.subscribe}
         >
@@ -322,6 +324,36 @@ export default function DashboardPage() {
                   {error && (
                     <p className="text-sm text-red-600 mt-1">{error}</p>
                   )}
+                </div>
+
+                <div className="mt-8">
+                  <RoleManager
+                    initialRoles={userData?.roles || []}
+                    onUpdate={async (roles) => {
+                      try {
+                        const response = await fetch("/api/user/update-roles", {
+                          method: "POST",
+                          headers: { "Content-Type": "application/json" },
+                          body: JSON.stringify({ roles }),
+                        });
+
+                        if (!response.ok) {
+                          throw new Error("Failed to update roles");
+                        }
+
+                        // Update session to reflect new roles
+                        await update();
+                        // Also refresh user data
+                        queryClient.invalidateQueries({
+                          queryKey: ["user", session?.user?.id],
+                        });
+                        toast.success("Roles updated successfully");
+                      } catch (error) {
+                        console.error("Failed to update roles:", error);
+                        toast.error("Failed to update roles");
+                      }
+                    }}
+                  />
                 </div>
               </div>
             )}
@@ -501,8 +533,8 @@ export default function DashboardPage() {
                       You need an active subscription to list rental items.
                     </p>
                     <Button
-                      variant="default"
-                      className="mt-2 w-full sm:w-auto font-primary bg-blue-600 hover:bg-blue-700"
+                      variant="outline"
+                      className="mt-2 w-full sm:w-auto font-primary"
                       onClick={handleSubscribeWithLoading}
                       disabled={loadingStates.subscribe}
                     >

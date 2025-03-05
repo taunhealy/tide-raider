@@ -137,6 +137,7 @@ model User {
   rentedItemRequests  RentalItemRequest[]  @relation("RenterItemRequests")
   ownedItemRequests   RentalItemRequest[]  @relation("OwnerItemRequests")
   rentalChatMessages  RentalChatMessage[]
+roles UserRole[] @default([SURFER])
 
   @@index([email])
   @@index([skillLevel])
@@ -561,6 +562,14 @@ model RentalItemAvailability {
   rentalItem   RentalItem @relation(fields: [rentalItemId], references: [id], onDelete: Cascade)
   
   @@index([rentalItemId])
+}
+
+enum UserRole {
+  SURFER
+  SHAPER
+  SURF_CAMP_MANAGER
+  PHOTOGRAPHER
+  VIDEOGRAPHER
 }
 
 model RentalChatMessage {

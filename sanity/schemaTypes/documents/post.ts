@@ -1,5 +1,6 @@
 import {defineType, defineField} from 'sanity'
 import {RegionReferenceInput} from '../../components/RegionReferenceInput'
+import {BeachSearchInput} from '../../components/BeachSearchInput'
 
 export default defineType({
   name: 'post',
@@ -97,6 +98,77 @@ export default defineType({
                         ],
                       },
                     ],
+                  },
+                },
+                {
+                  type: 'object',
+                  name: 'beachMediaGrid',
+                  title: 'Beach Media Grid',
+                  fields: [
+                    {
+                      name: 'beachReference',
+                      title: 'Beach',
+                      type: 'object',
+                      fields: [
+                        {
+                          name: 'beachId',
+                          title: 'Beach ID',
+                          type: 'string',
+                          description: 'The unique identifier for the beach',
+                          validation: (Rule) => Rule.required(),
+                        },
+                        {
+                          name: 'beachName',
+                          title: 'Beach Name',
+                          type: 'string',
+                          description: 'The name of the beach',
+                          validation: (Rule) => Rule.required(),
+                        },
+                        {
+                          name: 'region',
+                          title: 'Region',
+                          type: 'string',
+                          description: 'The region where the beach is located',
+                        },
+                        {
+                          name: 'country',
+                          title: 'Country',
+                          type: 'string',
+                          description: 'The country where the beach is located',
+                        },
+                      ],
+                      components: {
+                        input: BeachSearchInput,
+                      },
+                    },
+                    {
+                      name: 'title',
+                      title: 'Grid Title',
+                      type: 'string',
+                      description: 'Optional title for this media grid',
+                    },
+                    {
+                      name: 'description',
+                      title: 'Grid Description',
+                      type: 'text',
+                      description: 'Optional description to display above the media grid',
+                      rows: 2,
+                    },
+                  ],
+                  preview: {
+                    select: {
+                      beachName: 'beachReference.beachName',
+                      region: 'beachReference.region',
+                      title: 'title',
+                    },
+                    prepare({beachName, region, title}) {
+                      return {
+                        title:
+                          title || (beachName ? `Media Grid: ${beachName}` : 'Beach Media Grid'),
+                        subtitle: region ? `${region}` : 'Select a beach',
+                        media: () => '🏄‍♂️',
+                      }
+                    },
                   },
                 },
               ],

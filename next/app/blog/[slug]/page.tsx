@@ -9,6 +9,13 @@ import { urlForImage } from "@/app/lib/urlForImage";
 import { getVideoId } from "@/app/lib/videoUtils";
 import { SectionImage } from "@/app/types/blog";
 import { PortableTextBlock } from "next-sanity";
+import { MediaGrid } from "@/app/components/MediaGrid";
+import { beachData } from "@/app/types/beaches";
+
+// Helper function to get beach data by ID
+const getBeachById = (beachId: string) => {
+  return beachData.find((beach) => beach.id === beachId);
+};
 
 export default async function BlogPost({
   params,
@@ -111,7 +118,53 @@ export default async function BlogPost({
                       </h2>
                     )}
 
-                    <CustomPortableText value={section.content} />
+                    {/* Render each content block with appropriate component */}
+                    {section.content.map((block: any, blockIndex: number) => {
+                      // Handle Beach Media Grid blocks
+                      if (
+                        block._type === "beachMediaGrid" &&
+                        block.beachReference?.beachId
+                      ) {
+                        const beach = getBeachById(
+                          block.beachReference.beachId
+                        );
+
+                        if (!beach) {
+                          return (
+                            <div
+                              key={blockIndex}
+                              className="my-6 p-4 bg-gray-100 rounded-lg"
+                            >
+                              <p className="font-primary text-gray-500">
+                                Beach not found:{" "}
+                                {block.beachReference.beachName}
+                              </p>
+                            </div>
+                          );
+                        }
+
+                        return (
+                          <div key={blockIndex} className="my-6">
+                            {block.title && (
+                              <h3 className="font-primary text-xl font-semibold mb-2">
+                                {block.title}
+                              </h3>
+                            )}
+                            {block.description && (
+                              <p className="font-primary mb-4">
+                                {block.description}
+                              </p>
+                            )}
+                            <MediaGrid beach={beach} videos={beach.videos} />
+                          </div>
+                        );
+                      }
+
+                      // For all other block types, use the CustomPortableText component
+                      return (
+                        <CustomPortableText key={blockIndex} value={[block]} />
+                      );
+                    })}
 
                     {section.videoLink && (
                       <div className="my-4 sm:my-6">

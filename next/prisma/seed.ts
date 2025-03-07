@@ -99,28 +99,30 @@ async function main() {
     }
   }
 
-  // Create Kayak rental item
-  console.log("Creating Kayak rental item...");
-  const kayakSpecs = {
-    type: "SEA",
-    length: 14,
-    material: "FIBERGLASS",
-    paddlesIncluded: 2,
+  // Create Jet Ski rental item
+  console.log("Creating Jet Ski rental item...");
+  const jetSkiSpecs = {
+    make: "Sea-Doo",
+    model: "WAKE PRO",
+    year: 2023,
+    horsepower: 230,
+    fuelCapacity: 70,
+    riderCapacity: 3,
   };
 
-  const kayak = await prisma.rentalItem.create({
+  const jetSki = await prisma.rentalItem.create({
     data: {
-      name: "Ocean Explorer Sea Kayak (Dev Test)",
+      name: "WAKE PRO",
       description:
-        "This high-performance sea kayak is perfect for coastal exploration and longer journeys. Featuring a sleek fiberglass hull for excellent tracking and speed, adjustable footrests and seat for comfort during extended paddling sessions, and ample storage compartments for gear. The kayak comes with two lightweight carbon fiber paddles, spray skirts, and safety equipment. Suitable for intermediate to advanced paddlers looking to explore coastlines and open water.",
-      rentPrice: PACKAGE_PRICES["KAYAK"],
+        "THE WAKE PRO MODEL DELIVERS THE MOST STABLE RIDE IN THE INDUSTRY. WITH EXTRA SPACE FOR SET-UP, EASY BOARDING, AND A SERIOUS 100W BLUETOOTH AUDIO SYSTEM, THESE MODELS AREN'T KIDDING AROUND.",
+      rentPrice: 150,
       images: [
-        "https://example.com/sea-kayak-1.jpg",
-        "https://example.com/sea-kayak-2.jpg",
+        "https://example.com/wake-pro-1.jpg",
+        "https://example.com/wake-pro-2.jpg",
       ],
-      thumbnail: "https://example.com/sea-kayak-1.jpg",
-      itemType: "KAYAK",
-      specifications: kayakSpecs,
+      thumbnail: "https://example.com/wake-pro-thumbnail.jpg",
+      itemType: "JET_SKI",
+      specifications: jetSkiSpecs,
       isActive: true,
       userId: userId,
       availableBeaches: {
@@ -138,51 +140,8 @@ async function main() {
     },
   });
 
-  console.log(`Created Kayak with ID: ${kayak.id}`);
-  console.log("Kayak details:", JSON.stringify(kayak, null, 2));
-
-  // Create Foil rental item
-  console.log("Creating Foil rental item...");
-  const foilSpecs = {
-    type: "WING",
-    mastLength: 85,
-    wingSize: 1500,
-    material: "CARBON",
-    boardIncluded: true,
-  };
-
-  const foil = await prisma.rentalItem.create({
-    data: {
-      name: "Pro Carbon Wing Foil Complete Package (Dev Test)",
-      description:
-        "This premium wing foiling package includes everything you need to get on the water. The carbon fiber hydrofoil features an 85cm mast and a high-aspect 1500cm² front wing designed for early lift and stability. The package includes a compact 4'8\" foil board with foot straps, a 5m inflatable wing with window, pump, leash, and carrying case. Perfect for intermediate to advanced riders looking to experience the thrill of wing foiling in a variety of wind conditions.",
-      rentPrice: PACKAGE_PRICES["FOIL"],
-      images: [
-        "https://example.com/wing-foil-1.jpg",
-        "https://example.com/wing-foil-2.jpg",
-      ],
-      thumbnail: "https://example.com/wing-foil-1.jpg",
-      itemType: "FOIL",
-      specifications: foilSpecs,
-      isActive: true,
-      userId: userId,
-      availableBeaches: {
-        create: selectedBeaches.map((beach) => ({
-          beachId: beach.id,
-        })),
-      },
-    },
-    include: {
-      availableBeaches: {
-        include: {
-          beach: true,
-        },
-      },
-    },
-  });
-
-  console.log(`Created Foil with ID: ${foil.id}`);
-  console.log("Foil details:", JSON.stringify(foil, null, 2));
+  console.log(`Created Jet Ski with ID: ${jetSki.id}`);
+  console.log("Jet Ski details:", JSON.stringify(jetSki, null, 2));
 
   console.log("Seed script completed successfully!");
 }

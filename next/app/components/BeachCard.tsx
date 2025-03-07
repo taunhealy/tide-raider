@@ -464,6 +464,13 @@ export default function BeachCard({
                 </div>
               )}
             </div>
+
+            {/* Media Grid - Now inside the card */}
+            {!shouldBeLocked && beach.videos && beach.videos.length > 0 && (
+              <div className="mt-2">
+                <MediaGrid beach={beach} videos={beach.videos} />
+              </div>
+            )}
           </div>
         )}
 
@@ -490,7 +497,7 @@ export default function BeachCard({
         )}
       </div>
 
-      {/* Modals and Media Grid */}
+      {/* Modals */}
       {!shouldBeLocked && (
         <BeachDetailsModal
           beach={beach}
@@ -499,10 +506,6 @@ export default function BeachCard({
           isSubscribed={isSubscribed}
           onSubscribe={handleSubscribe}
         />
-      )}
-
-      {!shouldBeLocked && (
-        <MediaGrid beach={beach} videos={beach.videos || []} />
       )}
     </>
   );

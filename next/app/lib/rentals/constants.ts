@@ -15,19 +15,21 @@ export const ITEM_CATEGORIES = [
   "SCOOTER",
   "MOTORBIKE",
   "SKATEBOARD",
+  "JET_SKI",
 ] as const;
 
 // Define emojis for each category
-export const ITEM_CATEGORIES_EMOJI: Record<RentalItemType, string> = {
-  SURFBOARD: "🏄‍♂️",
+export const ITEM_CATEGORIES_EMOJI: Record<string, string> = {
+  SURFBOARD: "🏄",
   WETSUIT: "🌊",
   BODYBOARD: "🏊‍♂️",
   STAND_UP_PADDLE: "🏄‍♀️",
   KAYAK: "🛶",
   FOIL: "🌬️",
-  SCOOTER: "🛴",
+  SCOOTER: "🛵",
   MOTORBIKE: "🏍️",
   SKATEBOARD: "🛹",
+  JETSKI: "🚤",
 };
 
 // Create a type from the constant
@@ -44,6 +46,7 @@ export const PACKAGE_PRICES: Record<RentalItemType, number> = {
   SCOOTER: 100,
   MOTORBIKE: 180,
   SKATEBOARD: 50,
+  JET_SKI: 200,
 };
 
 // Item type specifications and configuration
@@ -360,6 +363,51 @@ export const ITEM_SPECIFICATIONS = {
       {
         name: "helmetIncluded",
         label: "Helmet Included",
+        type: "boolean",
+      },
+    ],
+  },
+  JET_SKI: {
+    fields: [
+      {
+        name: "type",
+        label: "Jet Ski Type",
+        type: "select",
+        options: [
+          { value: "RECREATION", label: "Recreation" },
+          { value: "LUXURY", label: "Luxury" },
+          { value: "SPORT", label: "Sport" },
+          { value: "TOW_SPORTS", label: "Tow Sports" },
+        ],
+      },
+      {
+        name: "engineSize",
+        label: "Engine Size (cc)",
+        type: "number",
+      },
+      {
+        name: "horsepower",
+        label: "Horsepower",
+        type: "number",
+      },
+      {
+        name: "riderCapacity",
+        label: "Rider Capacity",
+        type: "number",
+      },
+      {
+        name: "fuelCapacity",
+        label: "Fuel Capacity (L)",
+        type: "number",
+      },
+      {
+        name: "lifejacketsIncluded",
+        label: "Life Jackets Included",
+        type: "number",
+      },
+      {
+        name: "insuranceRequired",
+        label: "Insurance Required",
         type: "boolean",
       },
     ],

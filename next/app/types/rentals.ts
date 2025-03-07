@@ -146,7 +146,17 @@ export interface ScooterSpecifications {
   maxSpeed: number;
 }
 
+export interface JetSkiSpecifications {
+  make: string;
+  model: string;
+  year: number;
+  horsepower: number;
+  fuelCapacity: number;
+  riderCapacity: number;
+}
+
 export type RentalSpecifications =
   | SurfboardSpecifications
   | MotorbikeSpecifications
-  | ScooterSpecifications;
+  | ScooterSpecifications
+  | JetSkiSpecifications;

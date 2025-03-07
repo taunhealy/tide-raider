@@ -23,3 +23,14 @@ export function formatCountryList(
   if (!countries || !countries.length) return "";
   return countries.map(formatCountryName).join(separator);
 }
+
+/**
+ * Formats an item type string by converting from SNAKE_CASE to Title Case
+ * Example: "JET_SKI" -> "Jet Ski"
+ */
+export function formatItemType(itemType: string) {
+  return itemType
+    .split("_")
+    .map((word) => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase())
+    .join(" ");
+}

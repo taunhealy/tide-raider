@@ -10,10 +10,10 @@ export default function AdvertisingPage() {
   return (
     <main className="container mx-auto px-4 py-8 max-w-4xl">
       <h1 className="text-3xl font-bold mb-6 font-primary">
-        Advertise on Surf Check
+        Advertise on Tide Raider
       </h1>
       <p className="mb-8 font-primary">
-        Reach surfers in your area with targeted advertising on Surf Check.
+        Reach surfers in your area with targeted advertising.
       </p>
 
       <AdvertisingForm />

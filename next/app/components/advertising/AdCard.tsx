@@ -3,6 +3,7 @@
 import { Ad } from "@/app/types/ads";
 import { AD_CATEGORIES } from "@/app/lib/advertising/constants";
 import { format } from "date-fns";
+import DeleteAdButton from "./DeleteAdButton";
 
 interface AdCardProps {
   ad: Ad & {
@@ -80,6 +81,11 @@ export function AdCard({ ad }: AdCardProps) {
             </div>
           </div>
         )}
+
+        <div className="flex justify-between items-center mt-4">
+          <span className="text-sm font-medium">{ad.category}</span>
+          <DeleteAdButton adId={ad.id} />
+        </div>
       </div>
     </div>
   );

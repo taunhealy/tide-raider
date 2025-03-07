@@ -25,7 +25,7 @@ async function getHomeContent() {
 
 const blogPageQuery = groq`{
   "blog": {
-    "posts": *[_type == "post"] | order(publishedAt desc) {
+    "posts": *[_type == "post"] | order(_createdAt desc) {
       _id,
       title,
       "slug": slug.current,
@@ -34,7 +34,8 @@ const blogPageQuery = groq`{
       description,
       categories[]->{
         _id,
-        title
+        title,
+        "slug": slug.current
       },
       "trip": trip->{
         country,
@@ -44,7 +45,8 @@ const blogPageQuery = groq`{
     },
     "allCategories": *[_type == "postCategory"] {
       _id,
-      title
+      title,
+      "slug": slug.current
     }
   }
 }`;

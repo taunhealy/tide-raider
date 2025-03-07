@@ -5,6 +5,7 @@ import { authOptions } from "@/app/lib/authOptions";
 import { prisma } from "@/app/lib/prisma";
 import { AD_CATEGORIES } from "@/app/lib/advertising/constants";
 import { format } from "date-fns";
+import CancelAdSubscriptionButton from "@/app/components/advertising/CancelAdSubscriptionButton";
 
 export async function generateMetadata({ params }: { params: { id: string } }) {
   const ad = await prisma.ad.findUnique({
@@ -41,6 +42,11 @@ export default async function AdDetailPage({
     where: { id: params.id },
     include: {
       adRequest: true,
+      beachConnections: {
+        include: {
+          beach: true,
+        },
+      },
     },
   });
 
@@ -161,16 +167,16 @@ export default async function AdDetailPage({
               </div>
             </div>
 
-            {ad.targetedBeaches && ad.targetedBeaches.length > 0 && (
+            {ad.beachConnections.length > 0 && (
               <div className="border-t pt-6 mt-6">
                 <h2 className="heading-5 mb-4">Targeted Beaches</h2>
                 <div className="flex flex-wrap gap-2">
-                  {ad.targetedBeaches.map((beach) => (
+                  {ad.beachConnections.map(({ beach }) => (
                     <span
-                      key={beach}
+                      key={beach.id}
                       className="bg-gray-100 px-3 py-1 rounded-full text-sm"
                     >
-                      {beach}
+                      {beach.name}
                     </span>
                   ))}
                 </div>
@@ -208,9 +214,7 @@ export default async function AdDetailPage({
 
             {ad.status === "active" && (
               <div className="mt-6">
-                <button className="w-full btn-filter-inactive">
-                  Cancel Subscription
-                </button>
+                <CancelAdSubscriptionButton adId={ad.id} />
               </div>
             )}
 

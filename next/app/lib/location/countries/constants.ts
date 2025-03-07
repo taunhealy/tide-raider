@@ -1,5 +1,11 @@
+export interface Country {
+  id: string;
+  name: string;
+  continent: string;
+}
+
 // Hardcoded countries for blog posts - same as in Sanity component
-export const HARDCODED_COUNTRIES = [
+export const HARDCODED_COUNTRIES: Country[] = [
   { id: "australia", name: "Australia", continent: "Oceania" },
   { id: "south-africa", name: "South Africa", continent: "Africa" },
   { id: "indonesia", name: "Indonesia", continent: "Asia" },

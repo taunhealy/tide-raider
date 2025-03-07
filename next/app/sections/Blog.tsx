@@ -34,15 +34,22 @@ export default function BlogSection() {
   const allCategories = data?.categories || [];
 
   const filteredPosts =
-    data?.posts?.filter(
-      (post: any) =>
-        (activeCategory === "All" ||
-          post.categories?.some(
-            (category: any) => category.title === activeCategory
-          )) &&
-        post.hasSlug &&
-        post.slug
-    ) ?? [];
+    data?.posts
+      ?.filter(
+        (post: any) =>
+          (activeCategory === "All" ||
+            post.categories?.some(
+              (category: any) => category.title === activeCategory
+            )) &&
+          post.hasSlug &&
+          post.slug
+      )
+      .sort((a: any, b: any) => {
+        // Sort by _createdAt in descending order (newest first)
+        return (
+          new Date(b._createdAt).getTime() - new Date(a._createdAt).getTime()
+        );
+      }) ?? [];
 
   console.log("Filtered posts:", filteredPosts);
 

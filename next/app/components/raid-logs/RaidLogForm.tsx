@@ -1,22 +1,25 @@
 "use client";
 import { useState, useEffect } from "react";
-import { Star, Search, X, Upload, Lock } from "lucide-react";
+import { Star, Search, X, Upload, Lock, Bell } from "lucide-react";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { cn } from "@/app/lib/utils";
 import type { Beach } from "@/app/types/beaches";
 import type { CreateLogEntryInput, LogEntry } from "@/app/types/questlogs";
 import SurfForecastWidget from "../SurfForecastWidget";
 import confetti from "canvas-confetti";
-import { Button } from "@/app/components/ui/Button";
+import { Button } from "@/components/ui/button";
 import { validateFile, compressImageIfNeeded } from "@/app/lib/file";
 import { useSubscription } from "@/app/context/SubscriptionContext";
 import { useSession } from "next-auth/react";
-import { Select, SelectItem } from "@/app/components/ui/Select";
+import { Select, SelectItem } from "@/components/ui/select";
 import { useHandleTrial } from "@/app/hooks/useHandleTrial";
 import { useRouter } from "next/navigation";
 import { signIn } from "next-auth/react";
 import { format } from "date-fns";
 import { getCardinalDirection } from "@/lib/forecastUtils";
+import { AlertConfig } from "@/app/components/alerts/AlertConfiguration";
+import { v4 as uuidv4 } from "uuid";
+import { useToast } from "@/app/components/ui/use-toast";
 
 interface RaidLogFormProps {
   userEmail?: string;
@@ -60,6 +63,20 @@ export function RaidLogForm({
   const [isPrivate, setIsPrivate] = useState<boolean>(
     entry?.isPrivate || false
   );
+  const [createAlert, setCreateAlert] = useState<boolean>(false);
+  const [alertRange, setAlertRange] = useState<number>(10); // Default 10% range
+  const [alertNotificationMethod, setAlertNotificationMethod] = useState<
+    "email" | "whatsapp" | "both"
+  >("email");
+  const [alertContactInfo, setAlertContactInfo] = useState<string>("");
+  const { toast } = useToast();
+
+  // Initialize contact info with user email if available
+  useEffect(() => {
+    if (userEmail) {
+      setAlertContactInfo(userEmail);
+    }
+  }, [userEmail]);
 
   const createLogEntry = useMutation({
     mutationFn: async (newEntry: CreateLogEntryInput) => {
@@ -82,7 +99,7 @@ export function RaidLogForm({
 
       return response.json();
     },
-    onSuccess: () => {
+    onSuccess: async (data) => {
       queryClient.invalidateQueries({ queryKey: ["raidLogs"] });
       confetti({
         particleCount: 100,
@@ -91,6 +108,43 @@ export function RaidLogForm({
       });
       setIsSubmitted(true);
       router.push("/raidlogs");
+
+      // Create alert if requested
+      if (createAlert && selectedBeach && forecast) {
+        try {
+          // Create alert configuration
+          const alertConfig: AlertConfig = {
+            id: uuidv4(),
+            name: `Alert for ${selectedBeach.name}`,
+            region: selectedBeach.region || data.region,
+            properties: [
+              { property: "windSpeed", range: alertRange },
+              { property: "windDirection", range: alertRange },
+              { property: "waveHeight", range: alertRange },
+              { property: "wavePeriod", range: alertRange },
+            ],
+            notificationMethod: alertNotificationMethod,
+            contactInfo: alertContactInfo,
+            active: true,
+          };
+
+          // Save to localStorage
+          const savedAlerts = localStorage.getItem("userAlerts");
+          const existingAlerts = savedAlerts ? JSON.parse(savedAlerts) : [];
+          localStorage.setItem(
+            "userAlerts",
+            JSON.stringify([...existingAlerts, alertConfig])
+          );
+
+          toast({
+            title: "Alert Created",
+            description:
+              "You'll be notified when forecast conditions match this session.",
+          });
+        } catch (error) {
+          console.error("Error creating alert:", error);
+        }
+      }
     },
   });
 
@@ -472,7 +526,7 @@ export function RaidLogForm({
                   <h3 className="text-lg font-semibold mb-2 font-primary">
                     Additional Options
                   </h3>
-                  <div className="space-y-2">
+                  <div className="space-y-4">
                     <div className="flex items-center space-x-2">
                       <input
                         type="checkbox"
@@ -494,6 +548,93 @@ export function RaidLogForm({
                       <label htmlFor="private" className="font-primary">
                         Keep Private
                       </label>
+                    </div>
+                    <div className="border-t pt-3">
+                      <div className="flex items-center space-x-2 mb-2">
+                        <input
+                          type="checkbox"
+                          id="create-alert"
+                          checked={createAlert}
+                          onChange={(e) => setCreateAlert(e.target.checked)}
+                        />
+                        <label
+                          htmlFor="create-alert"
+                          className="font-primary flex items-center"
+                        >
+                          <Bell className="h-4 w-4 mr-1" />
+                          Create Alert for Similar Conditions
+                        </label>
+                      </div>
+
+                      {createAlert && (
+                        <div className="pl-6 space-y-3 mt-2">
+                          <div>
+                            <label className="text-sm font-primary block mb-1">
+                              Accuracy Range (±%)
+                            </label>
+                            <div className="flex items-center">
+                              <input
+                                type="range"
+                                min="5"
+                                max="30"
+                                step="5"
+                                value={alertRange}
+                                onChange={(e) =>
+                                  setAlertRange(parseInt(e.target.value))
+                                }
+                                className="w-full mr-2"
+                              />
+                              <span className="text-sm font-primary w-10">
+                                ±{alertRange}%
+                              </span>
+                            </div>
+                          </div>
+
+                          <div>
+                            <label className="text-sm font-primary block mb-1">
+                              Notification Method
+                            </label>
+                            <select
+                              value={alertNotificationMethod}
+                              onChange={(e) =>
+                                setAlertNotificationMethod(
+                                  e.target.value as any
+                                )
+                              }
+                              className="w-full p-2 border rounded-md font-primary"
+                            >
+                              <option value="email">Email</option>
+                              <option value="whatsapp">WhatsApp</option>
+                              <option value="both">Both</option>
+                            </select>
+                          </div>
+
+                          <div>
+                            <label className="text-sm font-primary block mb-1">
+                              {alertNotificationMethod === "email"
+                                ? "Email Address"
+                                : alertNotificationMethod === "whatsapp"
+                                  ? "WhatsApp Number"
+                                  : "Email & WhatsApp"}
+                            </label>
+                            <input
+                              type="text"
+                              value={alertContactInfo}
+                              onChange={(e) =>
+                                setAlertContactInfo(e.target.value)
+                              }
+                              placeholder={
+                                alertNotificationMethod === "email"
+                                  ? "you@example.com"
+                                  : alertNotificationMethod === "whatsapp"
+                                    ? "+1234567890"
+                                    : "email@example.com, +1234567890"
+                              }
+                              className="w-full p-2 border rounded-md font-primary"
+                            />
+                          </div>
+                        </div>
+                      )}
                     </div>
                   </div>
                 </div>

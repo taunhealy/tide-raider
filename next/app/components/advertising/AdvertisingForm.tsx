@@ -1,7 +1,10 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { AD_CATEGORIES, type AdCategory } from "@/app/lib/advertising/constants";
+import {
+  AD_CATEGORIES,
+  type AdCategory,
+} from "@/app/lib/advertising/constants";
 import { useQuery } from "@tanstack/react-query";
 import { useSession } from "next-auth/react";
 import { Beach } from "@/app/types/beaches";
@@ -12,12 +15,11 @@ import { AdvertisingFormData, CreateAdRequestPayload } from "@/app/types/ads";
 
 // Define Zod schema for form validation
 const formSchema = z.object({
-  title: z.string().min(1, "Title is required"),
+  companyName: z.string().min(1, "Business name is required"),
   websiteUrl: z
     .string()
     .min(1, "URL is required")
     .transform((url) => {
-      // Add https:// if missing
       if (!/^https?:\/\//i.test(url)) {
         return `https://${url}`;
       }
@@ -43,7 +45,7 @@ export default function AdvertisingForm() {
   const [error, setError] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [formData, setFormData] = useState<AdvertisingFormData>({
-    title: "",
+    companyName: "",
     websiteUrl: "",
   });
 
@@ -70,13 +72,40 @@ export default function AdvertisingForm() {
     queryKey: ["categoryAvailability", selectedBeach, selectedCategory],
     queryFn: async () => {
       if (!selectedBeach || !selectedCategory) return null;
-      const res = await fetch(
-        `/api/advertising/check-availability?beachId=${selectedBeach}&category=${selectedCategory}`
-      );
-      return res.json();
+      console.log("Checking availability for:", {
+        beach: selectedBeach,
+        category: selectedCategory,
+      });
+      try {
+        const res = await fetch(
+          `/api/advertising/ads?beachId=${selectedBeach}&category=${selectedCategory}`
+        );
+        if (!res.ok) {
+          throw new Error("Failed to check availability");
+        }
+        const data = await res.json();
+        console.log("Availability response:", data);
+
+        // Handle different response formats
+        if (Array.isArray(data)) {
+          return { available: data.length === 0 };
+        }
+
+        return data;
+      } catch (error) {
+        console.error("Error checking availability:", error);
+        return { available: false, error: true };
+      }
     },
     enabled: !!selectedBeach && !!selectedCategory,
   });
+
+  // Add this console log to see what's being received
+  useEffect(() => {
+    if (categoryAvailability) {
+      console.log("Current availability state:", categoryAvailability);
+    }
+  }, [categoryAvailability]);
 
   // Function to trigger confetti on success
   const triggerConfetti = () => {
@@ -107,9 +136,9 @@ export default function AdvertisingForm() {
       console.error("Validation errors:", validationResult.error.format());
       const errors = validationResult.error.format();
 
-      if (errors.title?._errors?.length) {
-        setError(errors.title._errors[0]);
-        toast.error(errors.title._errors[0]);
+      if (errors.companyName?._errors?.length) {
+        setError(errors.companyName._errors[0]);
+        toast.error(errors.companyName._errors[0]);
         setIsLoading(false);
         return;
       }
@@ -143,8 +172,8 @@ export default function AdvertisingForm() {
 
       // Create ad request payload
       const payload: CreateAdRequestPayload = {
-        title: validatedData.title,
-        companyName: validatedData.title, // Using title as company name
+        title: validatedData.companyName,
+        companyName: validatedData.companyName,
         contactEmail: session.user.email,
         linkUrl: validatedData.websiteUrl,
         category: selectedCategory,
@@ -158,7 +187,7 @@ export default function AdvertisingForm() {
       };
 
       // Create ad record first
-      const adResponse = await fetch("/api/advertising/create", {
+      const adResponse = await fetch("/api/advertising/ads", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(payload),
@@ -309,16 +338,16 @@ export default function AdvertisingForm() {
         )}
 
         <div className="mb-6">
-          <label htmlFor="title" className="block mb-2 font-primary">
-            Ad Title
+          <label htmlFor="companyName" className="block mb-2 font-primary">
+            Business Name
           </label>
           <input
             type="text"
-            id="title"
+            id="companyName"
             className="w-full p-2 border border-gray-300 rounded-md font-primary"
-            value={formData.title}
+            value={formData.companyName}
             onChange={(e) =>
-              setFormData({ ...formData, title: e.target.value })
+              setFormData({ ...formData, companyName: e.target.value })
             }
           />
         </div>
@@ -344,7 +373,7 @@ export default function AdvertisingForm() {
 
         <button
           type="submit"
-          className="w-full bg-[var(--color-tertiary)] text-white py-3 px-6 rounded-md hover:bg-[var(--color-tertiary)] hover:opacity-80 transition-colors mt-8 font-primary flex justify-center items-center"
+          className="w-full bg-[var(--color-tertiary)] text-white py-3 px-6 rounded-md hover:bg-[var(--color-tertiary)] hover:opacity-80 transition-colors mt-8 font-primary flex justify-center items-center disabled:opacity-50 disabled:cursor-not-allowed"
           disabled={
             isLoading ||
             !session ||
@@ -387,6 +416,21 @@ export default function AdvertisingForm() {
             </>
           )}
         </button>
+
+        <div className="mt-4 text-sm text-red-600 font-primary">
+          {!session && <p>Please sign in to create an ad</p>}
+          {!selectedCategory && <p>Please select an ad category</p>}
+          {!selectedRegion && <p>Please select a region</p>}
+          {!selectedBeach && selectedRegion && <p>Please select a beach</p>}
+          {selectedBeach &&
+            selectedCategory &&
+            !categoryAvailability?.available && (
+              <p>
+                This ad slot is not available. Please select another beach or
+                category.
+              </p>
+            )}
+        </div>
       </form>
     </div>
   );

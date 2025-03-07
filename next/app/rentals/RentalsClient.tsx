@@ -7,7 +7,7 @@ import { RentalItemCard } from "@/app/components/rentals/RentalItemCard";
 import { RegionFilter } from "@/app/components/shared/RegionFilter";
 import { SearchFilterSidebar } from "@/app/components/shared/SearchFilterSidebar";
 import RippleLoader from "@/app/components/ui/RippleLoader";
-import { Button } from "@/app/components/ui/Button";
+import { Button } from "@/components/ui/button";
 import { RentalItemWithRelations } from "@/app/types/rentals";
 import { cn } from "@/app/lib/utils";
 import {
@@ -36,6 +36,13 @@ interface RentalsClientProps {
   initialRegions: { id: string; name: string }[];
   session: Session | null;
   itemCategories: { value: string; label: string }[];
+}
+
+function formatItemType(itemType: string) {
+  return itemType
+    .split("_")
+    .map((word) => word.charAt(0) + word.slice(1).toLowerCase())
+    .join(" ");
 }
 
 export default function RentalsClient({
@@ -343,17 +350,11 @@ export default function RentalsClient({
 
                   if (categoryItems.length === 0) return null;
 
-                  // Format category name for display (e.g., STAND_UP_PADDLE -> Stand Up Paddle)
-                  const displayName = category
-                    .split("_")
-                    .map((word) => word.charAt(0) + word.slice(1).toLowerCase())
-                    .join(" ");
-
                   return (
                     <section key={category} className="mb-8 sm:mb-12">
                       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-4 gap-2">
                         <h2 className="text-xl sm:text-2xl font-semibold">
-                          {displayName}s
+                          {formatItemType(category)}s
                         </h2>
                         <button
                           onClick={() =>

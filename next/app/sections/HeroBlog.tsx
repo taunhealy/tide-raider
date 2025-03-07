@@ -1,17 +1,11 @@
 "use client";
 
-import { urlForImage } from "@/app/lib/urlForImage";
-import { Post as BasePost } from "@/app/types/blog";
+import { Post, Category } from "@/app/types/blog";
 
 import { useState, useMemo, useEffect, useRef, useCallback } from "react";
 import { ChevronRight, ChevronLeft } from "lucide-react";
 import Link from "next/link";
-import ClientImage from "@/app/components/ClientImage";
-
-interface Category {
-  title: string;
-  slug: { current: string };
-}
+import BlogCard from "@/app/components/BlogCard";
 
 interface Trip {
   title?: string;
@@ -23,7 +17,7 @@ interface Trip {
 // Extend the base Post type with any HeroBlog-specific fields
 interface HeroPost
   extends Pick<
-    BasePost,
+    Post,
     | "_id"
     | "title"
     | "slug"
@@ -37,14 +31,16 @@ interface HeroPost
   trip?: Trip;
 }
 
-interface BlogProps {
-  data: {
-    posts: HeroPost[];
-    allCategories: Category[];
-  } | null;
+interface BlogData {
+  categories: Category[];
+  posts: Post[];
 }
 
-export default function Blog({ data }: BlogProps) {
+interface Props {
+  data: BlogData | null;
+}
+
+export default function HeroBlogSection({ data }: Props) {
   if (!data) {
     return null;
   }
@@ -52,21 +48,26 @@ export default function Blog({ data }: BlogProps) {
   const [activeCategory, setActiveCategory] = useState("All");
   const [currentPage, setCurrentPage] = useState(1);
   const postsPerPage = 5;
-  const allCategories = data.allCategories || [];
+  const allCategories = data.categories || [];
   const containerRef = useRef<HTMLDivElement>(null);
   const [canScrollLeft, setCanScrollLeft] = useState(false);
   const [canScrollRight, setCanScrollRight] = useState(true);
 
   const filteredPosts = useMemo(() => {
-    return data.posts.filter((post) => {
-      if (activeCategory === "All") return true;
-
-      return post.categories?.some((category) => {
-        const matches = category.title === activeCategory;
-
-        return matches;
+    return data.posts
+      .filter((post) => {
+        if (activeCategory === "All") return true;
+        return post.categories?.some(
+          (category) => category.title === activeCategory
+        );
+      })
+      .sort((a, b) => {
+        // Sort by creation date in descending order
+        return (
+          new Date(b._createdAt || "").getTime() -
+          new Date(a._createdAt || "").getTime()
+        );
       });
-    });
   }, [data.posts, activeCategory]);
 
   const handleScroll = useCallback(() => {
@@ -164,103 +165,35 @@ export default function Blog({ data }: BlogProps) {
           className="md:flex md:overflow-x-auto gap-4 md:gap-8 scroll-smooth no-scrollbar md:min-h-[540px] flex-col md:flex-row"
           style={{ scrollSnapType: "x mandatory" }}
         >
-          {filteredPosts.slice(0, 5).map((post: HeroPost) => {
+          {filteredPosts.slice(0, 5).map((post: Post) => {
             if (!post.slug) {
               console.warn("Post missing slug:", post);
               return null;
             }
             return (
-              <article
+              <div
                 key={post._id}
-                className="flex-none w-full md:w-[calc(33.333%-1.33rem)] min-w-[280px] md:min-w-[300px] bg-white rounded-lg overflow-hidden transition-all duration-300 group mb-4 md:mb-0"
+                className="flex-none w-full md:w-[calc(33.333%-1.33rem)] min-w-[280px] md:min-w-[300px] mb-4 md:mb-0"
                 style={{ scrollSnapAlign: "start" }}
               >
-                <Link
-                  href={`/blog/${post.slug}`}
-                  className="flex flex-row md:flex-col hover:no-underline"
-                >
-                  <div className="relative w-[140px] md:w-full h-[140px] md:h-[410px] overflow-hidden">
-                    {post.mainImage?.asset && (
-                      <>
-                        <div className="w-full h-full absolute inset-0 opacity-0 group-hover:opacity-30 transition-all duration-300 z-10" />
-                        <ClientImage
-                          src={
-                            urlForImage(post.mainImage)
-                              ?.width(600)
-                              ?.height(400)
-                              ?.url() ?? ""
-                          }
-                          alt={post.title || "Blog post image"}
-                          className="w-full h-full object-cover transition-transform duration-300"
-                        />
-                        {post.countries && post.countries.length > 0 && (
-                          <div className="absolute top-4 right-4 flex gap-2 text-xs text-white z-20">
-                            <span className="font-primary bg-black/50 px-3 py-1 rounded-full backdrop-blur-sm">
-                              {post.countries[0]}
-                            </span>
-                          </div>
-                        )}
-                      </>
-                    )}
-
-                    {post.hoverImage?.asset && (
-                      <img
-                        src={
-                          urlForImage(post.hoverImage?.asset)
-                            ?.width(600)
-                            ?.height(400)
-                            ?.url() ?? ""
-                        }
-                        alt={
-                          post.title
-                            ? `${post.title} hover image`
-                            : "Blog post hover image"
-                        }
-                        className="your-class-name"
-                      />
-                    )}
-                  </div>
-
-                  <div className="flex-1 p-4 md:p-6">
-                    {post.categories && post.categories.length > 0 && (
-                      <div className="flex gap-2">
-                        {post.categories
-                          .filter(
-                            (category): category is Category => !!category?.slug
-                          )
-                          .map((category) => (
-                            <span
-                              key={category.title}
-                              className="font-primary text-xs bg-[var(--color-bg-secondary)] text-[var(--color-text-secondary)] px-2 py-1 rounded font-semibold uppercase"
-                            >
-                              {category.title}
-                            </span>
-                          ))}
-                      </div>
-                    )}
-
-                    <h3 className="font-primary text-base md:text-lg mb-2 md:mb-[16px] font-semibold text-gray-900 group-hover:text-primary transition-colors duration-300">
-                      {post.title}
-                    </h3>
-
-                    <div className="hidden md:flex items-center text-[var(--color-text-secondary)] font-primary font-medium mt-4">
-                      Read More
-                      <svg
-                        xmlns="http://www.w3.org/2000/svg"
-                        className="h-4 w-4 ml-1 group-hover:translate-x-1 transition-transform duration-300"
-                        viewBox="0 0 20 20"
-                        fill="currentColor"
-                      >
-                        <path
-                          fillRule="evenodd"
-                          d="M10.293 3.293a1 1 0 011.414 0l6 6a1 1 0 010 1.414l-6 6a1 1 0 01-1.414-1.414L14.586 11H3a1 1 0 110-2h11.586l-4.293-4.293a1 1 0 010-1.414z"
-                          clipRule="evenodd"
-                        />
-                      </svg>
-                    </div>
-                  </div>
-                </Link>
-              </article>
+                <BlogCard
+                  post={{
+                    _id: post._id,
+                    title: post.title || "",
+                    slug:
+                      typeof post.slug === "string"
+                        ? post.slug
+                        : post.slug?.current || "",
+                    mainImage: post.mainImage,
+                    publishedAt: post.publishedAt || undefined,
+                    description: post.description || undefined,
+                    categories: post.categories,
+                    hoverImage: post.hoverImage,
+                    trip: post.trip,
+                    countries: post.countries,
+                  }}
+                />
+              </div>
             );
           })}
         </div>

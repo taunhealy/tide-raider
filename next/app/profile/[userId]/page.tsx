@@ -3,7 +3,7 @@
 import { useParams } from "next/navigation";
 import { useSession } from "next-auth/react";
 import { useState } from "react";
-import { Button } from "@/app/components/ui/Button";
+import { Button } from "@/components/ui/button";
 import { useQuery } from "@tanstack/react-query";
 import FavouriteSurfVideosSidebar from "@/app/components/FavouriteSurfVideosSidebar";
 import UserNotFound from "@/app/components/UserNotFound";

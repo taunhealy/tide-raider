@@ -31,7 +31,8 @@
     "next.config.js",
     "app/components/WaveAnimation.jsx",
     "../BeachCard.tsx",
-    "../app/components/boards/BoardCard.tsx"
+    "../app/components/boards/BoardCard.tsx",
+    "../@/app/components/alerts/AlertsList.tsx"
   ],
   "exclude": ["node_modules"]
 }

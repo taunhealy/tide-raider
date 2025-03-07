@@ -1,11 +1,16 @@
 import React, {useEffect, useState} from 'react'
 import {Stack, Card, Text, Select, Button, Flex, Box} from '@sanity/ui'
 import {set, unset} from 'sanity'
-import {HARDCODED_COUNTRIES} from '../../next/app/lib/countries'
+import {HARDCODED_COUNTRIES, Country} from '../../next/app/lib/location/countries/constants'
 
-export const RegionReferenceInput = (props) => {
+interface RegionReferenceInputProps {
+  onChange: (patch: any) => void
+  value?: string[]
+}
+
+export const RegionReferenceInput = (props: RegionReferenceInputProps) => {
   const {onChange, value = []} = props
-  const [countries, setCountries] = useState(HARDCODED_COUNTRIES)
+  const [countries, setCountries] = useState<Country[]>(HARDCODED_COUNTRIES)
   const [isLoading, setIsLoading] = useState(false)
   const [error, setError] = useState(null)
 
@@ -14,7 +19,7 @@ export const RegionReferenceInput = (props) => {
       setIsLoading(true)
       // Just use the hardcoded countries from the shared lib
       setCountries(HARDCODED_COUNTRIES)
-    } catch (err) {
+    } catch (err: any) {
       console.error('Error fetching countries:', err)
       setError(err.message)
     } finally {
@@ -26,7 +31,7 @@ export const RegionReferenceInput = (props) => {
     fetchCountries()
   }, [])
 
-  const handleSelect = (event) => {
+  const handleSelect = (event: React.ChangeEvent<HTMLSelectElement>) => {
     const countryId = event.target.value
 
     // If country is already selected, don't add it again
@@ -36,16 +41,16 @@ export const RegionReferenceInput = (props) => {
     onChange(set([...value, countryId]))
   }
 
-  const handleRemove = (countryId) => {
+  const handleRemove = (countryId: Country['id']) => {
     // Remove the country ID from the array
-    onChange(set(value.filter((id) => id !== countryId)))
+    onChange(set(value.filter((id: Country['id']) => id !== countryId)))
   }
 
   if (isLoading) return <Text>Loading countries...</Text>
   if (error)
     return (
       <Stack space={3}>
-        <Text tone="critical">Error: {error}</Text>
+        <Text muted>Error: {error}</Text>
         <Button
           text="Try again"
           tone="primary"
@@ -73,7 +78,7 @@ export const RegionReferenceInput = (props) => {
 
       {value.length > 0 && (
         <Stack space={2} marginTop={4}>
-          {value.map((countryId) => {
+          {value.map((countryId: string) => {
             const country = countries.find((c) => c.id === countryId)
             return (
               <Card key={countryId} padding={3} radius={2} tone="primary">

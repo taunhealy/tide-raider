@@ -26,106 +26,104 @@ export function getMediaGridItems(
   ads: Ad[] = []
 ) {
   const items = [];
-  const shownAdClientIds = new Set<string>();
 
-  // Filter ads for this specific beach
-  const beachAds =
-    ads?.filter(
-      (ad) => ad.status === "active" && ad.targetedBeaches?.includes(beach.id)
-    ) || [];
+  // Debug logs
+  console.log("Processing ads for beach:", beach.name, {
+    totalAds: ads?.length,
+    beachId: beach.id,
+  });
+
+  // Ensure ads is an array and filter active ads for this beach
+  const beachAds = (Array.isArray(ads) ? ads : []).filter((ad) => {
+    const isActive = ad.status === "active";
+    const isTargeted =
+      ad.targetedBeaches?.includes(beach.id) ||
+      ad.beachConnections?.some((conn) => conn.beachId === beach.id);
+
+    console.log("Ad check:", {
+      id: ad.id,
+      category: ad.category,
+      isActive,
+      isTargeted,
+      title: ad.title,
+      companyName: ad.companyName,
+    });
+
+    return isActive && isTargeted;
+  });
 
   // Group ads by category
   const adsByCategory = beachAds.reduce(
     (acc, ad) => {
-      if (!acc[ad.category]) {
-        acc[ad.category] = [];
-      }
+      if (!acc[ad.category]) acc[ad.category] = [];
       acc[ad.category].push(ad);
       return acc;
     },
     {} as Record<string, Ad[]>
   );
 
-  // Add video (either from ads or from videos array)
-  if (videos && videos.length > 0) {
-    const availableVideos = [...videos];
-    const randomIndex = Math.floor(Math.random() * availableVideos.length);
-    items.push({
-      type: "video",
-      ...availableVideos[randomIndex],
-    });
+  // Add videos first
+  if (videos?.length) {
+    items.push(
+      ...videos.map((video) => ({
+        type: "video",
+        ...video,
+      }))
+    );
   }
 
-  // Add coffee shop (either from ads or from beach data)
-  if (adsByCategory["coffee"] && adsByCategory["coffee"].length > 0) {
-    // Use a coffee shop ad
-    const coffeeAd = adsByCategory["coffee"][0];
-    items.push({
-      type: "coffeeShop",
-      name: coffeeAd.title || coffeeAd.companyName,
-      url: coffeeAd.linkUrl,
-      isAd: true,
-      adId: coffeeAd.id,
-    });
-    if (coffeeAd.userId) {
-      shownAdClientIds.add(coffeeAd.userId);
+  // Add services (prioritizing ads over regular listings)
+  const categories = ["surf_camp", "coffee_shop", "shaper", "beer"];
+
+  categories.forEach((category) => {
+    if (adsByCategory[category]?.length) {
+      // Use the ad
+      const ad = adsByCategory[category][0];
+      items.push({
+        type: category.replace("_", "") as
+          | "surfCamp"
+          | "coffeeShop"
+          | "shaper"
+          | "beer",
+        name: ad.title || ad.companyName,
+        url: ad.linkUrl,
+        isAd: true,
+        adId: ad.id,
+      });
+    } else {
+      // Use regular listing if available
+      switch (category) {
+        case "coffee_shop":
+          if (coffeeShops?.length) {
+            items.push({
+              type: "coffeeShop",
+              name: coffeeShops[0].name,
+            });
+          }
+          break;
+        case "shaper":
+          if (beach.shaper?.length) {
+            items.push({
+              type: "shaper",
+              name: beach.shaper[0].name,
+              url: beach.shaper[0].url,
+            });
+          }
+          break;
+        case "beer":
+          if (beach.beer?.length) {
+            items.push({
+              type: "beer",
+              name: beach.beer[0].name,
+              url: beach.beer[0].url,
+            });
+          }
+          break;
+      }
     }
-  } else if (coffeeShops?.length > 0) {
-    // Use a regular coffee shop
-    items.push({
-      type: "coffeeShop",
-      ...coffeeShops[0],
-    });
-  }
+  });
 
-  // Add shaper (either from ads or from beach data)
-  if (adsByCategory["shaper"] && adsByCategory["shaper"].length > 0) {
-    // Use a shaper ad
-    const shaperAd = adsByCategory["shaper"][0];
-    items.push({
-      type: "shaper",
-      name: shaperAd.title || shaperAd.companyName,
-      url: shaperAd.linkUrl,
-      isAd: true,
-      adId: shaperAd.id,
-    });
-    if (shaperAd.userId) {
-      shownAdClientIds.add(shaperAd.userId);
-    }
-  } else if (beach.shaper && beach.shaper.length > 0) {
-    // Use a regular shaper
-    items.push({
-      type: "shaper",
-      name: beach.shaper[0].name,
-      url: beach.shaper[0].url,
-    });
-  }
+  console.log("Final items:", items);
 
-  // Add beer (either from ads or from beach data)
-  if (adsByCategory["beer"] && adsByCategory["beer"].length > 0) {
-    // Use a beer ad
-    const beerAd = adsByCategory["beer"][0];
-    items.push({
-      type: "beer",
-      name: beerAd.title || beerAd.companyName,
-      url: beerAd.linkUrl,
-      isAd: true,
-      adId: beerAd.id,
-    });
-    if (beerAd.userId) {
-      shownAdClientIds.add(beerAd.userId);
-    }
-  } else if (beach.beer && beach.beer.length > 0) {
-    // Use a regular beer
-    items.push({
-      type: "beer",
-      name: beach.beer[0].name,
-      url: beach.beer[0].url,
-    });
-  }
-
-  return {
-    items,
-    shownAdClientIds,
-  };
+  return { items };
 }

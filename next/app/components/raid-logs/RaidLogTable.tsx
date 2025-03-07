@@ -3,7 +3,7 @@
 import { QuestLogTableColumn, LogEntry } from "@/app/types/questlogs";
 
 import { format } from "date-fns";
-import { Star, Pencil, X } from "lucide-react";
+import { Star, Pencil, X, Bell } from "lucide-react";
 import { cn } from "@/app/lib/utils";
 import {
   getWindEmoji,
@@ -15,11 +15,34 @@ import Image from "next/image";
 import { useSession } from "next-auth/react";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { useRouter } from "next/navigation";
-import { useMemo, useState } from "react";
+import { useMemo, useState, useEffect } from "react";
 import { ForecastData } from "@/types/wind";
 import Link from "next/link";
 import BeachDetailsModal from "@/app/components/BeachDetailsModal";
 import { beachData, type Beach } from "@/app/types/beaches";
+import { AlertConfig } from "@/app/types/alerts";
+import { v4 as uuidv4 } from "uuid";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Slider } from "@/components/ui/slider";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { useToast } from "@/app/components/ui/use-toast";
+import { Button } from "@/components/ui/button";
+import ForecastAlertModal from "@/app/components/alerts/ForecastAlertModal";
 
 interface QuestTableProps {
   entries: LogEntry[];
@@ -225,14 +248,21 @@ export default function RaidLogTable({
   onBeachClick,
 }: QuestTableProps) {
   const [selectedBeach, setSelectedBeach] = useState<Beach | null>(null);
+  const [alertModalOpen, setAlertModalOpen] = useState(false);
+  const [selectedLogForAlert, setSelectedLogForAlert] =
+    useState<LogEntry | null>(null);
+  const [selectedAlertForEdit, setSelectedAlertForEdit] = useState<
+    AlertConfig | undefined
+  >(undefined);
+  const { toast } = useToast();
+  const { data: session } = useSession();
+  const queryClient = useQueryClient();
 
   const normalizedEntries = useMemo(() => {
     return entries.map(normalizeLogEntry);
   }, [entries]);
 
   const router = useRouter();
-  const queryClient = useQueryClient();
-  const { data: session } = useSession();
 
   // Delete mutation
   const deleteMutation = useMutation({
@@ -252,6 +282,15 @@ export default function RaidLogTable({
     },
   });
 
+  // Load user alerts from localStorage
+  const userAlerts = useMemo(() => {
+    if (typeof window !== "undefined") {
+      const savedAlerts = localStorage.getItem("userAlerts");
+      return savedAlerts ? JSON.parse(savedAlerts) : [];
+    }
+    return [];
+  }, [alertModalOpen]); // Refresh when dialog closes
+
   // Edit handler
   const handleEdit = (entry: LogEntry) => {
     router.push(`/raidlogs/${entry.id}`);
@@ -260,6 +299,54 @@ export default function RaidLogTable({
   // Delete handler
   const handleDelete = (entryId: string) => {
     deleteMutation.mutate(entryId);
+  };
+
+  // Create new alert handler
+  const handleAlertClick = (entry: LogEntry) => {
+    if (!session?.user) {
+      toast({
+        title: "Login Required",
+        description: "Please log in to create alerts",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    // Check if an alert already exists for this beach/region
+    const existingAlert = userAlerts.find(
+      (alert: AlertConfig) =>
+        alert.region === entry.region ||
+        (entry.beachName && alert.name && alert.name.includes(entry.beachName))
+    );
+
+    if (existingAlert && existingAlert.id) {
+      // Navigate to the alert edit page
+      console.log("Navigating to alert edit page:", existingAlert.id);
+      router.push(`/alerts/${existingAlert.id}`);
+    } else {
+      // Create new alert
+      setSelectedAlertForEdit(undefined);
+      setSelectedLogForAlert(entry);
+      setAlertModalOpen(true);
+    }
+  };
+
+  const handleAlertSaved = () => {
+    // Refresh the alerts data
+    queryClient.invalidateQueries({ queryKey: ["alerts"] });
+
+    // Update local storage alerts (for UI highlighting)
+    if (typeof window !== "undefined") {
+      const savedAlerts = localStorage.getItem("userAlerts");
+      const alerts = savedAlerts ? JSON.parse(savedAlerts) : [];
+      // Force UI refresh by updating state
+      setAlertModalOpen(false);
+    }
+
+    toast({
+      title: "Alert Saved",
+      description: "Your alert has been saved successfully.",
+    });
   };
 
   const filteredEntries = normalizedEntries.filter((entry) => {
@@ -301,6 +388,41 @@ export default function RaidLogTable({
           <button
             onClick={(e) => {
               e.stopPropagation();
+              handleAlertClick(entry);
+            }}
+            className={cn(
+              "text-gray-500 hover:text-yellow-500",
+              // Highlight the bell if an alert already exists
+              userAlerts.some(
+                (alert: AlertConfig) =>
+                  alert.region === entry.region ||
+                  (entry.beachName &&
+                    alert.name &&
+                    alert.name.includes(entry.beachName))
+              )
+                ? "text-yellow-500 fill-yellow-500"
+                : ""
+            )}
+          >
+            <Bell
+              className={cn(
+                "w-4 h-4",
+                // Highlight the bell if an alert already exists
+                userAlerts.some(
+                  (alert: AlertConfig) =>
+                    alert.region === entry.region ||
+                    (entry.beachName &&
+                      alert.name &&
+                      alert.name.includes(entry.beachName))
+                )
+                  ? "text-yellow-500 fill-yellow-500"
+                  : ""
+              )}
+            />
+          </button>
+          <button
+            onClick={(e) => {
+              e.stopPropagation();
               handleDelete(entry.id);
             }}
             className="text-gray-500 hover:text-red-600"
@@ -324,176 +446,217 @@ export default function RaidLogTable({
   }
 
   return (
-    <div className="w-full">
-      {/* Mobile View - Cards */}
-      <div className="md:hidden space-y-4">
-        {filteredEntries.map((entry) => {
-          console.log("[TableDebug] Processing entry:", {
-            id: entry.id,
-            beachName: entry.beachName,
-            forecast: entry.forecast,
-          });
+    <>
+      <div className="w-full">
+        {/* Mobile View - Cards */}
+        <div className="md:hidden space-y-4">
+          {filteredEntries.map((entry) => {
+            console.log("[TableDebug] Processing entry:", {
+              id: entry.id,
+              beachName: entry.beachName,
+              forecast: entry.forecast,
+            });
 
-          return (
-            <div
-              key={entry.id}
-              className="bg-white rounded-lg border border-gray-200 shadow p-3 sm:p-4 space-y-2 sm:space-y-3"
-            >
-              <div className="flex flex-col sm:flex-row sm:justify-between sm:items-start gap-2 sm:gap-0">
-                <div>
-                  <h3 className="text-sm sm:text-base font-medium">
-                    {entry.beachName}
-                  </h3>
-                  <p className="text-xs sm:text-sm text-gray-500">
-                    {format(new Date(entry.date), "MMM d, yyyy")}
-                  </p>
-                  <p className="text-xs sm:text-sm text-gray-500">
-                    {entry.region}
-                  </p>
-                </div>
-                <StarRating rating={entry.surferRating} />
-              </div>
-
-              <div className="text-sm">
-                <p className="text-gray-600">
-                  Logger:{" "}
-                  <LogEntryDisplay
-                    entry={entry}
-                    isAnonymous={entry.isAnonymous ?? false}
-                  />
-                </p>
-                <div className="mt-2">
-                  <ForecastInfo forecast={entry.forecast} />
-                </div>
-              </div>
-
-              {entry.comments && (
-                <p className="text-sm text-gray-600 break-words">
-                  <span className="font-medium">Comments:</span>{" "}
-                  {entry.comments}
-                </p>
-              )}
-            </div>
-          );
-        })}
-      </div>
-
-      {/* Desktop View - Table */}
-      <div className="hidden md:block rounded-lg border border-gray-200 shadow">
-        <div className="min-h-[500px] w-full">
-          <table className="w-full divide-y divide-gray-200">
-            <thead className="bg-gray-50">
-              <tr>
-                {columnsWithAction.map((column) => (
-                  <th
-                    key={column.key}
-                    className={cn(
-                      "px-4 py-3 sm:px-6 sm:py-4 text-sm text-left text-gray-500 uppercase tracking-wider",
-                      column.key === "date" ? "min-w-[140px]" : "min-w-[180px]",
-                      column.key === "comments" && "min-w-[300px]",
-                      "h-[40px]"
-                    )}
-                  >
-                    {(column as QuestLogTableColumn).label}
-                  </th>
-                ))}
-              </tr>
-            </thead>
-            <tbody className="bg-white divide-y divide-gray-200">
-              {filteredEntries.map((entry) => {
-                console.log("[TableDebug] Processing entry:", {
-                  id: entry.id,
-                  beachName: entry.beachName,
-                  forecast: entry.forecast,
-                });
-
-                return (
-                  <tr key={entry.id} className="hover:bg-gray-50">
-                    <td className="px-4 py-4 sm:px-6 whitespace-nowrap text-sm min-w-[140px]">
+            return (
+              <div
+                key={entry.id}
+                className="bg-white rounded-lg border border-gray-200 shadow p-3 sm:p-4 space-y-2 sm:space-y-3"
+              >
+                <div className="flex flex-col sm:flex-row sm:justify-between sm:items-start gap-2 sm:gap-0">
+                  <div>
+                    <h3 className="text-sm sm:text-base font-medium">
+                      {entry.beachName}
+                    </h3>
+                    <p className="text-xs sm:text-sm text-gray-500">
                       {format(new Date(entry.date), "MMM d, yyyy")}
-                    </td>
-                    <td className="px-4 py-4 sm:px-6 whitespace-nowrap min-w-[180px]">
-                      <button
-                        onClick={() => {
-                          const foundBeach = beachData.find(
-                            (b) => b.name === entry.beachName
-                          );
-                          console.log("Found beach data:", foundBeach);
-                          setSelectedBeach(foundBeach || null);
-                        }}
-                        className="font-primary text-gray-900 hover:text-brand-3 transition-colors text-left"
-                      >
-                        {entry.beachName}
-                      </button>
-                    </td>
-                    <td className="px-4 py-4 sm:px-6 whitespace-nowrap min-w-[180px]">
+                    </p>
+                    <p className="text-xs sm:text-sm text-gray-500">
                       {entry.region}
-                    </td>
-                    <td className="px-4 py-4 sm:px-6 whitespace-nowrap min-w-[180px]">
-                      <LogEntryDisplay
-                        entry={entry}
-                        isAnonymous={entry.isAnonymous ?? false}
-                      />
-                    </td>
-                    <td className="px-4 py-4 sm:px-6 min-w-[140px]">
-                      <StarRating rating={entry.surferRating} />
-                    </td>
-                    <td className="px-4 py-4 sm:px-6 min-w-[200px]">
-                      <ForecastInfo forecast={entry.forecast} />
-                    </td>
-                    <td className="px-4 py-4 sm:px-6 min-w-[300px] whitespace-normal">
-                      {entry.comments}
-                    </td>
-                    {isSubscribed && entry.imageUrl && (
-                      <td className="px-2 py-2 sm:px-4">
-                        <div className="relative w-[80px] h-[80px] sm:w-[120px] sm:h-[120px]">
-                          <Image
-                            src={entry.imageUrl}
-                            alt="Session photo"
-                            width={80}
-                            height={80}
-                            className="object-cover rounded-md"
-                            unoptimized={process.env.NODE_ENV === "development"}
-                            onError={(e) => {
-                              (e.target as HTMLImageElement).style.display =
-                                "none";
+                    </p>
+                  </div>
+                  <StarRating rating={entry.surferRating} />
+                </div>
+
+                <div className="text-sm">
+                  <p className="text-gray-600">
+                    Logger:{" "}
+                    <LogEntryDisplay
+                      entry={entry}
+                      isAnonymous={entry.isAnonymous ?? false}
+                    />
+                  </p>
+                  <div className="mt-2">
+                    <ForecastInfo forecast={entry.forecast} />
+                  </div>
+                </div>
+
+                {entry.comments && (
+                  <p className="text-sm text-gray-600 break-words">
+                    <span className="font-medium">Comments:</span>{" "}
+                    {entry.comments}
+                  </p>
+                )}
+              </div>
+            );
+          })}
+        </div>
+
+        {/* Desktop View - Table */}
+        <div className="hidden md:block rounded-lg border border-gray-200 shadow">
+          <div className="min-h-[500px] w-full">
+            <table className="w-full divide-y divide-gray-200">
+              <thead className="bg-gray-50">
+                <tr>
+                  {columnsWithAction.map((column) => (
+                    <th
+                      key={column.key}
+                      className={cn(
+                        "px-4 py-3 sm:px-6 sm:py-4 text-sm text-left text-gray-500 uppercase tracking-wider",
+                        column.key === "date"
+                          ? "min-w-[140px]"
+                          : "min-w-[180px]",
+                        column.key === "comments" && "min-w-[300px]",
+                        "h-[40px]"
+                      )}
+                    >
+                      {(column as QuestLogTableColumn).label}
+                    </th>
+                  ))}
+                </tr>
+              </thead>
+              <tbody className="bg-white divide-y divide-gray-200">
+                {filteredEntries.map((entry) => {
+                  console.log("[TableDebug] Processing entry:", {
+                    id: entry.id,
+                    beachName: entry.beachName,
+                    forecast: entry.forecast,
+                  });
+
+                  return (
+                    <tr key={entry.id} className="hover:bg-gray-50">
+                      <td className="px-4 py-4 sm:px-6 whitespace-nowrap text-sm min-w-[140px]">
+                        {format(new Date(entry.date), "MMM d, yyyy")}
+                      </td>
+                      <td className="px-4 py-4 sm:px-6 whitespace-nowrap min-w-[180px]">
+                        <button
+                          onClick={() => {
+                            const foundBeach = beachData.find(
+                              (b) => b.name === entry.beachName
+                            );
+                            console.log("Found beach data:", foundBeach);
+                            setSelectedBeach(foundBeach || null);
+                          }}
+                          className="font-primary text-gray-900 hover:text-brand-3 transition-colors text-left"
+                        >
+                          {entry.beachName}
+                        </button>
+                      </td>
+                      <td className="px-4 py-4 sm:px-6 whitespace-nowrap min-w-[180px]">
+                        {entry.region}
+                      </td>
+                      <td className="px-4 py-4 sm:px-6 whitespace-nowrap min-w-[180px]">
+                        <LogEntryDisplay
+                          entry={entry}
+                          isAnonymous={entry.isAnonymous ?? false}
+                        />
+                      </td>
+                      <td className="px-4 py-4 sm:px-6 min-w-[140px]">
+                        <StarRating rating={entry.surferRating} />
+                      </td>
+                      <td className="px-4 py-4 sm:px-6 min-w-[200px]">
+                        <ForecastInfo forecast={entry.forecast} />
+                      </td>
+                      <td className="px-4 py-4 sm:px-6 min-w-[300px] whitespace-normal">
+                        {entry.comments}
+                      </td>
+                      {isSubscribed && entry.imageUrl && (
+                        <td className="px-2 py-2 sm:px-4">
+                          <div className="relative w-[80px] h-[80px] sm:w-[120px] sm:h-[120px]">
+                            <Image
+                              src={entry.imageUrl}
+                              alt="Session photo"
+                              width={80}
+                              height={80}
+                              className="object-cover rounded-md"
+                              unoptimized={
+                                process.env.NODE_ENV === "development"
+                              }
+                              onError={(e) => {
+                                (e.target as HTMLImageElement).style.display =
+                                  "none";
+                              }}
+                            />
+                          </div>
+                        </td>
+                      )}
+                      <td className="px-6 py-4">
+                        <div className="flex gap-2">
+                          <button
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              handleEdit(entry);
                             }}
-                          />
+                            className="text-gray-500 hover:text-[var(--brand-tertiary)]"
+                          >
+                            <Pencil className="w-4 h-4" />
+                          </button>
+                          <button
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              handleAlertClick(entry);
+                            }}
+                            className={cn(
+                              "text-gray-500 hover:text-yellow-500",
+                              // Highlight the bell if an alert already exists
+                              userAlerts.some(
+                                (alert: AlertConfig) =>
+                                  alert.region === entry.region ||
+                                  (entry.beachName &&
+                                    alert.name &&
+                                    alert.name.includes(entry.beachName))
+                              )
+                                ? "text-yellow-500 fill-yellow-500"
+                                : ""
+                            )}
+                          >
+                            <Bell
+                              className={cn(
+                                "w-4 h-4",
+                                // Highlight the bell if an alert already exists
+                                userAlerts.some(
+                                  (alert: AlertConfig) =>
+                                    alert.region === entry.region ||
+                                    (entry.beachName &&
+                                      alert.name &&
+                                      alert.name.includes(entry.beachName))
+                                )
+                                  ? "text-yellow-500 fill-yellow-500"
+                                  : ""
+                              )}
+                            />
+                          </button>
+                          <button
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              handleDelete(entry.id);
+                            }}
+                            className="text-gray-500 hover:text-red-600"
+                            disabled={deleteMutation.isPending}
+                          >
+                            {deleteMutation.isPending ? (
+                              <span className="loading-spinner" />
+                            ) : (
+                              <X className="w-4 h-4" />
+                            )}
+                          </button>
                         </div>
                       </td>
-                    )}
-                    <td className="px-6 py-4">
-                      <div className="flex gap-2">
-                        <button
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            handleEdit(entry);
-                          }}
-                          className="text-gray-500 hover:text-[var(--brand-tertiary)]"
-                        >
-                          <Pencil className="w-4 h-4" />
-                        </button>
-                        <button
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            handleDelete(entry.id);
-                          }}
-                          className="text-gray-500 hover:text-red-600"
-                          disabled={deleteMutation.isPending}
-                        >
-                          {deleteMutation.isPending ? (
-                            <span className="loading-spinner" />
-                          ) : (
-                            <X className="w-4 h-4" />
-                          )}
-                        </button>
-                      </div>
-                    </td>
-                  </tr>
-                );
-              })}
-            </tbody>
-          </table>
+                    </tr>
+                  );
+                })}
+              </tbody>
+            </table>
+          </div>
         </div>
       </div>
 
@@ -507,6 +670,19 @@ export default function RaidLogTable({
           onSubscribe={() => {}}
         />
       )}
-    </div>
+
+      {/* Alert Modal */}
+      <ForecastAlertModal
+        isOpen={alertModalOpen}
+        onClose={() => {
+          setAlertModalOpen(false);
+          setSelectedAlertForEdit(undefined);
+          setSelectedLogForAlert(null);
+        }}
+        logEntry={selectedLogForAlert}
+        existingAlert={selectedAlertForEdit}
+        onSaved={handleAlertSaved}
+      />
+    </>
   );
 }

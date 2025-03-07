@@ -1,7 +1,7 @@
 import { Story } from "@/app/types/stories";
 import { Dialog } from "@headlessui/react";
 import { X } from "lucide-react";
-import { Button } from "@/app/components/ui/Button";
+import { Button } from "@/components/ui/button";
 
 interface ViewPostModalProps {
   isOpen: boolean;

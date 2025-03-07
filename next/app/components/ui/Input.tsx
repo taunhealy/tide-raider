@@ -6,13 +6,13 @@ import { InputHTMLAttributes } from "react";
 
 export interface InputProps extends InputHTMLAttributes<HTMLInputElement> {}
 
-const Input = forwardRef<HTMLInputElement, InputProps>(
+export const Input = forwardRef<HTMLInputElement, InputProps>(
   ({ className, type, ...props }, ref) => {
     return (
       <input
         type={type}
         className={cn(
-          "flex h-10 w-full rounded-lg border border-[var(--color-border)] bg-background px-3 py-2 text-sm ring-offset-background",
+          "flex h-10 w-full rounded-lg border border-[var(--color-border)] bg-background px-3 py-2 text-sm ring-offset-background font-primary",
           "file:border-0 file:bg-transparent file:text-sm file:font-medium",
           "placeholder:text-gray-400 focus-visible:outline-none focus-visible:ring-2",
           "focus-visible:ring-[var(--color-tertiary)] focus-visible:ring-offset-2",
@@ -26,5 +26,3 @@ const Input = forwardRef<HTMLInputElement, InputProps>(
   }
 );
 Input.displayName = "Input";
-
-export default Input;

@@ -6,6 +6,7 @@ import RentalsClient from "./RentalsClient";
 import { RentalItemWithRelations } from "@/app/types/rentals";
 import Link from "next/link";
 import { ITEM_CATEGORIES } from "@/app/lib/rentals/constants";
+import { formatItemType } from "@/app/lib/formatters";
 
 export const metadata = {
   title: "Rentals | Tide Raider",
@@ -81,10 +82,7 @@ export default async function RentalsPage() {
     // Convert SNAKE_CASE to Title Case (e.g., STAND_UP_PADDLE to Stand Up Paddle)
     return {
       value: category,
-      label: category
-        .split("_")
-        .map((word) => word.charAt(0) + word.slice(1).toLowerCase())
-        .join(" "),
+      label: formatItemType(category),
     };
   });
 

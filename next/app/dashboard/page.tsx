@@ -4,7 +4,7 @@ import { useSession } from "next-auth/react";
 import { useState, useEffect } from "react";
 import { useSubscription } from "../context/SubscriptionContext";
 import { useQuery } from "@tanstack/react-query";
-import { Button } from "../components/ui/Button";
+import { Button } from "../components/ui/button";
 import { useHandleSubscribe } from "../hooks/useHandleSubscribe";
 import { useHandleTrial } from "../hooks/useHandleTrial";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
@@ -28,7 +28,7 @@ export default function DashboardPage() {
   const { data: session, update } = useSession();
   const { trialStatus, trialEndDate } = useSubscription();
   const [activeTab, setActiveTab] = useState<
-    "account" | "billing" | "rentals" | "ads"
+    "account" | "billing" | "rentals" | "ads" | "alerts"
   >("account");
   const [username, setUsername] = useState<string>("");
   const queryClient = useQueryClient();
@@ -249,34 +249,41 @@ export default function DashboardPage() {
         <div className="flex-1">
           <h1 className="text-2xl sm:text-3xl font-bold mb-6">Dashboard</h1>
 
-          <div className="flex flex-row sm:flex-row gap-2 sm:gap-4 mb-6">
+          <div className="flex flex-row sm:flex-row gap-2 sm:gap-4 mb-6 flex-wrap">
             <Button
               variant={activeTab === "account" ? "default" : "outline"}
               onClick={() => setActiveTab("account")}
-              className="w-full sm:w-auto"
+              className="w-full sm:w-auto font-primary"
             >
               Account
             </Button>
             <Button
               variant={activeTab === "billing" ? "default" : "outline"}
               onClick={() => setActiveTab("billing")}
-              className="w-full sm:w-auto"
+              className="w-full sm:w-auto font-primary"
             >
               Billing
             </Button>
             <Button
               variant={activeTab === "rentals" ? "default" : "outline"}
               onClick={() => setActiveTab("rentals")}
-              className="w-full sm:w-auto"
+              className="w-full sm:w-auto font-primary"
             >
               Rentals
             </Button>
             <Button
               variant={activeTab === "ads" ? "default" : "outline"}
               onClick={() => setActiveTab("ads")}
-              className="w-full sm:w-auto"
+              className="w-full sm:w-auto font-primary"
             >
               Ads
+            </Button>
+            <Button
+              variant={activeTab === "alerts" ? "default" : "outline"}
+              onClick={() => setActiveTab("alerts")}
+              className="w-full sm:w-auto font-primary"
+            >
+              Alerts
             </Button>
           </div>
 
@@ -328,29 +335,16 @@ export default function DashboardPage() {
 
                 <div className="mt-8">
                   <RoleManager
+                    userId={session?.user?.id}
                     initialRoles={userData?.roles || []}
                     onUpdate={async (roles) => {
                       try {
-                        const response = await fetch("/api/user/update-roles", {
-                          method: "POST",
-                          headers: { "Content-Type": "application/json" },
-                          body: JSON.stringify({ roles }),
-                        });
-
-                        if (!response.ok) {
-                          throw new Error("Failed to update roles");
-                        }
-
-                        // Update session to reflect new roles
                         await update();
-                        // Also refresh user data
                         queryClient.invalidateQueries({
                           queryKey: ["user", session?.user?.id],
                         });
-                        toast.success("Roles updated successfully");
                       } catch (error) {
                         console.error("Failed to update roles:", error);
-                        toast.error("Failed to update roles");
                       }
                     }}
                   />
@@ -576,6 +570,58 @@ export default function DashboardPage() {
                     <ChevronRightIcon className="h-5 w-5 text-gray-400" />
                   </Link>
                 </div>
+              </div>
+            )}
+
+            {activeTab === "alerts" && (
+              <div className="space-y-4">
+                <h2 className="text-lg sm:text-xl font-semibold font-primary">
+                  Forecast Alerts
+                </h2>
+
+                <div className="flex flex-col gap-4">
+                  <Link
+                    href="/dashboard/alerts"
+                    className="flex items-center justify-between p-4 border rounded-md hover:bg-gray-50 transition-colors"
+                  >
+                    <div>
+                      <h3 className="font-medium font-primary">
+                        Manage Alerts
+                      </h3>
+                      <p className="text-sm text-gray-600 font-primary">
+                        Create and manage your surf forecast alerts
+                      </p>
+                    </div>
+                    <ChevronRightIcon className="h-5 w-5 text-gray-400" />
+                  </Link>
+
+                  <div className="p-4 bg-blue-50 rounded-md">
+                    <p className="text-sm text-blue-800 font-primary">
+                      Get notified when surf conditions match your preferences.
+                      Set up alerts for specific locations, wave heights, and
+                      more.
+                    </p>
+                  </div>
+                </div>
+
+                {subscriptionData?.status !== SubscriptionStatus.ACTIVE && (
+                  <div className="mt-4 p-4 bg-yellow-50 rounded-md">
+                    <p className="text-sm text-yellow-800 font-primary">
+                      You need an active subscription to use advanced alert
+                      features.
+                    </p>
+                    <Button
+                      variant="outline"
+                      className="mt-2 w-full sm:w-auto font-primary"
+                      onClick={handleSubscribeWithLoading}
+                      disabled={loadingStates.subscribe}
+                    >
+                      {loadingStates.subscribe
+                        ? "Processing..."
+                        : "Subscribe Now"}
+                    </Button>
+                  </div>
+                )}
               </div>
             )}
           </div>

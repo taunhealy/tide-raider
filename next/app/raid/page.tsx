@@ -45,7 +45,11 @@ const getActiveAds = cache(async () => {
         startDate: true,
         endDate: true,
         status: true,
-        targetedBeaches: true,
+        beachConnections: {
+          select: {
+            beachId: true,
+          },
+        },
         userId: true,
       },
     });

@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { beachData } from "@/app/types/beaches";
-import prisma from "@/app/lib/prisma";
+import { prisma } from "@/app/lib/prisma";
 
 export async function GET(request: Request) {
   const { searchParams } = new URL(request.url);

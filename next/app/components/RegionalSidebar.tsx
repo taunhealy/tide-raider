@@ -6,12 +6,12 @@ import { AD_CATEGORIES } from "@/app/lib/advertising/constants";
 
 interface RegionalSidebarProps {
   selectedRegion: string;
-  ads: Ad[];
+  ads: Ad[] | undefined;
 }
 
 export default function RegionalSidebar({
   selectedRegion,
-  ads,
+  ads = [], // Provide default empty array
 }: RegionalSidebarProps) {
   const [filteredAds, setFilteredAds] = useState<
     (Ad | { id: string; category: string; isPlaceholder: true })[]
@@ -20,12 +20,14 @@ export default function RegionalSidebar({
   useEffect(() => {
     if (!selectedRegion) return;
 
+    // Ensure ads is an array
+    const adsArray = Array.isArray(ads) ? ads : [];
+
     // Filter ads based on selected region and category
-    const regionAds =
-      ads?.filter((ad) => {
-        // Check if the ad's regionId matches the selected region
-        return ad.regionId === selectedRegion;
-      }) ?? [];
+    const regionAds = adsArray.filter((ad) => {
+      // Check if the ad's regionId matches the selected region
+      return ad.regionId === selectedRegion;
+    });
 
     // Group ads by category and select one from each
     const categorizedAds = Object.keys(AD_CATEGORIES).reduce(

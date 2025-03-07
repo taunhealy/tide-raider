@@ -1,37 +1,52 @@
 "use client";
 
-import { cn } from "@/lib/utils";
-import { ComponentPropsWithoutRef, forwardRef } from "react";
+import * as React from "react";
+import { cn } from "@/app/lib/utils";
 
-export interface SwitchProps extends ComponentPropsWithoutRef<"button"> {
+export interface SwitchProps extends React.HTMLAttributes<HTMLDivElement> {
   checked?: boolean;
   onCheckedChange?: (checked: boolean) => void;
+  disabled?: boolean;
 }
 
-export const Switch = forwardRef<HTMLButtonElement, SwitchProps>(
-  ({ className, checked, onCheckedChange, ...props }, ref) => {
+export const Switch = React.forwardRef<HTMLDivElement, SwitchProps>(
+  (
+    { className, checked = false, onCheckedChange, disabled = false, ...props },
+    ref
+  ) => {
+    const handleClick = () => {
+      if (!disabled && onCheckedChange) {
+        onCheckedChange(!checked);
+      }
+    };
+
     return (
-      <button
+      <div
+        ref={ref}
         role="switch"
         aria-checked={checked}
+        data-state={checked ? "checked" : "unchecked"}
+        aria-disabled={disabled}
+        onClick={handleClick}
         className={cn(
-          "inline-flex h-6 w-11 items-center rounded-full bg-gray-200 transition-colors",
-          "data-[state=checked]:bg-primary",
-          "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/50",
+          "inline-flex h-6 w-11 shrink-0 cursor-pointer items-center rounded-full border-2 border-transparent transition-colors",
+          "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background",
+          "disabled:cursor-not-allowed disabled:opacity-50",
+          checked ? "bg-primary" : "bg-gray-200",
+          disabled && "opacity-50 cursor-not-allowed",
           className
         )}
-        onClick={() => onCheckedChange?.(!checked)}
+        tabIndex={disabled ? -1 : 0}
         {...props}
-        ref={ref}
       >
-        <div
+        <span
           className={cn(
-            "h-5 w-5 translate-x-0.5 rounded-full bg-white shadow-sm transition-transform",
-            "data-[state=checked]:translate-x-[1.625rem]"
+            "pointer-events-none block h-5 w-5 rounded-full bg-white shadow-lg ring-0 transition-transform",
+            checked ? "translate-x-5" : "translate-x-0",
+            "font-primary"
           )}
-          data-state={checked ? "checked" : "unchecked"}
         />
-      </button>
+      </div>
     );
   }
 );

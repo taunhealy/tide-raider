@@ -39,7 +39,11 @@ export default function SurfForecastWidget({
   };
 
   if (!forecast) {
-    return <div>Sorry, no forecast data rendered. Please refresh.</div>;
+    return (
+      <div>
+        Sorry, no forecast data available. Please adjust filters or refresh.
+      </div>
+    );
   }
 
   const formatDate = (dateStr: string) => {

@@ -7,22 +7,44 @@ import HeroProduct from "./sections/HeroProduct";
 
 export const revalidate = 0;
 
+const blogQuery = `{
+  "categories": *[_type == "category"] {
+    _id,
+    title
+  },
+  "posts": *[_type == "post"] | order(_createdAt desc) {
+    _id,
+    title,
+    description,
+    slug,
+    mainImage,
+    _createdAt,
+    "categories": categories[]->title,
+    trip->{
+      country,
+      region
+    }
+  }
+}`;
+
 // Only fetch content, not structure
 async function getHomeContent() {
-  const content = await client.fetch(landingPageQuery);
+  const [content, blogData] = await Promise.all([
+    client.fetch(landingPageQuery),
+    client.fetch(blogQuery),
+  ]);
 
-  return content
-    ? {
-        hero: {
+  return {
+    hero: content
+      ? {
           heroHeading: content.heroHeading,
           heroSubheading: content.heroSubheading,
           heroImage: content.heroImage,
           heroFooterImage: content.heroFooterImage,
-        },
-        blog: content.blog,
-        image: content.heroImage,
-      }
-    : null;
+        }
+      : null,
+    blog: blogData,
+  };
 }
 
 export default async function HomePage() {
@@ -34,10 +56,10 @@ export default async function HomePage() {
 
   return (
     <main>
-      <HeroSection data={content.hero} />
+      {content.hero && <HeroSection data={content.hero} />}
       <HeroProduct />
       <HeroBlogSection data={content.blog} />
-      <HeroImage data={content.hero} />
+      {content.hero && <HeroImage data={content.hero} />}
     </main>
   );
 }

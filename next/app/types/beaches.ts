@@ -10537,6 +10537,61 @@ export const beachData: Beach[] = [
     },
   },
   {
+    id: "kirra",
+    name: "Kirra",
+    continent: "Oceania",
+    country: "Australia",
+    region: "Queensland",
+    location: "Gold Coast",
+    distanceFromCT: 0,
+    optimalWindDirections: ["S"],
+    optimalSwellDirections: {
+      min: 123.75, // SE
+      max: 146.25, // SE
+      cardinal: "SE",
+    },
+    bestSeasons: ["autumn", "winter"],
+    optimalTide: "All",
+    description:
+      "World-class point/groyne break rated 5/5, known for producing some of the longest and most perfect barrels in Australia. Works best with Southeast swells meeting South offshore winds, with excellent shelter from cross-shore winds. Best conditions during autumn and winter months. Wave faces typically range from 3-12ft breaking over sand-covered rocks. Despite being a very sheltered spot, maintains fairly consistent waves throughout the season. Extremely popular location that draws heavy crowds when working. Exercise caution around sharks, rip currents, and submerged rocks.",
+    difficulty: "Advanced",
+    waveType: "Point Break",
+    swellSize: {
+      min: 1.2,
+      max: 4.0,
+    },
+    idealSwellPeriod: {
+      min: 10,
+      max: 14,
+    },
+    waterTemp: {
+      summer: 27, // Based on current reading of 26.7°C
+      winter: 21,
+    },
+    hazards: ["Sharks", "Rip currents", "Rocks", "Crowds"],
+    crimeLevel: "Low",
+    sharkAttack: {
+      hasAttack: true, // Australia has shark activity
+    },
+    image: "",
+    coordinates: {
+      lat: -28.1667,
+      lng: 153.5333,
+    },
+    videos: [
+      {
+        url: "https://www.youtube.com/watch?v=BgiUfit8UNQ&ab_channel=SurfDays",
+        title: "Cyclone Alfred Hits Hard - Kirra Point - Monday 3 March 2025",
+        platform: "youtube",
+      },
+    ],
+    coffeeShop: [
+      {
+        name: "Kirra Point Cafe",
+      },
+    ],
+  },
+  {
     id: "snapper-rocks",
     name: "Snapper Rocks",
     continent: "Oceania",

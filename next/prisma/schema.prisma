@@ -42,12 +42,11 @@ model AdRequest {
   yearlyPrice           Float
   startDate             DateTime
   endDate               DateTime
-  payfastSubscriptionId String?
-  paypalSubscriptionId  String?
   variantId             String?
+  paypalSubscriptionId  String?
+  ad                    Ad?
   region                Region   @relation(fields: [regionId], references: [id])
   user                  User?    @relation(fields: [userId], references: [id])
-  ad Ad?
 
   @@index([regionId])
   @@index([category])
@@ -55,8 +54,8 @@ model AdRequest {
 }
 
 model Ad {
-  id                   String           @id @default(uuid())
-  requestId            String           @unique
+  id                   String              @id @default(uuid())
+  requestId            String              @unique
   companyName          String
   title                String?
   category             String
@@ -64,24 +63,23 @@ model Ad {
   imageUrl             String?
   regionId             String
   country              String?
-  status               String           @default("active")
+  status               String              @default("active")
   startDate            DateTime
   endDate              DateTime
   paypalSubscriptionId String?
-  createdAt            DateTime         @default(now())
-  updatedAt            DateTime         @updatedAt
+  createdAt            DateTime            @default(now())
+  updatedAt            DateTime            @updatedAt
   userId               String?
-  targetedBeaches      String[]
-  region               Region           @relation(fields: [regionId], references: [id])
-  user                 User?            @relation(fields: [userId], references: [id])
-  adRequest            AdRequest        @relation(fields: [requestId], references: [id])
+  region               Region              @relation(fields: [regionId], references: [id])
+  adRequest            AdRequest           @relation(fields: [requestId], references: [id])
+  user                 User?               @relation(fields: [userId], references: [id])
   beachConnections     AdBeachConnection[]
+  clicks               AdClick[]
 
   @@index([regionId])
   @@index([category])
   @@index([status])
   @@index([userId])
-  @@index([country])
 }
 
 model AdBeachConnection {
@@ -97,47 +95,48 @@ model AdBeachConnection {
 }
 
 model User {
-  id                  String              @id @default(cuid())
-  name                String
-  email               String              @unique
-  emailVerified       DateTime?
-  image               String?
-  nationality         String?
-  password            String?
-  comments            Comment[]
-  skillLevel          SkillLevel?
-  createdAt           DateTime            @default(now())
-  updatedAt           DateTime            @updatedAt
-  lemonCustomerId     String?
-  lemonSubscriptionId String?
-  savedFilters        Json?
-  hasActiveTrial      Boolean             @default(false)
-   hasTrialEnded       Boolean             @default(false)
-  trialEndDate        DateTime?
-  trialStartDate      DateTime?
-  bio                 String?
-  link                String?
-  subscriptionEndsAt  DateTime?
-  subscriptionStatus  String?
+  id                   String              @id @default(cuid())
+  name                 String
+  email                String              @unique
+  emailVerified        DateTime?
+  image                String?
+  nationality          String?
+  password             String?
+  skillLevel           SkillLevel?
+  createdAt            DateTime            @default(now())
+  updatedAt            DateTime            @updatedAt
+  lemonCustomerId      String?
+  lemonSubscriptionId  String?
+  savedFilters         Json?
+  hasActiveTrial       Boolean             @default(false)
+  hasTrialEnded        Boolean             @default(false)
+  trialEndDate         DateTime?
+  trialStartDate       DateTime?
+  bio                  String?
+  link                 String?
+  subscriptionEndsAt   DateTime?
+  subscriptionStatus   String?
   paypalSubscriptionId String?
-  accounts            Account[]
-  adRequests          AdRequest[]
-  ads                 Ad[]
-  boards              Board[]
-  events              Event[]
-  logEntries          LogEntry[]
-  membership          Membership?
-  safariBookings      SafariBooking[]
-  sessions            Session[]
-  stories             Story[]
-  surfSafaris         SurfSafariListing[]
-  favorites           UserFavorite[]
-  filters             UserFilters?
-  rentalItems         RentalItem[]
-  rentedItemRequests  RentalItemRequest[]  @relation("RenterItemRequests")
-  ownedItemRequests   RentalItemRequest[]  @relation("OwnerItemRequests")
-  rentalChatMessages  RentalChatMessage[]
-roles UserRole[] @default([SURFER])
+  roles                UserRole[]          @default([SURFER])
+  accounts             Account[]
+  ads                  Ad[]
+  adRequests           AdRequest[]
+  alerts               Alert[]
+  boards               Board[]
+  comments             Comment[]
+  events               Event[]
+  logEntries           LogEntry[]
+  membership           Membership?
+  rentalChatMessages   RentalChatMessage[]
+  rentalItems          RentalItem[]
+  ownedItemRequests    RentalItemRequest[] @relation("OwnerItemRequests")
+  rentedItemRequests   RentalItemRequest[] @relation("RenterItemRequests")
+  safariBookings       SafariBooking[]
+  sessions             Session[]
+  stories              Story[]
+  surfSafaris          SurfSafariListing[]
+  favorites            UserFavorite[]
+  filters              UserFilters?
 
   @@index([email])
   @@index([skillLevel])
@@ -148,12 +147,12 @@ model Event {
   title       String
   description String
   country     String
-  regionId    String   // Changed from region String to regionId String
-  region      Region   @relation(fields: [regionId], references: [id])
+  regionId    String
   startTime   DateTime
   link        String?
   createdAt   DateTime @default(now())
   userId      String
+  region      Region   @relation(fields: [regionId], references: [id])
   user        User     @relation(fields: [userId], references: [id])
 
   @@index([userId])
@@ -163,6 +162,7 @@ model Event {
 model LogEntry {
   id           String   @id @default(uuid())
   date         DateTime
+    alerts            Alert[]
   surferName   String?
   surferEmail  String?
   beachName    String?
@@ -213,6 +213,7 @@ model SafariBooking {
   @@index([status])
   @@index([boardId])
 }
+
 model SurfSafariListing {
   id                     String                  @id @default(cuid())
   guideId                String
@@ -248,44 +249,43 @@ model BeachSafariConnection {
 }
 
 model Beach {
-  id          String     @id
-  name        String
-  continent   String
-  country     String
-  regionId    String     // Changed from region String to regionId String
-  region      Region       @relation(fields: [regionId], references: [id])
-  location    String
-  distanceFromCT Float
-  optimalWindDirections String[]
+  id                     String                  @id
+  name                   String
+  continent              String
+  country                String
+  regionId               String
+  location               String
+  distanceFromCT         Float
+  optimalWindDirections  String[]
   optimalSwellDirections Json
-  bestSeasons String[]
-  optimalTide String
-  description String
-  difficulty  String
-  waveType    String
-  swellSize   Json
-  idealSwellPeriod Json
-  waterTemp   Json
-  hazards     String[]
-  crimeLevel  String
-  sharkAttack Json
-  image       String?
-  coordinates Json
-  videos      Json?
-  profileImage String?
-  advertisingPrice Float?
-  coffeeShop  Json?
-  hasSharkAlert Boolean?
-  bestMonthOfYear String?
-  isHiddenGem Boolean?
-  sheltered   Boolean?
-
-  feedbacks   Feedback[]
-  logEntries  LogEntry[]
-  stories     Story[]
-  rentalItems       BeachRentalConnection[]
-  rentalItemRequests RentalItemRequest[]
-  adConnections AdBeachConnection[]
+  bestSeasons            String[]
+  optimalTide            String
+  description            String
+  difficulty             String
+  waveType               String
+  swellSize              Json
+  idealSwellPeriod       Json
+  waterTemp              Json
+  hazards                String[]
+  crimeLevel             String
+  sharkAttack            Json
+  image                  String?
+  coordinates            Json
+  videos                 Json?
+  profileImage           String?
+  advertisingPrice       Float?
+  coffeeShop             Json?
+  hasSharkAlert          Boolean?
+  bestMonthOfYear        String?
+  isHiddenGem            Boolean?
+  sheltered              Boolean?
+  adConnections          AdBeachConnection[]
+  region                 Region                  @relation(fields: [regionId], references: [id])
+  rentalItems            BeachRentalConnection[]
+  feedbacks              Feedback[]
+  logEntries             LogEntry[]
+  rentalItemRequests     RentalItemRequest[]
+  stories                Story[]
 
   @@index([regionId])
   @@index([country])
@@ -340,10 +340,8 @@ model Board {
   images         String[]
   thumbnail      String?
   user           User            @relation(fields: [userId], references: [id])
-  
-  // Only keep safari bookings
   safariBookings SafariBooking[]
-  
+
   @@index([userId])
 }
 
@@ -395,15 +393,15 @@ model Story {
   authorId    String
   beachName   String?
   beachId     String?
-  regionId    String?  // New field to directly associate with a region
+  regionId    String?
   customBeach String?
   author      User     @relation(fields: [authorId], references: [id])
   beach       Beach?   @relation(fields: [beachId], references: [id])
-  region      Region?  @relation(fields: [regionId], references: [id]) // New relation
+  region      Region?  @relation(fields: [regionId], references: [id])
 
   @@index([authorId])
   @@index([beachId])
-  @@index([regionId]) // New index
+  @@index([regionId])
 }
 
 model UserFilters {
@@ -429,6 +427,152 @@ model UserFavorite {
 
   @@index([userId])
   @@index([createdAt])
+}
+
+model RentalItem {
+  id               String                   @id @default(cuid())
+  name             String
+  description      String?
+  thumbnail        String?
+  images           String[]
+  isActive         Boolean                  @default(true)
+  rentPrice        Float
+  createdAt        DateTime                 @default(now())
+  updatedAt        DateTime                 @updatedAt
+  userId           String
+  itemType         String
+  specifications   Json
+  availableBeaches BeachRentalConnection[]
+  user             User                     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  availability     RentalItemAvailability[]
+  rentalRequests   RentalItemRequest[]
+
+  @@index([userId])
+  @@index([itemType])
+  @@index([isActive])
+}
+
+model BeachRentalConnection {
+  id           String     @id @default(cuid())
+  rentalItemId String
+  beachId      String
+  beach        Beach      @relation(fields: [beachId], references: [id])
+  rentalItem   RentalItem @relation(fields: [rentalItemId], references: [id], onDelete: Cascade)
+
+  @@unique([rentalItemId, beachId])
+  @@index([rentalItemId])
+  @@index([beachId])
+}
+
+model RentalItemRequest {
+  id                 String              @id @default(cuid())
+  rentalItemId       String
+  renterId           String
+  ownerId            String
+  status             RequestStatus       @default(PENDING)
+  startDate          DateTime
+  endDate            DateTime
+  beachId            String
+  totalCost          Json
+  createdAt          DateTime            @default(now())
+  updatedAt          DateTime            @updatedAt
+  lastActionAt       DateTime            @default(now())
+  expiresAt          DateTime
+  modificationCount  Int                 @default(0)
+  previousVersions   Json?
+  cancellationReason String?
+  isExpired          Boolean             @default(false)
+  hasBeenViewed      Boolean             @default(false)
+  viewedAt           DateTime?
+  paymentIntentId    String?
+  depositPaid        Boolean             @default(false)
+  messages           RentalChatMessage[]
+  beach              Beach               @relation(fields: [beachId], references: [id])
+  owner              User                @relation("OwnerItemRequests", fields: [ownerId], references: [id])
+  rentalItem         RentalItem          @relation(fields: [rentalItemId], references: [id])
+  renter             User                @relation("RenterItemRequests", fields: [renterId], references: [id])
+
+  @@index([rentalItemId])
+  @@index([renterId])
+  @@index([ownerId])
+  @@index([beachId])
+  @@index([status])
+}
+
+model RentalItemAvailability {
+  id           String     @id @default(cuid())
+  rentalItemId String
+  startDate    DateTime
+  endDate      DateTime
+  rentalItem   RentalItem @relation(fields: [rentalItemId], references: [id], onDelete: Cascade)
+
+  @@index([rentalItemId])
+}
+
+model RentalChatMessage {
+  id        String            @id @default(cuid())
+  requestId String
+  senderId  String
+  content   String
+  createdAt DateTime          @default(now())
+  request   RentalItemRequest @relation(fields: [requestId], references: [id], onDelete: Cascade)
+  sender    User              @relation(fields: [senderId], references: [id])
+
+  @@index([requestId])
+  @@index([senderId])
+}
+
+model Region {
+  id         String      @id
+  name       String
+  country    String
+  continent  String?
+  ads        Ad[]
+  adRequests AdRequest[]
+  beaches    Beach[]
+  events     Event[]
+  stories    Story[]
+}
+
+model Comment {
+  id         String   @id @default(cuid())
+  text       String
+  entityId   String
+  entityType String
+  userId     String
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+  user       User     @relation(fields: [userId], references: [id])
+
+  @@index([userId])
+  @@index([entityId, entityType])
+}
+
+model AdClick {
+  id        String   @id @default(cuid())
+  adId      String
+  createdAt DateTime @default(now())
+  ad        Ad       @relation(fields: [adId], references: [id])
+}
+
+model Alert {
+  id                 String   @id @default(uuid())
+  name               String
+  region             String
+  properties         Json
+  notificationMethod String
+  contactInfo        String
+  active             Boolean  @default(true)
+  userId             String
+  createdAt          DateTime @default(now())
+  updatedAt          DateTime @updatedAt
+  logEntryId         String?
+  logEntry          LogEntry? @relation(fields: [logEntryId], references: [id])
+  user               User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([region])
+  @@index([active])
 }
 
 enum SkillLevel {
@@ -474,142 +618,12 @@ enum FinType {
   OTHER
 }
 
-model RentalItem {
-  id                String                  @id @default(cuid())
-  name              String
-  description       String?
-  thumbnail         String?
-  images            String[]
-  isActive          Boolean                 @default(true)
-  rentPrice         Float
-  createdAt         DateTime                @default(now())
-  updatedAt         DateTime                @updatedAt
-  userId            String
-  itemType          String                  // Using String instead of enum for flexibility
-  specifications    Json                    // Type-specific details
-  
-  // Relations
-  user              User                    @relation(fields: [userId], references: [id], onDelete: Cascade)
-  availableBeaches  BeachRentalConnection[]
-  rentalRequests    RentalItemRequest[]
-  availability      RentalItemAvailability[]
-  
-  @@index([userId])
-  @@index([itemType])
-  @@index([isActive])
-}
-
-model BeachRentalConnection {
-  id            String      @id @default(cuid())
-  rentalItemId  String
-  beachId       String
-  rentalItem    RentalItem  @relation(fields: [rentalItemId], references: [id], onDelete: Cascade)
-  beach         Beach       @relation(fields: [beachId], references: [id])
-  
-  @@unique([rentalItemId, beachId])
-  @@index([rentalItemId])
-  @@index([beachId])
-}
-
-model RentalItemRequest {
-  id            String        @id @default(cuid())
-  rentalItemId  String
-  renterId      String
-  ownerId       String
-  status        RequestStatus @default(PENDING)
-  startDate     DateTime
-  endDate       DateTime
-  beachId       String        // Pickup/dropoff location
-  totalCost     Json          // { zar: number, usd: number }
-  messages      RentalChatMessage[]
-  createdAt     DateTime      @default(now())
-  updatedAt     DateTime      @updatedAt
-  
-  // Relations
-  rentalItem    RentalItem    @relation(fields: [rentalItemId], references: [id])
-  renter        User          @relation("RenterItemRequests", fields: [renterId], references: [id])
-  owner         User          @relation("OwnerItemRequests", fields: [ownerId], references: [id])
-  beach         Beach         @relation(fields: [beachId], references: [id])
-  
-  // Management fields
-  lastActionAt        DateTime @default(now())
-  expiresAt           DateTime
-  modificationCount   Int      @default(0)
-  previousVersions    Json?    // Store history of modifications
-  cancellationReason  String?
-  
-  // Status tracking
-  isExpired           Boolean  @default(false)
-  hasBeenViewed       Boolean  @default(false)
-  viewedAt            DateTime?
-  
-  // Payment tracking
-  paymentIntentId     String?
-  depositPaid         Boolean  @default(false)
-  
-  @@index([rentalItemId])
-  @@index([renterId])
-  @@index([ownerId])
-  @@index([beachId])
-  @@index([status])
-}
-
-model RentalItemAvailability {
-  id           String     @id @default(cuid())
-  rentalItemId String
-  startDate    DateTime
-  endDate      DateTime
-  rentalItem   RentalItem @relation(fields: [rentalItemId], references: [id], onDelete: Cascade)
-  
-  @@index([rentalItemId])
-}
-
 enum UserRole {
   SURFER
   SHAPER
   SURF_CAMP_MANAGER
   PHOTOGRAPHER
   VIDEOGRAPHER
-}
-
-model RentalChatMessage {
-  id          String            @id @default(cuid())
-  requestId   String
-  senderId    String
-  content     String
-  createdAt   DateTime          @default(now())
-  request     RentalItemRequest @relation(fields: [requestId], references: [id], onDelete: Cascade)
-  sender      User              @relation(fields: [senderId], references: [id])
-  
-  @@index([requestId])
-  @@index([senderId])
-}
-
-model Region {
-  id          String    @id
-  name        String
-  country     String
-  continent   String?
-  beaches     Beach[]
-  stories     Story[]   // Direct relation to stories in this region
-  events      Event[]   // Relation to events in this region
-  adRequests  AdRequest[] // Relation to ad requests for this region
-  ads         Ad[]
-  // Add other region-related relations as needed
-}
-
-model Comment {
-  id         String   @id @default(cuid())
-  text       String
-  entityId   String
-  entityType String
-  userId     String
-  createdAt  DateTime @default(now())
-  updatedAt  DateTime @updatedAt
-  user       User     @relation(fields: [userId], references: [id])
-
-  @@index([userId])
-  @@index([entityId, entityType])
 }
 
 enum RequestStatus {

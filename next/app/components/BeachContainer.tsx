@@ -178,9 +178,9 @@ export default function BeachContainer({
     }
   }, [defaultFilters]);
 
-  // Initialize with Western Cape as default
+  // Initialize without a default region
   const [selectedRegion, setSelectedRegion] = useState<string>(
-    searchParams?.get("region") || "Western Cape"
+    searchParams?.get("region") || ""
   );
 
   // Move this function above updateFilters
@@ -841,7 +841,7 @@ export default function BeachContainer({
                     </div>
                   ) : !windData ? (
                     <div className="text-yellow-600 font-primary text-sm">
-                      No forecast data
+                      No forecast data, please adjust filters.
                     </div>
                   ) : (
                     <div className="flex items-center gap-4 font-primary bg-gray-50 px-4 py-2 rounded-lg border border-gray-200">
@@ -1044,7 +1044,7 @@ export default function BeachContainer({
                 ) : !windData ? (
                   <div className="col-span-2 flex items-center justify-center p-8">
                     <span className="text-gray-600 font-primary">
-                      No forecast data available
+                      No forecast data available, please adjust filters.
                     </span>
                   </div>
                 ) : (

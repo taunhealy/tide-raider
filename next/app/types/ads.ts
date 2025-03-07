@@ -57,9 +57,13 @@ export interface Ad {
   createdAt: Date;
   updatedAt: Date;
   userId?: string | null;
-  targetedBeaches: string[];
+  targetedBeaches?: string[];
   adRequest?: AdRequest;
-  isAd?: boolean; // For UI purposes
+  isAd?: boolean;
+  beachConnections?: Array<{ beachId: string }>;
+  _count?: {
+    clicks: number;
+  };
 }
 
 export interface AdImpression {
@@ -71,8 +75,8 @@ export interface AdImpression {
 }
 
 export interface AdvertisingFormData {
-  title: string;
-  websiteUrl: string;
+  companyName: string; // Required - Business name
+  websiteUrl: string; // Required - Website URL
 }
 
 export interface CreateAdRequestPayload {
@@ -85,6 +89,15 @@ export interface CreateAdRequestPayload {
   targetedBeaches: string[];
   status?: string;
   yearlyPrice?: number;
+}
+
+export interface Service {
+  type: string;
+  name: string;
+  category: string;
+  url?: string;
+  isAd: boolean;
+  adId?: string;
 }
 
 export type { AdCampaign };

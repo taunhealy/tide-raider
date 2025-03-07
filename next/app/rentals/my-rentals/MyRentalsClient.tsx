@@ -6,7 +6,7 @@ import Image from "next/image";
 import { useQuery } from "@tanstack/react-query";
 import { calculateRentalCost } from "@/app/lib/rentalUtility";
 import { RentalItemWithRelations } from "@/app/types/rentals";
-import { Button } from "@/app/components/ui/Button";
+import { Button } from "@/components/ui/button";
 
 export default function MyRentalsClient() {
   // Fetch user's rental items

@@ -7,13 +7,22 @@ import { prisma } from "@/lib/prisma";
 import { RentalRequestForm } from "@/app/components/rentals/RentalRequestForm";
 import { ContactOwnerButton } from "@/app/components/ContactOwnerButton";
 import { SubscriptionStatus } from "@/app/types/subscription";
-import { Button } from "@/app/components/ui/Button";
+import { Button } from "@/components/ui/button";
 import { RentalImagesDisplay } from "@/app/components/rentals/RentalImagesDisplay";
 import BeachLocationLinks from "@/app/components/rentals/BeachLocationLinks";
 import {
   RENTAL_POLICIES,
   ITEM_CATEGORIES_EMOJI,
 } from "@/app/lib/rentals/constants";
+
+function formatItemType(itemType: string) {
+  return itemType
+    .replace("_", " ")
+    .replace(
+      /\w+/g,
+      (word) => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase()
+    );
+}
 
 export async function generateMetadata({ params }: { params: { id: string } }) {
   const rentalItem = await prisma.rentalItem.findUnique({
@@ -149,6 +158,34 @@ export default async function RentalItemPage({
           </div>
         );
         break;
+      case "JET_SKI":
+        formattedSpecs = (
+          <div className="space-y-2">
+            <p>
+              <span className="font-medium">Make:</span> {specs.make}
+            </p>
+            <p>
+              <span className="font-medium">Model:</span> {specs.model}
+            </p>
+            <p>
+              <span className="font-medium">Year:</span> {specs.year}
+            </p>
+            <p>
+              <span className="font-medium">Horsepower:</span>{" "}
+              {specs.horsepower} hp
+            </p>
+            <p>
+              <span className="font-medium">Fuel Capacity:</span>{" "}
+              {specs.fuelCapacity} L
+            </p>
+            <p>
+              <span className="font-medium">Rider Capacity:</span>{" "}
+              {specs.riderCapacity}{" "}
+              {specs.riderCapacity === 1 ? "person" : "people"}
+            </p>
+          </div>
+        );
+        break;
     }
 
     return (
@@ -166,7 +203,7 @@ export default async function RentalItemPage({
                   {ITEM_CATEGORIES_EMOJI[
                     rentalItem.itemType as keyof typeof ITEM_CATEGORIES_EMOJI
                   ] || ""}{" "}
-                  {rentalItem.itemType}
+                  {formatItemType(rentalItem.itemType)}
                 </span>
                 {rentalItem.isActive ? (
                   <span className="bg-green-100 text-green-800 text-xs font-medium px-2.5 py-0.5 rounded-full">

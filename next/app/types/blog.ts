@@ -74,6 +74,7 @@ interface Stay {
 
 export interface Post {
   _id?: string;
+  _createdAt?: string;
   title: string;
   slug:
     | {
@@ -81,6 +82,7 @@ export interface Post {
       }
     | string;
   mainImage: any;
+  hoverImage?: any;
   publishedAt?: string | null;
   description: string;
   categories?: Category[];

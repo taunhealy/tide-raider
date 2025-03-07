@@ -46,7 +46,17 @@ export function PrismaAdapter(): Adapter {
             providerAccountId,
           },
         },
-        include: { user: true },
+        include: {
+          user: {
+            select: {
+              id: true,
+              name: true,
+              email: true,
+              emailVerified: true,
+              image: true,
+            },
+          },
+        },
       });
       return account?.user ? convertToAdapterUser(account.user) : null;
     },

@@ -4,7 +4,6 @@ import { PrismaAdapter } from "./auth-adapter";
 import { prisma } from "@/app/lib/prisma";
 import type { Session, User } from "next-auth";
 import { JWT } from "next-auth/jwt";
-import NextAuth from "next-auth";
 
 declare module "next-auth/jwt" {
   interface JWT {
@@ -36,64 +35,49 @@ export const authOptions: NextAuthOptions = {
   },
   callbacks: {
     async redirect({ url, baseUrl }) {
-      // Allows relative callback URLs
-      if (url.startsWith("/")) return `${baseUrl}${url}`;
-      // Allows callback URLs on the same origin
-      else if (new URL(url).origin === baseUrl) return url;
+      console.log("Redirect callback:", { url, baseUrl });
+
+      // If the URL is relative (starts with /), prepend the base URL
+      if (url.startsWith("/")) {
+        return `${baseUrl}${url}`;
+      }
+      // If the URL is already absolute (starts with http), return it as is
+      else if (url.startsWith("http")) {
+        return url;
+      }
+      // Default to the base URL
       return baseUrl;
     },
+
     async session({ session, token }) {
-      if (token?.sub && session?.user) {
-        return {
-          ...session,
-          user: {
-            ...session.user,
-            id: token.sub,
-            isSubscribed: token.isSubscribed || false,
-            hasActiveTrial: token.hasActiveTrial || false,
-            image: token.picture || session.user.image,
-          },
-        };
+      if (session.user) {
+        session.user.id = token.id as string;
+        session.user.isSubscribed = token.isSubscribed || false;
+        session.user.hasActiveTrial = token.hasActiveTrial || false;
+        session.user.trialEndDate = token.trialEndDate || null;
       }
       return session;
     },
-    async jwt({ token, user, account }) {
-      if (account && user) {
-        token.id = user.id;
-        return {
-          ...token,
-          sub: user.id,
-          isSubscribed: false,
-          hasActiveTrial: false,
-          trialEndDate: null,
-          picture: user.image ?? undefined,
-        };
-      }
 
-      // Subsequent requests - refresh user status
-      if (token.sub) {
+    async jwt({ token, user }) {
+      if (user) {
+        token.id = user.id;
+
+        // Fetch subscription info from database
         const dbUser = await prisma.user.findUnique({
-          where: { id: token.sub },
+          where: { id: user.id },
           select: {
-            lemonSubscriptionId: true,
+            subscriptionStatus: true,
             hasActiveTrial: true,
             trialEndDate: true,
-            image: true,
           },
         });
 
-        return {
-          ...token,
-          isSubscribed: !!dbUser?.lemonSubscriptionId,
-          hasActiveTrial: dbUser?.hasActiveTrial || false,
-          trialEndDate: dbUser?.trialEndDate || null,
-          picture: dbUser?.image || token.picture,
-        };
+        token.isSubscribed = dbUser?.subscriptionStatus === "ACTIVE";
+        token.hasActiveTrial = dbUser?.hasActiveTrial || false;
+        token.trialEndDate = dbUser?.trialEndDate || null;
       }
-
       return token;
     },
   },
 };
-
-export default NextAuth(authOptions);

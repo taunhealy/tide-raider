@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useMemo } from "react";
 import { LogEntry } from "@/app/types/questlogs";
-import { AlertConfig } from "@/app/types/alerts";
+import { AlertConfigTypes } from "@/app/types/alerts";
 import { useSession } from "next-auth/react";
 import { v4 as uuidv4 } from "uuid";
 import {
@@ -42,6 +42,9 @@ import { Skeleton } from "@/app/components/ui/Skeleton";
 import { InfoIcon } from "lucide-react";
 import { Search } from "lucide-react";
 import { ScrollArea } from "@/app/components/ui/scroll-area";
+import { AlertConfig } from "./AlertConfiguration";
+import { RadioGroup, RadioGroupItem } from "@/app/components/ui/radio-group";
+import { StarIcon } from "lucide-react";
 
 interface ForecastAlertModalProps {
   isOpen: boolean;
@@ -49,6 +52,7 @@ interface ForecastAlertModalProps {
   logEntry: LogEntry | null;
   existingAlert?: AlertConfig;
   onSaved?: () => void;
+  isNew?: boolean;
 }
 
 export default function ForecastAlertModal({
@@ -57,25 +61,38 @@ export default function ForecastAlertModal({
   logEntry,
   existingAlert,
   onSaved,
+  isNew = false,
 }: ForecastAlertModalProps) {
   const isEditing = !!existingAlert;
   const isLinkedToLogEntry =
     isEditing && logEntry && existingAlert?.logEntryId === logEntry.id;
 
-  const [alertConfig, setAlertConfig] = useState<Partial<AlertConfig>>({
-    name: "",
-    properties: [
+  const [alertType, setAlertType] = useState<"variables" | "rating">(
+    existingAlert?.alertType || "variables"
+  );
+  const [starRating, setStarRating] = useState<"4+" | "5">(
+    existingAlert?.starRating || "4+"
+  );
+
+  const [alertConfig, setAlertConfig] = useState<Partial<AlertConfigTypes>>({
+    name: existingAlert?.name || "",
+    properties: existingAlert?.properties || [
       { property: "windSpeed", range: 10 },
-      { property: "windDirection", range: 10 },
-      { property: "waveHeight", range: 10 },
-      { property: "wavePeriod", range: 10 },
+      { property: "windDirection", range: 180 },
+      { property: "swellHeight", range: 1.5 },
+      { property: "swellPeriod", range: 10 },
+      { property: "swellDirection", range: 180 },
     ],
-    notificationMethod: "email",
-    contactInfo: "",
-    active: true,
-    region: "",
-    forecastDate: new Date(),
-    logEntryId: null,
+    notificationMethod: existingAlert?.notificationMethod || "email",
+    contactInfo: existingAlert?.contactInfo || "",
+    active: existingAlert?.active ?? true,
+    region: existingAlert?.region || logEntry?.region || "",
+    forecastDate: existingAlert?.forecastDate
+      ? new Date(existingAlert.forecastDate)
+      : logEntry?.forecast?.date || new Date(),
+    logEntryId: existingAlert?.logEntryId || null,
+    alertType: existingAlert?.alertType || "variables",
+    starRating: existingAlert?.starRating || "4+",
   });
 
   const { data: session } = useSession();
@@ -235,17 +252,46 @@ export default function ForecastAlertModal({
     if (existingAlert?.id && isEditing) {
       fetchAlert(existingAlert.id);
     } else if (existingAlert) {
-      // Handle existing alert data that was passed directly
-      setAlertConfig({
-        ...existingAlert,
-        forecastDate:
-          existingAlert.forecastDate instanceof Date
-            ? existingAlert.forecastDate
-            : new Date(existingAlert.forecastDate || ""),
-      });
+      console.log("Loading existing alert data:", existingAlert);
 
-      if (existingAlert.region && existingAlert.forecastDate) {
-        fetchForecast(existingAlert.region, existingAlert.forecastDate);
+      // Set alert name
+      setAlertConfig((prev) => ({
+        ...prev,
+        name: existingAlert.name || "",
+        region: existingAlert.region || "",
+        forecastDate: existingAlert.forecastDate || "",
+        alertType: existingAlert.alertType || "variables",
+        active: existingAlert.active ?? true,
+      }));
+
+      // Set notification method
+      setAlertConfig((prev) => ({
+        ...prev,
+        notificationMethod: existingAlert.notificationMethod || "email",
+      }));
+      setAlertConfig((prev) => ({
+        ...prev,
+        contactInfo: existingAlert.contactInfo || "",
+      }));
+
+      // Set properties
+      if (existingAlert.properties && existingAlert.properties.length > 0) {
+        const propertyMap = existingAlert.properties.reduce<
+          Record<string, number>
+        >((acc, prop) => {
+          acc[prop.property] = prop.range;
+          return acc;
+        }, {});
+
+        setAlertConfig((prev) => ({
+          ...prev,
+          properties: existingAlert.properties,
+        }));
+      }
+
+      // Set selected log entry if available
+      if (existingAlert.logEntryId) {
+        fetchLogEntry(existingAlert.logEntryId);
       }
     }
   }, [existingAlert, isEditing]);
@@ -268,10 +314,21 @@ export default function ForecastAlertModal({
         name: `Alert for ${selectedLogEntry.beachName || selectedLogEntry.region}`,
         region: selectedLogEntry.region || "",
         logEntryId: selectedLogEntry.id,
+        // Automatically set the forecast date to the log entry's date
+        forecastDate: new Date(selectedLogEntry.date),
       }));
 
-      // If the log entry has forecast data, fetch available dates
-      if (selectedLogEntry.region) {
+      // If the log entry has forecast data, use it directly
+      if (selectedLogEntry.forecast) {
+        setForecastData(selectedLogEntry.forecast);
+
+        // Use a callback form for setFetchedCombinations to avoid dependency on fetchedCombinations
+        const dateStr = getDateString(new Date(selectedLogEntry.date));
+        const combinationKey = `${selectedLogEntry.region}-${dateStr}`;
+        setFetchedCombinations((prev) => new Set(prev).add(combinationKey));
+      }
+      // If no forecast data in log entry but region exists, fetch available dates
+      else if (selectedLogEntry.region) {
         queryClient.invalidateQueries({
           queryKey: ["forecastDates", selectedLogEntry.region],
         });
@@ -280,59 +337,22 @@ export default function ForecastAlertModal({
   }, [selectedLogEntry, isEditing, queryClient]);
 
   const createAlertMutation = useMutation({
-    mutationFn: async (alert: Omit<AlertConfig, "id">) => {
-      // Show a loading toast when the creation starts
-      const toastId = toast.loading("Creating alert...");
-
-      try {
-        const response = await fetch("/api/alerts", {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify(alert),
-        });
-
-        if (!response.ok) {
-          const errorData = await response
-            .json()
-            .catch(() => ({ error: `HTTP error ${response.status}` }));
-          // Dismiss the loading toast
-          toast.dismiss(toastId);
-          throw new Error(errorData.error || "Failed to create alert");
-        }
-
-        const result = await response.json();
-        // Dismiss the loading toast
-        toast.dismiss(toastId);
-        return result;
-      } catch (error) {
-        // Dismiss the loading toast in case of error
-        toast.dismiss(toastId);
-        throw error;
-      }
+    mutationFn: async (data: AlertConfigTypes) => {
+      const response = await fetch("/api/alerts", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          ...data,
+          forecastDate: logEntry?.forecast?.date || data.forecastDate,
+        }),
+      });
+      if (!response.ok) throw new Error("Failed to create alert");
+      return response.json();
     },
     onSuccess: () => {
-      // Show success toast
-      toast.success("Alert Created", {
-        description: "You'll be notified when forecast conditions match.",
-      });
-
-      // Trigger confetti effect
-      confetti({
-        particleCount: 100,
-        spread: 70,
-        origin: { y: 0.6 },
-      });
-
+      toast.success("Alert created successfully");
       onSaved?.();
       onClose();
-    },
-    onError: (error: Error) => {
-      // Show error toast
-      toast.error("Error", {
-        description: error.message,
-      });
     },
   });
 
@@ -490,38 +510,63 @@ export default function ForecastAlertModal({
       const dateStr = getDateString(alertConfig.forecastDate);
       const combinationKey = `${alertConfig.region}-${dateStr}`;
 
-      if (!fetchedCombinations.has(combinationKey)) {
-        fetchForecast(alertConfig.region, alertConfig.forecastDate);
-      }
+      // Use a callback to check if we've already fetched this combination
+      setFetchedCombinations((prev) => {
+        if (!prev.has(combinationKey)) {
+          if (alertConfig.region && alertConfig.forecastDate) {
+            fetchForecast(alertConfig.region, alertConfig.forecastDate);
+          }
+          return new Set(prev).add(combinationKey);
+        }
+        return prev;
+      });
     }
   }, [alertConfig.region, alertConfig.forecastDate]);
 
   // Add a saveAlert function with debounce to prevent multiple submissions
   const saveAlert = async () => {
-    if (!alertConfig.name || !alertConfig.region) {
-      toast.error("Please fill in all required fields");
+    console.log("Saving alert with config:", alertConfig);
+    console.log("Notification method:", alertConfig.notificationMethod);
+    console.log("Contact info:", alertConfig.contactInfo);
+
+    // Check if all required fields are present
+    if (
+      !alertConfig.name ||
+      !alertConfig.region ||
+      !alertConfig.notificationMethod ||
+      !alertConfig.contactInfo
+    ) {
+      toast({
+        title: "Missing required fields",
+        description: "Please fill in all required fields",
+        variant: "destructive",
+      });
       return;
     }
 
-    const completeAlert: AlertConfig = {
-      id: existingAlert?.id || uuidv4(),
-      name: alertConfig.name!,
-      region: alertConfig.region!,
-      forecastDate: alertConfig.forecastDate!,
-      properties: alertConfig.properties || [],
-      notificationMethod: alertConfig.notificationMethod as
-        | "email"
-        | "whatsapp"
-        | "both",
-      contactInfo: alertConfig.contactInfo || "",
-      active: alertConfig.active ?? true,
-      logEntryId: selectedLogEntry?.id || alertConfig.logEntryId || null,
-    };
+    try {
+      const alertData: AlertConfigTypes = {
+        id: existingAlert?.id || uuidv4(),
+        name: alertConfig.name!,
+        region: alertConfig.region!,
+        properties: alertConfig.properties || [],
+        notificationMethod: alertConfig.notificationMethod!,
+        contactInfo: alertConfig.contactInfo!,
+        active: alertConfig.active ?? true,
+        logEntryId: selectedLogEntry?.id || logEntry?.id || null,
+        alertType: alertType,
+        starRating: alertType === "rating" ? starRating : null,
+        forecastDate: alertConfig.forecastDate || new Date(),
+      };
 
-    if (isEditing) {
-      updateAlertMutation.mutate(completeAlert);
-    } else {
-      createAlertMutation.mutate(completeAlert);
+      if (isEditing) {
+        updateAlertMutation.mutate(alertData);
+      } else {
+        createAlertMutation.mutate(alertData);
+      }
+    } catch (error) {
+      console.error("Error saving alert:", error);
+      toast.error("Failed to save alert");
     }
   };
 
@@ -561,7 +606,9 @@ export default function ForecastAlertModal({
             {isEditing ? "Edit Forecast Alert" : "Create Forecast Alert"}
           </DialogTitle>
           <DialogDescription className="font-primary">
-            Get notified when forecast conditions match this session.
+            {isNew
+              ? "Create a new alert to get notified when forecast conditions match your preferences."
+              : "Get notified when forecast conditions match this session."}
           </DialogDescription>
         </DialogHeader>
 
@@ -642,6 +689,11 @@ export default function ForecastAlertModal({
                     Date:{" "}
                     {format(new Date(selectedLogEntry.date), "MMM d, yyyy")}
                   </p>
+                  {selectedLogEntry.forecast && (
+                    <p className="text-xs text-blue-600">
+                      Forecast data available
+                    </p>
+                  )}
                 </div>
               )}
             </div>
@@ -654,7 +706,7 @@ export default function ForecastAlertModal({
               className="font-primary flex items-center"
             >
               <span className="bg-gray-200 text-gray-700 rounded-full w-5 h-5 inline-flex items-center justify-center mr-2 text-xs">
-                2
+                {!logEntry && !isEditing ? "2" : "1"}
               </span>
               Alert Name
             </Label>
@@ -669,104 +721,109 @@ export default function ForecastAlertModal({
             />
           </div>
 
-          {/* Step 3: Region Selection */}
-          <div className="space-y-2">
-            <Label className="font-primary flex items-center">
-              <span className="bg-gray-200 text-gray-700 rounded-full w-5 h-5 inline-flex items-center justify-center mr-2 text-xs">
-                3
-              </span>
-              Select Region
-            </Label>
-            <select
-              value={alertConfig.region || ""}
-              onChange={(e) => {
-                const value = e.target.value;
-                console.log("Region selected:", value);
-                setAlertConfig({
-                  ...alertConfig,
-                  region: value,
-                  forecastDate: undefined,
-                });
-              }}
-              className="w-full p-2 border rounded-md font-primary border-gray-300"
-              disabled={isLoadingRegions || isLinkedToLogEntry || false}
-            >
-              <option value="">Select region</option>
-              {regions.map((region) => (
-                <option key={region} value={region}>
-                  {region}
-                </option>
-              ))}
-            </select>
-            {isLoadingRegions && (
-              <p className="text-sm text-gray-500 font-primary">
-                Loading available regions...
-              </p>
-            )}
-            {isLinkedToLogEntry && (
-              <p className="text-sm text-blue-500 font-primary">
-                Region is locked to the log entry
-              </p>
-            )}
-          </div>
+          {/* Step 3: Region Selection - Only show if no log entry selected */}
+          {!selectedLogEntry && !logEntry && (
+            <div className="space-y-2">
+              <Label className="font-primary flex items-center">
+                <span className="bg-gray-200 text-gray-700 rounded-full w-5 h-5 inline-flex items-center justify-center mr-2 text-xs">
+                  {!logEntry && !isEditing ? "3" : "2"}
+                </span>
+                Select Region
+              </Label>
+              <select
+                value={alertConfig.region || ""}
+                onChange={(e) => {
+                  const value = e.target.value;
+                  console.log("Region selected:", value);
+                  setAlertConfig({
+                    ...alertConfig,
+                    region: value,
+                    forecastDate: undefined,
+                  });
+                }}
+                className="w-full p-2 border rounded-md font-primary border-gray-300"
+                disabled={
+                  isLoadingRegions || isLinkedToLogEntry || !!selectedLogEntry
+                }
+              >
+                <option value="">Select region</option>
+                {regions.map((region) => (
+                  <option key={region} value={region}>
+                    {region}
+                  </option>
+                ))}
+              </select>
+              {isLoadingRegions && (
+                <p className="text-sm text-gray-500 font-primary">
+                  Loading available regions...
+                </p>
+              )}
+            </div>
+          )}
 
-          {/* Step 4: Date Selection */}
-          <div className="space-y-2">
-            <Label className="font-primary flex items-center">
-              <span className="bg-gray-200 text-gray-700 rounded-full w-5 h-5 inline-flex items-center justify-center mr-2 text-xs">
-                4
-              </span>
-              Select Forecast Date
-            </Label>
-            <select
-              value={
-                alertConfig.forecastDate &&
-                !isNaN(new Date(alertConfig.forecastDate).getTime())
-                  ? new Date(alertConfig.forecastDate)
-                      .toISOString()
-                      .split("T")[0]
-                  : ""
-              }
-              onChange={(e) => {
-                const value = e.target.value;
-                console.log("Date selected:", value);
-                setAlertConfig({
-                  ...alertConfig,
-                  forecastDate: value ? new Date(value) : undefined,
-                });
-              }}
-              className="w-full p-2 border rounded-md font-primary border-gray-300"
-              disabled={
-                !alertConfig.region || isLoadingDates || isLinkedToLogEntry
-              }
-            >
-              <option value="">Select date</option>
-              {availableDates.map((date) => (
-                <option key={date} value={date}>
-                  {new Date(date).toLocaleDateString()}
-                </option>
-              ))}
-            </select>
-            {alertConfig.region && isLoadingDates && (
-              <p className="text-sm text-gray-500 font-primary">
-                Loading available forecast dates...
-              </p>
-            )}
-            {isLinkedToLogEntry && (
-              <p className="text-sm text-blue-500 font-primary">
-                Date is locked to the log entry
-              </p>
-            )}
-          </div>
+          {/* Step 4: Date Selection - Only show if no log entry selected */}
+          {!selectedLogEntry && !logEntry && (
+            <div className="space-y-2">
+              <Label className="font-primary flex items-center">
+                <span className="bg-gray-200 text-gray-700 rounded-full w-5 h-5 inline-flex items-center justify-center mr-2 text-xs">
+                  {!logEntry && !isEditing ? "4" : "3"}
+                </span>
+                Select Forecast Date
+              </Label>
+              <select
+                value={
+                  alertConfig.forecastDate &&
+                  !isNaN(new Date(alertConfig.forecastDate).getTime())
+                    ? new Date(alertConfig.forecastDate)
+                        .toISOString()
+                        .split("T")[0]
+                    : ""
+                }
+                onChange={(e) => {
+                  const value = e.target.value;
+                  console.log("Date selected:", value);
+                  setAlertConfig({
+                    ...alertConfig,
+                    forecastDate: value ? new Date(value) : undefined,
+                  });
+                }}
+                className="w-full p-2 border rounded-md font-primary border-gray-300"
+                disabled={
+                  !alertConfig.region ||
+                  isLoadingDates ||
+                  isLinkedToLogEntry ||
+                  !!selectedLogEntry
+                }
+              >
+                <option value="">Select date</option>
+                {availableDates.map((date) => (
+                  <option key={date} value={date}>
+                    {new Date(date).toLocaleDateString()}
+                  </option>
+                ))}
+              </select>
+              {alertConfig.region && isLoadingDates && (
+                <p className="text-sm text-gray-500 font-primary">
+                  Loading available forecast dates...
+                </p>
+              )}
+            </div>
+          )}
 
           {/* Forecast Data Display */}
-          {alertConfig.region && alertConfig.forecastDate && (
+          {((alertConfig.region && alertConfig.forecastDate) ||
+            selectedLogEntry?.forecast) && (
             <div className="space-y-2 border rounded-md p-3 bg-gray-50">
               <Label className="font-primary flex items-center">
                 <span className="bg-blue-100 text-blue-700 rounded-full w-5 h-5 inline-flex items-center justify-center mr-2 text-xs">
                   i
                 </span>
                 Forecast Data
+                {selectedLogEntry && (
+                  <span className="ml-2 text-xs text-blue-600">
+                    (from log entry)
+                  </span>
+                )}
               </Label>
 
               {isFetchingForecast ? (
@@ -811,59 +868,180 @@ export default function ForecastAlertModal({
             </div>
           )}
 
-          {/* Step 5: Accuracy Range */}
+          {/* New Step: Choose Alert Type */}
           <div className="space-y-2">
             <Label className="font-primary flex items-center">
               <span className="bg-gray-200 text-gray-700 rounded-full w-5 h-5 inline-flex items-center justify-center mr-2 text-xs">
-                5
+                {!logEntry && !isEditing && !selectedLogEntry
+                  ? "5"
+                  : selectedLogEntry || logEntry
+                    ? "2"
+                    : "4"}
               </span>
-              Set Accuracy Range
+              Alert Type
             </Label>
-            <div className="space-y-4">
-              {alertConfig.properties?.map((prop, index) => (
-                <div key={index} className="space-y-1">
-                  <div className="flex justify-between">
-                    <Label className="text-sm font-primary">
-                      {prop.property === "windSpeed"
-                        ? "Wind Speed"
-                        : prop.property === "windDirection"
-                          ? "Wind Direction"
-                          : prop.property === "waveHeight"
-                            ? "Wave Height"
-                            : prop.property === "wavePeriod"
-                              ? "Wave Period"
-                              : prop.property}
-                    </Label>
-                    <span className="text-sm font-primary">±{prop.range}%</span>
-                  </div>
-                  <Slider
-                    value={[prop.range]}
-                    min={5}
-                    max={30}
-                    step={5}
-                    onValueChange={(value) => {
-                      const updatedProps = [...(alertConfig.properties || [])];
-                      updatedProps[index] = {
-                        ...updatedProps[index],
-                        range: value[0],
-                      };
-                      setAlertConfig({
-                        ...alertConfig,
-                        properties: updatedProps,
-                      });
-                    }}
-                    className="border border-gray-300 rounded-md p-1"
-                  />
-                </div>
-              ))}
-            </div>
+            <RadioGroup
+              value={alertType}
+              onValueChange={(value) => {
+                setAlertType(value as "variables" | "rating");
+                setAlertConfig({
+                  ...alertConfig,
+                  alertType: value as "variables" | "rating",
+                } as Partial<AlertConfigTypes>);
+              }}
+              className="flex flex-col space-y-2"
+            >
+              <div className="flex items-center space-x-2">
+                <RadioGroupItem value="variables" id="variables" />
+                <Label
+                  htmlFor="variables"
+                  className="font-primary cursor-pointer"
+                >
+                  Set Forecast Variables
+                </Label>
+              </div>
+              <div className="flex items-center space-x-2">
+                <RadioGroupItem value="rating" id="rating" />
+                <Label htmlFor="rating" className="font-primary cursor-pointer">
+                  Set Star Rating
+                </Label>
+              </div>
+            </RadioGroup>
           </div>
 
-          {/* Step 6: Notification Method */}
+          {/* Conditional rendering based on alert type */}
+          {alertType === "variables" ? (
+            /* Step: Accuracy Range */
+            <div className="space-y-2">
+              <Label className="font-primary flex items-center">
+                <span className="bg-gray-200 text-gray-700 rounded-full w-5 h-5 inline-flex items-center justify-center mr-2 text-xs">
+                  {!logEntry && !isEditing && !selectedLogEntry
+                    ? "6"
+                    : selectedLogEntry || logEntry
+                      ? "3"
+                      : "5"}
+                </span>
+                Set Accuracy Range
+              </Label>
+              <div className="space-y-4">
+                {alertConfig.properties?.map((prop, index) => (
+                  <div key={index} className="space-y-1">
+                    <div className="flex justify-between">
+                      <Label className="text-sm font-primary">
+                        {prop.property === "windSpeed"
+                          ? "Wind Speed"
+                          : prop.property === "windDirection"
+                            ? "Wind Direction"
+                            : prop.property === "swellHeight"
+                              ? "Wave Height"
+                              : prop.property === "swellPeriod"
+                                ? "Wave Period"
+                                : prop.property}
+                      </Label>
+                      <span className="text-sm font-primary">
+                        ±{prop.range}%
+                      </span>
+                    </div>
+                    <Slider
+                      value={[prop.range]}
+                      min={5}
+                      max={30}
+                      step={5}
+                      onValueChange={(value) => {
+                        const updatedProps = [
+                          ...(alertConfig.properties || []),
+                        ];
+                        updatedProps[index] = {
+                          ...updatedProps[index],
+                          range: value[0],
+                        };
+                        setAlertConfig({
+                          ...alertConfig,
+                          properties: updatedProps,
+                        });
+                      }}
+                      className="border border-gray-300 rounded-md p-1"
+                    />
+                  </div>
+                ))}
+              </div>
+            </div>
+          ) : (
+            /* Star Rating Selection */
+            <div className="space-y-2">
+              <Label className="font-primary flex items-center">
+                <span className="bg-gray-200 text-gray-700 rounded-full w-5 h-5 inline-flex items-center justify-center mr-2 text-xs">
+                  {!logEntry && !isEditing && !selectedLogEntry
+                    ? "6"
+                    : selectedLogEntry || logEntry
+                      ? "3"
+                      : "5"}
+                </span>
+                Select Star Rating
+              </Label>
+              <RadioGroup
+                value={starRating}
+                onValueChange={(value) => {
+                  setStarRating(value as "4+" | "5");
+                  setAlertConfig({
+                    ...alertConfig,
+                    starRating: value as "4+" | "5",
+                  });
+                }}
+                className="flex flex-col space-y-2"
+              >
+                <div className="flex items-center space-x-2 p-3 border rounded-md hover:bg-gray-50 cursor-pointer">
+                  <RadioGroupItem value="4+" id="four-plus" />
+                  <Label
+                    htmlFor="four-plus"
+                    className="font-primary cursor-pointer flex items-center"
+                  >
+                    <div className="flex">
+                      {[1, 2, 3, 4].map((i) => (
+                        <StarIcon
+                          key={i}
+                          className="h-5 w-5 fill-yellow-400 text-yellow-400"
+                        />
+                      ))}
+                      <StarIcon className="h-5 w-5 text-gray-300" />
+                    </div>
+                    <span className="ml-2">4+ Stars (Good conditions)</span>
+                  </Label>
+                </div>
+                <div className="flex items-center space-x-2 p-3 border rounded-md hover:bg-gray-50 cursor-pointer">
+                  <RadioGroupItem value="5" id="five" />
+                  <Label
+                    htmlFor="five"
+                    className="font-primary cursor-pointer flex items-center"
+                  >
+                    <div className="flex">
+                      {[1, 2, 3, 4, 5].map((i) => (
+                        <StarIcon
+                          key={i}
+                          className="h-5 w-5 fill-yellow-400 text-yellow-400"
+                        />
+                      ))}
+                    </div>
+                    <span className="ml-2">5 Stars (Perfect conditions)</span>
+                  </Label>
+                </div>
+              </RadioGroup>
+              <p className="text-sm text-gray-500 font-primary mt-2">
+                You'll be notified when the beach conditions match your selected
+                star rating.
+              </p>
+            </div>
+          )}
+
+          {/* Step 5: Notification Method */}
           <div className="space-y-2">
             <Label className="font-primary flex items-center">
               <span className="bg-gray-200 text-gray-700 rounded-full w-5 h-5 inline-flex items-center justify-center mr-2 text-xs">
-                6
+                {!logEntry && !isEditing && !selectedLogEntry
+                  ? "7"
+                  : selectedLogEntry || logEntry
+                    ? "4"
+                    : "6"}
               </span>
               Notification Method
             </Label>
@@ -893,14 +1071,18 @@ export default function ForecastAlertModal({
             </Select>
           </div>
 
-          {/* Step 7: Contact Info */}
+          {/* Step 6: Contact Info */}
           <div className="space-y-2">
             <Label
               htmlFor="contact-info"
               className="font-primary flex items-center"
             >
               <span className="bg-gray-200 text-gray-700 rounded-full w-5 h-5 inline-flex items-center justify-center mr-2 text-xs">
-                7
+                {!logEntry && !isEditing && !selectedLogEntry
+                  ? "8"
+                  : selectedLogEntry || logEntry
+                    ? "5"
+                    : "7"}
               </span>
               {alertConfig.notificationMethod === "email"
                 ? "Email Address"
@@ -957,16 +1139,26 @@ export default function ForecastAlertModal({
           </div>
 
           {/* Log Entry Details */}
-          {logEntry && (
+          {(logEntry || selectedLogEntry) && (
             <div className="mt-2 p-3 bg-blue-50 border border-blue-200 rounded-md">
               <p className="text-sm font-primary text-blue-700 flex items-center">
                 <InfoIcon className="w-4 h-4 mr-2" />
                 This alert is linked to your log entry for{" "}
-                {logEntry.beachName || logEntry.region}
+                {(logEntry || selectedLogEntry)?.beachName ||
+                  (logEntry || selectedLogEntry)?.region}
               </p>
               <p className="text-xs text-blue-600 mt-1">
-                Date: {format(new Date(logEntry.date), "MMM d, yyyy")}
+                Date:{" "}
+                {format(
+                  new Date((logEntry || selectedLogEntry)?.date || new Date()),
+                  "MMM d, yyyy"
+                )}
               </p>
+              {(logEntry || selectedLogEntry)?.forecast && (
+                <p className="text-xs text-blue-600">
+                  Using forecast data from this log entry
+                </p>
+              )}
             </div>
           )}
         </div>
@@ -979,8 +1171,8 @@ export default function ForecastAlertModal({
               createAlertMutation.isPending ||
               updateAlertMutation.isPending ||
               !alertConfig.name ||
-              !alertConfig.region ||
-              !alertConfig.forecastDate ||
+              !alertConfig.notificationMethod ||
+              !alertConfig.contactInfo ||
               isFetchingForecast
             }
           >

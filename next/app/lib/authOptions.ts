@@ -16,7 +16,25 @@ declare module "next-auth/jwt" {
   }
 }
 
-declare module "next-auth" {}
+declare module "next-auth" {
+  interface Session {
+    user: {
+      id: string;
+      name?: string | null;
+      email?: string | null;
+      image?: string | null;
+      isSubscribed: boolean;
+      hasActiveTrial: boolean;
+      trialEndDate?: Date | null;
+    };
+  }
+
+  interface User {
+    id: string;
+    isSubscribed?: boolean;
+    hasActiveTrial?: boolean;
+  }
+}
 
 export const authOptions: NextAuthOptions = {
   adapter: PrismaAdapter(),
@@ -35,25 +53,25 @@ export const authOptions: NextAuthOptions = {
   },
   callbacks: {
     async redirect({ url, baseUrl }) {
-      console.log("Redirect callback:", { url, baseUrl });
+      // If already on the signin page and trying to redirect there again, go to home
+      if (url.includes("/auth/signin") && url.includes("callbackUrl")) {
+        return baseUrl;
+      }
 
-      // If the URL is relative (starts with /), prepend the base URL
+      // Standard redirect logic
       if (url.startsWith("/")) {
         return `${baseUrl}${url}`;
-      }
-      // If the URL is already absolute (starts with http), return it as is
-      else if (url.startsWith("http")) {
+      } else if (url.startsWith("http")) {
         return url;
       }
-      // Default to the base URL
       return baseUrl;
     },
 
     async session({ session, token }) {
-      if (session.user) {
+      if (session.user && token.id) {
         session.user.id = token.id as string;
-        session.user.isSubscribed = token.isSubscribed || false;
-        session.user.hasActiveTrial = token.hasActiveTrial || false;
+        session.user.isSubscribed = !!token.isSubscribed;
+        session.user.hasActiveTrial = !!token.hasActiveTrial;
         session.user.trialEndDate = token.trialEndDate || null;
       }
       return session;

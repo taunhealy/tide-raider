@@ -29,6 +29,7 @@ export interface AlertConfig {
   id?: string | undefined;
   name: string | undefined;
   region: string | undefined;
+  forecastDate: Date | string;
   properties: {
     property: string;
     range: number; // percentage or absolute value depending on property
@@ -36,6 +37,9 @@ export interface AlertConfig {
   notificationMethod: "email" | "whatsapp" | "both";
   contactInfo: string;
   active: boolean;
+  logEntryId?: string | null;
+  alertType?: "variables" | "rating";
+  starRating?: "4+" | "5" | null;
 }
 
 const forecastProperties = [
@@ -58,6 +62,7 @@ export function AlertConfiguration({
       notificationMethod: "email",
       contactInfo: "",
       active: true,
+      forecastDate: new Date(),
     }
   );
 

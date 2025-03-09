@@ -589,18 +589,22 @@ export default function BeachContainer({
     }
   };
 
-  // Update this query
+  // Update the query and data handling
   const { data: recentLogs } = useQuery({
     queryKey: ["recentLogs"],
     queryFn: async () => {
-      const res = await fetch(`/api/raid-logs`); // Removed the limit parameter
+      const res = await fetch(`/api/raid-logs`);
       if (!res.ok) throw new Error("Failed to fetch logs");
-      return res.json();
+      const data = await res.json();
+      return Array.isArray(data) ? data : []; // Ensure we always return an array
     },
   });
 
-  // If you need only 3 logs, you can slice them in the render:
-  const latestLogs = recentLogs?.entries?.slice(0, 3);
+  // Update how we get the latest logs
+  const latestLogs = useMemo(() => {
+    if (!recentLogs) return [];
+    return recentLogs.slice(0, 3); // Get first 3 logs
+  }, [recentLogs]);
 
   // Update the forecast widget section
   const [forecastSource, setForecastSource] = useState<"A" | "B">("A");

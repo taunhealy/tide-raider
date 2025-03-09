@@ -1,20 +1,19 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
-import {
-  AlertConfiguration,
-  AlertConfig,
-} from "@/app/components/alerts/AlertConfiguration";
+import React, { useState, useEffect, useMemo } from "react";
+import { AlertConfig } from "@/app/components/alerts/AlertConfiguration";
+import { AlertConfigTypes } from "@/app/types/alerts";
 import { AlertsList } from "@/app/components/alerts/AlertsList";
-import { Button } from "@/components/ui/button";
-import { useToast } from "@/app/components/ui/use-toast";
+import { Button } from "@/app/components/ui/button";
+import { toast } from "sonner";
 import { v4 as uuidv4 } from "uuid";
+import { useRouter } from "next/navigation";
 
 export default function AlertsPage() {
   const [alerts, setAlerts] = useState<AlertConfig[]>([]);
   const [isCreating, setIsCreating] = useState(false);
   const [editingAlertId, setEditingAlertId] = useState<string | null>(null);
-  const { toast } = useToast();
+  const router = useRouter();
 
   useEffect(() => {
     // Load alerts from localStorage or API
@@ -29,6 +28,11 @@ export default function AlertsPage() {
     setAlerts(updatedAlerts);
   };
 
+  const handleCreateNewAlert = () => {
+    // Redirect to the new alert page
+    router.push(`/alerts/new`);
+  };
+
   const handleSaveAlert = async (alertConfig: AlertConfig) => {
     let updatedAlerts: AlertConfig[];
     try {
@@ -40,23 +44,9 @@ export default function AlertsPage() {
             : alert
         );
 
-        // Save to API first
-        const response = await fetch(`/api/alerts/${editingAlertId}`, {
-          method: "PUT",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify(alertConfig),
-        });
-
-        if (!response.ok) {
-          throw new Error("Failed to update alert");
-        }
-
         toast({
           title: "Alert updated",
           description: `Your alert "${alertConfig.name}" has been updated.`,
-          variant: "success",
         });
       } else {
         // Create new alert
@@ -65,24 +55,10 @@ export default function AlertsPage() {
           id: uuidv4(),
         };
 
-        // Save to API first
-        const response = await fetch("/api/alerts", {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify(newAlert),
-        });
-
-        if (!response.ok) {
-          throw new Error("Failed to create alert");
-        }
-
         updatedAlerts = [...alerts, newAlert];
         toast({
           title: "Alert created",
           description: `Your alert "${alertConfig.name}" has been created.`,
-          variant: "success",
         });
       }
 
@@ -94,14 +70,12 @@ export default function AlertsPage() {
       toast({
         title: "Error",
         description: `Failed to save alert. Please try again.`,
-        variant: "destructive",
       });
     }
   };
 
   const handleEditAlert = (alertId: string) => {
-    setEditingAlertId(alertId);
-    setIsCreating(true);
+    router.push(`/alerts/${alertId}`);
   };
 
   const handleDeleteAlert = (alertId: string) => {
@@ -109,10 +83,7 @@ export default function AlertsPage() {
     const updatedAlerts = alerts.filter((alert) => alert.id !== alertId);
     saveAlertsToStorage(updatedAlerts);
 
-    toast({
-      title: "Alert deleted",
-      description: `Your alert "${alertToDelete?.name}" has been deleted.`,
-    });
+    toast.success(`Your alert "${alertToDelete?.name}" has been deleted.`);
   };
 
   const handleToggleActive = (alertId: string, active: boolean) => {
@@ -122,18 +93,27 @@ export default function AlertsPage() {
     saveAlertsToStorage(updatedAlerts);
 
     const alertName = alerts.find((alert) => alert.id === alertId)?.name;
-    toast({
-      title: active ? "Alert activated" : "Alert deactivated",
-      description: `Your alert "${alertName}" has been ${
-        active ? "activated" : "deactivated"
-      }.`,
-    });
+    toast.success(
+      `Your alert "${alertName}" has been ${active ? "activated" : "deactivated"}.`
+    );
   };
 
-  const getEditingAlert = () => {
-    if (!editingAlertId) return undefined;
-    return alerts.find((alert) => alert.id === editingAlertId);
-  };
+  // Add a section that summarizes alerts by type
+  const alertSummary = useMemo(() => {
+    if (!alerts) return { variables: 0, rating: 0 };
+
+    return alerts.reduce(
+      (acc, alert) => {
+        if (alert.alertType === "rating") {
+          acc.rating += 1;
+        } else {
+          acc.variables += 1;
+        }
+        return acc;
+      },
+      { variables: 0, rating: 0 }
+    );
+  }, [alerts]);
 
   return (
     <div className="container mx-auto py-8 max-w-4xl">
@@ -141,46 +121,44 @@ export default function AlertsPage() {
         <h1 className="text-3xl font-bold font-primary text-primary">
           Forecast Alerts
         </h1>
-        {!isCreating && (
-          <Button onClick={() => setIsCreating(true)} className="font-primary">
-            Create New Alert
-          </Button>
-        )}
+        <Button onClick={handleCreateNewAlert} className="font-primary">
+          Create New Alert
+        </Button>
       </div>
 
-      {isCreating ? (
-        <div className="bg-card rounded-lg p-6 shadow-sm space-y-6">
-          <AlertConfiguration
-            onSave={handleSaveAlert}
-            existingConfig={getEditingAlert()}
+      <div>
+        <p className="text-muted-foreground mb-8 font-primary text-lg">
+          Set up personalized alerts to get notified when surf conditions match
+          your preferences.
+        </p>
+        <div className="bg-card rounded-lg p-6 shadow-sm">
+          <AlertsList
+            alerts={alerts}
+            onEdit={handleEditAlert}
+            onDelete={handleDeleteAlert}
+            onToggleActive={handleToggleActive}
           />
-          <Button
-            variant="outline"
-            onClick={() => {
-              setIsCreating(false);
-              setEditingAlertId(null);
-            }}
-            className="w-full font-primary mt-4"
-          >
-            Cancel
-          </Button>
         </div>
-      ) : (
-        <div>
-          <p className="text-muted-foreground mb-8 font-primary text-lg">
-            Set up personalized alerts to get notified when surf conditions
-            match your preferences.
+      </div>
+
+      <div className="mb-4 flex gap-4">
+        <div className="bg-white rounded-lg p-4 shadow flex-1">
+          <h3 className="text-sm font-medium text-gray-500 font-primary">
+            Variable Alerts
+          </h3>
+          <p className="text-2xl font-semibold font-primary">
+            {alertSummary.variables}
           </p>
-          <div className="bg-card rounded-lg p-6 shadow-sm">
-            <AlertsList
-              alerts={alerts}
-              onEdit={handleEditAlert}
-              onDelete={handleDeleteAlert}
-              onToggleActive={handleToggleActive}
-            />
-          </div>
         </div>
-      )}
+        <div className="bg-white rounded-lg p-4 shadow flex-1">
+          <h3 className="text-sm font-medium text-gray-500 font-primary">
+            Star Rating Alerts
+          </h3>
+          <p className="text-2xl font-semibold font-primary">
+            {alertSummary.rating}
+          </p>
+        </div>
+      </div>
     </div>
   );
 }

@@ -20,6 +20,8 @@ import { getCardinalDirection } from "@/lib/forecastUtils";
 import { AlertConfig } from "@/app/components/alerts/AlertConfiguration";
 import { v4 as uuidv4 } from "uuid";
 import { useToast } from "@/app/components/ui/use-toast";
+import { Dialog, DialogContent } from "@/components/ui/dialog";
+import { useForecast } from "@/app/hooks/useForecast";
 
 interface RaidLogFormProps {
   userEmail?: string;
@@ -78,6 +80,11 @@ export function RaidLogForm({
     }
   }, [userEmail]);
 
+  const { data: forecastData } = useForecast(
+    selectedBeach?.region || "",
+    new Date(selectedDate)
+  );
+
   const createLogEntry = useMutation({
     mutationFn: async (newEntry: CreateLogEntryInput) => {
       const method = entry?.id ? "PATCH" : "POST";
@@ -110,39 +117,49 @@ export function RaidLogForm({
       router.push("/raidlogs");
 
       // Create alert if requested
-      if (createAlert && selectedBeach && forecast) {
+      if (createAlert && selectedBeach && forecastData) {
         try {
-          // Create alert configuration
-          const alertConfig: AlertConfig = {
-            id: uuidv4(),
+          const alertConfig = {
             name: `Alert for ${selectedBeach.name}`,
-            region: selectedBeach.region || data.region,
+            region: selectedBeach.region,
+            date: selectedDate,
             properties: [
               { property: "windSpeed", range: alertRange },
               { property: "windDirection", range: alertRange },
-              { property: "waveHeight", range: alertRange },
-              { property: "wavePeriod", range: alertRange },
+              { property: "swellHeight", range: alertRange },
+              { property: "swellPeriod", range: alertRange },
             ],
             notificationMethod: alertNotificationMethod,
             contactInfo: alertContactInfo,
             active: true,
+            logEntryId: data.id,
+            alertType: "variables",
           };
 
-          // Save to localStorage
-          const savedAlerts = localStorage.getItem("userAlerts");
-          const existingAlerts = savedAlerts ? JSON.parse(savedAlerts) : [];
-          localStorage.setItem(
-            "userAlerts",
-            JSON.stringify([...existingAlerts, alertConfig])
-          );
+          const alertResponse = await fetch("/api/alerts", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify(alertConfig),
+          });
+
+          if (!alertResponse.ok) {
+            throw new Error("Failed to create alert");
+          }
 
           toast({
             title: "Alert Created",
             description:
               "You'll be notified when forecast conditions match this session.",
           });
+
+          queryClient.invalidateQueries({ queryKey: ["alerts"] });
         } catch (error) {
           console.error("Error creating alert:", error);
+          toast({
+            title: "Alert Creation Failed",
+            description: "Could not create alert. Please try again.",
+            variant: "destructive",
+          });
         }
       }
     },
@@ -175,20 +192,20 @@ export function RaidLogForm({
 
     try {
       // First, ensure we have the forecast data
-      if (!forecast) {
+      if (!forecastData) {
         console.log("Fetching forecast before submission...");
-        await fetchForecast(selectedBeach);
+        await fetchForecastData(selectedBeach);
         // Add a small delay to ensure forecast is set
         await new Promise((resolve) => setTimeout(resolve, 1000));
       }
 
-      if (!forecast) {
+      if (!forecastData) {
         throw new Error("Failed to fetch forecast data");
       }
 
       const newEntry = {
         beachName: selectedBeach.name,
-        date: selectedDate,
+        date: new Date(selectedDate),
         surferEmail: userEmail,
         surferName: isAnonymous
           ? "Anonymous"
@@ -198,22 +215,7 @@ export function RaidLogForm({
         userId: session!.user.id,
         surferRating: surferRating,
         comments,
-        forecast: {
-          entries: [
-            {
-              wind: {
-                speed: forecast.windSpeed,
-                direction: getCardinalDirection(forecast.windDirection),
-              },
-              swell: {
-                height: forecast.swellHeight,
-                period: forecast.swellPeriod,
-                direction: getCardinalDirection(forecast.swellDirection),
-              },
-              timestamp: new Date(selectedDate).getTime(),
-            },
-          ],
-        },
+        forecast: forecastData,
         continent: selectedBeach.continent,
         country: selectedBeach.country,
         region: selectedBeach.region,
@@ -243,10 +245,10 @@ export function RaidLogForm({
       alert("Please select a date first");
       return;
     }
-    await fetchForecast(beach);
+    await fetchForecastData(beach);
   };
 
-  const fetchForecast = async (beach: Beach) => {
+  const fetchForecastData = async (beach: Beach) => {
     try {
       const fetchWithRetry = async (retryAttempt = 0, maxRetries = 3) => {
         if (retryAttempt >= maxRetries) {
@@ -328,7 +330,7 @@ export function RaidLogForm({
   // Update useEffect to use this function
   useEffect(() => {
     if (selectedBeach && selectedDate) {
-      fetchForecast(selectedBeach);
+      fetchForecastData(selectedBeach);
     }
   }, [selectedBeach, selectedDate]);
 
@@ -346,325 +348,314 @@ export function RaidLogForm({
   };
 
   return (
-    <>
-      {isOpen && (
-        <div className="fixed inset-0 z-[100] flex items-center justify-center">
-          <div
-            className="absolute inset-0 bg-black/50"
-            onClick={onClose}
-            role="button"
-            tabIndex={0}
-          />
-          <div className="relative bg-white rounded-lg shadow-xl w-full mx-4 md:max-w-[500px] p-4 lg:p-6 overflow-y-auto max-h-[90vh] z-[101]">
-            {!isSubscribed && !hasActiveTrial && (
-              <div className="absolute inset-0 bg-gray-100/50 backdrop-blur-[2px] z-10 rounded-lg" />
-            )}
+    <Dialog open={isOpen} onOpenChange={onClose}>
+      <DialogContent className="bg-white max-h-[90vh] overflow-y-auto">
+        {!isSubscribed && !hasActiveTrial && (
+          <div className="absolute inset-0 bg-white/95 backdrop-blur-sm z-10 rounded-lg" />
+        )}
 
-            {!isSubscribed && !hasActiveTrial && (
-              <div className="absolute inset-0 flex flex-col items-center justify-center z-20 gap-4">
-                <Lock className="h-16 w-16 text-gray-400" />
-                <div className="text-center px-4">
-                  <h3 className="text-lg font-semibold mb-2 font-primary">
-                    Start Logging Your Sessions
-                  </h3>
-                  <p className="text-gray-600 mb-4 font-primary">
-                    Track your surf journey with detailed logs and insights
-                  </p>
-                  <Button
-                    variant="secondary"
-                    onClick={handleSubscriptionAction}
-                    className="font-primary bg-[var(--color-tertiary)] text-white hover:bg-[var(--color-tertiary)]/90"
-                  >
-                    {!session?.user
-                      ? "Sign in to Start"
-                      : hasActiveTrial
-                        ? "Subscribe Now"
-                        : "Start Free Trial"}
-                  </Button>
-                </div>
-              </div>
-            )}
-
-            <button
-              onClick={onClose}
-              className="absolute top-4 right-4 text-gray-400 hover:text-gray-500 z-[102]"
-              type="button"
-            >
-              <X className="h-6 w-6" />
-            </button>
-
-            <h2 className="text-xl font-semibold mb-4 font-primary">
-              Log Session
-            </h2>
-
-            <form onSubmit={handleSubmit} className="space-y-4">
-              <div className="steps-container space-y-6">
-                {/* Step 1: Date Selection */}
-                <div className="step">
-                  <h4 className="text-[12px] font-semibold mb-2 font-primary">
-                    1. Select Date
-                  </h4>
-                  <input
-                    type="date"
-                    value={selectedDate}
-                    onChange={(e) =>
-                      setSelectedDate(e.target.value.split("T")[0])
-                    }
-                    max={new Date().toISOString().split("T")[0]}
-                    required
-                    className="p-2 border rounded"
-                  />
-                </div>
-
-                {/* Step 2: Beach Selection */}
-                <div className="step">
-                  <h4 className="text-[12px] font-semibold mb-2 font-primary">
-                    2. Select Beach
-                  </h4>
-                  <div className="relative">
-                    <Select
-                      value={selectedBeach?.name || ""}
-                      onValueChange={(value) => {
-                        const beach = beaches?.find((b) => b.name === value);
-                        if (beach) handleBeachSelect(beach);
-                      }}
-                    >
-                      <SelectItem value="" disabled>
-                        Choose a beach...
-                      </SelectItem>
-                      {Array.isArray(beaches) && beaches.length > 0 ? (
-                        beaches.map((beach) => (
-                          <SelectItem key={beach.id} value={beach.name}>
-                            {beach.name}
-                          </SelectItem>
-                        ))
-                      ) : (
-                        <SelectItem value="" disabled>
-                          No beaches available ({beaches?.length || 0} beaches)
-                        </SelectItem>
-                      )}
-                    </Select>
-                  </div>
-                </div>
-
-                {/* Step 3: Forecast Display */}
-                {selectedBeach && selectedDate && (
-                  <div className="step">
-                    <h4 className="text-[12px] font-semibold mb-2 font-primary">
-                      3. Surf Conditions
-                    </h4>
-                    <div className="border rounded-lg p-4 bg-gray-50">
-                      {forecast === null ? (
-                        <div className="text-black font-primary">
-                          Loading...
-                        </div>
-                      ) : !forecast ? (
-                        <div className="text-gray-600 font-primary">
-                          Loading forecast data...
-                        </div>
-                      ) : (
-                        <SurfForecastWidget
-                          beachId={selectedBeach.id}
-                          selectedDate={selectedDate}
-                          forecast={forecast}
-                        />
-                      )}
-                    </div>
-                  </div>
-                )}
-
-                {/* Step 4: Rating */}
-                {forecast && (
-                  <div className="step">
-                    <h3 className="text-lg font-semibold mb-2 font-primary">
-                      4. Rate Your Session
-                    </h3>
-                    <div className="flex gap-1">
-                      {[1, 2, 3, 4, 5].map((rating) => (
-                        <button
-                          key={rating}
-                          type="button"
-                          onClick={() => setSurferRating(rating)}
-                          className={cn(
-                            "p-1",
-                            rating <= surferRating
-                              ? "text-yellow-400"
-                              : "text-gray-300"
-                          )}
-                        >
-                          <Star className="w-6 h-6 fill-current" />
-                        </button>
-                      ))}
-                    </div>
-                  </div>
-                )}
-
-                {/* Step 5: Comments */}
-                {surferRating > 0 && (
-                  <div className="step">
-                    <h3 className="text-lg font-semibold mb-2 font-primary">
-                      5. Add Comments
-                    </h3>
-                    <textarea
-                      value={comments}
-                      onChange={(e) =>
-                        setComments(e.target.value.slice(0, 140))
-                      }
-                      className="w-full p-2 border rounded-lg"
-                      rows={4}
-                      placeholder="How was your session?"
-                      maxLength={140}
-                    />
-                    <div className="text-sm text-gray-500 mt-1 font-primary">
-                      Characters remaining: {250 - comments.length}
-                    </div>
-                  </div>
-                )}
-
-                {/* Optional Steps */}
-                <div className="step">
-                  <h3 className="text-lg font-semibold mb-2 font-primary">
-                    Additional Options
-                  </h3>
-                  <div className="space-y-4">
-                    <div className="flex items-center space-x-2">
-                      <input
-                        type="checkbox"
-                        id="anonymous"
-                        checked={isAnonymous}
-                        onChange={(e) => setIsAnonymous(e.target.checked)}
-                      />
-                      <label htmlFor="anonymous" className="font-primary">
-                        Post Anonymously
-                      </label>
-                    </div>
-                    <div className="flex items-center space-x-2">
-                      <input
-                        type="checkbox"
-                        id="private"
-                        checked={isPrivate}
-                        onChange={(e) => setIsPrivate(e.target.checked)}
-                      />
-                      <label htmlFor="private" className="font-primary">
-                        Keep Private
-                      </label>
-                    </div>
-                    <div className="border-t pt-3">
-                      <div className="flex items-center space-x-2 mb-2">
-                        <input
-                          type="checkbox"
-                          id="create-alert"
-                          checked={createAlert}
-                          onChange={(e) => setCreateAlert(e.target.checked)}
-                        />
-                        <label
-                          htmlFor="create-alert"
-                          className="font-primary flex items-center"
-                        >
-                          <Bell className="h-4 w-4 mr-1" />
-                          Create Alert for Similar Conditions
-                        </label>
-                      </div>
-
-                      {createAlert && (
-                        <div className="pl-6 space-y-3 mt-2">
-                          <div>
-                            <label className="text-sm font-primary block mb-1">
-                              Accuracy Range (±%)
-                            </label>
-                            <div className="flex items-center">
-                              <input
-                                type="range"
-                                min="5"
-                                max="30"
-                                step="5"
-                                value={alertRange}
-                                onChange={(e) =>
-                                  setAlertRange(parseInt(e.target.value))
-                                }
-                                className="w-full mr-2"
-                              />
-                              <span className="text-sm font-primary w-10">
-                                ±{alertRange}%
-                              </span>
-                            </div>
-                          </div>
-
-                          <div>
-                            <label className="text-sm font-primary block mb-1">
-                              Notification Method
-                            </label>
-                            <select
-                              value={alertNotificationMethod}
-                              onChange={(e) =>
-                                setAlertNotificationMethod(
-                                  e.target.value as any
-                                )
-                              }
-                              className="w-full p-2 border rounded-md font-primary"
-                            >
-                              <option value="email">Email</option>
-                              <option value="whatsapp">WhatsApp</option>
-                              <option value="both">Both</option>
-                            </select>
-                          </div>
-
-                          <div>
-                            <label className="text-sm font-primary block mb-1">
-                              {alertNotificationMethod === "email"
-                                ? "Email Address"
-                                : alertNotificationMethod === "whatsapp"
-                                  ? "WhatsApp Number"
-                                  : "Email & WhatsApp"}
-                            </label>
-                            <input
-                              type="text"
-                              value={alertContactInfo}
-                              onChange={(e) =>
-                                setAlertContactInfo(e.target.value)
-                              }
-                              placeholder={
-                                alertNotificationMethod === "email"
-                                  ? "you@example.com"
-                                  : alertNotificationMethod === "whatsapp"
-                                    ? "+1234567890"
-                                    : "email@example.com, +1234567890"
-                              }
-                              className="w-full p-2 border rounded-md font-primary"
-                            />
-                          </div>
-                        </div>
-                      )}
-                    </div>
-                  </div>
-                </div>
-
-                {/* Submit Button */}
-                <Button
-                  type="submit"
-                  disabled={
-                    !forecast || !selectedBeach || !selectedDate || isSubmitting
-                  }
-                  className="w-full bg-[var(--color-tertiary)] text-white font-primary"
-                >
-                  {isSubmitting ? "Submitting..." : "Log Session"}
-                </Button>
-              </div>
-            </form>
-
-            {forecast && (
-              <div className="p-4 bg-gray-100 rounded-lg mt-4">
-                <h4 className="font-semibold mb-2 font-primary">
-                  Debug Forecast Data
-                </h4>
-                <pre className="text-xs">
-                  {JSON.stringify(forecast, null, 2)}
-                </pre>
-              </div>
-            )}
+        {!isSubscribed && !hasActiveTrial && (
+          <div className="absolute inset-0 flex flex-col items-center justify-center z-20 gap-4 bg-white/50">
+            <Lock className="h-16 w-16 text-gray-400" />
+            <div className="text-center px-4">
+              <h3 className="text-lg font-semibold mb-2 font-primary">
+                Start Logging Your Sessions
+              </h3>
+              <p className="text-gray-600 mb-4 font-primary">
+                Track your surf journey with detailed logs and insights
+              </p>
+              <Button
+                variant="secondary"
+                onClick={handleSubscriptionAction}
+                className="font-primary bg-[var(--color-tertiary)] text-white hover:bg-[var(--color-tertiary)]/90"
+              >
+                {!session?.user
+                  ? "Sign in to Start"
+                  : hasActiveTrial
+                    ? "Subscribe Now"
+                    : "Start Free Trial"}
+              </Button>
+            </div>
           </div>
+        )}
+
+        <div className="relative">
+          <button
+            onClick={onClose}
+            className="absolute top-0 right-0 text-gray-400 hover:text-gray-500 z-[102]"
+            type="button"
+          >
+            <X className="h-6 w-6" />
+          </button>
+
+          <h2 className="text-xl font-semibold mb-4 font-primary">
+            Log Session
+          </h2>
+
+          <form onSubmit={handleSubmit} className="space-y-4">
+            <div className="steps-container space-y-6">
+              {/* Step 1: Date Selection */}
+              <div className="step">
+                <h4 className="text-[12px] font-semibold mb-2 font-primary">
+                  1. Select Date
+                </h4>
+                <input
+                  type="date"
+                  value={selectedDate}
+                  onChange={(e) =>
+                    setSelectedDate(e.target.value.split("T")[0])
+                  }
+                  max={new Date().toISOString().split("T")[0]}
+                  required
+                  className="p-2 border rounded"
+                />
+              </div>
+
+              {/* Step 2: Beach Selection */}
+              <div className="step">
+                <h4 className="text-[12px] font-semibold mb-2 font-primary">
+                  2. Select Beach
+                </h4>
+                <div className="relative">
+                  <Select
+                    value={selectedBeach?.name || ""}
+                    onValueChange={(value) => {
+                      const beach = beaches?.find((b) => b.name === value);
+                      if (beach) handleBeachSelect(beach);
+                    }}
+                  >
+                    <SelectItem value="" disabled>
+                      Choose a beach...
+                    </SelectItem>
+                    {Array.isArray(beaches) && beaches.length > 0 ? (
+                      beaches.map((beach) => (
+                        <SelectItem key={beach.id} value={beach.name}>
+                          {beach.name}
+                        </SelectItem>
+                      ))
+                    ) : (
+                      <SelectItem value="" disabled>
+                        No beaches available ({beaches?.length || 0} beaches)
+                      </SelectItem>
+                    )}
+                  </Select>
+                </div>
+              </div>
+
+              {/* Step 3: Forecast Display */}
+              {selectedBeach && selectedDate && (
+                <div className="step">
+                  <h4 className="text-[12px] font-semibold mb-2 font-primary">
+                    3. Surf Conditions
+                  </h4>
+                  <div className="border rounded-lg p-4 bg-gray-50">
+                    {forecastData === null ? (
+                      <div className="text-black font-primary">Loading...</div>
+                    ) : !forecastData ? (
+                      <div className="text-gray-600 font-primary">
+                        Loading forecast data...
+                      </div>
+                    ) : (
+                      <SurfForecastWidget
+                        beachId={selectedBeach.id}
+                        selectedDate={selectedDate}
+                        forecast={forecastData}
+                      />
+                    )}
+                  </div>
+                </div>
+              )}
+
+              {/* Step 4: Rating */}
+              {forecastData && (
+                <div className="step">
+                  <h3 className="text-lg font-semibold mb-2 font-primary">
+                    4. Rate Your Session
+                  </h3>
+                  <div className="flex gap-1">
+                    {[1, 2, 3, 4, 5].map((rating) => (
+                      <button
+                        key={rating}
+                        type="button"
+                        onClick={() => setSurferRating(rating)}
+                        className={cn(
+                          "p-1",
+                          rating <= surferRating
+                            ? "text-yellow-400"
+                            : "text-gray-300"
+                        )}
+                      >
+                        <Star className="w-6 h-6 fill-current" />
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {/* Step 5: Comments */}
+              {surferRating > 0 && (
+                <div className="step">
+                  <h3 className="text-lg font-semibold mb-2 font-primary">
+                    5. Add Comments
+                  </h3>
+                  <textarea
+                    value={comments}
+                    onChange={(e) => setComments(e.target.value.slice(0, 140))}
+                    className="w-full p-2 border rounded-lg"
+                    rows={4}
+                    placeholder="How was your session?"
+                    maxLength={140}
+                  />
+                  <div className="text-sm text-gray-500 mt-1 font-primary">
+                    Characters remaining: {250 - comments.length}
+                  </div>
+                </div>
+              )}
+
+              {/* Optional Steps */}
+              <div className="step">
+                <h3 className="text-lg font-semibold mb-2 font-primary">
+                  Additional Options
+                </h3>
+                <div className="space-y-4">
+                  <div className="flex items-center space-x-2">
+                    <input
+                      type="checkbox"
+                      id="anonymous"
+                      checked={isAnonymous}
+                      onChange={(e) => setIsAnonymous(e.target.checked)}
+                    />
+                    <label htmlFor="anonymous" className="font-primary">
+                      Post Anonymously
+                    </label>
+                  </div>
+                  <div className="flex items-center space-x-2">
+                    <input
+                      type="checkbox"
+                      id="private"
+                      checked={isPrivate}
+                      onChange={(e) => setIsPrivate(e.target.checked)}
+                    />
+                    <label htmlFor="private" className="font-primary">
+                      Keep Private
+                    </label>
+                  </div>
+                  <div className="border-t pt-3">
+                    <div className="flex items-center space-x-2 mb-2">
+                      <input
+                        type="checkbox"
+                        id="create-alert"
+                        checked={createAlert}
+                        onChange={(e) => setCreateAlert(e.target.checked)}
+                      />
+                      <label
+                        htmlFor="create-alert"
+                        className="font-primary flex items-center"
+                      >
+                        <Bell className="h-4 w-4 mr-1" />
+                        Create Alert for Similar Conditions
+                      </label>
+                    </div>
+
+                    {createAlert && (
+                      <div className="pl-6 space-y-3 mt-2">
+                        <div>
+                          <label className="text-sm font-primary block mb-1">
+                            Accuracy Range (±%)
+                          </label>
+                          <div className="flex items-center">
+                            <input
+                              type="range"
+                              min="5"
+                              max="30"
+                              step="5"
+                              value={alertRange}
+                              onChange={(e) =>
+                                setAlertRange(parseInt(e.target.value))
+                              }
+                              className="w-full mr-2"
+                            />
+                            <span className="text-sm font-primary w-10">
+                              ±{alertRange}%
+                            </span>
+                          </div>
+                        </div>
+
+                        <div>
+                          <label className="text-sm font-primary block mb-1">
+                            Notification Method
+                          </label>
+                          <select
+                            value={alertNotificationMethod}
+                            onChange={(e) =>
+                              setAlertNotificationMethod(e.target.value as any)
+                            }
+                            className="w-full p-2 border rounded-md font-primary"
+                          >
+                            <option value="email">Email</option>
+                            <option value="whatsapp">WhatsApp</option>
+                            <option value="both">Both</option>
+                          </select>
+                        </div>
+
+                        <div>
+                          <label className="text-sm font-primary block mb-1">
+                            {alertNotificationMethod === "email"
+                              ? "Email Address"
+                              : alertNotificationMethod === "whatsapp"
+                                ? "WhatsApp Number"
+                                : "Email & WhatsApp"}
+                          </label>
+                          <input
+                            type="text"
+                            value={alertContactInfo}
+                            onChange={(e) =>
+                              setAlertContactInfo(e.target.value)
+                            }
+                            placeholder={
+                              alertNotificationMethod === "email"
+                                ? "you@example.com"
+                                : alertNotificationMethod === "whatsapp"
+                                  ? "+1234567890"
+                                  : "email@example.com, +1234567890"
+                            }
+                            className="w-full p-2 border rounded-md font-primary"
+                          />
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                </div>
+              </div>
+
+              {/* Submit Button */}
+              <Button
+                type="submit"
+                disabled={
+                  !forecastData ||
+                  !selectedBeach ||
+                  !selectedDate ||
+                  isSubmitting
+                }
+                className="w-full bg-[var(--color-tertiary)] text-white font-primary"
+              >
+                {isSubmitting ? "Submitting..." : "Log Session"}
+              </Button>
+            </div>
+          </form>
+
+          {forecastData && (
+            <div className="p-4 bg-gray-100 rounded-lg mt-4">
+              <h4 className="font-semibold mb-2 font-primary">
+                Debug Forecast Data
+              </h4>
+              <pre className="text-xs">
+                {JSON.stringify(forecastData, null, 2)}
+              </pre>
+            </div>
+          )}
         </div>
-      )}
-    </>
+      </DialogContent>
+    </Dialog>
   );
 }

@@ -20,7 +20,7 @@ import { ForecastData } from "@/types/wind";
 import Link from "next/link";
 import BeachDetailsModal from "@/app/components/BeachDetailsModal";
 import { beachData, type Beach } from "@/app/types/beaches";
-import { AlertConfig } from "@/app/types/alerts";
+import { AlertConfigTypes } from "@/app/types/alerts";
 import { v4 as uuidv4 } from "uuid";
 import {
   Dialog,
@@ -43,6 +43,8 @@ import {
 import { useToast } from "@/app/components/ui/use-toast";
 import { Button } from "@/components/ui/button";
 import ForecastAlertModal from "@/app/components/alerts/ForecastAlertModal";
+import { AlertConfig } from "../alerts/AlertConfiguration";
+import { ForecastA } from "@prisma/client";
 
 interface QuestTableProps {
   entries: LogEntry[];
@@ -80,36 +82,22 @@ function LogEntryDisplay({ entry, isAnonymous }: LogEntryDisplayProps) {
   );
 }
 
-function ForecastInfo({ forecast }: { forecast?: LogEntry["forecast"] }) {
-  if (!forecast?.windSpeed || !forecast?.swellHeight) {
-    return <p className="font-primary text-gray-500 italic">—</p>;
-  }
-
-  const windDirection = parseFloat(forecast.windDirection) || 0;
-  const swellDirection = forecast.swellDirection || 0;
-
-  const windCardinal = degreesToCardinal(windDirection);
-  const swellCardinal = degreesToCardinal(swellDirection);
+function ForecastInfo({ forecast }: { forecast: ForecastA | null }) {
+  if (!forecast) return null;
 
   return (
     <div className="space-y-1 text-sm">
-      <p className="break-words">
-        <span title={`Wind Speed: ${forecast.windSpeed} kts`}>
-          {getWindEmoji(forecast.windSpeed)}
-        </span>{" "}
-        {windCardinal} @ {forecast.windSpeed}kts
+      <p>
+        {getWindEmoji(forecast.windSpeed)} {forecast.windSpeed}kts{" "}
+        {degreesToCardinal(forecast.windDirection)}
       </p>
-      <p className="break-words">
-        <span title={`Swell Height: ${forecast.swellHeight}m`}>
-          {getSwellEmoji(forecast.swellHeight)}
-        </span>{" "}
-        {forecast.swellHeight}m @ {forecast.swellPeriod}s
+      <p>
+        {getSwellEmoji(forecast.swellHeight)} {forecast.swellHeight}m @{" "}
+        {forecast.swellPeriod}s
       </p>
-      <p className="break-words">
-        <span title={`Swell Direction: ${swellCardinal}`}>
-          {getDirectionEmoji(forecast.swellDirection)}
-        </span>{" "}
-        {swellCardinal}
+      <p>
+        {getDirectionEmoji(forecast.swellDirection)}{" "}
+        {degreesToCardinal(forecast.swellDirection)}
       </p>
     </div>
   );
@@ -123,7 +111,9 @@ function StarRating({ rating }: { rating: number }) {
           key={i}
           className={cn(
             "w-4 h-4",
-            i < rating ? "fill-yellow-400" : "fill-gray-200"
+            i < rating
+              ? "fill-[var(--color-alert-icon-rating)] text-[var(--color-alert-icon-rating)]"
+              : "fill-gray-200 text-gray-200"
           )}
         />
       ))}
@@ -201,12 +191,15 @@ function TableSkeleton() {
   );
 }
 
-const normalizeLogEntry = (entry: LogEntry): LogEntry => ({
-  ...entry,
-  date: new Date(entry.date.split("T")[0]).toISOString().split("T")[0],
-  isPrivate: entry.isPrivate ?? false,
-  isAnonymous: entry.isAnonymous ?? false,
-});
+const normalizeLogEntry = (entry: LogEntry): LogEntry => {
+  return {
+    ...entry,
+    date: new Date(entry.date),
+    isPrivate: entry.isPrivate ?? false,
+    isAnonymous: entry.isAnonymous ?? false,
+    hasAlert: entry.hasAlert ?? false,
+  };
+};
 
 export const DEFAULT_COLUMNS: QuestLogTableColumn[] = [
   {
@@ -302,65 +295,116 @@ export default function RaidLogTable({
   };
 
   // Create new alert handler
-  const handleAlertClick = (entry: LogEntry) => {
-    if (!session?.user) {
+  const handleAlertClick = async (entry: LogEntry) => {
+    try {
+      // Check if an alert already exists for this log entry
+      console.log("Checking for alert with logEntryId:", entry.id);
+      const checkResponse = await fetch(`/api/alerts?logEntryId=${entry.id}`);
+
+      console.log("Response status:", checkResponse.status);
+
+      if (checkResponse.ok) {
+        const checkData = await checkResponse.json();
+        console.log(
+          "API response for alert check:",
+          JSON.stringify(checkData, null, 2)
+        );
+
+        // The API might return an array or a single object, handle both cases
+        if (Array.isArray(checkData) && checkData.length > 0) {
+          // Alert exists in array format, redirect to the first one
+          console.log(
+            "Found alert in array format, redirecting to:",
+            `/alerts/${checkData[0].id}`
+          );
+          router.push(`/alerts/${checkData[0].id}`);
+        } else if (checkData && checkData.id) {
+          // Alert exists as a single object
+          console.log(
+            "Found alert as object, redirecting to:",
+            `/alerts/${checkData.id}`
+          );
+          router.push(`/alerts/${checkData.id}`);
+        } else {
+          // No alert exists, store the log entry ID in localStorage and redirect to new alert page
+          console.log(
+            "No existing alert found in response, redirecting to create new"
+          );
+          if (typeof window !== "undefined") {
+            localStorage.setItem(
+              "newAlertLogEntry",
+              JSON.stringify({
+                id: entry.id,
+                beachName: entry.beachName,
+                region: entry.region,
+                date: entry.date,
+                forecast: entry.forecast,
+              })
+            );
+          }
+          router.push("/alerts/new");
+        }
+      } else {
+        // Handle API error
+        const errorText = await checkResponse.text();
+        console.error("Error response from API:", errorText);
+        toast({
+          title: "Error",
+          description: "Could not check for existing alerts. Please try again.",
+          variant: "destructive",
+        });
+      }
+    } catch (error) {
+      console.error("Error checking for existing alert:", error);
       toast({
-        title: "Login Required",
-        description: "Please log in to create alerts",
+        title: "Error",
+        description: "An unexpected error occurred. Please try again.",
         variant: "destructive",
       });
-      return;
-    }
-
-    // Check if an alert already exists for this beach/region
-    const existingAlert = userAlerts.find(
-      (alert: AlertConfig) =>
-        alert.region === entry.region ||
-        (entry.beachName && alert.name && alert.name.includes(entry.beachName))
-    );
-
-    if (existingAlert && existingAlert.id) {
-      // Navigate to the alert edit page
-      console.log("Navigating to alert edit page:", existingAlert.id);
-      router.push(`/alerts/${existingAlert.id}`);
-    } else {
-      // Create new alert
-      setSelectedAlertForEdit(undefined);
-      setSelectedLogForAlert(entry);
-      setAlertModalOpen(true);
     }
   };
 
   const handleAlertSaved = () => {
-    // Refresh the alerts data
+    // Refresh alerts data
     queryClient.invalidateQueries({ queryKey: ["alerts"] });
-
-    // Update local storage alerts (for UI highlighting)
-    if (typeof window !== "undefined") {
-      const savedAlerts = localStorage.getItem("userAlerts");
-      const alerts = savedAlerts ? JSON.parse(savedAlerts) : [];
-      // Force UI refresh by updating state
-      setAlertModalOpen(false);
-    }
-
     toast({
-      title: "Alert Saved",
-      description: "Your alert has been saved successfully.",
+      title: "Success",
+      description: "Alert saved successfully",
+      variant: "default",
     });
+    setAlertModalOpen(false);
+    setSelectedAlertForEdit(undefined);
+    setSelectedLogForAlert(null);
   };
 
-  const filteredEntries = normalizedEntries.filter((entry) => {
+  const filteredEntries = useMemo(() => {
+    console.log("Filtering entries:", normalizedEntries.length);
+
     // For public viewing (no session)
     if (!session) {
-      return !entry.isPrivate;
+      const publicEntries = normalizedEntries.filter(
+        (entry) => !entry.isPrivate
+      );
+      console.log("Public entries:", publicEntries.length);
+      return publicEntries;
     }
 
     // For authenticated users
     if (showPrivateOnly) {
-      return entry.isPrivate && entry.userId === session.user?.id;
+      const privateEntries = normalizedEntries.filter(
+        (entry) => entry.isPrivate && entry.userId === session.user?.id
+      );
+      console.log("Private entries:", privateEntries.length);
+      return privateEntries;
     }
-    return !entry.isPrivate || entry.userId === session.user?.id;
-  });
+
+    // Show all public entries and user's private entries
+    const visibleEntries = normalizedEntries.filter(
+      (entry) => !entry.isPrivate || entry.userId === session.user?.id
+    );
+    console.log("Visible entries:", visibleEntries.length);
+    return visibleEntries;
+  }, [normalizedEntries, session, showPrivateOnly]);
 
   console.log("[RaidLogTable] Filtered entries:", filteredEntries);
 
@@ -381,7 +425,7 @@ export default function RaidLogTable({
               e.stopPropagation();
               handleEdit(entry);
             }}
-            className="text-gray-500 hover:text-[var(--brand-tertiary)]"
+            className="text-gray-500 hover:text-[var(--color-text-primary)]"
           >
             <Pencil className="w-4 h-4" />
           </button>
@@ -391,31 +435,17 @@ export default function RaidLogTable({
               handleAlertClick(entry);
             }}
             className={cn(
-              "text-gray-500 hover:text-yellow-500",
-              // Highlight the bell if an alert already exists
-              userAlerts.some(
-                (alert: AlertConfig) =>
-                  alert.region === entry.region ||
-                  (entry.beachName &&
-                    alert.name &&
-                    alert.name.includes(entry.beachName))
-              )
-                ? "text-yellow-500 fill-yellow-500"
+              "text-gray-500 hover:text-[var(--color-alert-icon-rating)]",
+              entry.hasAlert
+                ? "text-[var(--color-alert-icon-rating)] fill-[var(--color-alert-icon-rating)]"
                 : ""
             )}
           >
             <Bell
               className={cn(
                 "w-4 h-4",
-                // Highlight the bell if an alert already exists
-                userAlerts.some(
-                  (alert: AlertConfig) =>
-                    alert.region === entry.region ||
-                    (entry.beachName &&
-                      alert.name &&
-                      alert.name.includes(entry.beachName))
-                )
-                  ? "text-yellow-500 fill-yellow-500"
+                entry.hasAlert
+                  ? "text-[var(--color-alert-icon-rating)] fill-[var(--color-alert-icon-rating)]"
                   : ""
               )}
             />
@@ -440,6 +470,18 @@ export default function RaidLogTable({
   };
 
   const columnsWithAction = [...columns, actionColumn];
+
+  useEffect(() => {
+    console.log("RaidLogTable received entries:", entries?.length);
+
+    if (entries && entries.length > 0) {
+      console.log("First entry:", entries[0]);
+      console.log(
+        "Entries with alerts:",
+        entries.filter((e) => e.hasAlert).length
+      );
+    }
+  }, [entries]);
 
   if (isLoading) {
     return <TableSkeleton />;
@@ -504,158 +546,150 @@ export default function RaidLogTable({
         {/* Desktop View - Table */}
         <div className="hidden md:block rounded-lg border border-gray-200 shadow">
           <div className="min-h-[500px] w-full">
-            <table className="w-full divide-y divide-gray-200">
-              <thead className="bg-gray-50">
-                <tr>
-                  {columnsWithAction.map((column) => (
-                    <th
-                      key={column.key}
-                      className={cn(
-                        "px-4 py-3 sm:px-6 sm:py-4 text-sm text-left text-gray-500 uppercase tracking-wider",
-                        column.key === "date"
-                          ? "min-w-[140px]"
-                          : "min-w-[180px]",
-                        column.key === "comments" && "min-w-[300px]",
-                        "h-[40px]"
-                      )}
-                    >
-                      {(column as QuestLogTableColumn).label}
-                    </th>
-                  ))}
-                </tr>
-              </thead>
-              <tbody className="bg-white divide-y divide-gray-200">
-                {filteredEntries.map((entry) => {
-                  console.log("[TableDebug] Processing entry:", {
-                    id: entry.id,
-                    beachName: entry.beachName,
-                    forecast: entry.forecast,
-                  });
+            {isLoading ? (
+              <div className="text-center p-4">Loading...</div>
+            ) : entries.length === 0 ? (
+              <div className="text-center p-4">No matching sessions found</div>
+            ) : (
+              <table className="w-full divide-y divide-gray-200">
+                <thead className="bg-gray-50">
+                  <tr>
+                    {columnsWithAction.map((column) => (
+                      <th
+                        key={column.key}
+                        className={cn(
+                          "px-4 py-3 sm:px-6 sm:py-4 text-sm text-left text-gray-500 uppercase tracking-wider",
+                          column.key === "date"
+                            ? "min-w-[140px]"
+                            : "min-w-[180px]",
+                          column.key === "comments" && "min-w-[300px]",
+                          "h-[40px]"
+                        )}
+                      >
+                        {(column as QuestLogTableColumn).label}
+                      </th>
+                    ))}
+                  </tr>
+                </thead>
+                <tbody className="bg-white divide-y divide-gray-200">
+                  {filteredEntries.map((entry) => {
+                    console.log("[TableDebug] Processing entry:", {
+                      id: entry.id,
+                      beachName: entry.beachName,
+                      forecast: entry.forecast,
+                    });
 
-                  return (
-                    <tr key={entry.id} className="hover:bg-gray-50">
-                      <td className="px-4 py-4 sm:px-6 whitespace-nowrap text-sm min-w-[140px]">
-                        {format(new Date(entry.date), "MMM d, yyyy")}
-                      </td>
-                      <td className="px-4 py-4 sm:px-6 whitespace-nowrap min-w-[180px]">
-                        <button
-                          onClick={() => {
-                            const foundBeach = beachData.find(
-                              (b) => b.name === entry.beachName
-                            );
-                            console.log("Found beach data:", foundBeach);
-                            setSelectedBeach(foundBeach || null);
-                          }}
-                          className="font-primary text-gray-900 hover:text-brand-3 transition-colors text-left"
-                        >
-                          {entry.beachName}
-                        </button>
-                      </td>
-                      <td className="px-4 py-4 sm:px-6 whitespace-nowrap min-w-[180px]">
-                        {entry.region}
-                      </td>
-                      <td className="px-4 py-4 sm:px-6 whitespace-nowrap min-w-[180px]">
-                        <LogEntryDisplay
-                          entry={entry}
-                          isAnonymous={entry.isAnonymous ?? false}
-                        />
-                      </td>
-                      <td className="px-4 py-4 sm:px-6 min-w-[140px]">
-                        <StarRating rating={entry.surferRating} />
-                      </td>
-                      <td className="px-4 py-4 sm:px-6 min-w-[200px]">
-                        <ForecastInfo forecast={entry.forecast} />
-                      </td>
-                      <td className="px-4 py-4 sm:px-6 min-w-[300px] whitespace-normal">
-                        {entry.comments}
-                      </td>
-                      {isSubscribed && entry.imageUrl && (
-                        <td className="px-2 py-2 sm:px-4">
-                          <div className="relative w-[80px] h-[80px] sm:w-[120px] sm:h-[120px]">
-                            <Image
-                              src={entry.imageUrl}
-                              alt="Session photo"
-                              width={80}
-                              height={80}
-                              className="object-cover rounded-md"
-                              unoptimized={
-                                process.env.NODE_ENV === "development"
-                              }
-                              onError={(e) => {
-                                (e.target as HTMLImageElement).style.display =
-                                  "none";
-                              }}
-                            />
-                          </div>
+                    return (
+                      <tr key={entry.id} className="hover:bg-gray-50">
+                        <td className="px-4 py-4 sm:px-6 whitespace-nowrap text-sm min-w-[140px]">
+                          {format(new Date(entry.date), "MMM d, yyyy")}
                         </td>
-                      )}
-                      <td className="px-6 py-4">
-                        <div className="flex gap-2">
+                        <td className="px-4 py-4 sm:px-6 whitespace-nowrap min-w-[180px]">
                           <button
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              handleEdit(entry);
+                            onClick={() => {
+                              const foundBeach = beachData.find(
+                                (b) => b.name === entry.beachName
+                              );
+                              console.log("Found beach data:", foundBeach);
+                              setSelectedBeach(foundBeach || null);
                             }}
-                            className="text-gray-500 hover:text-[var(--brand-tertiary)]"
+                            className="font-primary text-gray-900 hover:text-brand-3 transition-colors text-left"
                           >
-                            <Pencil className="w-4 h-4" />
+                            {entry.beachName}
                           </button>
-                          <button
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              handleAlertClick(entry);
-                            }}
-                            className={cn(
-                              "text-gray-500 hover:text-yellow-500",
-                              // Highlight the bell if an alert already exists
-                              userAlerts.some(
-                                (alert: AlertConfig) =>
-                                  alert.region === entry.region ||
-                                  (entry.beachName &&
-                                    alert.name &&
-                                    alert.name.includes(entry.beachName))
-                              )
-                                ? "text-yellow-500 fill-yellow-500"
-                                : ""
-                            )}
-                          >
-                            <Bell
+                        </td>
+                        <td className="px-4 py-4 sm:px-6 whitespace-nowrap min-w-[180px]">
+                          {entry.region}
+                        </td>
+                        <td className="px-4 py-4 sm:px-6 whitespace-nowrap min-w-[180px]">
+                          <LogEntryDisplay
+                            entry={entry}
+                            isAnonymous={entry.isAnonymous ?? false}
+                          />
+                        </td>
+                        <td className="px-4 py-4 sm:px-6 min-w-[140px]">
+                          <StarRating rating={entry.surferRating} />
+                        </td>
+                        <td className="px-4 py-4 sm:px-6 min-w-[200px]">
+                          <ForecastInfo forecast={entry.forecast} />
+                        </td>
+                        <td className="px-4 py-4 sm:px-6 min-w-[300px] whitespace-normal">
+                          {entry.comments}
+                        </td>
+                        {isSubscribed && entry.imageUrl && (
+                          <td className="px-2 py-2 sm:px-4">
+                            <div className="relative w-[80px] h-[80px] sm:w-[120px] sm:h-[120px]">
+                              <Image
+                                src={entry.imageUrl}
+                                alt="Session photo"
+                                width={80}
+                                height={80}
+                                className="object-cover rounded-md"
+                                unoptimized={
+                                  process.env.NODE_ENV === "development"
+                                }
+                                onError={(e) => {
+                                  (e.target as HTMLImageElement).style.display =
+                                    "none";
+                                }}
+                              />
+                            </div>
+                          </td>
+                        )}
+                        <td className="px-6 py-4">
+                          <div className="flex gap-2">
+                            <button
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                handleEdit(entry);
+                              }}
+                              className="text-gray-500 hover:text-[var(--color-text-primary)]"
+                            >
+                              <Pencil className="w-4 h-4" />
+                            </button>
+                            <button
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                handleAlertClick(entry);
+                              }}
                               className={cn(
-                                "w-4 h-4",
-                                // Highlight the bell if an alert already exists
-                                userAlerts.some(
-                                  (alert: AlertConfig) =>
-                                    alert.region === entry.region ||
-                                    (entry.beachName &&
-                                      alert.name &&
-                                      alert.name.includes(entry.beachName))
-                                )
-                                  ? "text-yellow-500 fill-yellow-500"
+                                "text-gray-500 hover:text-[var(--color-alert-icon-rating)]",
+                                entry.hasAlert
+                                  ? "text-[var(--color-alert-icon-rating)] fill-[var(--color-alert-icon-rating)]"
                                   : ""
                               )}
-                            />
-                          </button>
-                          <button
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              handleDelete(entry.id);
-                            }}
-                            className="text-gray-500 hover:text-red-600"
-                            disabled={deleteMutation.isPending}
-                          >
-                            {deleteMutation.isPending ? (
-                              <span className="loading-spinner" />
-                            ) : (
-                              <X className="w-4 h-4" />
-                            )}
-                          </button>
-                        </div>
-                      </td>
-                    </tr>
-                  );
-                })}
-              </tbody>
-            </table>
+                            >
+                              <Bell
+                                className={cn(
+                                  "w-4 h-4",
+                                  entry.hasAlert
+                                    ? "text-[var(--color-alert-icon-rating)] fill-[var(--color-alert-icon-rating)]"
+                                    : ""
+                                )}
+                              />
+                            </button>
+                            <button
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                handleDelete(entry.id);
+                              }}
+                              className="text-gray-500 hover:text-red-600"
+                              disabled={deleteMutation.isPending}
+                            >
+                              {deleteMutation.isPending ? (
+                                <span className="loading-spinner" />
+                              ) : (
+                                <X className="w-4 h-4" />
+                              )}
+                            </button>
+                          </div>
+                        </td>
+                      </tr>
+                    );
+                  })}
+                </tbody>
+              </table>
+            )}
           </div>
         </div>
       </div>
@@ -682,6 +716,7 @@ export default function RaidLogTable({
         logEntry={selectedLogForAlert}
         existingAlert={selectedAlertForEdit}
         onSaved={handleAlertSaved}
+        isNew={!selectedAlertForEdit}
       />
     </>
   );

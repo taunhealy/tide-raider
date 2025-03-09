@@ -29,7 +29,7 @@
     --color-white: #ffffff;
 
     /* Text Colors */
-    --color-text-primary: var(--color-black);
+    --color-text-primary: #1a1a1a;
     --color-text-secondary: #4b5563;
     --color-text-tertiary: #9ca3af;
 
@@ -42,6 +42,20 @@
     --color-border-light: #e5e7eb;
     --color-border-medium: #d1d5db;
     --color-border-dark: #9ca3af;
+
+    /* UI Element Colors */
+    --color-ui-accent: #1cd9ff;
+    --color-ui-success: #10b981;
+    --color-ui-warning: #f59e0b;
+    --color-ui-error: #ef4444;
+    --color-ui-info: #3b82f6;
+
+    /* Alert Colors */
+    --color-alert-badge: #d1d5db;
+    --color-alert-badge-text: #1a1a1a;
+    --color-alert-tab-active: #1a1a1a;
+    --color-alert-tab-inactive: #4b5563;
+    --color-alert-icon-rating: #f59e0b;
 
     /* Play Icon Colors */
     --color-play-icon-bg: #ffffff;

@@ -6,6 +6,7 @@ import {
 } from "../lib/forecastUtils";
 import type { Beach } from "@/app/types/beaches";
 import { Prisma } from "@prisma/client";
+import type { ForecastA } from "@prisma/client";
 
 export interface LogEntry {
   id: string;
@@ -15,25 +16,19 @@ export interface LogEntry {
     id: string;
     nationality?: string;
   };
-  date: string;
+  date: Date;
   sessionDate?: Date;
   surferName: string;
   surferEmail: string;
   beachName: string;
   beachId: string;
-  forecast?: {
-    windSpeed: number;
-    swellHeight: number;
-    swellPeriod: number;
-    windDirection: string;
-    swellDirection: number;
-  };
+  forecast: ForecastA | null;
   surferRating: number;
   comments: string;
   imageUrl: string;
   isPrivate: boolean;
-  createdAt: string;
-  updatedAt: string;
+  createdAt: Date;
+  updatedAt: Date;
   windSpeed?: number;
   windDirection?: number;
   swellHeight?: number;
@@ -44,12 +39,14 @@ export interface LogEntry {
   country: string;
   region: string;
   waveType: string;
+  hasAlert?: boolean;
+  alertId?: string;
 }
 
 export interface CreateLogEntryInput {
   beachName: string;
   userId: string;
-  date: string;
+  date: Date;
   surferName: string;
   surferRating: number;
   comments?: string;
@@ -61,7 +58,7 @@ export interface CreateLogEntryInput {
     region: string;
     waveType: string;
   };
-  forecast?: Prisma.InputJsonValue;
+  forecast?: ForecastA;
 }
 
 export interface SortConfig {

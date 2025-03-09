@@ -13,7 +13,7 @@ export default function QuestLogSidebar() {
   const { data: recentLogs, isLoading } = useQuery({
     queryKey: ["recentLogs"],
     queryFn: async () => {
-      const res = await fetch(`/api/raid-logs?limit=3`);
+      const res = await fetch(`/api/raid-logs`);
       if (!res.ok) throw new Error("Failed to fetch logs");
       return res.json();
     },
@@ -21,7 +21,14 @@ export default function QuestLogSidebar() {
 
   if (isLoading) return <div>Loading...</div>;
 
-  const highRatedEntries = recentLogs?.entries
+  // Ensure we have an array to work with
+  const entries = Array.isArray(recentLogs?.entries)
+    ? recentLogs.entries
+    : Array.isArray(recentLogs)
+      ? recentLogs
+      : [];
+
+  const highRatedEntries = entries
     .filter((entry: LogEntry) => entry.surferRating >= 4 && entry.imageUrl)
     .slice(0, 3);
 

@@ -16,6 +16,7 @@ const NAVIGATION_ITEMS = [
   { href: "/rentals", label: "Rentals" },
   { href: "/raidlogs", label: "Raid Logs" },
   { href: "/chronicles", label: "Chronicles" },
+  { href: "/alerts", label: "Alerts" },
   { href: "/blog", label: "Blog" },
   { href: "/pricing", label: "Pricing" },
 ];

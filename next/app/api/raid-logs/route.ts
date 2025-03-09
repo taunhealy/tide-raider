@@ -1,4 +1,4 @@
-import { NextResponse } from "next/server";
+import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/app/lib/prisma";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/app/lib/authOptions";
@@ -89,8 +89,8 @@ async function getForecast(date: Date, region: string) {
 }
 
 // Update the GET endpoint to handle forecast requests
-export async function GET(request: Request) {
-  const { searchParams } = new URL(request.url);
+export async function GET(req: NextRequest) {
+  const { searchParams } = new URL(req.url);
   console.log("🔍 Fetching raid logs with params:", searchParams.toString());
 
   // Extract all filter parameters
@@ -99,82 +99,100 @@ export async function GET(request: Request) {
   const countries =
     searchParams.get("countries")?.split(",").filter(Boolean) || [];
   const minRating = Number(searchParams.get("minRating")) || 0;
+  const maxRating = Number(searchParams.get("maxRating")) || 5;
+  const startDate = searchParams.get("startDate");
+  const endDate = searchParams.get("endDate");
+  const page = Number(searchParams.get("page")) || 1;
+  const limit = Number(searchParams.get("limit")) || 50;
   const isPrivate = searchParams.get("isPrivate") === "true";
 
   const session = await getServerSession(authOptions);
   console.log("👤 Session state:", session ? "Authenticated" : "Public");
 
-  // Check for private logs access
-  if (isPrivate && !session?.user?.id) {
-    return NextResponse.json(
-      { error: "Authentication required for private logs" },
-      { status: 401 }
-    );
-  }
-
   try {
     // Build dynamic where clause
-    const whereClause: any = {
-      // Handle private/public filtering
-      ...(isPrivate
-        ? {
-            isPrivate: true,
-            userId: session!.user.id,
-          }
-        : {
-            OR: [
-              { isPrivate: false }, // Show all public logs
-              ...(session?.user?.id ? [{ userId: session.user.id }] : []), // Show user's private logs if logged in
-            ],
-          }),
+    let whereClause: any = {};
 
-      // Add filter conditions only if they exist
-      ...(beaches.length > 0 && {
-        beachName: { in: beaches },
-      }),
-      ...(regions.length > 0 && {
-        region: { in: regions },
-      }),
-      ...(countries.length > 0 && {
-        country: { in: countries },
-      }),
-      ...(minRating > 0 && {
-        surferRating: { gte: minRating },
-      }),
-    };
+    // Handle private/public filtering
+    if (session?.user?.id) {
+      // If user is logged in, show public logs and their private logs
+      whereClause.OR = [{ isPrivate: false }, { userId: session.user.id }];
+    } else {
+      // If not logged in, only show public logs
+      whereClause.isPrivate = false;
+    }
 
-    const entries = await prisma.logEntry.findMany({
-      where: whereClause,
-      select: {
-        id: true,
-        date: true,
-        beachName: true,
-        surferName: true,
-        surferRating: true,
-        comments: true,
-        imageUrl: true,
-        region: true,
-        country: true,
-        waveType: true,
-        createdAt: true,
-        forecast: true,
-        isAnonymous: true,
+    // Override with isPrivate filter if specifically requested
+    if (isPrivate && session?.user?.id) {
+      whereClause = {
         isPrivate: true,
-        userId: true,
+        userId: session.user.id,
+      };
+    }
+
+    // Add other filters
+    if (beaches.length > 0) whereClause.beachName = { in: beaches };
+    if (regions.length > 0) whereClause.region = { in: regions };
+    if (countries.length > 0) whereClause.country = { in: countries };
+    if (minRating > 0) whereClause.surferRating = { gte: minRating };
+    if (maxRating < 5)
+      whereClause.surferRating = {
+        ...(whereClause.surferRating || {}),
+        lte: maxRating,
+      };
+
+    // Handle date filters
+    if (startDate) {
+      whereClause.date = {
+        ...(whereClause.date || {}),
+        gte: new Date(startDate),
+      };
+    }
+
+    if (endDate) {
+      // Add one day to endDate to include the entire day
+      const endDateObj = new Date(endDate);
+      endDateObj.setDate(endDateObj.getDate() + 1);
+      whereClause.date = { ...(whereClause.date || {}), lt: endDateObj };
+    }
+
+    console.log("Where clause:", JSON.stringify(whereClause, null, 2));
+
+    // Fetch log entries
+    const logEntries = await prisma.logEntry.findMany({
+      where: whereClause,
+      orderBy: { date: "desc" },
+      skip: (page - 1) * limit,
+      take: limit,
+      include: {
+        forecast: true,
         user: {
-          select: {
-            nationality: true,
-          },
+          select: { id: true, nationality: true },
+        },
+        alerts: {
+          select: { id: true },
         },
       },
-      orderBy: { date: "desc" },
-      take: 50,
     });
 
-    console.log(`📊 Found ${entries.length} entries`);
-    return NextResponse.json({ entries });
+    console.log(`Found ${logEntries.length} log entries`);
+
+    // No need to transform forecast data as it's now structured
+    const enhancedEntries = logEntries.map((entry) => ({
+      ...entry,
+      hasAlert: entry.alerts.length > 0,
+      alertId: entry.alerts[0]?.id || null,
+    }));
+
+    console.log("📊 Found", enhancedEntries.length, "entries");
+    console.log(
+      "Entries with alerts:",
+      enhancedEntries.filter((e) => e.hasAlert).length
+    );
+
+    return NextResponse.json(enhancedEntries);
   } catch (error) {
-    console.error("❌ Error in raid logs:", error);
+    console.error("❌ Error fetching raid logs:", error);
     return NextResponse.json(
       { error: "Failed to fetch logs" },
       { status: 500 }
@@ -182,36 +200,62 @@ export async function GET(request: Request) {
   }
 }
 
-export async function POST(request: Request) {
+export async function POST(req: NextRequest) {
   try {
     const session = await getServerSession(authOptions);
-    if (!session?.user) return new Response("Unauthorized", { status: 401 });
+    if (!session?.user) {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    }
 
-    const data = await request.json();
+    const data = await req.json();
 
-    // Fetch user data from database
-    const user = await prisma.user.findUnique({
-      where: { id: session.user.id },
-      select: { name: true },
+    // Just use the date string directly, Prisma will handle it as a date-only field
+    const forecast = await prisma.forecastA.upsert({
+      where: {
+        date_region: {
+          date: new Date(data.date), // Prisma will ignore time with @db.Date
+          region: data.region,
+        },
+      },
+      create: {
+        date: new Date(data.date), // Prisma will ignore time with @db.Date
+        region: data.region,
+        windSpeed: data.forecast.windSpeed,
+        windDirection: data.forecast.windDirection,
+        swellHeight: data.forecast.swellHeight,
+        swellPeriod: data.forecast.swellPeriod,
+        swellDirection: data.forecast.swellDirection,
+      },
+      update: {},
     });
 
-    // Fetch forecast data
-    const forecast = await getForecast(
-      new Date(data.date.split("T")[0]),
-      data.region
-    );
-
-    const entry = await prisma.logEntry.create({
+    const logEntry = await prisma.logEntry.create({
       data: {
-        ...data,
-        date: new Date(data.date.split("T")[0]),
-        userId: session.user.id,
-        surferName: user?.name || session.user.name || "Anonymous Surfer", // Use database name, fallback to session name
-        forecast: forecast,
+        beachName: data.beachName,
+        date: new Date(data.date), // Prisma will ignore time with @db.Date
+        surferEmail: data.surferEmail,
+        surferName: data.surferName,
+        surferRating: data.surferRating,
+        comments: data.comments,
+        continent: data.continent,
+        country: data.country,
+        region: data.region,
+        waveType: data.waveType,
+        isAnonymous: data.isAnonymous,
+        isPrivate: data.isPrivate,
+        user: {
+          connect: { id: session.user.id },
+        },
+        forecast: {
+          connect: { id: forecast.id },
+        },
+      },
+      include: {
+        forecast: true,
       },
     });
 
-    return NextResponse.json(entry);
+    return NextResponse.json(logEntry);
   } catch (error) {
     console.error("Error creating log entry:", error);
     return NextResponse.json(

@@ -23,14 +23,58 @@ const AlertSchema = z.object({
   contactInfo: z.string().min(1, "Contact information is required"),
   active: z.boolean().default(true),
   logEntryId: z.string().nullable().optional(),
+  alertType: z.enum(["variables", "rating"]).default("variables"),
+  starRating: z.enum(["4+", "5"]).nullable().optional(),
 });
 
 // GET - Fetch alerts, regions, or dates based on query parameters
 export async function GET(req: NextRequest) {
   const { searchParams } = new URL(req.url);
   const region = searchParams.get("region");
+  const logEntryId = searchParams.get("logEntryId");
 
   try {
+    // Case 0: If logEntryId is provided, return the forecast data from that log entry
+    // and check if an alert already exists for this log entry
+    if (logEntryId) {
+      const session = await getServerSession(authOptions);
+
+      if (!session?.user?.id) {
+        return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+      }
+
+      const logEntry = await prisma.logEntry.findUnique({
+        where: { id: logEntryId },
+        select: {
+          forecast: true,
+          region: true,
+          date: true,
+        },
+      });
+
+      if (!logEntry) {
+        return NextResponse.json(
+          { error: "Log entry not found" },
+          { status: 404 }
+        );
+      }
+
+      // Check if an alert already exists for this log entry
+      const existingAlert = await prisma.alert.findFirst({
+        where: {
+          logEntryId: logEntryId,
+          userId: session.user.id,
+        },
+      });
+
+      return NextResponse.json({
+        forecast: logEntry.forecast,
+        region: logEntry.region,
+        date: logEntry.date,
+        ...(existingAlert && { id: existingAlert.id }),
+      });
+    }
+
     // Case 1: If "region" parameter exists but has no value, return all regions
     if (searchParams.has("region") && !region) {
       const forecasts = await prisma.forecastA.findMany({
@@ -76,6 +120,15 @@ export async function GET(req: NextRequest) {
       where: {
         userId: session.user.id,
       },
+      include: {
+        logEntry: {
+          select: {
+            beachName: true,
+            date: true,
+            forecast: true,
+          },
+        },
+      },
       orderBy: {
         createdAt: "desc",
       },
@@ -95,71 +148,40 @@ export async function GET(req: NextRequest) {
 export async function POST(req: NextRequest) {
   try {
     const session = await getServerSession(authOptions);
-
-    if (!session?.user?.id) {
+    if (!session?.user) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
-    const body = await req.json();
-    console.log("Creating alert with body:", body);
+    const data = await req.json();
+    console.log("Received alert data:", data); // Debug
 
-    // Validate request body
-    const validationResult = AlertSchema.safeParse(body);
-    if (!validationResult.success) {
-      console.error("Validation error:", validationResult.error.format());
-      return NextResponse.json(
-        {
-          error: "Invalid alert data",
-          details: validationResult.error.format(),
-        },
-        { status: 400 }
-      );
-    }
-
-    const {
-      id,
-      name,
-      region,
-      forecastDate,
-      properties,
-      notificationMethod,
-      contactInfo,
-      active,
-      logEntryId,
-    } = validationResult.data;
-
-    // Format the forecastDate if it exists
-    let formattedDate = null;
-    if (forecastDate) {
-      try {
-        formattedDate = new Date(forecastDate);
-        if (isNaN(formattedDate.getTime())) {
-          formattedDate = null;
-        }
-      } catch (e) {
-        console.error("Error parsing date:", e);
-        formattedDate = null;
-      }
-    }
+    // Clean date handling - ensure we only use YYYY-MM-DD
+    const cleanDate = new Date(data.date || data.forecastDate);
+    const dateOnly = cleanDate.toISOString().split("T")[0];
 
     const alert = await prisma.alert.create({
       data: {
-        id: id,
-        name,
-        region,
-        properties,
-        notificationMethod,
-        contactInfo,
-        active: active ?? true,
+        name: data.name,
+        region: data.region,
+        properties: data.properties,
+        notificationMethod: data.notificationMethod,
+        contactInfo: data.contactInfo,
+        active: data.active ?? true,
         userId: session.user.id,
-        logEntryId: logEntryId || null,
+        logEntryId: data.logEntryId,
+        forecastDate: new Date(dateOnly), // Use clean date
+        alertType: data.alertType || "variables",
+        starRating: data.starRating || null,
+      },
+      include: {
+        forecast: true,
+        logEntry: true,
       },
     });
 
-    console.log("Created alert:", alert);
-    return NextResponse.json(alert, { status: 201 });
+    return NextResponse.json(alert);
   } catch (error) {
-    console.error("Error creating alert:", error);
+    console.error("Alert creation error details:", error);
     return NextResponse.json(
       { error: "Failed to create alert" },
       { status: 500 }

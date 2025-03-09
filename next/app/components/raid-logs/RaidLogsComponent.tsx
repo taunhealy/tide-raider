@@ -129,7 +129,9 @@ export const RaidLogsComponent: React.FC<RaidLogsComponentProps> = ({
         params.set("isPrivate", "true");
       }
 
+      console.log("Fetching raid logs with params:", params.toString());
       const res = await fetch(`/api/raid-logs?${params.toString()}`);
+      console.log("Raid logs API response status:", res.status);
 
       if (res.status === 401) {
         toast.error("Please sign in to view private logs", {
@@ -150,7 +152,9 @@ export const RaidLogsComponent: React.FC<RaidLogsComponentProps> = ({
         throw new Error("Failed to fetch logs");
       }
 
-      return res.json();
+      const data = await res.json();
+      console.log("Raid logs API response data:", data);
+      return { entries: data };
     },
   });
 
@@ -159,6 +163,9 @@ export const RaidLogsComponent: React.FC<RaidLogsComponentProps> = ({
       console.error("Raid logs fetch error:", error);
       return [];
     }
+    console.log("logEntriesData:", logEntriesData);
+    console.log("logEntriesData?.entries:", logEntriesData?.entries);
+    console.log("Number of entries:", logEntriesData?.entries?.length || 0);
     return logEntriesData?.entries || [];
   }, [logEntriesData?.entries, error]);
 
@@ -175,6 +182,12 @@ export const RaidLogsComponent: React.FC<RaidLogsComponentProps> = ({
   const handleSubscribe = useCallback(() => {
     router.push("/pricing"); // Redirect to pricing page
   }, [router]);
+
+  console.log("Passing to RaidLogTable:", {
+    entries: filteredEntries,
+    isLoading,
+    showPrivateOnly: isPrivate,
+  });
 
   return (
     <div className="bg-[var(--color-bg-secondary)] p-3 sm:p-4 md:p-6 lg:p-9 font-primary relative">

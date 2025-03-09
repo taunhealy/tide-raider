@@ -1,21 +1,24 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { useParams, useRouter } from "next/navigation";
+import { useRouter, useParams } from "next/navigation";
 import { useSession } from "next-auth/react";
 import { toast } from "sonner";
 import ForecastAlertModal from "@/app/components/alerts/ForecastAlertModal";
-import { AlertConfig } from "@/app/types/alerts";
+import { AlertConfigTypes } from "@/app/types/alerts";
 import { RandomLoader } from "@/app/components/ui/RandomLoader";
+import { Skeleton } from "@/app/components/ui/Skeleton";
+import { AlertConfig } from "@/app/components/alerts/AlertConfiguration";
 
-export default function AlertEditPage() {
-  const params = useParams();
+export default function AlertPage() {
   const router = useRouter();
+  const params = useParams();
   const { data: session, status } = useSession();
-  const [alert, setAlert] = useState<AlertConfig | null>(null);
-  const [isLoading, setIsLoading] = useState(true);
+  const alertId = params?.id as string;
 
-  const alertId = params.id as string;
+  const [isLoading, setIsLoading] = useState(true);
+  const [alert, setAlert] = useState<AlertConfig | null>(null);
+  const [isModalOpen, setIsModalOpen] = useState(true);
 
   useEffect(() => {
     if (status === "loading") return;
@@ -28,13 +31,22 @@ export default function AlertEditPage() {
       return;
     }
 
+    // If this is a new alert, we don't need to fetch anything
+    if (alertId === "new") {
+      setIsLoading(false);
+      return;
+    }
+
     const fetchAlert = async () => {
       try {
         console.log("Fetching alert with ID:", alertId);
         const response = await fetch(`/api/alerts/${alertId}`);
 
         if (!response.ok) {
-          throw new Error(`Failed to fetch alert: ${response.statusText}`);
+          console.error("Failed to fetch alert:", response.statusText);
+          setAlert(null);
+          setIsLoading(false);
+          return;
         }
 
         const data = await response.json();
@@ -42,9 +54,7 @@ export default function AlertEditPage() {
         setAlert(data);
       } catch (error) {
         console.error("Error fetching alert:", error);
-        toast.error("Failed to load alert details", {
-          description: "Please try again later",
-        });
+        setAlert(null);
       } finally {
         setIsLoading(false);
       }
@@ -53,28 +63,47 @@ export default function AlertEditPage() {
     fetchAlert();
   }, [alertId, router, session, status]);
 
-  const handleAlertSaved = () => {
+  const handleClose = () => {
+    setIsModalOpen(false);
+    router.push("/alerts");
+  };
+
+  const handleSaved = () => {
     toast.success("Alert updated successfully");
     router.push("/alerts");
   };
 
-  const handleClose = () => {
-    router.push("/alerts");
-  };
-
   if (isLoading) {
-    return <RandomLoader isLoading={true} />;
+    return (
+      <div className="flex flex-col items-center justify-center h-screen">
+        <RandomLoader />
+        <p className="mt-4 text-gray-600 font-primary">Loading alert...</p>
+      </div>
+    );
+  }
+
+  if (!alert && alertId !== "new") {
+    return (
+      <div className="flex flex-col items-center justify-center h-screen">
+        <h2 className="text-xl font-primary mb-4">Alert not found</h2>
+        <button
+          onClick={() => router.push("/alerts")}
+          className="px-4 py-2 bg-blue-500 text-white rounded-md font-primary"
+        >
+          Return to Alerts
+        </button>
+      </div>
+    );
   }
 
   return (
-    <div>
-      <ForecastAlertModal
-        isOpen={true}
-        onClose={handleClose}
-        logEntry={null}
-        existingAlert={alert || undefined}
-        onSaved={handleAlertSaved}
-      />
-    </div>
+    <ForecastAlertModal
+      isOpen={isModalOpen}
+      onClose={handleClose}
+      logEntry={null}
+      existingAlert={alert}
+      onSaved={handleSaved}
+      isNew={alertId === "new"}
+    />
   );
 }

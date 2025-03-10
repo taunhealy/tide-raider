@@ -1,51 +1,17 @@
-import RippleLoader from "./RippleLoader";
-import { useEffect, useState, useRef } from "react";
-import { SpritesLoader } from "./SpritesLoader";
+"use client";
 
-export function RandomLoader({
-  isLoading,
-  whiteBackground = false,
-}: {
+import React from "react";
+
+interface RandomLoaderProps {
   isLoading: boolean;
-  whiteBackground?: boolean;
-}) {
-  const [selectedLoader, setSelectedLoader] = useState<number>(0);
-  const [isVisible, setIsVisible] = useState(false);
-  const startTimeRef = useRef<number>();
+}
 
-  useEffect(() => {
-    setSelectedLoader(Math.floor(Math.random() * 2));
-  }, []);
-
-  useEffect(() => {
-    if (isLoading) {
-      startTimeRef.current = Date.now();
-      setIsVisible(true);
-    } else {
-      // Calculate remaining time to reach 1.5s minimum
-      const elapsed = Date.now() - (startTimeRef.current || 0);
-      const remaining = Math.max(1500 - elapsed, 0);
-
-      const timeout = setTimeout(() => setIsVisible(false), remaining);
-      return () => clearTimeout(timeout);
-    }
-  }, [isLoading]);
-
+export const RandomLoader: React.FC<RandomLoaderProps> = ({ isLoading }) => {
+  if (!isLoading) return null;
+  
   return (
-    <div
-      className={`
-      font-primary 
-      fixed inset-0 z-50 flex items-center justify-center 
-      ${whiteBackground ? "bg-white" : "bg-background"}
-      transition-opacity duration-300 ease-in-out
-      ${isVisible ? "opacity-100" : "opacity-0 pointer-events-none"}
-    `}
-    >
-      {selectedLoader === 0 ? (
-        <RippleLoader isLoading={isVisible} />
-      ) : (
-        <SpritesLoader />
-      )}
+    <div className="fixed inset-0 flex items-center justify-center bg-white/80 z-50 font-primary">
+      <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-[var(--color-tertiary)]"></div>
     </div>
   );
-}
+};

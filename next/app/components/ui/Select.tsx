@@ -17,11 +17,15 @@ import { cn } from "@/app/lib/utils";
 const SelectContext = createContext<{
   open: boolean;
   value: string;
+  searchQuery: string;
+  onSearchChange: (query: string) => void;
   onValueChange: (value: string) => void;
   onOpenChange: (open: boolean) => void;
 }>({
   open: false,
   value: "",
+  searchQuery: "",
+  onSearchChange: () => {},
   onValueChange: () => {},
   onOpenChange: () => {},
 });
@@ -54,6 +58,7 @@ export const Select = forwardRef<ElementRef<"div">, SelectProps>(
     const [internalOpen, setInternalOpen] = useState(
       open !== undefined ? open : false
     );
+    const [searchQuery, setSearchQuery] = useState("");
 
     useEffect(() => {
       if (value !== undefined) {
@@ -81,11 +86,17 @@ export const Select = forwardRef<ElementRef<"div">, SelectProps>(
       onOpenChange?.(newOpen);
     };
 
+    const handleSearchChange = (query: string) => {
+      setSearchQuery(query);
+    };
+
     return (
       <SelectContext.Provider
         value={{
           open: internalOpen,
           value: internalValue,
+          searchQuery,
+          onSearchChange: handleSearchChange,
           onValueChange: handleValueChange,
           onOpenChange: handleOpenChange,
         }}
@@ -169,7 +180,8 @@ interface SelectContentProps extends ComponentPropsWithoutRef<"div"> {}
 
 export const SelectContent = forwardRef<ElementRef<"div">, SelectContentProps>(
   ({ children, className, ...props }, ref) => {
-    const { open, onOpenChange } = useContext(SelectContext);
+    const { open, onOpenChange, searchQuery, onSearchChange } =
+      useContext(SelectContext);
 
     // Use a callback ref instead of useRef + direct assignment
     const setContentRef = useCallback(
@@ -210,13 +222,23 @@ export const SelectContent = forwardRef<ElementRef<"div">, SelectContentProps>(
           if (node) setContentRef(node);
         }}
         className={cn(
-          "absolute z-50 mt-1 max-h-60 w-full overflow-auto rounded-md bg-white py-1 shadow-lg",
+          "absolute z-50 mt-1 max-h-60 w-full overflow-auto rounded-md bg-white shadow-lg",
           "border border-gray-200 focus:outline-none",
           className
         )}
         {...props}
       >
-        {children}
+        <div className="sticky top-0 z-10 bg-white p-2 border-b border-gray-200">
+          <input
+            type="text"
+            className="w-full px-3 py-2 text-sm border rounded-md focus:outline-none focus:ring-2 focus:ring-primary font-primary"
+            placeholder="Search..."
+            value={searchQuery}
+            onChange={(e) => onSearchChange(e.target.value)}
+            onClick={(e) => e.stopPropagation()}
+          />
+        </div>
+        <div className="py-1">{children}</div>
       </div>
     );
   }
@@ -282,3 +304,33 @@ export const SelectItem = forwardRef<ElementRef<"div">, SelectItemProps>(
   }
 );
 SelectItem.displayName = "SelectItem";
+
+interface SelectItemsContainerProps {
+  children: React.ReactNode;
+  maxItems?: number;
+}
+
+export const SelectItemsContainer = ({
+  children,
+  maxItems = 7,
+}: SelectItemsContainerProps) => {
+  const { searchQuery } = useContext(SelectContext);
+
+  // Filter and limit children based on search query
+  const childrenArray = React.Children.toArray(children);
+
+  const filteredChildren = searchQuery
+    ? childrenArray.filter((child) => {
+        if (React.isValidElement(child) && child.props.children) {
+          const childText = String(child.props.children);
+          return childText.toLowerCase().includes(searchQuery.toLowerCase());
+        }
+        return false;
+      })
+    : childrenArray;
+
+  const limitedChildren = filteredChildren.slice(0, maxItems);
+
+  return <>{limitedChildren}</>;
+};
+SelectItemsContainer.displayName = "SelectItemsContainer";

@@ -24,6 +24,24 @@ export default {
       validation: (Rule: any) => Rule.required(),
     },
     {
+      name: 'heroAlertImage',
+      title: 'Hero Alert Product Image',
+      type: 'image',
+      options: {
+        hotspot: true,
+      },
+      description: 'Product image for Alerts to display in the hero section',
+    },
+    {
+      name: 'heroLogBookImage',
+      title: 'Hero Log Book Product Image',
+      type: 'image',
+      options: {
+        hotspot: true,
+      },
+      description: 'Product image for Log Book to display in the hero section',
+    },
+    {
       name: 'featuredPosts',
       title: 'Featured Blog Posts',
       type: 'array',

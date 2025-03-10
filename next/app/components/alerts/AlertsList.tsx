@@ -14,12 +14,40 @@ import ForecastAlertModal from "./ForecastAlertModal";
 import { toast } from "sonner";
 import { useQuery, useQueryClient, useMutation } from "@tanstack/react-query";
 import { Loader2 } from "lucide-react";
+import { LogEntry } from "@/types/questlogs";
 import { AlertConfig } from "./AlertConfiguration";
+
+type ForecastProperty =
+  | "windSpeed"
+  | "windDirection"
+  | "swellHeight"
+  | "swellPeriod"
+  | "swellDirection";
+
+const getForecastProperty = (prop: string): ForecastProperty => {
+  switch (prop.toLowerCase()) {
+    case "windspeed":
+      return "windSpeed";
+    case "winddirection":
+      return "windDirection";
+    case "swellheight":
+      return "swellHeight";
+    case "swellperiod":
+      return "swellPeriod";
+    case "swelldirection":
+      return "swellDirection";
+    default:
+      return "windSpeed"; // fallback
+  }
+};
 
 export function AlertsList() {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [selectedAlert, setSelectedAlert] = useState<AlertConfig | undefined>(
     undefined
+  );
+  const [selectedLogEntry, setSelectedLogEntry] = useState<LogEntry | null>(
+    null
   );
   const [activeTab, setActiveTab] = useState<"all" | "variable" | "rating">(
     "all"
@@ -30,7 +58,7 @@ export function AlertsList() {
   const { data: alerts, isLoading } = useQuery({
     queryKey: ["alerts"],
     queryFn: async () => {
-      const response = await fetch("/api/alerts");
+      const response = await fetch("/api/alerts?include=logEntry.forecast");
       if (!response.ok) {
         throw new Error("Failed to fetch alerts");
       }
@@ -100,9 +128,16 @@ export function AlertsList() {
     setIsModalOpen(true);
   };
 
+  const handleNewAlertFromLog = (logEntry: LogEntry) => {
+    setSelectedLogEntry(logEntry);
+    setSelectedAlert(undefined);
+    setIsModalOpen(true);
+  };
+
   const handleModalClose = () => {
     setIsModalOpen(false);
     setSelectedAlert(undefined);
+    setSelectedLogEntry(null);
   };
 
   const handleAlertSaved = () => {
@@ -120,6 +155,22 @@ export function AlertsList() {
   const handleToggleActive = (alertId: string, active: boolean) => {
     toggleActiveMutation.mutate({ alertId, active });
   };
+
+  function getUnit(property: string): string {
+    switch (property.toLowerCase()) {
+      case "windspeed":
+        return "kts";
+      case "winddirection":
+      case "swelldirection":
+        return "°";
+      case "swellheight":
+        return "m";
+      case "swellperiod":
+        return "s";
+      default:
+        return "";
+    }
+  }
 
   if (isLoading) {
     return (
@@ -212,9 +263,9 @@ export function AlertsList() {
         </div>
       </div>
 
-      <div className="space-y-6">
+      <div className="space-y-6 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
         {filteredAlerts.length === 0 ? (
-          <div className="text-center py-8 border rounded-lg bg-[var(--color-bg-primary)] border-[var(--color-border-light)]">
+          <div className="text-center py-8 border rounded-lg bg-[var(--color-bg-primary)] border-[var(--color-border-light)] col-span-full">
             <Bell className="mx-auto h-12 w-12 text-[var(--color-text-secondary)]" />
             <h3 className="mt-2 text-lg font-medium font-primary text-[var(--color-text-primary)]">
               No {activeTab !== "all" ? activeTab : ""} alerts found
@@ -233,7 +284,7 @@ export function AlertsList() {
           filteredAlerts.map((alert: AlertConfig) => (
             <Card
               key={alert.id}
-              className="bg-[var(--color-bg-primary)] border-[var(--color-border-light)] hover:border-[var(--color-border-medium)] hover:shadow-sm transition-all duration-300"
+              className="bg-[var(--color-bg-primary)] border-[var(--color-border-light)] hover:border-[var(--color-border-medium)] hover:shadow-sm transition-all duration-300 h-full flex flex-col"
             >
               <CardHeader className="pb-2">
                 <div className="flex justify-between items-center">
@@ -278,8 +329,8 @@ export function AlertsList() {
                   </div>
                 </div>
               </CardHeader>
-              <CardContent>
-                <div className="text-sm space-y-3 font-primary">
+              <CardContent className="flex-grow">
+                <div className="text-sm space-y-3 font-primary h-full flex flex-col">
                   <p className="text-[var(--color-text-secondary)]">
                     <span className="font-medium text-[var(--color-text-primary)]">
                       Region:
@@ -292,7 +343,7 @@ export function AlertsList() {
                     </span>{" "}
                     {alert.notificationMethod} ({alert.contactInfo})
                   </p>
-                  <div className="mt-3 pt-3 border-t border-[var(--color-border-light)]">
+                  <div className="mt-3 pt-3 border-t border-[var(--color-border-light)] flex-grow">
                     {alert.alertType === "rating" ? (
                       <div>
                         <p className="text-[var(--color-text-primary)] font-medium mb-2">
@@ -336,25 +387,77 @@ export function AlertsList() {
                         <p className="text-[var(--color-text-primary)] font-medium mb-2">
                           Match conditions within:
                         </p>
-                        <div className="grid grid-cols-2 gap-3 mt-1 bg-[var(--color-bg-secondary)] p-3 rounded-md">
-                          {alert.properties?.map((prop, index) => (
-                            <div key={index} className="flex items-center">
-                              <span className="font-medium text-[var(--color-text-primary)]">
-                                {prop.property === "windSpeed"
-                                  ? "Wind Speed"
-                                  : prop.property === "windDirection"
-                                    ? "Wind Direction"
-                                    : prop.property === "waveHeight"
-                                      ? "Wave Height"
-                                      : prop.property === "wavePeriod"
-                                        ? "Wave Period"
-                                        : prop.property}
-                              </span>
-                              <span className="ml-2 px-2 py-0.5 bg-[var(--color-alert-badge)] text-[var(--color-alert-badge-text)] rounded-full text-xs font-medium">
-                                ±{prop.range}%
-                              </span>
+                        <div className="space-y-4">
+                          {/* Reference Forecast Section */}
+                          {alert.logEntry && (
+                            <div className="bg-[var(--color-bg-secondary)] p-3 rounded-md">
+                              <p className="text-sm font-medium mb-2">
+                                Reference Conditions:
+                              </p>
+                              <div className="flex flex-col gap-4">
+                                {alert.properties?.map((prop, index) => {
+                                  const forecastValue =
+                                    alert.logEntry?.forecast?.[
+                                      getForecastProperty(prop.property)
+                                    ];
+
+                                  return (
+                                    <div key={index} className="space-y-1">
+                                      <div className="flex items-center gap-2">
+                                        <div className="flex items-center gap-4">
+                                          <span className="text-[14px] font-medium text-[var(--color-text-primary)] font-primary">
+                                            {prop.property === "windSpeed"
+                                              ? "Wind Speed"
+                                              : prop.property ===
+                                                  "windDirection"
+                                                ? "Wind Direction"
+                                                : prop.property ===
+                                                    "swellHeight"
+                                                  ? "Swell Height"
+                                                  : prop.property ===
+                                                      "swellPeriod"
+                                                    ? "Swell Period"
+                                                    : prop.property ===
+                                                        "swellDirection"
+                                                      ? "Swell Direction"
+                                                      : prop.property}
+                                          </span>
+                                          {forecastValue !== undefined && (
+                                            <>
+                                              <span className="text-[21px] font-medium text-[var(--color-text-primary)] font-primary">
+                                                {forecastValue.toFixed(1)}
+                                                {getUnit(prop.property)}
+                                              </span>
+                                              <span className="px-2 py-0.5 bg-[var(--color-alert-badge)] text-[var(--color-alert-badge-text)] rounded-full text-xs font-medium">
+                                                ±{prop.range}
+                                                {getUnit(prop.property)}
+                                              </span>
+                                            </>
+                                          )}
+                                        </div>
+                                      </div>
+                                      {forecastValue !== undefined && (
+                                        <div className="text-[12px] text-[var(--color-text-secondary)] font-primary">
+                                          Range:{" "}
+                                          {(forecastValue - prop.range).toFixed(
+                                            1
+                                          )}{" "}
+                                          -{" "}
+                                          {(forecastValue + prop.range).toFixed(
+                                            1
+                                          )}
+                                          {getUnit(prop.property)}
+                                        </div>
+                                      )}
+                                      {index < alert.properties.length - 1 && (
+                                        <div className="border-b border-[var(--color-border-light)] my-3"></div>
+                                      )}
+                                    </div>
+                                  );
+                                })}
+                              </div>
                             </div>
-                          ))}
+                          )}
                         </div>
                       </div>
                     )}
@@ -369,7 +472,7 @@ export function AlertsList() {
       <ForecastAlertModal
         isOpen={isModalOpen}
         onClose={handleModalClose}
-        logEntry={null}
+        logEntry={selectedLogEntry}
         existingAlert={selectedAlert}
         onSaved={handleAlertSaved}
         isNew={!selectedAlert}

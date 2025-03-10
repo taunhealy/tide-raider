@@ -25,9 +25,18 @@ export default function RaidLogPage({ params }: { params: { id: string } }) {
   const { data: entry, isLoading } = useQuery({
     queryKey: ["raidLog", params.id],
     queryFn: async () => {
-      const res = await fetch(`/api/raid-logs/${params.id}`);
-      if (!res.ok) throw new Error("Failed to fetch log");
-      return res.json();
+      const [logRes, alertRes] = await Promise.all([
+        fetch(`/api/raid-logs/${params.id}`),
+        fetch(`/api/alerts?logEntryId=${params.id}`),
+      ]);
+
+      const logData = await logRes.json();
+      const alertData = await alertRes.json();
+
+      return {
+        ...logData,
+        existingAlert: alertData,
+      };
     },
   });
 

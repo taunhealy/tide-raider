@@ -74,45 +74,101 @@ export async function PATCH(
 ) {
   try {
     const session = await getServerSession(authOptions);
-    if (!session?.user?.email)
+    if (!session?.user?.email) {
       return new Response("Unauthorized", { status: 401 });
+    }
 
-    const data = await request.json();
-
-    const entry = await prisma.logEntry.findUnique({
+    // Check if the entry belongs to the user
+    const existingEntry = await prisma.logEntry.findUnique({
       where: { id: params.id },
       select: {
         userId: true,
-        surferEmail: true,
       },
     });
 
-    if (entry?.userId !== session.user.id) {
-      console.error("Authorization failed - ID mismatch");
+    if (!existingEntry) {
+      return NextResponse.json({ error: "Entry not found" }, { status: 404 });
+    }
+
+    if (existingEntry.userId !== session.user.id) {
       return new Response("Forbidden", { status: 403 });
     }
 
-    const updatedEntry = await prisma.logEntry.update({
-      where: { id: params.id },
-      data: {
-        beachName: data.beachName,
-        continent: data.continent,
-        country: data.country,
-        region: data.region,
-        waveType: data.waveType,
-        date: new Date(data.date),
-        surferName: data.surferName,
-        surferRating: data.surferRating,
-        comments: data.comments,
-        imageUrl: data.imageUrl,
-        forecast: data.forecast,
-        isPrivate: data.isPrivate || false,
+    const data = await request.json();
+
+    // Remove fields that aren't in the LogEntry schema
+    const {
+      createAlert,
+      alertConfig,
+      forecast,
+      userId,
+      user,
+      id,
+      ...logEntryData
+    } = data;
+
+    // Ensure date is in ISO format
+    if (logEntryData.date) {
+      logEntryData.date = new Date(logEntryData.date).toISOString();
+    }
+
+    // Update the log entry with cleaned data
+    const updatedLogEntry = await prisma.logEntry.update({
+      where: {
+        id: params.id,
+      },
+      data: logEntryData,
+      include: {
+        forecast: true,
+        user: {
+          select: {
+            id: true,
+            name: true,
+            email: true,
+          },
+        },
       },
     });
 
-    return NextResponse.json(updatedEntry);
+    // Handle alert update or creation
+    if (alertConfig) {
+      const {
+        userId,
+        id: alertId,
+        logEntryId,
+        forecast,
+        date,
+        ...cleanAlertConfig
+      } = alertConfig;
+
+      if (alertId) {
+        await prisma.alert.update({
+          where: { id: alertId },
+          data: {
+            ...cleanAlertConfig,
+            forecastDate: new Date(data.date),
+          },
+        });
+      } else if (createAlert) {
+        await prisma.alert.create({
+          data: {
+            ...cleanAlertConfig,
+            forecastDate: new Date(data.date),
+            userId: session.user.id,
+            logEntry: {
+              connect: { id: updatedLogEntry.id },
+            },
+          },
+        });
+      }
+    }
+
+    return NextResponse.json(updatedLogEntry);
   } catch (error) {
-    console.error("Update failed:", error);
-    return NextResponse.json({ error: "Update failed" }, { status: 500 });
+    console.error("Error updating log entry:", error);
+    return NextResponse.json(
+      { error: "Failed to update log entry" },
+      { status: 500 }
+    );
   }
 }

@@ -4,19 +4,45 @@ import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import ForecastAlertModal from "@/app/components/alerts/ForecastAlertModal";
 import { RandomLoader } from "@/app/components/ui/RandomLoader";
+import { useSession } from "next-auth/react";
+import { LogEntry } from "@/app/types/questlogs";
 
 export default function NewAlertPage() {
   const [isLoading, setIsLoading] = useState(true);
+  const [logEntries, setLogEntries] = useState<LogEntry[]>([]);
   const router = useRouter();
+  const { status } = useSession();
 
   useEffect(() => {
-    // Simulate loading for a smoother transition
-    const timer = setTimeout(() => {
-      setIsLoading(false);
-    }, 500);
+    // Fetch log entries when component mounts
+    const fetchLogEntries = async () => {
+      try {
+        const response = await fetch("/api/logs");
+        if (response.ok) {
+          const data = await response.json();
+          setLogEntries(data);
+        } else {
+          console.error("Failed to fetch log entries");
+        }
+      } catch (error) {
+        console.error("Error fetching log entries:", error);
+      } finally {
+        setIsLoading(false);
+      }
+    };
 
-    return () => clearTimeout(timer);
-  }, []);
+    if (status === "authenticated") {
+      fetchLogEntries();
+    } else if (status === "unauthenticated") {
+      router.push("/login");
+    } else {
+      // Simulate loading for a smoother transition
+      const timer = setTimeout(() => {
+        setIsLoading(false);
+      }, 500);
+      return () => clearTimeout(timer);
+    }
+  }, [status, router]);
 
   const handleClose = () => {
     router.push("/dashboard/alerts");
@@ -39,6 +65,7 @@ export default function NewAlertPage() {
         existingAlert={undefined}
         onSaved={handleAlertSaved}
         isNew={true}
+        logEntries={logEntries}
       />
     </div>
   );

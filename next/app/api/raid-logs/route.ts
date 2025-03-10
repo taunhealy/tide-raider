@@ -170,18 +170,25 @@ export async function GET(req: NextRequest) {
           select: { id: true, nationality: true },
         },
         alerts: {
-          select: { id: true },
+          select: {
+            id: true,
+            userId: true, // Add userId to the selection
+          },
         },
       },
     });
 
     console.log(`Found ${logEntries.length} log entries`);
 
-    // No need to transform forecast data as it's now structured
+    // Update the enhancedEntries mapping to include alert ownership info
     const enhancedEntries = logEntries.map((entry) => ({
       ...entry,
       hasAlert: entry.alerts.length > 0,
       alertId: entry.alerts[0]?.id || null,
+      // Add a flag to indicate if the alert belongs to the current user
+      isMyAlert: entry.alerts.some(
+        (alert) => alert.userId === session?.user?.id
+      ),
     }));
 
     console.log("📊 Found", enhancedEntries.length, "entries");
@@ -208,6 +215,17 @@ export async function POST(req: NextRequest) {
     }
 
     const data = await req.json();
+    console.log("Received data:", JSON.stringify(data, null, 2));
+
+    // Extract forecast data from the request
+    const forecastData = data.forecast || data.forecastData;
+
+    if (!forecastData) {
+      return NextResponse.json(
+        { error: "Missing forecast data" },
+        { status: 400 }
+      );
+    }
 
     // Just use the date string directly, Prisma will handle it as a date-only field
     const forecast = await prisma.forecastA.upsert({
@@ -220,11 +238,11 @@ export async function POST(req: NextRequest) {
       create: {
         date: new Date(data.date), // Prisma will ignore time with @db.Date
         region: data.region,
-        windSpeed: data.forecast.windSpeed,
-        windDirection: data.forecast.windDirection,
-        swellHeight: data.forecast.swellHeight,
-        swellPeriod: data.forecast.swellPeriod,
-        swellDirection: data.forecast.swellDirection,
+        windSpeed: forecastData.windSpeed,
+        windDirection: forecastData.windDirection,
+        swellHeight: forecastData.swellHeight,
+        swellPeriod: forecastData.swellPeriod,
+        swellDirection: forecastData.swellDirection,
       },
       update: {},
     });
@@ -254,6 +272,34 @@ export async function POST(req: NextRequest) {
         forecast: true,
       },
     });
+
+    // If createAlert is true, create an alert
+    if (data.createAlert && data.alertConfig) {
+      const alertConfig = data.alertConfig;
+
+      await prisma.alert.create({
+        data: {
+          name: alertConfig.name,
+          region: alertConfig.region || data.region,
+          forecastDate: new Date(data.date),
+          properties: alertConfig.properties,
+          notificationMethod: alertConfig.notificationMethod,
+          contactInfo: alertConfig.contactInfo,
+          active: alertConfig.active,
+          alertType: alertConfig.alertType || "variables",
+          starRating: alertConfig.starRating,
+          user: {
+            connect: { id: session.user.id },
+          },
+          logEntry: {
+            connect: { id: logEntry.id },
+          },
+          forecast: {
+            connect: { id: forecast.id },
+          },
+        },
+      });
+    }
 
     return NextResponse.json(logEntry);
   } catch (error) {

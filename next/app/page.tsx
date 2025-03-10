@@ -1,5 +1,4 @@
 import { client } from "./lib/sanity";
-import { landingPageQuery } from "./lib/queries";
 import HeroBlogSection from "@/app/sections/HeroBlog";
 import HeroSection from "./sections/Hero";
 import HeroImage from "./sections/HeroImage";
@@ -27,20 +26,35 @@ const blogQuery = `{
   }
 }`;
 
+// Update the landingPageQuery in lib/queries.js to include the new fields
+// or extend the query here
+const extendedLandingPageQuery = `{
+  "landingPage": *[_type == "landingPage"][0] {
+    heroHeading,
+    heroSubheading,
+    heroImage,
+    heroFooterImage,
+    heroAlertImage,
+    heroLogBookImage
+  }
+}`;
+
 // Only fetch content, not structure
 async function getHomeContent() {
   const [content, blogData] = await Promise.all([
-    client.fetch(landingPageQuery),
+    client.fetch(extendedLandingPageQuery),
     client.fetch(blogQuery),
   ]);
 
   return {
-    hero: content
+    hero: content.landingPage
       ? {
-          heroHeading: content.heroHeading,
-          heroSubheading: content.heroSubheading,
-          heroImage: content.heroImage,
-          heroFooterImage: content.heroFooterImage,
+          heroHeading: content.landingPage.heroHeading,
+          heroSubheading: content.landingPage.heroSubheading,
+          heroImage: content.landingPage.heroImage,
+          heroFooterImage: content.landingPage.heroFooterImage,
+          heroAlertImage: content.landingPage.heroAlertImage,
+          heroLogBookImage: content.landingPage.heroLogBookImage,
         }
       : null,
     blog: blogData,
@@ -57,7 +71,7 @@ export default async function HomePage() {
   return (
     <main>
       {content.hero && <HeroSection data={content.hero} />}
-      <HeroProduct />
+      <HeroProduct data={content.hero} />
       <HeroBlogSection data={content.blog} />
       {content.hero && <HeroImage data={content.hero} />}
     </main>

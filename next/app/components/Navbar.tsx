@@ -14,7 +14,7 @@ import Image from "next/image";
 
 const NAVIGATION_ITEMS = [
   { href: "/rentals", label: "Rentals" },
-  { href: "/raidlogs", label: "Raid Logs" },
+  { href: "/raidlogs", label: "Log Book" },
   { href: "/chronicles", label: "Chronicles" },
   { href: "/alerts", label: "Alerts" },
   { href: "/blog", label: "Blog" },

@@ -26,7 +26,7 @@ export async function checkAlertConditions(alertId: string) {
   if (!forecast) return false;
 
   // Check if all conditions are met
-  return alert.properties.every((condition) => {
+  return alert.properties?.every((condition) => {
     const forecastValue = forecast[condition.property as keyof ForecastA];
     return (
       typeof forecastValue === "number" && forecastValue >= condition.range

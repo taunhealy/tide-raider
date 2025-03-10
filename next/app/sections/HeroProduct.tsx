@@ -16,7 +16,9 @@ import {
   getDirectionEmoji,
 } from "@/app/lib/forecastUtils";
 import gsap from "gsap";
-import { useQuery, useQueries } from "@tanstack/react-query";
+import { useQueries } from "@tanstack/react-query";
+import { Button } from "@/app/components/ui/button";
+import { urlForImage } from "@/app/lib/urlForImage";
 
 const FEATURED_BEACHES = [
   "jeffreys-bay",
@@ -30,7 +32,7 @@ const FEATURED_BEACHES = [
   "llandudno",
 ];
 
-export default function HeroProduct() {
+export default function HeroProduct({ data }: { data?: any }) {
   const [selectedBeachId, setSelectedBeachId] = useState(FEATURED_BEACHES[0]);
   const [sliderIndex, setSliderIndex] = useState(0);
   const [cardsPerView, setCardsPerView] = useState(1);
@@ -152,13 +154,21 @@ export default function HeroProduct() {
   return (
     <section className="pt-[54px] pb-[81px] md:pt-[54px] md:pb-[121.51px] px-4 md:px-[121.51px] bg-[var(--color-bg-primary)]">
       <div className="container mx-auto max-w-[1440px]">
-        <div className="heading-3 mb-8 md:mb-12 lg:mb-24">
-          <h3 className="text-2xl md:text-3xl lg:text-4xl">
-            Daily Spot Ratings
+        <div className="mb-8 md:mb-8 lg:mb-8 w-full md:w-2/3">
+          <h3 className="font-primary text-xl md:text-2xl lg:text-3xl font-semibold mb-3 md:mb-4 text-black">
+            Daily surf spot recommendations
           </h3>
-          <h5 className="text-base md:text-large">
+
+          <p className="font-primary text-sm md:text-base mb-4 max-w-[540px] font-normal">
             Explore beyond your regular surf break.
-          </h5>
+          </p>
+          <Button
+            variant="default"
+            size="default"
+            className="font-primary text-base"
+          >
+            Start Raiding
+          </Button>
         </div>
 
         <div className="slider-section px-2 md:px-6 lg:px-8">
@@ -513,6 +523,90 @@ export default function HeroProduct() {
                   )}
                 </div>
               )}
+            </div>
+          </div>
+        </div>
+
+        {/* Alerts Feature Promotion */}
+        <div className="mt-12 md:mt-16 lg:mt-24 bg-gradient-to-r from-[var(--color-tertiary-light)] to-[var(--color-tertiary)] rounded-xl p-6 md:p-8 lg:p-10 shadow-lg">
+          <div className="flex flex-col md:flex-row items-center justify-between gap-6 md:gap-8">
+            <div className="w-full md:w-2/3">
+              <h3 className="font-primary text-xl md:text-2xl lg:text-3xl font-semibold mb-3 md:mb-4 text-black">
+                Get alerted to great conditions
+              </h3>
+              <p className="font-primary text-sm md:text-base mb-4 max-w-[540px] font-normal">
+                Get notified when your favorite spots are firing. Set up custom
+                alerts based on swell size, wind direction, star ratings and
+                more.
+              </p>
+              <Button
+                variant="default"
+                size="default"
+                className="font-primary text-base"
+              >
+                Set Up Alerts
+              </Button>
+            </div>
+            <div className="w-full md:w-1/3 flex justify-center">
+              <div className="relative w-[180px] h-[180px] md:w-[220px] md:h-[220px]">
+                {data?.heroAlertImage ? (
+                  <Image
+                    src={urlForImage(data.heroAlertImage).url()}
+                    alt="Surf alerts illustration"
+                    fill
+                    className="object-contain"
+                  />
+                ) : (
+                  <Image
+                    src="/alerts-illustration.svg"
+                    alt="Surf alerts illustration"
+                    fill
+                    className="object-contain"
+                  />
+                )}
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* Log Book Feature Promotion */}
+        <div className="mt-12 md:mt-16 lg:mt-24 bg-gradient-to-r from-[var(--color-secondary-light)] to-[var(--color-secondary)] rounded-xl p-6 md:p-8 lg:p-10 shadow-lg">
+          <div className="flex flex-col md:flex-row-reverse items-center justify-between gap-8 md:gap-10">
+            <div className="w-full md:w-2/3">
+              <h3 className="font-primary text-xl md:text-2xl lg:text-3xl font-semibold mb-3 md:mb-4 text-black">
+                Track your surf journey
+              </h3>
+              <p className="font-primary text-sm md:text-base mb-4 max-w-[540px] font-normal text-black/90">
+                Keep a digital record of your surf sessions. Log wave quality,
+                board performance, and personal achievements to improve your
+                surfing.
+              </p>
+              <Button
+                variant="outline"
+                size="default"
+                className="font-primary text-base bg-white/10 hover:bg-white/20 text-white border-white/30"
+              >
+                Start Your Log Book
+              </Button>
+            </div>
+            <div className="w-full md:w-1/3 flex justify-center">
+              <div className="relative w-[180px] h-[180px] md:w-[220px] md:h-[220px]">
+                {data?.heroLogBookImage ? (
+                  <Image
+                    src={urlForImage(data.heroLogBookImage).url()}
+                    alt="Surf log book illustration"
+                    fill
+                    className="object-contain"
+                  />
+                ) : (
+                  <Image
+                    src="/logbook-illustration.svg"
+                    alt="Surf log book illustration"
+                    fill
+                    className="object-contain"
+                  />
+                )}
+              </div>
             </div>
           </div>
         </div>

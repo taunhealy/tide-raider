@@ -85,19 +85,29 @@ function LogEntryDisplay({ entry, isAnonymous }: LogEntryDisplayProps) {
 function ForecastInfo({ forecast }: { forecast: ForecastA | null }) {
   if (!forecast) return null;
 
+  // Ensure we have valid numeric values
+  const windSpeed =
+    typeof forecast.windSpeed === "number" ? forecast.windSpeed : 0;
+  const windDirection =
+    typeof forecast.windDirection === "number" ? forecast.windDirection : 0;
+  const swellHeight =
+    typeof forecast.swellHeight === "number" ? forecast.swellHeight : 0;
+  const swellPeriod =
+    typeof forecast.swellPeriod === "number" ? forecast.swellPeriod : 0;
+  const swellDirection =
+    typeof forecast.swellDirection === "number" ? forecast.swellDirection : 0;
+
   return (
     <div className="space-y-1 text-sm">
       <p>
-        {getWindEmoji(forecast.windSpeed)} {forecast.windSpeed}kts{" "}
-        {degreesToCardinal(forecast.windDirection)}
+        {getWindEmoji(windSpeed)} {windSpeed}kts{" "}
+        {degreesToCardinal(windDirection)}
       </p>
       <p>
-        {getSwellEmoji(forecast.swellHeight)} {forecast.swellHeight}m @{" "}
-        {forecast.swellPeriod}s
+        {getSwellEmoji(swellHeight)} {swellHeight}m @ {swellPeriod}s
       </p>
       <p>
-        {getDirectionEmoji(forecast.swellDirection)}{" "}
-        {degreesToCardinal(forecast.swellDirection)}
+        {getDirectionEmoji(swellDirection)} {degreesToCardinal(swellDirection)}
       </p>
     </div>
   );
@@ -198,6 +208,8 @@ const normalizeLogEntry = (entry: LogEntry): LogEntry => {
     isPrivate: entry.isPrivate ?? false,
     isAnonymous: entry.isAnonymous ?? false,
     hasAlert: entry.hasAlert ?? false,
+    isMyAlert: entry.isMyAlert ?? false,
+    alertId: entry.alertId ?? "",
   };
 };
 
@@ -296,71 +308,13 @@ export default function RaidLogTable({
 
   // Create new alert handler
   const handleAlertClick = async (entry: LogEntry) => {
-    try {
-      // Check if an alert already exists for this log entry
-      console.log("Checking for alert with logEntryId:", entry.id);
-      const checkResponse = await fetch(`/api/alerts?logEntryId=${entry.id}`);
-
-      console.log("Response status:", checkResponse.status);
-
-      if (checkResponse.ok) {
-        const checkData = await checkResponse.json();
-        console.log(
-          "API response for alert check:",
-          JSON.stringify(checkData, null, 2)
-        );
-
-        // The API might return an array or a single object, handle both cases
-        if (Array.isArray(checkData) && checkData.length > 0) {
-          // Alert exists in array format, redirect to the first one
-          console.log(
-            "Found alert in array format, redirecting to:",
-            `/alerts/${checkData[0].id}`
-          );
-          router.push(`/alerts/${checkData[0].id}`);
-        } else if (checkData && checkData.id) {
-          // Alert exists as a single object
-          console.log(
-            "Found alert as object, redirecting to:",
-            `/alerts/${checkData.id}`
-          );
-          router.push(`/alerts/${checkData.id}`);
-        } else {
-          // No alert exists, store the log entry ID in localStorage and redirect to new alert page
-          console.log(
-            "No existing alert found in response, redirecting to create new"
-          );
-          if (typeof window !== "undefined") {
-            localStorage.setItem(
-              "newAlertLogEntry",
-              JSON.stringify({
-                id: entry.id,
-                beachName: entry.beachName,
-                region: entry.region,
-                date: entry.date,
-                forecast: entry.forecast,
-              })
-            );
-          }
-          router.push("/alerts/new");
-        }
-      } else {
-        // Handle API error
-        const errorText = await checkResponse.text();
-        console.error("Error response from API:", errorText);
-        toast({
-          title: "Error",
-          description: "Could not check for existing alerts. Please try again.",
-          variant: "destructive",
-        });
-      }
-    } catch (error) {
-      console.error("Error checking for existing alert:", error);
-      toast({
-        title: "Error",
-        description: "An unexpected error occurred. Please try again.",
-        variant: "destructive",
-      });
+    if (entry.isMyAlert) {
+      // If it's my alert, navigate to the alerts page
+      router.push(`/alerts/${entry.alertId}`);
+    } else {
+      // If it's not my alert, open the modal to create a new one
+      setSelectedLogForAlert(entry);
+      setAlertModalOpen(true);
     }
   };
 
@@ -443,11 +397,21 @@ export default function RaidLogTable({
           >
             <Bell
               className={cn(
-                "w-4 h-4",
+                "w-4 h-4 cursor-pointer",
                 entry.hasAlert
-                  ? "text-[var(--color-alert-icon-rating)] fill-[var(--color-alert-icon-rating)]"
-                  : ""
+                  ? entry.isMyAlert
+                    ? "text-[var(--color-alert-icon-rating)] fill-[var(--color-alert-icon-rating)]"
+                    : "text-[var(--color-alert-icon-rating)] fill-none hover:text-[var(--color-alert-icon-rating)]"
+                  : "text-gray-500 fill-none hover:text-[var(--color-alert-icon-rating)]"
               )}
+              onClick={(e) => {
+                e.stopPropagation(); // Prevent event bubbling
+                if (!entry.isMyAlert) {
+                  // Set the selected log entry and open the modal directly
+                  setSelectedLogForAlert(entry);
+                  setAlertModalOpen(true);
+                }
+              }}
             />
           </button>
           <button
@@ -661,11 +625,21 @@ export default function RaidLogTable({
                             >
                               <Bell
                                 className={cn(
-                                  "w-4 h-4",
+                                  "w-4 h-4 cursor-pointer",
                                   entry.hasAlert
-                                    ? "text-[var(--color-alert-icon-rating)] fill-[var(--color-alert-icon-rating)]"
-                                    : ""
+                                    ? entry.isMyAlert
+                                      ? "text-[var(--color-alert-icon-rating)] fill-[var(--color-alert-icon-rating)]"
+                                      : "text-[var(--color-alert-icon-rating)] fill-none hover:text-[var(--color-alert-icon-rating)]"
+                                    : "text-gray-500 fill-none hover:text-[var(--color-alert-icon-rating)]"
                                 )}
+                                onClick={(e) => {
+                                  e.stopPropagation(); // Prevent event bubbling
+                                  if (!entry.isMyAlert) {
+                                    // Set the selected log entry and open the modal directly
+                                    setSelectedLogForAlert(entry);
+                                    setAlertModalOpen(true);
+                                  }
+                                }}
                               />
                             </button>
                             <button

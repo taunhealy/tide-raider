@@ -7,6 +7,7 @@ import {
 import type { Beach } from "@/app/types/beaches";
 import { Prisma } from "@prisma/client";
 import type { ForecastA } from "@prisma/client";
+import type { Alert } from "./alerts";
 
 export interface LogEntry {
   id: string;
@@ -41,6 +42,8 @@ export interface LogEntry {
   waveType: string;
   hasAlert?: boolean;
   alertId?: string;
+  existingAlert?: Alert | null;
+  isMyAlert?: boolean;
 }
 
 export interface CreateLogEntryInput {

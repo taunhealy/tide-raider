@@ -1,7 +1,7 @@
 "use client";
 import { useState, useEffect } from "react";
 import { Star, Search, X, Upload, Lock, Bell } from "lucide-react";
-import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { useMutation, useQueryClient, useQuery } from "@tanstack/react-query";
 import { cn } from "@/app/lib/utils";
 import type { Beach } from "@/app/types/beaches";
 import type { CreateLogEntryInput, LogEntry } from "@/app/types/questlogs";
@@ -16,12 +16,11 @@ import { useHandleTrial } from "@/app/hooks/useHandleTrial";
 import { useRouter } from "next/navigation";
 import { signIn } from "next-auth/react";
 import { format } from "date-fns";
-import { getCardinalDirection } from "@/lib/forecastUtils";
-import { AlertConfig } from "@/app/components/alerts/AlertConfiguration";
-import { v4 as uuidv4 } from "uuid";
 import { useToast } from "@/app/components/ui/use-toast";
 import { Dialog, DialogContent } from "@/components/ui/dialog";
 import { useForecast } from "@/app/hooks/useForecast";
+import { AlertConfiguration } from "../alerts/AlertConfiguration";
+import { Alert, AlertConfigTypes, ForecastProperty } from "@/types/alerts";
 
 interface RaidLogFormProps {
   userEmail?: string;
@@ -65,18 +64,49 @@ export function RaidLogForm({
   const [isPrivate, setIsPrivate] = useState<boolean>(
     entry?.isPrivate || false
   );
-  const [createAlert, setCreateAlert] = useState<boolean>(false);
-  const [alertRange, setAlertRange] = useState<number>(10); // Default 10% range
-  const [alertNotificationMethod, setAlertNotificationMethod] = useState<
-    "email" | "whatsapp" | "both"
-  >("email");
-  const [alertContactInfo, setAlertContactInfo] = useState<string>("");
+  const [createAlert, setCreateAlert] = useState<boolean>(
+    !!entry?.existingAlert
+  );
+  const [alertConfig, setAlertConfig] = useState<AlertConfigTypes>({
+    name: entry?.existingAlert?.name || "",
+    region: selectedBeach?.region || "",
+    properties: [
+      { property: "windSpeed", range: 5 },
+      { property: "windDirection", range: 15 },
+      { property: "swellHeight", range: 0.5 },
+      { property: "swellPeriod", range: 2 },
+    ],
+    notificationMethod: "email",
+    contactInfo: userEmail || "",
+    active: true,
+    forecastDate: new Date(),
+    alertType: "variables",
+    logEntryId: entry?.id || null,
+    starRating: null,
+    forecast: null,
+    forecastId: null,
+  });
   const { toast } = useToast();
+
+  // Add this query to fetch the alert
+  const { data: existingAlert } = useQuery({
+    queryKey: ["alert", entry?.id],
+    queryFn: async () => {
+      if (!entry?.id) return null;
+      const response = await fetch(`/api/alerts?logEntryId=${entry.id}`);
+      if (!response.ok) return null;
+      return response.json();
+    },
+    enabled: !!entry?.id,
+  });
 
   // Initialize contact info with user email if available
   useEffect(() => {
     if (userEmail) {
-      setAlertContactInfo(userEmail);
+      setAlertConfig((prev) => ({
+        ...prev,
+        contactInfo: userEmail,
+      }));
     }
   }, [userEmail]);
 
@@ -119,27 +149,19 @@ export function RaidLogForm({
       // Create alert if requested
       if (createAlert && selectedBeach && forecastData) {
         try {
-          const alertConfig = {
-            name: `Alert for ${selectedBeach.name}`,
+          // Use the alertConfig instead of building a new object
+          const alertToCreate = {
+            ...alertConfig,
+            name: alertConfig.name || `Alert for ${selectedBeach.name}`,
             region: selectedBeach.region,
-            date: selectedDate,
-            properties: [
-              { property: "windSpeed", range: alertRange },
-              { property: "windDirection", range: alertRange },
-              { property: "swellHeight", range: alertRange },
-              { property: "swellPeriod", range: alertRange },
-            ],
-            notificationMethod: alertNotificationMethod,
-            contactInfo: alertContactInfo,
-            active: true,
+            forecastDate: new Date(selectedDate),
             logEntryId: data.id,
-            alertType: "variables",
           };
 
           const alertResponse = await fetch("/api/alerts", {
             method: "POST",
             headers: { "Content-Type": "application/json" },
-            body: JSON.stringify(alertConfig),
+            body: JSON.stringify(alertToCreate),
           });
 
           if (!alertResponse.ok) {
@@ -203,6 +225,7 @@ export function RaidLogForm({
         throw new Error("Failed to fetch forecast data");
       }
 
+      // Create the log entry data with the forecast object properly structured
       const newEntry = {
         beachName: selectedBeach.name,
         date: new Date(selectedDate),
@@ -215,17 +238,20 @@ export function RaidLogForm({
         userId: session!.user.id,
         surferRating: surferRating,
         comments,
-        forecast: forecastData,
         continent: selectedBeach.continent,
         country: selectedBeach.country,
         region: selectedBeach.region,
         waveType: selectedBeach.waveType,
         isAnonymous,
         isPrivate,
-        id: entry?.id,
+        forecast: forecastData,
+        createAlert,
+        alertConfig: createAlert ? alertConfig : undefined,
       };
 
-      await createLogEntry.mutateAsync(newEntry);
+      const logEntryResponse = await createLogEntry.mutateAsync(newEntry);
+
+      // No need for separate alert creation here as it's handled in the mutation's onSuccess
     } catch (error) {
       console.error("Form submission error:", error);
       alert("Failed to submit log entry: " + (error as Error).message);
@@ -281,8 +307,22 @@ export function RaidLogForm({
           throw new Error(`Failed to fetch forecast: ${response.statusText}`);
         }
 
-        setForecast(data);
-        return data;
+        console.log("Received forecast data:", data);
+
+        // Ensure data is properly formatted according to ForecastA schema
+        const formattedData = {
+          date: new Date(selectedDate),
+          region: beach.region,
+          windSpeed: parseInt(data.windSpeed) || 0,
+          windDirection: parseFloat(data.windDirection) || 0,
+          swellHeight: parseFloat(data.swellHeight) || 0,
+          swellPeriod: parseInt(data.swellPeriod) || 0,
+          swellDirection: parseFloat(data.swellDirection) || 0,
+        };
+
+        console.log("Formatted forecast data:", formattedData);
+        setForecast(formattedData);
+        return formattedData;
       };
 
       return fetchWithRetry();
@@ -333,6 +373,25 @@ export function RaidLogForm({
       fetchForecastData(selectedBeach);
     }
   }, [selectedBeach, selectedDate]);
+
+  // Update useEffect to set the region in alertConfig when selectedBeach changes
+  useEffect(() => {
+    if (selectedBeach) {
+      setAlertConfig((prev) => ({
+        ...prev,
+        region: selectedBeach.region,
+        name: `Alert for ${selectedBeach.name}`,
+      }));
+    }
+  }, [selectedBeach]);
+
+  // Update the initial state setup
+  useEffect(() => {
+    if (existingAlert) {
+      setCreateAlert(true);
+      setAlertConfig(existingAlert);
+    }
+  }, [existingAlert]);
 
   const handleSubscriptionAction = () => {
     if (!session?.user) {
@@ -417,6 +476,48 @@ export function RaidLogForm({
                   2. Select Beach
                 </h4>
                 <div className="relative">
+                  <div className="flex items-center border rounded-md mb-2">
+                    <Search className="h-4 w-4 ml-2 text-gray-400" />
+                    <input
+                      type="text"
+                      placeholder="Search beaches..."
+                      value={searchTerm}
+                      onChange={(e) => setSearchTerm(e.target.value)}
+                      className="p-2 w-full font-primary text-sm focus:outline-none"
+                    />
+                    {searchTerm && (
+                      <button
+                        type="button"
+                        onClick={() => setSearchTerm("")}
+                        className="mr-2 text-gray-400 hover:text-gray-600"
+                      >
+                        <X className="h-4 w-4" />
+                      </button>
+                    )}
+                  </div>
+
+                  {searchTerm && filteredBeaches.length > 0 && (
+                    <div className="absolute z-10 w-full bg-white border rounded-md shadow-lg max-h-60 overflow-y-auto">
+                      {filteredBeaches.slice(0, 5).map((beach) => (
+                        <div
+                          key={beach.id}
+                          className="p-2 hover:bg-gray-100 cursor-pointer font-primary"
+                          onClick={() => {
+                            handleBeachSelect(beach);
+                            setSearchTerm("");
+                          }}
+                        >
+                          {beach.name}
+                        </div>
+                      ))}
+                      {filteredBeaches.length > 5 && (
+                        <div className="p-2 text-sm text-gray-500 font-primary text-center border-t">
+                          {filteredBeaches.length - 5} more results...
+                        </div>
+                      )}
+                    </div>
+                  )}
+
                   <Select
                     value={selectedBeach?.name || ""}
                     onValueChange={(value) => {
@@ -425,10 +526,10 @@ export function RaidLogForm({
                     }}
                   >
                     <SelectItem value="" disabled>
-                      Choose a beach...
+                      {selectedBeach ? selectedBeach.name : "Choose a beach..."}
                     </SelectItem>
                     {Array.isArray(beaches) && beaches.length > 0 ? (
-                      beaches.map((beach) => (
+                      beaches.slice(0, 5).map((beach) => (
                         <SelectItem key={beach.id} value={beach.name}>
                           {beach.name}
                         </SelectItem>
@@ -449,9 +550,9 @@ export function RaidLogForm({
                     3. Surf Conditions
                   </h4>
                   <div className="border rounded-lg p-4 bg-gray-50">
-                    {forecastData === null ? (
+                    {forecast === null ? (
                       <div className="text-black font-primary">Loading...</div>
-                    ) : !forecastData ? (
+                    ) : !forecast ? (
                       <div className="text-gray-600 font-primary">
                         Loading forecast data...
                       </div>
@@ -459,7 +560,7 @@ export function RaidLogForm({
                       <SurfForecastWidget
                         beachId={selectedBeach.id}
                         selectedDate={selectedDate}
-                        forecast={forecastData}
+                        forecast={forecast}
                       />
                     )}
                   </div>
@@ -546,82 +647,82 @@ export function RaidLogForm({
                         type="checkbox"
                         id="create-alert"
                         checked={createAlert}
-                        onChange={(e) => setCreateAlert(e.target.checked)}
+                        onChange={(e) => {
+                          setCreateAlert(e.target.checked);
+                          // Initialize alert config with forecast data when checkbox is checked
+                          if (e.target.checked && forecastData) {
+                            setAlertConfig((prev) => ({
+                              ...prev,
+                              name: `Alert for ${selectedBeach?.name || "session"}`,
+                              region: selectedBeach?.region || "",
+                              properties: [
+                                {
+                                  property: "windSpeed" as ForecastProperty,
+                                  range: 5,
+                                },
+                                {
+                                  property: "windDirection" as ForecastProperty,
+                                  range: 15,
+                                },
+                                {
+                                  property: "swellHeight" as ForecastProperty,
+                                  range: 0.5,
+                                },
+                                {
+                                  property: "swellPeriod" as ForecastProperty,
+                                  range: 2,
+                                },
+                              ],
+                              forecast: forecastData || null,
+                            }));
+                          }
+                        }}
                       />
                       <label
                         htmlFor="create-alert"
                         className="font-primary flex items-center"
                       >
                         <Bell className="h-4 w-4 mr-1" />
-                        Create Alert for Similar Conditions
+                        {existingAlert
+                          ? "Edit Alert"
+                          : "Create Alert for Similar Conditions"}
                       </label>
                     </div>
 
                     {createAlert && (
-                      <div className="pl-6 space-y-3 mt-2">
-                        <div>
-                          <label className="text-sm font-primary block mb-1">
-                            Accuracy Range (±%)
-                          </label>
-                          <div className="flex items-center">
-                            <input
-                              type="range"
-                              min="5"
-                              max="30"
-                              step="5"
-                              value={alertRange}
-                              onChange={(e) =>
-                                setAlertRange(parseInt(e.target.value))
-                              }
-                              className="w-full mr-2"
-                            />
-                            <span className="text-sm font-primary w-10">
-                              ±{alertRange}%
-                            </span>
-                          </div>
-                        </div>
-
-                        <div>
-                          <label className="text-sm font-primary block mb-1">
-                            Notification Method
-                          </label>
-                          <select
-                            value={alertNotificationMethod}
-                            onChange={(e) =>
-                              setAlertNotificationMethod(e.target.value as any)
-                            }
-                            className="w-full p-2 border rounded-md font-primary"
-                          >
-                            <option value="email">Email</option>
-                            <option value="whatsapp">WhatsApp</option>
-                            <option value="both">Both</option>
-                          </select>
-                        </div>
-
-                        <div>
-                          <label className="text-sm font-primary block mb-1">
-                            {alertNotificationMethod === "email"
-                              ? "Email Address"
-                              : alertNotificationMethod === "whatsapp"
-                                ? "WhatsApp Number"
-                                : "Email & WhatsApp"}
-                          </label>
-                          <input
-                            type="text"
-                            value={alertContactInfo}
-                            onChange={(e) =>
-                              setAlertContactInfo(e.target.value)
-                            }
-                            placeholder={
-                              alertNotificationMethod === "email"
-                                ? "you@example.com"
-                                : alertNotificationMethod === "whatsapp"
-                                  ? "+1234567890"
-                                  : "email@example.com, +1234567890"
-                            }
-                            className="w-full p-2 border rounded-md font-primary"
-                          />
-                        </div>
+                      <div className="pl-6 mt-2">
+                        <AlertConfiguration
+                          onSave={(config) => setAlertConfig(config)}
+                          existingConfig={{
+                            ...alertConfig,
+                            region: selectedBeach?.region || "",
+                            forecast: forecastData || null,
+                          }}
+                          selectedLogEntry={
+                            forecastData
+                              ? {
+                                  forecast: {
+                                    windSpeed: Number(forecastData.windSpeed),
+                                    windDirection: Number(
+                                      forecastData.windDirection
+                                    ),
+                                    waveHeight: Number(
+                                      forecastData.swellHeight
+                                    ),
+                                    wavePeriod: Number(
+                                      forecastData.swellPeriod
+                                    ),
+                                    temperature: 0,
+                                    swellDirection: Number(
+                                      forecastData.swellDirection
+                                    ),
+                                  },
+                                  region: selectedBeach?.region || "",
+                                }
+                              : undefined
+                          }
+                          isEmbedded={true}
+                        />
                       </div>
                     )}
                   </div>
@@ -637,23 +738,17 @@ export function RaidLogForm({
                   !selectedDate ||
                   isSubmitting
                 }
-                className="w-full bg-[var(--color-tertiary)] text-white font-primary"
+                variant="outline"
+                className="w-full font-primary"
               >
-                {isSubmitting ? "Submitting..." : "Log Session"}
+                {isSubmitting
+                  ? "Submitting..."
+                  : createAlert
+                    ? "Save Log & Alert"
+                    : "Log Session"}
               </Button>
             </div>
           </form>
-
-          {forecastData && (
-            <div className="p-4 bg-gray-100 rounded-lg mt-4">
-              <h4 className="font-semibold mb-2 font-primary">
-                Debug Forecast Data
-              </h4>
-              <pre className="text-xs">
-                {JSON.stringify(forecastData, null, 2)}
-              </pre>
-            </div>
-          )}
         </div>
       </DialogContent>
     </Dialog>

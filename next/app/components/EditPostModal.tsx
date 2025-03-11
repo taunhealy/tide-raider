@@ -6,7 +6,7 @@ import { X, Loader2, Link as LinkIcon } from "lucide-react";
 import { cn } from "@/app/lib/utils";
 import type { Story, StoryBeach } from "@/app/types/stories";
 import { beachData } from "@/app/types/beaches";
-import { Button } from "@/components/ui/button";
+import { Button } from "@/app/components/ui/button";
 import { STORY_CATEGORIES, StoryCategory } from "@/lib/constants";
 
 interface EditPostModalProps {

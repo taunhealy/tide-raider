@@ -8,7 +8,7 @@ import { useQuery } from "@tanstack/react-query";
 import { useSearchParams, useRouter, usePathname } from "next/navigation";
 import { useState, useCallback, useMemo } from "react";
 import { LogVisibilityToggle } from "@/app/components/LogVisibilityToggle";
-import { Button } from "@/components/ui/button";
+import { Button } from "@/app/components/ui/button";
 import Link from "next/link";
 import type { Beach } from "@/app/types/beaches";
 import { toast } from "sonner";

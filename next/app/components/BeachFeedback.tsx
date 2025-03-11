@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { Beach } from "@/app/types/beaches";
-import { Button } from "./ui/button";
+import { Button } from "@/components/ui/button";
 import { cn } from "@/app/lib/utils";
 import { Inter } from "next/font/google";
 import { Check, Calendar, Search, ChevronDown } from "lucide-react";

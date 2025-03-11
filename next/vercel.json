@@ -1,5 +1,5 @@
 {
-  "buildCommand": "rm -rf .next && rm -rf node_modules/.prisma && prisma generate && prisma migrate deploy && next build",
+  "buildCommand": "npm run build",
   "installCommand": "npm install --force && npx playwright install chromium",
   "framework": "nextjs",
   "functions": {

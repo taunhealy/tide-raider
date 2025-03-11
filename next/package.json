@@ -20,7 +20,6 @@
     "@aws-sdk/s3-request-presigner": "^3.732.0",
     "@headlessui/react": "^2.2.0",
     "@heroicons/react": "^2.2.0",
-    "@lemonsqueezy/lemonsqueezy.js": "^4.0.0",
     "@libsql/client": "^0.14.0",
     "@neondatabase/serverless": "^0.10.4",
     "@playwright/test": "^1.41.0",

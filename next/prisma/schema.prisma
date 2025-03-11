@@ -107,8 +107,6 @@ model User {
   skillLevel           SkillLevel?
   createdAt            DateTime            @default(now())
   updatedAt            DateTime            @updatedAt
-  lemonCustomerId      String?
-  lemonSubscriptionId  String?
   savedFilters         Json?
   hasActiveTrial       Boolean             @default(false)
   hasTrialEnded        Boolean             @default(false)

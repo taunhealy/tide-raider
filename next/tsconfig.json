@@ -19,7 +19,12 @@
       }
     ],
     "paths": {
-      "@/*": ["./src/*", "./app/*", "./*"]
+      "@/*": ["./*"],
+      "@/components/*": ["./app/components/*"],
+      "@/lib/*": ["./app/lib/*"],
+      "@/hooks/*": ["./app/hooks/*"],
+      "@/styles/*": ["./app/styles/*"],
+      "@/types/*": ["./app/types/*"]
     }
   },
   "include": [
@@ -31,7 +36,6 @@
     "next.config.js",
     "app/components/WaveAnimation.jsx",
     "../BeachCard.tsx",
-    "../app/components/boards/BoardCard.tsx",
     "../@/app/components/alerts/AlertsList.tsx"
   ],
   "exclude": ["node_modules"]

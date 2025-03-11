@@ -156,7 +156,7 @@ export default function BeachCard({
   ]);
   const beachSessions = Array.isArray(recentEntries)
     ? recentEntries.filter(
-        (entry) => entry.beachName.toLowerCase() === beach.name.toLowerCase()
+        (entry) => entry.beachName?.toLowerCase() === beach.name?.toLowerCase()
       )
     : [];
 

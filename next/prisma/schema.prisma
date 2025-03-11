@@ -47,6 +47,7 @@ model AdRequest {
   ad                    Ad?
   region                Region   @relation(fields: [regionId], references: [id])
   user                  User?    @relation(fields: [userId], references: [id])
+  notifications         Notification[]
 
   @@index([regionId])
   @@index([category])
@@ -75,6 +76,7 @@ model Ad {
   user                 User?               @relation(fields: [userId], references: [id])
   beachConnections     AdBeachConnection[]
   clicks               AdClick[]
+  notifications        Notification[]
 
   @@index([regionId])
   @@index([category])
@@ -137,6 +139,7 @@ model User {
   surfSafaris          SurfSafariListing[]
   favorites            UserFavorite[]
   filters              UserFilters?
+  notifications        Notification[]
 
   @@index([email])
   @@index([skillLevel])
@@ -165,7 +168,7 @@ model LogEntry {
   surferName   String?
   surferEmail  String?
   beachName    String?
-  surferRating Float?
+  surferRating Int @default(0)
   comments     String?
   createdAt    DateTime  @default(now())
   updatedAt    DateTime  @updatedAt
@@ -579,6 +582,68 @@ model Alert {
   updatedAt         DateTime @updatedAt
   
   user              User     @relation(fields: [userId], references: [id])
+  notifications     AlertNotification[]
+  checks            AlertCheck[]
+}
+
+model AlertCheck {
+  id        String   @id @default(uuid())
+  alertId   String
+  checkedAt DateTime @default(now())
+  success   Boolean
+  details   String?
+  
+  alert     Alert    @relation(fields: [alertId], references: [id])
+  
+  @@index([alertId])
+  @@index([checkedAt])
+}
+
+model AlertNotification {
+  id            String         @id @default(uuid())
+  alertId       String
+  alertName     String?
+  region        String?
+  beachId       String?
+  beachName     String?
+  success       Boolean
+  details       String?
+  createdAt     DateTime       @default(now())
+  
+  alert         Alert          @relation(fields: [alertId], references: [id])
+  notifications Notification[]
+  
+  @@index([alertId])
+  @@index([createdAt])
+  @@index([region])
+  @@index([beachId])
+}
+
+model Notification {
+  id                 String             @id @default(uuid())
+  userId             String
+  type               String             // "ALERT", "AD", "RENTAL", etc.
+  title              String
+  message            String
+  read               Boolean            @default(false)
+  createdAt          DateTime           @default(now())
+  updatedAt          DateTime           @updatedAt
+  alertNotificationId String?           // Optional reference to AlertNotification
+  adId               String?            // Optional reference to Ad
+  adRequestId        String?            // Optional reference to AdRequest
+  
+  user               User               @relation(fields: [userId], references: [id], onDelete: Cascade)
+  alertNotification  AlertNotification? @relation(fields: [alertNotificationId], references: [id])
+  ad                 Ad?                @relation(fields: [adId], references: [id])
+  adRequest          AdRequest?         @relation(fields: [adRequestId], references: [id])
+  
+  @@index([userId])
+  @@index([type])
+  @@index([read])
+  @@index([createdAt])
+  @@index([alertNotificationId])
+  @@index([adId])
+  @@index([adRequestId])
 }
 
 enum SkillLevel {

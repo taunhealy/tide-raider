@@ -20,7 +20,13 @@ import { useToast } from "@/app/components/ui/use-toast";
 import { Dialog, DialogContent } from "@/components/ui/dialog";
 import { useForecast } from "@/app/hooks/useForecast";
 import { AlertConfiguration } from "../alerts/AlertConfiguration";
-import { Alert, AlertConfigTypes, ForecastProperty } from "@/types/alerts";
+import {
+  Alert,
+  AlertConfigTypes,
+  ForecastProperty,
+  NotificationMethod,
+} from "@/types/alerts";
+import { Checkbox } from "@/app/components/ui/checkbox";
 
 interface RaidLogFormProps {
   userEmail?: string;
@@ -33,8 +39,8 @@ interface RaidLogFormProps {
 
 export function RaidLogForm({
   userEmail,
-  isOpen,
-  onClose,
+  isOpen = false,
+  onClose = () => {},
   beaches,
   entry,
   isEditing,
@@ -68,23 +74,25 @@ export function RaidLogForm({
     !!entry?.existingAlert
   );
   const [alertConfig, setAlertConfig] = useState<AlertConfigTypes>({
+    id: entry?.existingAlert?.id || crypto.randomUUID(),
     name: entry?.existingAlert?.name || "",
     region: selectedBeach?.region || "",
-    properties: [
+    properties: entry?.existingAlert?.properties || [
       { property: "windSpeed", range: 5 },
       { property: "windDirection", range: 15 },
       { property: "swellHeight", range: 0.5 },
       { property: "swellPeriod", range: 2 },
     ],
-    notificationMethod: "email",
+    notificationMethod: entry?.existingAlert?.notificationMethod || "app",
     contactInfo: userEmail || "",
     active: true,
     forecastDate: new Date(),
-    alertType: "variables",
+    alertType: entry?.existingAlert?.alertType || "rating",
+    starRating: entry?.existingAlert?.starRating || "4+",
     logEntryId: entry?.id || null,
-    starRating: null,
     forecast: null,
     forecastId: null,
+    userId: session?.user?.id || "",
   });
   const { toast } = useToast();
 
@@ -144,7 +152,6 @@ export function RaidLogForm({
         origin: { y: 0.6 },
       });
       setIsSubmitted(true);
-      router.push("/raidlogs");
 
       // Create alert if requested
       if (createAlert && selectedBeach && forecastData) {
@@ -183,6 +190,12 @@ export function RaidLogForm({
             variant: "destructive",
           });
         }
+      }
+
+      // Close the modal and redirect after everything is done
+      router.push("/raidlogs");
+      if (onClose) {
+        onClose();
       }
     },
   });
@@ -393,6 +406,36 @@ export function RaidLogForm({
     }
   }, [existingAlert]);
 
+  // Improve the safeParseFloat function to handle more edge cases
+  const safeParseFloat = (value: any): number => {
+    if (value === undefined || value === null) return 0;
+    // Handle string numbers with commas
+    if (typeof value === "string") {
+      value = value.replace(",", ".");
+    }
+    const parsed = parseFloat(value);
+    return isNaN(parsed) ? 0 : parsed;
+  };
+
+  // Add a debug function to help identify issues
+  const debugForecastData = (data: any) => {
+    if (!data) return;
+    console.log("Forecast data for alert:", {
+      windSpeed: safeParseFloat(data.windSpeed),
+      windDirection: safeParseFloat(data.windDirection),
+      swellHeight: safeParseFloat(data.swellHeight),
+      swellPeriod: safeParseFloat(data.swellPeriod),
+      swellDirection: safeParseFloat(data.swellDirection),
+    });
+  };
+
+  // Add this useEffect to log forecast data when it changes
+  useEffect(() => {
+    if (forecastData) {
+      debugForecastData(forecastData);
+    }
+  }, [forecastData]);
+
   const handleSubscriptionAction = () => {
     if (!session?.user) {
       signIn("google");
@@ -406,9 +449,12 @@ export function RaidLogForm({
     }
   };
 
+  // Only render if isOpen is true
+  if (!isOpen) return null;
+
   return (
-    <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="bg-white max-h-[90vh] overflow-y-auto">
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50">
+      <div className="bg-white max-h-[90vh] overflow-y-auto p-6 rounded-lg w-full max-w-md">
         {!isSubscribed && !hasActiveTrial && (
           <div className="absolute inset-0 bg-white/95 backdrop-blur-sm z-10 rounded-lg" />
         )}
@@ -440,7 +486,10 @@ export function RaidLogForm({
 
         <div className="relative">
           <button
-            onClick={onClose}
+            onClick={() => {
+              console.log("Close button clicked"); // Add this for debugging
+              onClose();
+            }}
             className="absolute top-0 right-0 text-gray-400 hover:text-gray-500 z-[102]"
             type="button"
           >
@@ -655,6 +704,10 @@ export function RaidLogForm({
                               ...prev,
                               name: `Alert for ${selectedBeach?.name || "session"}`,
                               region: selectedBeach?.region || "",
+                              // Set alert type to rating by default since we're creating from a rated session
+                              alertType: "rating",
+                              // Use the user's rating for this session as the minimum star rating
+                              starRating: surferRating >= 5 ? "5" : "4+",
                               properties: [
                                 {
                                   property: "windSpeed" as ForecastProperty,
@@ -696,26 +749,33 @@ export function RaidLogForm({
                           existingConfig={{
                             ...alertConfig,
                             region: selectedBeach?.region || "",
-                            forecast: forecastData || null,
+                            forecast: null, // Don't pass forecast here to avoid conflicts
+                            notificationMethod: alertConfig.notificationMethod,
+                            // Make sure we pass the alert type and star rating
+                            alertType: alertConfig.alertType,
+                            starRating: alertConfig.starRating,
                           }}
                           selectedLogEntry={
                             forecastData
                               ? {
                                   forecast: {
-                                    windSpeed: Number(forecastData.windSpeed),
+                                    // Explicitly convert each value to a number and provide fallbacks
+                                    windSpeed: Number(
+                                      forecastData.windSpeed || 0
+                                    ),
                                     windDirection: Number(
-                                      forecastData.windDirection
+                                      forecastData.windDirection || 0
                                     ),
                                     waveHeight: Number(
-                                      forecastData.swellHeight
+                                      forecastData.swellHeight || 0
                                     ),
                                     wavePeriod: Number(
-                                      forecastData.swellPeriod
+                                      forecastData.swellPeriod || 0
+                                    ),
+                                    swellDirection: Number(
+                                      forecastData.swellDirection || 0
                                     ),
                                     temperature: 0,
-                                    swellDirection: Number(
-                                      forecastData.swellDirection
-                                    ),
                                   },
                                   region: selectedBeach?.region || "",
                                 }
@@ -728,8 +788,6 @@ export function RaidLogForm({
                   </div>
                 </div>
               </div>
-
-              {/* Submit Button */}
               <Button
                 type="submit"
                 disabled={
@@ -750,7 +808,7 @@ export function RaidLogForm({
             </div>
           </form>
         </div>
-      </DialogContent>
-    </Dialog>
+      </div>
+    </div>
   );
 }

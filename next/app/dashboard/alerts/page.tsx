@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState, useEffect, useMemo } from "react";
-import { AlertConfig } from "@/app/components/alerts/AlertConfiguration";
+import { AlertConfig } from "@/app/types/alerts";
 import { AlertConfigTypes } from "@/app/types/alerts";
 import { AlertsList } from "@/app/components/alerts/AlertsList";
 import { Button } from "@/app/components/ui/button";
@@ -44,9 +44,8 @@ export default function AlertsPage() {
             : alert
         );
 
-        toast({
-          title: "Alert updated",
-          description: `Your alert "${alertConfig.name}" has been updated.`,
+        toast.success(`Alert "${alertConfig.name}" updated`, {
+          description: "Your alert has been updated successfully.",
         });
       } else {
         // Create new alert
@@ -56,9 +55,8 @@ export default function AlertsPage() {
         };
 
         updatedAlerts = [...alerts, newAlert];
-        toast({
-          title: "Alert created",
-          description: `Your alert "${alertConfig.name}" has been created.`,
+        toast.success(`Alert "${alertConfig.name}" created`, {
+          description: "Your alert has been created successfully.",
         });
       }
 
@@ -67,10 +65,7 @@ export default function AlertsPage() {
       setEditingAlertId(null);
     } catch (error) {
       console.error("Error saving alert:", error);
-      toast({
-        title: "Error",
-        description: `Failed to save alert. Please try again.`,
-      });
+      toast.error("Failed to save alert. Please try again.");
     }
   };
 
@@ -133,30 +128,7 @@ export default function AlertsPage() {
         </p>
         <div className="bg-card rounded-lg p-6 shadow-sm">
           <AlertsList
-            alerts={alerts}
-            onEdit={handleEditAlert}
-            onDelete={handleDeleteAlert}
-            onToggleActive={handleToggleActive}
           />
-        </div>
-      </div>
-
-      <div className="mb-4 flex gap-4">
-        <div className="bg-white rounded-lg p-4 shadow flex-1">
-          <h3 className="text-sm font-medium text-gray-500 font-primary">
-            Variable Alerts
-          </h3>
-          <p className="text-2xl font-semibold font-primary">
-            {alertSummary.variables}
-          </p>
-        </div>
-        <div className="bg-white rounded-lg p-4 shadow flex-1">
-          <h3 className="text-sm font-medium text-gray-500 font-primary">
-            Star Rating Alerts
-          </h3>
-          <p className="text-2xl font-semibold font-primary">
-            {alertSummary.rating}
-          </p>
         </div>
       </div>
     </div>

@@ -63,6 +63,13 @@
 
     /* Heading Font Weight */
     --heading-font-weight: 600;
+
+    /* Component Colors */
+    --color-component-border: #93e6ff;
+    --color-component-icon-bg: #e6f9ff;
+    --color-component-empty-bg: #f9fafb;
+    --color-component-empty-icon: #d1d5db;
+    --color-component-hover: #f3f4f6;
   }
 
   /* Base Typography */

@@ -167,7 +167,11 @@ export async function GET(req: NextRequest) {
       include: {
         forecast: true,
         user: {
-          select: { id: true, nationality: true },
+          select: {
+            id: true,
+            nationality: true,
+            name: true,
+          },
         },
         alerts: {
           select: {

@@ -1,8 +1,12 @@
 "use client";
 
-import { useState, useEffect, useMemo } from "react";
+import { useState, useEffect, useMemo, useCallback } from "react";
 import { LogEntry } from "@/app/types/questlogs";
-import { AlertConfigTypes } from "@/app/types/alerts";
+import {
+  AlertConfigTypes,
+  ForecastProperty,
+  NotificationMethod,
+} from "@/app/types/alerts";
 import { useSession } from "next-auth/react";
 import { v4 as uuidv4 } from "uuid";
 import {
@@ -47,8 +51,9 @@ import { CustomCalendar } from "@/app/components/ui/custom-calendar";
 import { useQueryClient } from "@tanstack/react-query";
 import { Skeleton } from "@/app/components/ui/Skeleton";
 import { ScrollArea } from "@/app/components/ui/scroll-area";
-import { AlertConfig } from "./AlertConfiguration";
+import { AlertConfig } from "@/app/types/alerts";
 import { RadioGroup, RadioGroupItem } from "@/app/components/ui/radio-group";
+import { Checkbox } from "@/app/components/ui/checkbox";
 
 interface ForecastAlertModalProps {
   isOpen: boolean;
@@ -59,6 +64,107 @@ interface ForecastAlertModalProps {
   isNew?: boolean;
   logEntries?: LogEntry[];
 }
+
+const forecastProperties = [
+  { id: "windSpeed" as ForecastProperty, name: "Wind Speed", unit: "knots" },
+  {
+    id: "windDirection" as ForecastProperty,
+    name: "Wind Direction",
+    unit: "°",
+  },
+  { id: "swellHeight" as ForecastProperty, name: "Swell Height", unit: "m" },
+  { id: "swellPeriod" as ForecastProperty, name: "Swell Period", unit: "s" },
+  {
+    id: "swellDirection" as ForecastProperty,
+    name: "Swell Direction",
+    unit: "°",
+  },
+] as const;
+
+// Define a more specific type for property updates
+type PropertyUpdateAction = {
+  index: number;
+  key: "property" | "range";
+  value: ForecastProperty | number;
+};
+
+// Add this before usePropertyManager
+const getPropertyConfig = (propertyId: string) => {
+  const configs = {
+    windSpeed: { maxRange: 15, step: 1, unit: "knots" },
+    windDirection: { maxRange: 45, step: 1, unit: "°" },
+    swellHeight: { maxRange: 2, step: 0.1, unit: "m" },
+    swellPeriod: { maxRange: 5, step: 0.1, unit: "s" },
+    swellDirection: { maxRange: 45, step: 1, unit: "°" },
+    waveHeight: { maxRange: 1, step: 0.1, unit: "m" },
+    wavePeriod: { maxRange: 4, step: 0.1, unit: "s" },
+    temperature: { maxRange: 5, step: 0.1, unit: "°C" },
+  };
+
+  return (
+    configs[propertyId as keyof typeof configs] || {
+      maxRange: 10,
+      step: 0.1,
+      unit: "",
+    }
+  );
+};
+
+// Custom hook for property management
+function usePropertyManager(initialProperties: AlertConfigTypes["properties"]) {
+  const [properties, setProperties] =
+    useState<AlertConfigTypes["properties"]>(initialProperties);
+
+  const updateProperty = useCallback(
+    ({ index, key, value }: PropertyUpdateAction) => {
+      setProperties((prev) => {
+        const updated = [...prev];
+        updated[index] = {
+          ...updated[index],
+          [key]: value,
+        };
+        return updated;
+      });
+    },
+    []
+  );
+
+  const removeProperty = useCallback((index: number) => {
+    setProperties((prev) => {
+      const updated = [...prev];
+      updated.splice(index, 1);
+      return updated;
+    });
+  }, []);
+
+  const addProperty = useCallback(() => {
+    const usedProperties = new Set(properties.map((p) => p.property));
+
+    // Find the first property that's not already in use
+    const availableProperty =
+      forecastProperties.find((p) => !usedProperties.has(p.id))?.id ||
+      "windSpeed";
+
+    setProperties((prev) => [
+      ...prev,
+      {
+        property: availableProperty,
+        range: getPropertyConfig(availableProperty).step * 10,
+      },
+    ]);
+  }, [properties]);
+
+  return {
+    properties,
+    updateProperty,
+    removeProperty,
+    addProperty,
+    setProperties,
+  };
+}
+
+// Add this type definition
+type AlertType = "variables" | "rating";
 
 export default function ForecastAlertModal({
   isOpen,
@@ -73,7 +179,10 @@ export default function ForecastAlertModal({
   const isLinkedToLogEntry =
     isEditing && logEntry && existingAlert?.logEntryId === logEntry.id;
 
-  const [alertType, setAlertType] = useState<"variables" | "rating">(
+  const { data: session } = useSession();
+
+  // Add state for alert type
+  const [alertType, setAlertType] = useState<AlertType>(
     existingAlert?.alertType || "variables"
   );
   const [starRating, setStarRating] = useState<"4+" | "5">(
@@ -81,13 +190,32 @@ export default function ForecastAlertModal({
   );
 
   const [alertConfig, setAlertConfig] = useState<AlertConfigTypes>({
-    ...(existingAlert || {}),
+    id: existingAlert?.id || uuidv4(),
+    name: existingAlert?.name || "",
+    region: existingAlert?.region || "",
     properties: existingAlert?.properties || [
-      { property: "windSpeed", range: 5 },
+      { property: "windSpeed", range: 2 },
+      { property: "windDirection", range: 10 },
+      { property: "swellHeight", range: 0.2 },
+      { property: "swellPeriod", range: 1 },
+      { property: "swellDirection", range: 10 },
     ],
+    notificationMethod: existingAlert?.notificationMethod || "app",
+    contactInfo: existingAlert?.contactInfo || "",
+    active: existingAlert?.active ?? true,
+    forecastDate: existingAlert?.forecastDate || new Date(),
+    alertType:
+      existingAlert?.alertType ||
+      (logEntry?.surferRating ? "rating" : "variables"),
+    starRating:
+      existingAlert?.starRating ||
+      (logEntry?.surferRating && logEntry.surferRating >= 5 ? "5" : "4+"),
+    userId: session?.user?.id || "",
+    logEntryId: existingAlert?.logEntryId || logEntry?.id || null,
+    forecast: null,
+    forecastId: null,
   });
 
-  const { data: session } = useSession();
   const queryClient = useQueryClient();
 
   // Add loading states for better UX
@@ -257,14 +385,15 @@ export default function ForecastAlertModal({
       }));
 
       // Set notification method
-      setAlertConfig((prev) => ({
-        ...prev,
-        notificationMethod: existingAlert.notificationMethod || "email",
-      }));
-      setAlertConfig((prev) => ({
-        ...prev,
-        contactInfo: existingAlert.contactInfo || "",
-      }));
+      setAlertConfig(
+        (prev: AlertConfig) =>
+          ({
+            ...prev,
+            contactInfo: existingAlert.contactInfo || session?.user.email || "",
+            notificationMethod: (existingAlert.notificationMethod ||
+              "app") as NotificationMethod,
+          }) as AlertConfig
+      );
 
       // Set properties
       if (existingAlert.properties && existingAlert.properties.length > 0) {
@@ -286,17 +415,22 @@ export default function ForecastAlertModal({
         fetchLogEntry(existingAlert.logEntryId);
       }
     }
-  }, [existingAlert, isEditing]);
+  }, [existingAlert, isEditing, session?.user.email]);
 
-  // Initialize contact info with user email when session changes
+  // Then update the contact info when session is available
   useEffect(() => {
-    if (session?.user?.email && !isEditing) {
-      setAlertConfig((prev) => ({
-        ...prev,
-        contactInfo: session.user.email || "",
-      }));
+    if (session?.user?.email) {
+      setAlertConfig(
+        (prev: AlertConfig) =>
+          ({
+            ...prev,
+            contactInfo: existingAlert?.contactInfo || session.user.email || "",
+            notificationMethod: (existingAlert?.notificationMethod ||
+              "app") as NotificationMethod,
+          }) as AlertConfig
+      );
     }
-  }, [session, isEditing]);
+  }, [session, existingAlert]);
 
   // Update alert name when log entry changes (only if not editing)
   useEffect(() => {
@@ -333,25 +467,26 @@ export default function ForecastAlertModal({
     if (logEntry && !existingAlert) {
       // Initialize alert config with log entry data
       setAlertConfig({
+        id: uuidv4(),
         name: `Alert for ${logEntry.beachName}`,
         properties: [
-          { property: "windSpeed", range: 5 },
-          { property: "windDirection", range: 15 },
-          { property: "swellHeight", range: 0.5 },
-          { property: "swellPeriod", range: 2 },
-          { property: "swellDirection", range: 15 },
+          { property: "windSpeed", range: 2 },
+          { property: "windDirection", range: 10 },
+          { property: "swellHeight", range: 0.2 },
+          { property: "swellPeriod", range: 1 },
+          { property: "swellDirection", range: 10 },
         ],
-        notificationMethod: "email",
+        notificationMethod: "app",
         contactInfo: session?.user?.email || "",
         active: true,
         region: logEntry.region || "",
-        forecastDate:
-          logEntry.date instanceof Date
-            ? logEntry.date
-            : new Date(logEntry.date),
+        forecastDate: new Date(logEntry.date),
         logEntryId: logEntry.id,
         alertType: "variables",
         starRating: "4+",
+        forecast: null,
+        forecastId: null,
+        userId: session?.user?.id || "",
       });
 
       // If the log entry has forecast data, use it
@@ -376,7 +511,7 @@ export default function ForecastAlertModal({
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           ...data,
-          forecastDate: logEntry?.forecast?.date || data.forecastDate,
+          forecastDate: data.forecastDate,
         }),
       });
       if (!response.ok) throw new Error("Failed to create alert");
@@ -569,10 +704,7 @@ export default function ForecastAlertModal({
       !alertConfig.notificationMethod ||
       !alertConfig.contactInfo
     ) {
-      toast({
-        title: "Error",
-        description: "Please fill in all required fields",
-      });
+      toast.error("Please fill in all required fields");
       return;
     }
 
@@ -582,26 +714,26 @@ export default function ForecastAlertModal({
         name: alertConfig.name!,
         region: alertConfig.region!,
         properties: alertConfig.properties || [],
-        notificationMethod: alertConfig.notificationMethod! as
-          | "email"
-          | "whatsapp"
-          | "both",
+        notificationMethod: alertConfig.notificationMethod!,
         contactInfo: alertConfig.contactInfo!,
         active: alertConfig.active ?? true,
         logEntryId: selectedLogEntry?.id || logEntry?.id || null,
         alertType: alertType,
         starRating: alertType === "rating" ? starRating : null,
         forecastDate: alertConfig.forecastDate || new Date(),
+        forecast: null,
+        forecastId: null,
+        userId: session?.user?.id || "",
       };
 
       if (isEditing) {
         // Cast alertData to AlertConfig and include the missing properties from existingAlert
         updateAlertMutation.mutate({
           ...alertData,
-          userId: existingAlert?.userId || "",
+
           forecast: existingAlert?.forecast || null,
           forecastId: existingAlert?.forecastId || null,
-          logEntry: existingAlert?.logEntry || null,
+          logEntry: existingAlert?.logEntryId || null,
         } as AlertConfig);
       } else {
         createAlertMutation.mutate(alertData);
@@ -668,86 +800,73 @@ export default function ForecastAlertModal({
     }
   }
 
-  // Add this helper function to get property configuration
-  const getPropertyConfig = (propertyId: string) => {
-    const configs = {
-      windSpeed: { maxRange: 15, step: 1, unit: "knots" },
-      windDirection: { maxRange: 45, step: 1, unit: "°" },
-      swellHeight: { maxRange: 2, step: 0.1, unit: "m" },
-      swellPeriod: { maxRange: 5, step: 0.1, unit: "s" },
-      swellDirection: { maxRange: 45, step: 1, unit: "°" },
-      waveHeight: { maxRange: 1, step: 0.1, unit: "m" },
-      wavePeriod: { maxRange: 4, step: 0.1, unit: "s" },
-      temperature: { maxRange: 5, step: 0.1, unit: "°C" },
-    };
+  // Add this helper function to map property names to forecast properties
+  function getForecastPropertyValue(
+    forecast: any,
+    property: ForecastProperty
+  ): number {
+    switch (property) {
+      case "waveHeight":
+        return forecast.swellHeight || 0;
+      case "wavePeriod":
+        return forecast.swellPeriod || 0;
+      default:
+        return forecast[property] || 0;
+    }
+  }
 
-    return (
-      configs[propertyId as keyof typeof configs] || {
-        maxRange: 10,
-        step: 1,
-        unit: "",
-      }
-    );
-  };
+  // In your component:
+  const {
+    properties,
+    updateProperty,
+    removeProperty,
+    addProperty,
+    setProperties,
+  } = usePropertyManager(
+    existingAlert?.properties || [
+      { property: "windSpeed", range: 2 },
+      { property: "windDirection", range: 10 },
+      { property: "swellHeight", range: 0.2 },
+      { property: "swellPeriod", range: 1 },
+      { property: "swellDirection", range: 10 },
+    ]
+  );
 
-  // Add this function to update property values
-  const updateProperty = (index: number, key: string, value: any) => {
-    setAlertConfig((prev) => {
-      const updatedProperties = [...(prev.properties || [])];
-      updatedProperties[index] = {
-        ...updatedProperties[index],
-        [key]: value,
-      };
-      return {
-        ...prev,
-        properties: updatedProperties,
-      };
-    });
-  };
-
-  // Add this function to remove a property
-  const removeProperty = (index: number) => {
-    setAlertConfig((prev) => {
-      const updatedProperties = [...(prev.properties || [])];
-      updatedProperties.splice(index, 1);
-      return {
-        ...prev,
-        properties: updatedProperties,
-      };
-    });
-  };
-
-  // Add this function to add a new property
-  const addProperty = () => {
-    // Check which properties are already in use
-    const usedProperties = new Set(
-      (alertConfig.properties || []).map((p) => p.property)
-    );
-
-    // Define available properties
-    const availableProperties = [
-      "windSpeed",
-      "windDirection",
-      "swellHeight",
-      "swellPeriod",
-      "swellDirection",
-    ];
-
-    // Find the first property that's not already in use
-    const availableProperty =
-      availableProperties.find((p) => !usedProperties.has(p)) || "windSpeed";
-
+  // Update alertConfig when properties change
+  useEffect(() => {
     setAlertConfig((prev) => ({
       ...prev,
-      properties: [
-        ...(prev.properties || []),
-        {
-          property: availableProperty,
-          range: getPropertyConfig(availableProperty).step * 10,
-        },
-      ],
+      properties,
     }));
-  };
+  }, [properties]);
+
+  // When a log entry is selected, update the alert type based on the log's rating
+  useEffect(() => {
+    if (selectedLogEntry) {
+      setAlertConfig((prev) => ({
+        ...prev,
+        region: selectedLogEntry.region || prev.region,
+        logEntryId: selectedLogEntry.id,
+        // If the log has a rating, default to rating-based alert
+        alertType: selectedLogEntry.surferRating ? "rating" : prev.alertType,
+        starRating:
+          selectedLogEntry.surferRating && selectedLogEntry.surferRating >= 5
+            ? "5"
+            : selectedLogEntry.surferRating &&
+                selectedLogEntry.surferRating >= 4
+              ? "4+"
+              : prev.starRating,
+      }));
+    }
+  }, [selectedLogEntry]);
+
+  // Add React Query caching
+  const { data: alert, isLoading } = useQuery({
+    queryKey: ["alert", alertConfig.id],
+    queryFn: () => fetchAlert(alertConfig.id),
+    staleTime: 30000, // Consider data fresh for 30 seconds
+    gcTime: 5 * 60 * 1000, // Keep in cache for 5 minutes
+  });
 
   return (
     <Dialog
@@ -903,7 +1022,7 @@ export default function ForecastAlertModal({
                     setAlertConfig({
                       ...alertConfig,
                       region: value,
-                      forecastDate: undefined,
+                      forecastDate: new Date(),
                     });
                   }}
                   className="w-full p-2 border rounded-md font-primary border-gray-300"
@@ -949,7 +1068,7 @@ export default function ForecastAlertModal({
                     console.log("Date selected:", value);
                     setAlertConfig({
                       ...alertConfig,
-                      forecastDate: value ? new Date(value) : undefined,
+                      forecastDate: value ? new Date(value) : new Date(),
                     });
                   }}
                   className="w-full p-2 border rounded-md font-primary border-gray-300"
@@ -1048,10 +1167,10 @@ export default function ForecastAlertModal({
               <RadioGroup
                 value={alertType}
                 onValueChange={(value) => {
-                  setAlertType(value as "variables" | "rating");
+                  setAlertType(value as AlertType);
                   setAlertConfig({
                     ...alertConfig,
-                    alertType: value as "variables" | "rating",
+                    alertType: value as AlertType,
                   });
                 }}
                 className="flex flex-col space-y-2"
@@ -1092,129 +1211,104 @@ export default function ForecastAlertModal({
                   Set Accuracy Range
                 </Label>
                 <div className="space-y-4">
-                  {alertConfig.properties.map((prop, index) => (
-                    <div key={index} className="mb-4 p-4 border rounded-md">
-                      <div className="flex justify-between items-center mb-2">
-                        <Label className="font-primary">
-                          Property {index + 1}
-                        </Label>
+                  {properties.map((prop, index) => (
+                    <div
+                      key={index}
+                      className="space-y-2 p-4 border rounded-md bg-[var(--color-bg-secondary)] border-[var(--color-border-light)]"
+                    >
+                      <div className="flex justify-between items-center">
+                        <Select
+                          value={prop.property}
+                          onValueChange={(value) =>
+                            updateProperty({
+                              index,
+                              key: "property",
+                              value: value as ForecastProperty,
+                            })
+                          }
+                        >
+                          <SelectTrigger className="font-primary">
+                            <SelectValue>
+                              {
+                                forecastProperties.find(
+                                  (fp) => fp.id === prop.property
+                                )?.name
+                              }
+                            </SelectValue>
+                          </SelectTrigger>
+                          <SelectContent>
+                            {forecastProperties.map((forecastProp) => (
+                              <SelectItem
+                                key={forecastProp.id}
+                                value={forecastProp.id}
+                                className="font-primary"
+                              >
+                                {forecastProp.name}
+                              </SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
                         <Button
                           variant="ghost"
                           size="sm"
                           onClick={() => removeProperty(index)}
-                          className="h-8 w-8 p-0"
+                          className="h-8 w-8 p-0 text-red-500 hover:text-red-700 hover:bg-red-50"
                         >
-                          <X className="h-4 w-4" />
+                          ✕
                         </Button>
                       </div>
-                      <div className="space-y-4">
-                        <div>
-                          <Label className="font-primary">Property Type</Label>
-                          <Select
-                            value={prop.property}
-                            onValueChange={(value) =>
-                              updateProperty(index, "property", value)
-                            }
-                          >
-                            <SelectTrigger className="font-primary">
-                              <SelectValue>
-                                {prop.property === "windSpeed"
-                                  ? "Wind Speed"
-                                  : prop.property === "windDirection"
-                                    ? "Wind Direction"
-                                    : prop.property === "swellHeight"
-                                      ? "Swell Height"
-                                      : prop.property === "swellPeriod"
-                                        ? "Swell Period"
-                                        : prop.property === "swellDirection"
-                                          ? "Swell Direction"
-                                          : "Select property"}
-                              </SelectValue>
-                            </SelectTrigger>
-                            <SelectContent>
-                              <SelectItem
-                                value="windSpeed"
-                                className="font-primary"
-                              >
-                                Wind Speed
-                              </SelectItem>
-                              <SelectItem
-                                value="windDirection"
-                                className="font-primary"
-                              >
-                                Wind Direction
-                              </SelectItem>
-                              <SelectItem
-                                value="swellHeight"
-                                className="font-primary"
-                              >
-                                Swell Height
-                              </SelectItem>
-                              <SelectItem
-                                value="swellPeriod"
-                                className="font-primary"
-                              >
-                                Swell Period
-                              </SelectItem>
-                              <SelectItem
-                                value="swellDirection"
-                                className="font-primary"
-                              >
-                                Swell Direction
-                              </SelectItem>
-                            </SelectContent>
-                          </Select>
-                        </div>
 
-                        <div>
-                          <div className="flex justify-between">
-                            <Label className="font-primary">
-                              Variation Range: ±{prop.range}
-                              {prop.property === "windSpeed"
-                                ? " knots"
-                                : prop.property === "windDirection" ||
-                                    prop.property === "swellDirection"
-                                  ? "°"
-                                  : prop.property === "swellHeight"
-                                    ? " m"
-                                    : prop.property === "swellPeriod"
-                                      ? " s"
-                                      : ""}
-                            </Label>
-                            <span className="text-xs text-gray-500 font-primary">
-                              {getPropertyConfig(prop.property).step} increments
-                            </span>
-                          </div>
-                          <Slider
-                            min={0}
-                            max={100}
-                            step={1}
-                            value={[prop.range]}
-                            onValueChange={(value) =>
-                              updateProperty(index, "range", value[0])
+                      <div className="mt-2">
+                        <div className="flex justify-between items-center">
+                          <Label className="font-primary">
+                            Variation Range: ±{prop.range}
+                            {
+                              forecastProperties.find(
+                                (fp) => fp.id === prop.property
+                              )?.unit
                             }
-                            className="mt-2 [&>[role=slider]]:border-2 [&>[role=slider]]:border-primary"
-                          />
-                          {forecastData && (
-                            <div className="text-xs text-gray-500 mt-1 font-primary">
-                              Reference Value: {forecastData[prop.property]}
-                              {getPropertyConfig(prop.property).unit}
-                            </div>
-                          )}
-                          {forecastData && (
-                            <div className="text-xs text-gray-500 mt-1 font-primary">
-                              Range:{" "}
-                              {(
-                                forecastData[prop.property] - prop.range
-                              ).toFixed(1)}{" "}
-                              -
-                              {(
-                                forecastData[prop.property] + prop.range
-                              ).toFixed(1)}
-                              {getPropertyConfig(prop.property).unit}
-                            </div>
-                          )}
+                          </Label>
+                          <span className="text-xs text-gray-500 font-primary">
+                            {getPropertyConfig(prop.property).step} increments
+                          </span>
                         </div>
+                        <Slider
+                          min={0}
+                          max={getPropertyConfig(prop.property).maxRange}
+                          step={getPropertyConfig(prop.property).step}
+                          value={[prop.range]}
+                          onValueChange={(value) =>
+                            updateProperty({
+                              index,
+                              key: "range",
+                              value: value[0],
+                            })
+                          }
+                          className="mt-2"
+                        />
+                        {selectedLogEntry?.forecast && (
+                          <div className="text-xs text-[var(--color-text-secondary)] font-primary mt-1">
+                            Range:{" "}
+                            {(
+                              getForecastPropertyValue(
+                                selectedLogEntry.forecast,
+                                prop.property
+                              ) - prop.range
+                            ).toFixed(1)}
+                            -{" "}
+                            {(
+                              getForecastPropertyValue(
+                                selectedLogEntry.forecast,
+                                prop.property
+                              ) + prop.range
+                            ).toFixed(1)}{" "}
+                            {
+                              forecastProperties.find(
+                                (fp) => fp.id === prop.property
+                              )?.unit
+                            }
+                          </div>
+                        )}
                       </div>
                     </div>
                   ))}
@@ -1287,81 +1381,125 @@ export default function ForecastAlertModal({
               </div>
             )}
 
-            {/* Notification Method Select */}
+            {/* Notification Method Checkboxes */}
             <div className="space-y-2">
               <Label className="font-primary">Notification Method</Label>
-              <Select
-                value={alertConfig.notificationMethod}
-                onValueChange={(value: string) =>
-                  setAlertConfig((prev) => ({
-                    ...prev,
-                    notificationMethod: value as "email" | "whatsapp" | "both",
-                  }))
-                }
-              >
-                <SelectTrigger className="font-primary">
-                  <SelectValue>
-                    {alertConfig.notificationMethod === "email"
-                      ? "Email"
-                      : alertConfig.notificationMethod === "whatsapp"
-                        ? "WhatsApp"
-                        : alertConfig.notificationMethod === "both"
-                          ? "Both"
-                          : "Select notification method"}
-                  </SelectValue>
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="email" className="font-primary">
+              <div className="space-y-2">
+                <div className="flex items-center space-x-2">
+                  <Checkbox
+                    id="app-notification"
+                    checked={alertConfig.notificationMethod === "app"}
+                    onCheckedChange={(checked) => {
+                      if (checked) {
+                        setAlertConfig((prev) => ({
+                          ...prev,
+                          notificationMethod: "app",
+                        }));
+                      }
+                    }}
+                  />
+                  <Label
+                    htmlFor="app-notification"
+                    className="font-primary cursor-pointer"
+                  >
+                    In-App Notification
+                  </Label>
+                </div>
+
+                <div className="flex items-center space-x-2">
+                  <Checkbox
+                    id="email-notification"
+                    checked={alertConfig.notificationMethod === "email"}
+                    onCheckedChange={(checked) => {
+                      if (checked) {
+                        setAlertConfig((prev) => ({
+                          ...prev,
+                          notificationMethod: "email",
+                        }));
+                      }
+                    }}
+                  />
+                  <Label
+                    htmlFor="email-notification"
+                    className="font-primary cursor-pointer"
+                  >
                     Email
-                  </SelectItem>
-                  <SelectItem value="whatsapp" className="font-primary">
-                    WhatsApp
-                  </SelectItem>
-                  <SelectItem value="both" className="font-primary">
-                    Both
-                  </SelectItem>
-                </SelectContent>
-              </Select>
+                  </Label>
+                </div>
+
+                <div className="flex items-center space-x-2">
+                  <Checkbox
+                    id="whatsapp-notification"
+                    checked={alertConfig.notificationMethod === "whatsapp"}
+                    disabled={true}
+                    onCheckedChange={(checked) => {
+                      if (checked) {
+                        setAlertConfig((prev) => ({
+                          ...prev,
+                          notificationMethod: "whatsapp",
+                        }));
+                      }
+                    }}
+                  />
+                  <Label
+                    htmlFor="whatsapp-notification"
+                    className="font-primary cursor-pointer text-gray-400"
+                  >
+                    WhatsApp (Coming Soon)
+                  </Label>
+                </div>
+
+                <div className="flex items-center space-x-2">
+                  <Label
+                    htmlFor="both-notification"
+                    className="font-primary cursor-pointer text-gray-400"
+                  >
+                    Both (Coming Soon)
+                  </Label>
+                </div>
+              </div>
             </div>
 
-            {/* Step 6: Contact Info */}
-            <div className="space-y-2">
-              <Label
-                htmlFor="contact-info"
-                className="font-primary flex items-center"
-              >
-                <span className="bg-gray-200 text-gray-700 rounded-full w-5 h-5 inline-flex items-center justify-center mr-2 text-xs">
-                  {!logEntry && !isEditing && !selectedLogEntry
-                    ? "8"
-                    : selectedLogEntry || logEntry
-                      ? "5"
-                      : "7"}
-                </span>
-                {alertConfig.notificationMethod === "email"
-                  ? "Email Address"
-                  : alertConfig.notificationMethod === "whatsapp"
-                    ? "WhatsApp Number"
-                    : "Email & WhatsApp"}
-              </Label>
-              <Input
-                id="contact-info"
-                value={alertConfig.contactInfo || ""}
-                onChange={(e) =>
-                  setAlertConfig({
-                    ...alertConfig,
-                    contactInfo: e.target.value,
-                  })
-                }
-                placeholder={
-                  alertConfig.notificationMethod === "email"
-                    ? "you@example.com"
+            {/* Step 6: Contact Info - Only show for email/WhatsApp */}
+            {alertConfig.notificationMethod !== "app" && (
+              <div className="space-y-2">
+                <Label
+                  htmlFor="contact-info"
+                  className="font-primary flex items-center"
+                >
+                  <span className="bg-gray-200 text-gray-700 rounded-full w-5 h-5 inline-flex items-center justify-center mr-2 text-xs">
+                    {!logEntry && !isEditing && !selectedLogEntry
+                      ? "8"
+                      : selectedLogEntry || logEntry
+                        ? "5"
+                        : "7"}
+                  </span>
+                  {alertConfig.notificationMethod === "email"
+                    ? "Email Address"
                     : alertConfig.notificationMethod === "whatsapp"
-                      ? "+1234567890"
-                      : "email@example.com, +1234567890"
-                }
-                className="font-primary border-gray-300"
-              />
-            </div>
+                      ? "WhatsApp Number"
+                      : "Email & WhatsApp"}
+                </Label>
+                <Input
+                  id="contact-info"
+                  value={alertConfig.contactInfo || ""}
+                  onChange={(e) =>
+                    setAlertConfig({
+                      ...alertConfig,
+                      contactInfo: e.target.value,
+                    })
+                  }
+                  placeholder={
+                    alertConfig.notificationMethod === "email"
+                      ? "you@example.com"
+                      : alertConfig.notificationMethod === "whatsapp"
+                        ? "+1234567890"
+                        : "email@example.com, +1234567890"
+                  }
+                  className="font-primary border-gray-300"
+                />
+              </div>
+            )}
 
             {/* Alert Status Toggle */}
             <div className="flex items-center space-x-3 p-4 bg-gray-50 rounded-lg border border-gray-100">
@@ -1399,7 +1537,7 @@ export default function ForecastAlertModal({
             {/* Log Entry Details */}
             {logEntry && (
               <div className="mt-2 p-3 bg-blue-50 border border-blue-200 rounded-md">
-                <p className="text-sm font-primary text-blue-700 flex items-center">
+                <p className="text-sm font-primary text-black flex items-center">
                   <InfoIcon className="w-4 h-4 mr-2" />
                   This alert is based on {logEntry.surferName}'s log entry for{" "}
                   {logEntry.beachName}
@@ -1415,127 +1553,6 @@ export default function ForecastAlertModal({
               </div>
             )}
           </div>
-
-          {/* Property sliders with improved styling */}
-          <Slider
-            min={0}
-            max={100}
-            step={1}
-            value={[alertConfig.properties[0].range]}
-            onValueChange={(value) => updateProperty(0, "range", value[0])}
-            className="mt-2 [&>[role=slider]]:border-2 [&>[role=slider]]:border-primary"
-          />
-
-          {/* Property cards with better contrast */}
-          <div className="mb-4 p-4 bg-white border border-gray-200 rounded-md shadow-sm hover:border-primary/30 transition-colors">
-            <div className="flex justify-between items-center mb-2">
-              <Label className="font-primary">Property 1</Label>
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={() => removeProperty(0)}
-                className="h-8 w-8 p-0"
-              >
-                <X className="h-4 w-4" />
-              </Button>
-            </div>
-            <div className="space-y-4">
-              <div>
-                <Label className="font-primary">Property Type</Label>
-                <Select
-                  value={alertConfig.properties[0].property}
-                  onValueChange={(value) =>
-                    updateProperty(0, "property", value)
-                  }
-                >
-                  <SelectTrigger className="font-primary">
-                    <SelectValue>
-                      {alertConfig.properties[0].property === "windSpeed"
-                        ? "Wind Speed"
-                        : alertConfig.properties[0].property === "windDirection"
-                          ? "Wind Direction"
-                          : alertConfig.properties[0].property === "swellHeight"
-                            ? "Swell Height"
-                            : alertConfig.properties[0].property ===
-                                "swellPeriod"
-                              ? "Swell Period"
-                              : alertConfig.properties[0].property ===
-                                  "swellDirection"
-                                ? "Swell Direction"
-                                : "Select property"}
-                    </SelectValue>
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="windSpeed" className="font-primary">
-                      Wind Speed
-                    </SelectItem>
-                    <SelectItem value="windDirection" className="font-primary">
-                      Wind Direction
-                    </SelectItem>
-                    <SelectItem value="swellHeight" className="font-primary">
-                      Swell Height
-                    </SelectItem>
-                    <SelectItem value="swellPeriod" className="font-primary">
-                      Swell Period
-                    </SelectItem>
-                    <SelectItem value="swellDirection" className="font-primary">
-                      Swell Direction
-                    </SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-
-              <div>
-                <div className="flex justify-between">
-                  <Label className="font-primary">
-                    Variation Range: ±{alertConfig.properties[0].range}
-                  </Label>
-                  <span className="text-xs text-gray-500 font-primary">
-                    1 increments
-                  </span>
-                </div>
-                <Slider
-                  min={0}
-                  max={100}
-                  step={1}
-                  value={[alertConfig.properties[0].range]}
-                  onValueChange={(value) =>
-                    updateProperty(0, "range", value[0])
-                  }
-                  className="mt-2 [&>[role=slider]]:border-2 [&>[role=slider]]:border-primary"
-                />
-              </div>
-            </div>
-          </div>
-
-          {/* Radio buttons with improved visual hierarchy */}
-          <RadioGroup
-            value={alertType}
-            onValueChange={(value) => {
-              setAlertType(value as "variables" | "rating");
-              setAlertConfig({
-                ...alertConfig,
-                alertType: value as "variables" | "rating",
-              } as Partial<AlertConfigTypes>);
-            }}
-            className="space-y-3"
-          >
-            <div className="flex items-center space-x-3 p-4 bg-white border border-gray-200 rounded-md shadow-sm hover:border-primary/30 transition-colors">
-              <RadioGroupItem value="variables" id="variables" />
-              <Label
-                htmlFor="variables"
-                className="font-primary cursor-pointer"
-              >
-                Set Forecast Variables
-              </Label>
-            </div>
-            <div className="flex items-center space-x-3 p-4 bg-white border border-gray-200 rounded-md shadow-sm hover:border-primary/30 transition-colors">
-              <RadioGroupItem value="rating" id="rating" />
-              <Label htmlFor="rating" className="font-primary cursor-pointer">
-                Set Star Rating
-              </Label>
-            </div>
-          </RadioGroup>
 
           {/* Forecast data display with better visual hierarchy */}
           <div className="space-y-2 border rounded-md p-4 bg-blue-50/50 border-blue-100">
@@ -1568,37 +1585,7 @@ export default function ForecastAlertModal({
           </div>
 
           {/* Alert status with improved visibility */}
-          <div className="flex items-center space-x-3 p-4 bg-gray-50 rounded-lg border border-gray-100">
-            <Button
-              type="button"
-              variant={alertConfig.active ? "default" : "outline"}
-              onClick={() =>
-                setAlertConfig({
-                  ...alertConfig,
-                  active: !alertConfig.active,
-                })
-              }
-              className={cn(
-                "font-primary transition-colors",
-                alertConfig.active
-                  ? "bg-primary hover:bg-primary/90"
-                  : "border-2 border-gray-200"
-              )}
-            >
-              <Bell
-                className={cn(
-                  "w-4 h-4 mr-2",
-                  alertConfig.active ? "fill-current" : ""
-                )}
-              />
-              {alertConfig.active ? "Active" : "Inactive"}
-            </Button>
-            <span className="text-sm text-gray-500 font-primary">
-              {alertConfig.active
-                ? "You will receive notifications"
-                : "Notifications are disabled"}
-            </span>
-          </div>
+          <div className="flex items-center space-x-3 p-4 bg-gray-50 rounded-lg border border-gray-100"></div>
         </div>
 
         <DialogFooter className="border-t bg-gray-50 p-4 rounded-b-lg">

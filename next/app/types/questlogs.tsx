@@ -4,29 +4,35 @@ import {
   getSwellEmoji,
   getDirectionEmoji,
 } from "../lib/forecastUtils";
-import type { Beach } from "@/app/types/beaches";
+
 import { Prisma } from "@prisma/client";
-import type { ForecastA } from "@prisma/client";
+import type { Beach, ForecastA } from "@prisma/client";
 import type { Alert } from "./alerts";
 
 export interface LogEntry {
   id: string;
-  userId?: string;
+  userId: string | null;
   nationality?: string;
   user?: {
     id: string;
     nationality?: string;
   };
-  date: Date;
+  date: string | Date;
   sessionDate?: Date;
-  surferName: string;
-  surferEmail: string;
-  beachName: string;
-  beachId: string;
-  forecast: ForecastA | null;
+  surferName: string | null;
+  surferEmail: string | null;
+  beachName?: string | null;
+  beachId?: string | null;
+  forecast?: {
+    windSpeed: number;
+    windDirection: number;
+    swellHeight: number;
+    swellPeriod: number;
+    swellDirection: number;
+  } | null;
   surferRating: number;
-  comments: string;
-  imageUrl: string;
+  comments: string | null;
+  imageUrl: string | null;
   isPrivate: boolean;
   createdAt: Date;
   updatedAt: Date;
@@ -34,12 +40,12 @@ export interface LogEntry {
   windDirection?: number;
   swellHeight?: number;
   swellDirection?: number;
-  beach: Beach;
+  beach?: Beach | null;
   isAnonymous: boolean;
-  continent: string;
-  country: string;
-  region: string;
-  waveType: string;
+  continent: string | null;
+  country: string | null;
+  region: string | null;
+  waveType: string | null;
   hasAlert?: boolean;
   alertId?: string;
   existingAlert?: Alert | null;

@@ -4,28 +4,25 @@ import { RentalItemRequest } from "@prisma/client";
 
 const resend = new Resend(process.env.RESEND_API_KEY);
 
+// Initialize SendGrid with your API key
 sgMail.setApiKey(process.env.SENDGRID_API_KEY!);
 
-export async function sendEmail({
-  to,
-  subject,
-  html,
-}: {
-  to: string;
-  subject: string;
-  html: string;
-}) {
+export async function sendEmail(
+  to: string,
+  subject: string,
+  html: string
+): Promise<boolean> {
   try {
-    const { data } = await resend.emails.send({
-      from: "Tide Raider <admin@tideraider.com>",
+    await sgMail.send({
       to,
+      from: process.env.SENDGRID_FROM_EMAIL!, // Verified sender email
       subject,
       html,
     });
-    return { success: true, data };
+    return true;
   } catch (error) {
-    console.error("Email error:", error);
-    throw error;
+    console.error("SendGrid error:", error);
+    return false;
   }
 }
 

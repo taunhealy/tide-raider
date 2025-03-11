@@ -22,13 +22,16 @@ import { ActiveSubscriptionView } from "@/components/subscription/ActiveSubscrip
 import { ChevronRightIcon } from "@heroicons/react/24/outline";
 import Link from "next/link";
 import { RoleManager } from "@/app/components/dashboard/RoleManager";
+import { Bell } from "lucide-react";
+import NotificationBadge from "@/app/components/notifications/NotificationBadge";
+import NotificationsContainer from "@/app/components/notifications/NotificationsContainer";
 
 export default function DashboardPage() {
   const router = useRouter();
   const { data: session, update } = useSession();
   const { trialStatus, trialEndDate } = useSubscription();
   const [activeTab, setActiveTab] = useState<
-    "account" | "billing" | "rentals" | "ads" | "alerts"
+    "account" | "billing" | "rentals" | "ads" | "alerts" | "notifications"
   >("account");
   const [username, setUsername] = useState<string>("");
   const queryClient = useQueryClient();
@@ -284,6 +287,16 @@ export default function DashboardPage() {
               className="w-full sm:w-auto font-primary"
             >
               Alerts
+            </Button>
+            <Button
+              variant={activeTab === "notifications" ? "default" : "outline"}
+              onClick={() => setActiveTab("notifications")}
+              className="w-full sm:w-auto font-primary relative"
+            >
+              Notifications
+              <div className="absolute -top-2 -right-2">
+                <NotificationBadge />
+              </div>
             </Button>
           </div>
 
@@ -622,6 +635,12 @@ export default function DashboardPage() {
                     </Button>
                   </div>
                 )}
+              </div>
+            )}
+
+            {activeTab === "notifications" && (
+              <div className="space-y-4">
+                <NotificationsContainer />
               </div>
             )}
           </div>

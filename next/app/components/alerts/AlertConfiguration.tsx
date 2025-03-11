@@ -21,6 +21,11 @@ import {
 } from "../ui/card";
 import { AlertConfigTypes, AlertConfig } from "@/app/types/alerts";
 import { ForecastProperty, AlertStarRating } from "@/app/types/alerts";
+import { Checkbox } from "../ui/checkbox";
+import { RadioGroup, RadioGroupItem } from "../ui/radio-group";
+import { StarIcon } from "lucide-react";
+
+import { NotificationMethod } from "@/app/types/alerts";
 
 interface AlertConfigurationProps {
   onSave: (config: AlertConfigTypes) => void;
@@ -39,12 +44,14 @@ interface AlertConfigurationProps {
   isEmbedded?: boolean;
 }
 
-const forecastProperties = [
+const forecastProperties: Array<{
+  id: ForecastProperty;
+  name: string;
+  unit: string;
+  maxRange: number;
+}> = [
   { id: "windSpeed", name: "Wind Speed", unit: "knots", maxRange: 15 },
   { id: "windDirection", name: "Wind Direction", unit: "°", maxRange: 45 },
-  { id: "waveHeight", name: "Wave Height", unit: "m", maxRange: 1 },
-  { id: "wavePeriod", name: "Wave Period", unit: "s", maxRange: 4 },
-  { id: "temperature", name: "Temperature", unit: "°C", maxRange: 5 },
   { id: "swellHeight", name: "Swell Height", unit: "m", maxRange: 2 },
   { id: "swellPeriod", name: "Swell Period", unit: "s", maxRange: 5 },
   { id: "swellDirection", name: "Swell Direction", unit: "°", maxRange: 45 },
@@ -63,15 +70,14 @@ export function AlertConfiguration({
       region: selectedLogEntry?.region || "",
       notificationMethod: (existingConfig?.notificationMethod || "email") as
         | "email"
-        | "whatsapp"
-        | "both",
+        | "whatsapp",
       contactInfo: "",
       active: true,
       forecastDate: new Date(),
-      alertType: "variables",
+      alertType: existingConfig?.alertType || "variables",
       userId: "",
       logEntryId: null,
-      starRating: null,
+      starRating: existingConfig?.starRating || null,
       forecast: null,
       logEntry: null,
       forecastId: null,
@@ -213,167 +219,262 @@ export function AlertConfiguration({
           )}
         </div>
 
-        <div className="space-y-4">
-          <div className="flex justify-between items-center">
-            <Label className="font-primary">Forecast Properties</Label>
-            <Button
-              type="button"
-              variant="outline"
-              size="sm"
-              onClick={addProperty}
-              className="font-primary"
-            >
-              Add Property
-            </Button>
-          </div>
-
-          {alertConfig.properties.map((prop, index) => (
-            <div
-              key={index}
-              className="space-y-2 p-4 border rounded-md bg-[var(--color-bg-secondary)] border-[var(--color-border-light)]"
-            >
-              <div className="flex justify-between items-center">
-                <Label className="font-primary text-[var(--color-text-primary)]">
-                  Property {index + 1}
-                </Label>
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  onClick={() => removeProperty(index)}
-                  className="h-8 w-8 p-0 text-red-500 hover:text-red-700 hover:bg-red-50"
-                >
-                  ✕
-                </Button>
-              </div>
-
-              <Select
-                value={prop.property}
-                onValueChange={(value) =>
-                  handlePropertyChange(index, "property", value)
-                }
+        <div className="space-y-2">
+          <Label className="font-primary">Alert Type</Label>
+          <RadioGroup
+            value={alertConfig.alertType}
+            onValueChange={(value) => {
+              setAlertConfig({
+                ...alertConfig,
+                alertType: value as "variables" | "rating",
+              });
+            }}
+            className="flex flex-col space-y-2"
+          >
+            <div className="flex items-center space-x-2">
+              <RadioGroupItem value="variables" id="variables" />
+              <Label
+                htmlFor="variables"
+                className="font-primary cursor-pointer"
               >
-                <SelectTrigger className="font-primary">
-                  <SelectValue>
-                    {forecastProperties.find((fp) => fp.id === prop.property)
-                      ?.name || "Select property"}
-                  </SelectValue>
-                </SelectTrigger>
-                <SelectContent>
-                  {forecastProperties.map((forecastProp) => (
-                    <SelectItem
-                      key={forecastProp.id}
-                      value={forecastProp.id}
-                      className="font-primary"
-                    >
-                      {forecastProp.name}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-
-              <div className="mt-2">
-                <div className="flex justify-between items-center">
-                  <Label className="font-primary">
-                    Variation Range: ±{prop.range}
-                    {
-                      forecastProperties.find((fp) => fp.id === prop.property)
-                        ?.unit
-                    }
-                  </Label>
-                  <span className="text-xs text-gray-500 font-primary">
-                    {getPropertyConfig(prop.property).step} increments
-                  </span>
-                </div>
-                <Slider
-                  min={0}
-                  max={getPropertyConfig(prop.property).maxRange}
-                  step={getPropertyConfig(prop.property).step}
-                  value={[prop.range]}
-                  onValueChange={(value) =>
-                    handlePropertyChange(index, "range", value[0])
-                  }
-                  className="mt-2"
-                />
-                {selectedLogEntry?.forecast && (
-                  <div className="text-xs text-[var(--color-text-secondary)] font-primary mt-1">
-                    Range:{" "}
-                    {(
-                      selectedLogEntry.forecast[prop.property] - prop.range
-                    ).toFixed(1)}
-                    -{" "}
-                    {(
-                      selectedLogEntry.forecast[prop.property] + prop.range
-                    ).toFixed(1)}{" "}
-                    {
-                      forecastProperties.find((fp) => fp.id === prop.property)
-                        ?.unit
-                    }
-                  </div>
-                )}
-              </div>
+                Set Forecast Variables
+              </Label>
             </div>
-          ))}
+            <div className="flex items-center space-x-2">
+              <RadioGroupItem value="rating" id="rating" />
+              <Label htmlFor="rating" className="font-primary cursor-pointer">
+                Set Star Rating
+              </Label>
+            </div>
+          </RadioGroup>
         </div>
+
+        {alertConfig.alertType === "variables" ? (
+          <div className="space-y-4">
+            <div className="flex justify-between items-center">
+              <Label className="font-primary">Forecast Properties</Label>
+              <Button
+                type="button"
+                variant="outline"
+                size="sm"
+                onClick={addProperty}
+                className="font-primary"
+              >
+                Add Property
+              </Button>
+            </div>
+
+            {alertConfig.properties.map((prop, index) => (
+              <div
+                key={index}
+                className="space-y-2 p-4 border rounded-md bg-[var(--color-bg-secondary)] border-[var(--color-border-light)]"
+              >
+                <div className="flex justify-between items-center">
+                  <Label className="font-primary text-[var(--color-text-primary)]">
+                    Property {index + 1}
+                  </Label>
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => removeProperty(index)}
+                    className="h-8 w-8 p-0 text-red-500 hover:text-red-700 hover:bg-red-50"
+                  >
+                    ✕
+                  </Button>
+                </div>
+
+                <Select
+                  value={prop.property}
+                  onValueChange={(value) =>
+                    handlePropertyChange(index, "property", value)
+                  }
+                >
+                  <SelectTrigger className="font-primary">
+                    <SelectValue>
+                      {forecastProperties.find((fp) => fp.id === prop.property)
+                        ?.name || "Select property"}
+                    </SelectValue>
+                  </SelectTrigger>
+                  <SelectContent>
+                    {forecastProperties.map((forecastProp) => (
+                      <SelectItem
+                        key={forecastProp.id}
+                        value={forecastProp.id}
+                        className="font-primary"
+                      >
+                        {forecastProp.name}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+
+                <div className="mt-2">
+                  <div className="flex justify-between items-center">
+                    <Label className="font-primary">
+                      Variation Range: ±{prop.range}
+                      {
+                        forecastProperties.find((fp) => fp.id === prop.property)
+                          ?.unit
+                      }
+                    </Label>
+                    <span className="text-xs text-gray-500 font-primary">
+                      {getPropertyConfig(prop.property).step} increments
+                    </span>
+                  </div>
+                  <Slider
+                    min={0}
+                    max={getPropertyConfig(prop.property).maxRange}
+                    step={getPropertyConfig(prop.property).step}
+                    value={[prop.range]}
+                    onValueChange={(value) =>
+                      handlePropertyChange(index, "range", value[0])
+                    }
+                    className="mt-2"
+                  />
+                  {selectedLogEntry?.forecast && (
+                    <div className="text-xs text-[var(--color-text-secondary)] font-primary mt-1">
+                      Range:{" "}
+                      {(
+                        selectedLogEntry.forecast[prop.property] - prop.range
+                      ).toFixed(1)}
+                      -{" "}
+                      {(
+                        selectedLogEntry.forecast[prop.property] + prop.range
+                      ).toFixed(1)}{" "}
+                      {
+                        forecastProperties.find((fp) => fp.id === prop.property)
+                          ?.unit
+                      }
+                    </div>
+                  )}
+                </div>
+              </div>
+            ))}
+          </div>
+        ) : (
+          <div className="space-y-2">
+            <Label className="font-primary">Select Star Rating</Label>
+            <RadioGroup
+              value={alertConfig.starRating || "4+"}
+              onValueChange={(value) => {
+                setAlertConfig({
+                  ...alertConfig,
+                  starRating: value as "4+" | "5",
+                });
+              }}
+              className="flex flex-col space-y-2"
+            >
+              <div className="flex items-center space-x-2 p-3 border rounded-md hover:bg-gray-50 cursor-pointer">
+                <RadioGroupItem value="4+" id="four-plus" />
+                <Label
+                  htmlFor="four-plus"
+                  className="font-primary cursor-pointer flex items-center"
+                >
+                  <div className="flex">
+                    {[1, 2, 3, 4].map((i) => (
+                      <StarIcon
+                        key={i}
+                        className="h-5 w-5 fill-yellow-400 text-yellow-400"
+                      />
+                    ))}
+                    <StarIcon className="h-5 w-5 text-gray-300" />
+                  </div>
+                  <span className="ml-2">4+ Stars (Good conditions)</span>
+                </Label>
+              </div>
+              <div className="flex items-center space-x-2 p-3 border rounded-md hover:bg-gray-50 cursor-pointer">
+                <RadioGroupItem value="5" id="five" />
+                <Label
+                  htmlFor="five"
+                  className="font-primary cursor-pointer flex items-center"
+                >
+                  <div className="flex">
+                    {[1, 2, 3, 4, 5].map((i) => (
+                      <StarIcon
+                        key={i}
+                        className="h-5 w-5 fill-yellow-400 text-yellow-400"
+                      />
+                    ))}
+                  </div>
+                  <span className="ml-2">5 Stars (Perfect conditions)</span>
+                </Label>
+              </div>
+            </RadioGroup>
+            <p className="text-sm text-gray-500 font-primary mt-2">
+              You'll be notified when the beach conditions match your selected
+              star rating.
+            </p>
+          </div>
+        )}
 
         <div className="space-y-2">
           <Label className="font-primary">Notification Method</Label>
-          <Select
-            value={alertConfig.notificationMethod}
-            onValueChange={(value: string) =>
-              setAlertConfig({
-                ...alertConfig,
-                notificationMethod: value as "email" | "whatsapp" | "both",
-              })
-            }
-          >
-            <SelectTrigger className="font-primary">
-              <SelectValue>
-                {alertConfig.notificationMethod === "email"
-                  ? "Email"
-                  : alertConfig.notificationMethod === "whatsapp"
-                    ? "WhatsApp"
-                    : alertConfig.notificationMethod === "both"
-                      ? "Both"
-                      : "Select notification method"}
-              </SelectValue>
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="email" className="font-primary">
-                Email
-              </SelectItem>
-              <SelectItem value="whatsapp" className="font-primary">
-                WhatsApp
-              </SelectItem>
-              <SelectItem value="both" className="font-primary">
-                Both
-              </SelectItem>
-            </SelectContent>
-          </Select>
-        </div>
+          <div className="space-y-2">
+            <div className="flex items-center space-x-2">
+              <Checkbox
+                id="app-notification"
+                checked={alertConfig.notificationMethod === "app"}
+                onCheckedChange={(checked) => {
+                  if (checked) {
+                    setAlertConfig((prev) => ({
+                      ...prev,
+                      notificationMethod: "app" as NotificationMethod,
+                      contactInfo: "", // Clear contact info as it's not needed for in-app
+                    }));
+                  }
+                }}
+              />
+              <Label
+                htmlFor="app-notification"
+                className="font-primary cursor-pointer"
+              >
+                In-App Notification
+              </Label>
+            </div>
 
-        <div className="space-y-2">
-          <Label htmlFor="contact-info" className="font-primary">
-            {alertConfig.notificationMethod === "email"
-              ? "Email Address"
-              : alertConfig.notificationMethod === "whatsapp"
-                ? "WhatsApp Number"
-                : "Email & WhatsApp"}
-          </Label>
-          <Input
-            id="contact-info"
-            value={alertConfig.contactInfo}
-            onChange={(e) =>
-              setAlertConfig({ ...alertConfig, contactInfo: e.target.value })
-            }
-            placeholder={
-              alertConfig.notificationMethod === "email"
-                ? "you@example.com"
-                : alertConfig.notificationMethod === "whatsapp"
-                  ? "+1234567890"
-                  : "email@example.com, +1234567890"
-            }
-            className="font-primary"
-          />
+            <div className="flex items-center space-x-2">
+              <Checkbox
+                id="email-notification"
+                checked={alertConfig.notificationMethod === "email"}
+                onCheckedChange={(checked) => {
+                  if (checked) {
+                    setAlertConfig((prev) => ({
+                      ...prev,
+                      notificationMethod: "email" as NotificationMethod,
+                    }));
+                  }
+                }}
+              />
+              <Label
+                htmlFor="email-notification"
+                className="font-primary cursor-pointer"
+              >
+                Email
+              </Label>
+            </div>
+
+            <div className="flex items-center space-x-2">
+              <Checkbox
+                id="whatsapp-notification"
+                checked={alertConfig.notificationMethod === "whatsapp"}
+                disabled={true}
+                onCheckedChange={(checked) => {
+                  if (checked) {
+                    setAlertConfig((prev) => ({
+                      ...prev,
+                      notificationMethod: "whatsapp" as NotificationMethod,
+                    }));
+                  }
+                }}
+              />
+              <Label
+                htmlFor="whatsapp-notification"
+                className="font-primary cursor-pointer text-gray-400"
+              >
+                WhatsApp (Coming Soon)
+              </Label>
+            </div>
+          </div>
         </div>
 
         <div className="flex items-center space-x-2">
@@ -390,7 +491,6 @@ export function AlertConfiguration({
         </div>
       </CardContent>
 
-      {/* Only show the Save Alert button if not embedded in RaidLogForm */}
       {!isEmbedded && (
         <CardFooter>
           <Button

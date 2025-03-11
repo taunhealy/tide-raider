@@ -1,4 +1,4 @@
-import { LogEntry } from "./questlogs";
+import { LogEntry } from "@/app/types/questlogs";
 import type { ForecastA } from "@prisma/client";
 
 export type ForecastProperty =
@@ -13,13 +13,15 @@ export type ForecastProperty =
 
 export type AlertStarRating = "4+" | "5";
 
+export type NotificationMethod = "email" | "whatsapp" | "app";
+
 export interface Alert {
   id: string;
   name: string;
   region: string;
   forecastDate: Date;
   properties: AlertProperty[];
-  notificationMethod: "email" | "whatsapp" | "both";
+  notificationMethod: NotificationMethod;
   contactInfo: string;
   active: boolean;
   userId: string;
@@ -39,11 +41,12 @@ export interface AlertProperty {
 }
 
 export interface AlertConfig {
+  id: string;
   name: string;
   region: string;
   forecastDate: Date;
   properties: AlertProperty[];
-  notificationMethod: "email" | "whatsapp" | "both";
+  notificationMethod: NotificationMethod;
   contactInfo: string;
   active: boolean;
   logEntryId: string | null;
@@ -51,6 +54,7 @@ export interface AlertConfig {
   starRating: "4+" | "5" | null;
   forecast: ForecastA | null;
   forecastId: string | null;
+  userId: string;
 }
 
 // Use this for creating/updating alerts

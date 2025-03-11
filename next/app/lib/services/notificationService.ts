@@ -1,106 +1,100 @@
-import { AlertConfig } from "@/app/components/alerts/AlertConfiguration";
-import { AlertMatch } from "@/lib/services/alertMatchingService";
+import { Alert } from "@prisma/client";
+import { AlertMatch } from "./alertProcessor";
+import { prisma } from "@/app/lib/prisma";
+import { NotificationMethod } from "@/app/types/alerts";
 
 export async function sendAlertNotification(
   alertMatch: AlertMatch,
-  alertConfig: AlertConfig
+  alert: Alert,
+  beachName: string = "Unknown location"
 ): Promise<boolean> {
   try {
+    // Get the associated LogEntry's beach information if it exists
+    const logEntry = alert.logEntryId
+      ? await prisma.logEntry.findUnique({
+          where: { id: alert.logEntryId },
+          select: {
+            beachId: true,
+            beachName: true, // Also get the beach name from LogEntry
+            beach: {
+              // Get beach info as fallback
+              select: {
+                name: true,
+              },
+            },
+          },
+        })
+      : null;
+
+    // Use the beach name from LogEntry, or from the beach relation, or fallback to parameter
+    const resolvedBeachName =
+      logEntry?.beachName || logEntry?.beach?.name || beachName;
+
     // Prepare notification message
-    const message = createNotificationMessage(alertMatch);
+    const message = createNotificationMessage(alertMatch, resolvedBeachName);
 
-    // Send notifications based on user preference
-    if (
-      alertConfig.notificationMethod === "email" ||
-      alertConfig.notificationMethod === "both"
-    ) {
-      await sendEmail(alertConfig.contactInfo, alertMatch.alertName, message);
+    // Send notification based on user preference
+    switch (alert.notificationMethod as NotificationMethod) {
+      case "email":
+        const { sendEmail } = await import("@/app/lib/email");
+        await sendEmail(alert.contactInfo, alertMatch.alertName, message);
+        break;
+      case "whatsapp":
+        const { sendWhatsAppMessage } = await import("@/app/lib/messagebird");
+        await sendWhatsAppMessage(alert.contactInfo, message);
+        break;
+      case "app":
+        // First create the AlertNotification record
+        const alertNotification = await prisma.alertNotification.create({
+          data: {
+            alertId: alert.id,
+            alertName: alertMatch.alertName,
+            region: alertMatch.region,
+            beachId: logEntry?.beachId ?? null,
+            beachName: resolvedBeachName, // Use the resolved beach name
+            success: true,
+            details: message,
+            // Create the associated Notification record in the same transaction
+            notifications: {
+              create: {
+                userId: alert.userId,
+                type: "ALERT",
+                title: `${alertMatch.alertName} - Conditions Match!`,
+                message: message,
+                read: false,
+              },
+            },
+          },
+          include: {
+            notifications: true,
+          },
+        });
+        break;
+      default:
+        throw new Error(
+          `Unknown notification method: ${alert.notificationMethod}`
+        );
     }
 
-    if (
-      alertConfig.notificationMethod === "whatsapp" ||
-      alertConfig.notificationMethod === "both"
-    ) {
-      await sendWhatsApp(alertConfig.contactInfo, message);
-    }
+    // Record this check in the database
+    await prisma.alertCheck.create({
+      data: {
+        alertId: alert.id,
+        success: true,
+        details: `Notification sent via ${alert.notificationMethod}`,
+      },
+    });
 
     return true;
   } catch (error) {
-    console.error("Failed to send notification:", error);
+    console.error("Error sending alert notification:", error);
     return false;
   }
 }
 
-function createNotificationMessage(alertMatch: AlertMatch): string {
-  const { alertName, region, timestamp, matchedProperties } = alertMatch;
-
-  // Format timestamp
-  const date = new Date(timestamp);
-  const formattedDate = date.toLocaleDateString();
-  const formattedTime = date.toLocaleTimeString();
-
-  // Create message
-  let message = `🎯 Alert Match: ${alertName}\n`;
-  message += `📍 Region: ${region}\n`;
-  message += `🕒 Time: ${formattedDate} ${formattedTime}\n\n`;
-  message += `Matched Conditions:\n`;
-
-  // Add each matched property
-  matchedProperties.forEach((prop) => {
-    const propertyName = formatPropertyName(prop.property);
-    message += `- ${propertyName}: Log value ${prop.logValue} matches forecast ${prop.forecastValue}\n`;
-  });
-
-  message += `\nYour logged conditions matched the forecast within your specified accuracy ranges.`;
-
-  return message;
-}
-
-function formatPropertyName(property: string): string {
-  // Convert camelCase to Title Case with spaces
-  const formatted = property.replace(/([A-Z])/g, " $1");
-  return formatted.charAt(0).toUpperCase() + formatted.slice(1);
-}
-
-async function sendEmail(
-  email: string,
-  subject: string,
-  message: string
-): Promise<void> {
-  // This would connect to your email service provider
-  // For example, using SendGrid, Mailgun, AWS SES, etc.
-  console.log(`Sending email to ${email}`);
-  console.log(`Subject: ${subject}`);
-  console.log(`Message: ${message}`);
-
-  // Example implementation with a hypothetical email API
-  // const response = await fetch('https://your-email-api.com/send', {
-  //   method: 'POST',
-  //   headers: { 'Content-Type': 'application/json' },
-  //   body: JSON.stringify({ to: email, subject, message })
-  // });
-  // return response.ok;
-
-  // For now, we'll just simulate success
-  return Promise.resolve();
-}
-
-async function sendWhatsApp(
-  phoneNumber: string,
-  message: string
-): Promise<void> {
-  // This would connect to WhatsApp Business API or a service like Twilio
-  console.log(`Sending WhatsApp to ${phoneNumber}`);
-  console.log(`Message: ${message}`);
-
-  // Example implementation with a hypothetical WhatsApp API
-  // const response = await fetch('https://your-whatsapp-api.com/send', {
-  //   method: 'POST',
-  //   headers: { 'Content-Type': 'application/json' },
-  //   body: JSON.stringify({ to: phoneNumber, message })
-  // });
-  // return response.ok;
-
-  // For now, we'll just simulate success
-  return Promise.resolve();
+function createNotificationMessage(
+  alertMatch: AlertMatch,
+  beachName: string
+): string {
+  return `Good news! Conditions at ${beachName} in ${alertMatch.region} match your alert criteria.`;
 }

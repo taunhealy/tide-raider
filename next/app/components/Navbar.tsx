@@ -11,6 +11,7 @@ import { useState } from "react";
 import { handleSignIn } from "../lib/auth-utils";
 import RaidLink from "./RaidLink";
 import Image from "next/image";
+import NotificationBadge from "./notifications/NotificationBadge";
 
 const NAVIGATION_ITEMS = [
   { href: "/rentals", label: "Rentals" },
@@ -88,7 +89,7 @@ export default function Navbar() {
                 <div className="relative">
                   <button
                     onClick={() => setIsProfileOpen(!isProfileOpen)}
-                    className="flex items-center gap-2 p-1 hover:bg-gray-100 rounded-full"
+                    className="flex items-center gap-2 p-1 hover:bg-gray-100 rounded-full relative"
                   >
                     <Image
                       src={session.user?.image || "/default-avatar.png"}
@@ -97,6 +98,7 @@ export default function Navbar() {
                       height={32}
                       className="rounded-full"
                     />
+                    <NotificationBadge />
                   </button>
 
                   {isProfileOpen && (
@@ -107,6 +109,13 @@ export default function Navbar() {
                         onClick={() => setIsProfileOpen(false)}
                       >
                         Dashboard
+                      </Link>
+                      <Link
+                        href="/dashboard/notifications"
+                        className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 font-primary"
+                        onClick={() => setIsProfileOpen(false)}
+                      >
+                        Notifications
                       </Link>
                       <Link
                         href={`/profile/${session.user.id}`}
@@ -209,6 +218,19 @@ export default function Navbar() {
                       )}
                     >
                       Dashboard
+                    </Link>
+                    <div className="border-t border-[var(--color-border-light)] mt-3" />
+                  </li>
+                  <li className="px-2 py-3">
+                    <Link
+                      href="/dashboard/notifications"
+                      onClick={() => setIsMenuOpen(false)}
+                      className={cn(
+                        "block font-primary text-[var(--color-text-primary)] hover:text-[var(--color-text-primary)] hover:font-semibold",
+                        "transition-all duration-300"
+                      )}
+                    >
+                      Notifications
                     </Link>
                     <div className="border-t border-[var(--color-border-light)] mt-3" />
                   </li>

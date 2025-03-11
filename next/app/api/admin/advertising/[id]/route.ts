@@ -26,12 +26,24 @@ export async function POST(
         data: { status: "active" },
       });
 
-      // Send approval email
-      await sendEmail({
-        to: adRequest.contactEmail,
-        subject: "Your Ad Request Has Been Approved",
-        html: `Your advertisement request for ${adRequest.title} has been approved.`,
+      // Create notification for approval
+      await prisma.notification.create({
+        data: {
+          userId: adRequest.userId ?? "",
+          type: "AD",
+          title: "Ad Request Approved",
+          message: `Your advertisement "${adRequest.title || adRequest.companyName}" has been approved and is now active.`,
+          read: false,
+          adRequestId: adRequest.id,
+        },
       });
+
+      // Send approval email
+      await sendEmail(
+        adRequest.contactEmail,
+        "Your Ad Request Has Been Approved",
+        `Your advertisement request for ${adRequest.title} has been approved.`
+      );
     } else {
       await prisma.adRequest.update({
         where: { id: params.id },
@@ -41,15 +53,24 @@ export async function POST(
         },
       });
 
-      // Send rejection email
-      await sendEmail({
-        to: adRequest.contactEmail,
-        subject: "Your Ad Request Status",
-        html: adRejectionTemplate(
-          adRequest.title || adRequest.companyName,
-          reason
-        ),
+      // Create notification for rejection
+      await prisma.notification.create({
+        data: {
+          userId: adRequest.userId ?? "",
+          type: "AD",
+          title: "Ad Request Rejected",
+          message: `Your advertisement "${adRequest.title || adRequest.companyName}" has been rejected. Reason: ${reason}`,
+          read: false,
+          adRequestId: adRequest.id,
+        },
       });
+
+      // Send rejection email
+      await sendEmail(
+        adRequest.contactEmail,
+        "Your Ad Request Status",
+        adRejectionTemplate(adRequest.title || adRequest.companyName, reason)
+      );
     }
 
     return NextResponse.json({ success: true });

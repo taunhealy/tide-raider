@@ -6,7 +6,6 @@ export async function checkAlertConditions(alertId: string) {
   const alert = await prisma.alert.findUnique({
     where: { id: alertId },
     include: {
-      properties: true,
       logEntry: {
         include: { forecast: true },
       },
@@ -26,7 +25,9 @@ export async function checkAlertConditions(alertId: string) {
   if (!forecast) return false;
 
   // Check if all conditions are met
-  return alert.properties?.every((condition) => {
+  return (
+    alert.properties as Array<{ property: string; range: number }>
+  )?.every((condition) => {
     const forecastValue = forecast[condition.property as keyof ForecastA];
     return (
       typeof forecastValue === "number" && forecastValue >= condition.range

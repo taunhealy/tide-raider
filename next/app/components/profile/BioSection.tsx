@@ -4,7 +4,7 @@ import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 import confetti from "canvas-confetti";
 import Textarea from "../ui/Textarea";
-import Input from "../ui/input";
+import { Input } from "../ui/input";
 import { Button } from "../ui/button";
 
 export default function BioSection({

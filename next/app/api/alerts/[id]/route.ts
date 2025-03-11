@@ -44,11 +44,21 @@ export async function PUT(
     const data = await req.json();
     const dateOnly = new Date(data.forecastDate).toISOString().split("T")[0];
 
+    // Remove fields that shouldn't be directly updated
+    const { logEntry, logEntryId, forecast, forecastId, id, ...updateData } =
+      data;
+
     const alert = await prisma.alert.update({
       where: { id: params.id },
       data: {
-        ...data,
+        ...updateData,
         forecastDate: new Date(dateOnly),
+        // Use connect if you need to update relationships
+        ...(logEntryId && {
+          logEntry: {
+            connect: { id: logEntryId },
+          },
+        }),
       },
     });
 

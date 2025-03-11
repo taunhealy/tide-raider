@@ -29,7 +29,9 @@ export default function QuestLogSidebar() {
       : [];
 
   const highRatedEntries = entries
-    .filter((entry: LogEntry) => entry.surferRating >= 4 && entry.imageUrl)
+    .filter(
+      (entry: LogEntry) => (entry.surferRating || 0) >= 4 && entry.imageUrl
+    )
     .slice(0, 3);
 
   if (!highRatedEntries || highRatedEntries.length === 0) {
@@ -93,7 +95,7 @@ export default function QuestLogSidebar() {
                       key={rating}
                       className={cn(
                         "w-4 h-4",
-                        rating <= entry.surferRating
+                        rating <= (entry.surferRating || 0)
                           ? "fill-yellow-400"
                           : "fill-gray-200"
                       )}

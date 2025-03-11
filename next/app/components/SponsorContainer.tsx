@@ -87,7 +87,7 @@ const SponsorContainer = () => {
                     <span
                       key={i}
                       className={`text-[12px] ${
-                        i < Math.floor(recentLog.surferRating)
+                        i < Math.floor(recentLog.surferRating ?? 0)
                           ? "opacity-100"
                           : "opacity-20"
                       }`}
@@ -103,9 +103,9 @@ const SponsorContainer = () => {
                 {recentLog?.forecast && (
                   <>
                     <div className="text-[12px] text-[var(--color-text-secondary)]">
-                      {getWindEmoji(recentLog.forecast.windSpeed)}{" "}
+                      {getWindEmoji(Number(recentLog.forecast.windSpeed))}{" "}
                       {degreesToCardinal(
-                        parseFloat(recentLog.forecast.windDirection)
+                        Number(recentLog.forecast.windDirection)
                       )}{" "}
                       @ {recentLog.forecast.windSpeed}kts
                     </div>

@@ -54,7 +54,7 @@ export const RaidLogsComponent: React.FC<RaidLogsComponentProps> = ({
   const [isPrivate, setIsPrivate] = useState(
     initialFilters?.isPrivate ?? false
   );
-  const [isFormOpen, setIsFormOpen] = useState(false);
+  const [isModalOpen, setIsModalOpen] = useState(false);
   const [selectedBeach, setSelectedBeach] = useState<Beach | null>(null);
 
   const handleFilterChange = useCallback(
@@ -212,7 +212,7 @@ export const RaidLogsComponent: React.FC<RaidLogsComponentProps> = ({
                   if (!session?.user) {
                     handleSignIn("/raidlogs/new");
                   } else {
-                    router.push("/raidlogs/new");
+                    setIsModalOpen(true);
                   }
                 }}
               >
@@ -262,8 +262,11 @@ export const RaidLogsComponent: React.FC<RaidLogsComponentProps> = ({
         onClose={() => setIsFilterOpen(false)}
       />
       <RaidLogForm
-        isOpen={isFormOpen}
-        onClose={() => setIsFormOpen(false)}
+        isOpen={isModalOpen}
+        onClose={() => {
+          setIsModalOpen(false);
+          console.log("Closing modal");
+        }}
         beaches={beaches}
       />
 

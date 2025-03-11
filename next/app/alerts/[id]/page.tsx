@@ -5,10 +5,8 @@ import { useRouter, useParams } from "next/navigation";
 import { useSession } from "next-auth/react";
 import { toast } from "sonner";
 import ForecastAlertModal from "@/app/components/alerts/ForecastAlertModal";
-import { AlertConfigTypes } from "@/app/types/alerts";
 import { RandomLoader } from "@/app/components/ui/RandomLoader";
-import { Skeleton } from "@/app/components/ui/Skeleton";
-import { AlertConfig } from "@/app/components/alerts/AlertConfiguration";
+import { AlertConfig } from "@/app/types/alerts";
 
 export default function AlertPage() {
   const router = useRouter();
@@ -76,7 +74,7 @@ export default function AlertPage() {
   if (isLoading) {
     return (
       <div className="flex flex-col items-center justify-center h-screen">
-        <RandomLoader />
+        <RandomLoader isLoading={true} />
         <p className="mt-4 text-gray-600 font-primary">Loading alert...</p>
       </div>
     );
@@ -101,7 +99,7 @@ export default function AlertPage() {
       isOpen={isModalOpen}
       onClose={handleClose}
       logEntry={null}
-      existingAlert={alert}
+      existingAlert={alert || undefined}
       onSaved={handleSaved}
       isNew={alertId === "new"}
     />

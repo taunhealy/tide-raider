@@ -43,7 +43,7 @@ export function QuestLogModal({
                 <Star
                   key={rating}
                   className={`w-5 h-5 ${
-                    rating <= session.surferRating
+                    rating <= (session.surferRating ?? 0)
                       ? "text-[var(--color-tertiary)] fill-current"
                       : "text-gray-300"
                   }`}

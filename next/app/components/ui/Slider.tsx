@@ -113,7 +113,9 @@ export const Slider = React.forwardRef<HTMLDivElement, SliderProps>(
         {values.map((value, index) => (
           <div
             key={index}
-            ref={(el) => (thumbRefs.current[index] = el)}
+            ref={(el: HTMLDivElement | null) => {
+              thumbRefs.current[index] = el;
+            }}
             className={cn(
               "absolute block h-5 w-5 rounded-full border-2 border-primary bg-background",
               "transition-colors focus-visible:outline-none focus-visible:ring-2",

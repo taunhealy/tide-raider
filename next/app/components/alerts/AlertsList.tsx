@@ -14,8 +14,9 @@ import ForecastAlertModal from "./ForecastAlertModal";
 import { toast } from "sonner";
 import { useQuery, useQueryClient, useMutation } from "@tanstack/react-query";
 import { Loader2 } from "lucide-react";
-import { LogEntry } from "@/types/questlogs";
-import { AlertConfig } from "./AlertConfiguration";
+
+import { Alert, AlertConfig } from "@/app/types/alerts";
+import { LogEntry } from "@prisma/client";
 
 type ForecastProperty =
   | "windSpeed"
@@ -43,7 +44,7 @@ const getForecastProperty = (prop: string): ForecastProperty => {
 
 export function AlertsList() {
   const [isModalOpen, setIsModalOpen] = useState(false);
-  const [selectedAlert, setSelectedAlert] = useState<AlertConfig | undefined>(
+  const [selectedAlert, setSelectedAlert] = useState<Alert | undefined>(
     undefined
   );
   const [selectedLogEntry, setSelectedLogEntry] = useState<LogEntry | null>(
@@ -58,7 +59,9 @@ export function AlertsList() {
   const { data: alerts, isLoading } = useQuery({
     queryKey: ["alerts"],
     queryFn: async () => {
-      const response = await fetch("/api/alerts?include=logEntry.forecast");
+      const response = await fetch(
+        "/api/alerts?include=logEntry.forecast,logEntry.beach"
+      );
       if (!response.ok) {
         throw new Error("Failed to fetch alerts");
       }
@@ -123,7 +126,7 @@ export function AlertsList() {
   });
 
   const handleEditClick = (alertId: string) => {
-    const alert = alerts?.find((a: AlertConfig) => a.id === alertId);
+    const alert = alerts?.find((a: Alert) => a.id === alertId);
     setSelectedAlert(alert);
     setIsModalOpen(true);
   };
@@ -204,7 +207,7 @@ export function AlertsList() {
   }
 
   // Filter alerts based on active tab
-  const filteredAlerts = alerts.filter((alert: AlertConfig) => {
+  const filteredAlerts = alerts.filter((alert: Alert) => {
     if (activeTab === "all") return true;
     if (activeTab === "variable") return alert.alertType !== "rating";
     if (activeTab === "rating") return alert.alertType === "rating";
@@ -238,10 +241,7 @@ export function AlertsList() {
           >
             Variable Alerts
             <span className="ml-2 text-xs bg-[var(--color-bg-secondary)] px-2 py-1 rounded-full">
-              {
-                alerts.filter((a: AlertConfig) => a.alertType !== "rating")
-                  .length
-              }
+              {alerts.filter((a: Alert) => a.alertType !== "rating").length}
             </span>
           </button>
           <button
@@ -254,10 +254,7 @@ export function AlertsList() {
           >
             Star Rating Alerts
             <span className="ml-2 text-xs bg-[var(--color-bg-secondary)] px-2 py-1 rounded-full">
-              {
-                alerts.filter((a: AlertConfig) => a.alertType === "rating")
-                  .length
-              }
+              {alerts.filter((a: Alert) => a.alertType === "rating").length}
             </span>
           </button>
         </div>
@@ -281,7 +278,7 @@ export function AlertsList() {
             </Button>
           </div>
         ) : (
-          filteredAlerts.map((alert: AlertConfig) => (
+          filteredAlerts.map((alert: Alert) => (
             <Card
               key={alert.id}
               className="bg-[var(--color-bg-primary)] border-[var(--color-border-light)] hover:border-[var(--color-border-medium)] hover:shadow-sm transition-all duration-300 h-full flex flex-col"
@@ -389,7 +386,7 @@ export function AlertsList() {
                         </p>
                         <div className="space-y-4">
                           {/* Reference Forecast Section */}
-                          {alert.logEntry && (
+                          {alert.logEntry && alert.logEntry.forecast && (
                             <div className="bg-[var(--color-bg-secondary)] p-3 rounded-md">
                               <p className="text-sm font-medium mb-2">
                                 Reference Conditions:

@@ -20,7 +20,7 @@ import { ForecastData } from "@/types/wind";
 import Link from "next/link";
 import BeachDetailsModal from "@/app/components/BeachDetailsModal";
 import { beachData, type Beach } from "@/app/types/beaches";
-import { AlertConfigTypes } from "@/app/types/alerts";
+import { AlertConfig, AlertConfigTypes } from "@/app/types/alerts";
 import { v4 as uuidv4 } from "uuid";
 import {
   Dialog,
@@ -43,7 +43,7 @@ import {
 import { useToast } from "@/app/components/ui/use-toast";
 import { Button } from "@/components/ui/button";
 import ForecastAlertModal from "@/app/components/alerts/ForecastAlertModal";
-import { AlertConfig } from "../alerts/AlertConfiguration";
+
 import { ForecastA } from "@prisma/client";
 
 interface QuestTableProps {
@@ -58,16 +58,27 @@ interface QuestTableProps {
 }
 
 interface LogEntryDisplayProps {
-  entry: LogEntry;
+  entry: {
+    user?: {
+      id: string;
+      nationality?: string;
+      name?: string;
+    };
+    surferName?: string | null;
+  };
   isAnonymous: boolean;
 }
 
 function LogEntryDisplay({ entry, isAnonymous }: LogEntryDisplayProps) {
-  const displayName = isAnonymous ? "Anonymous" : entry.surferName;
+  // Prioritize the user's current name from the User relation
+  const displayName = isAnonymous
+    ? "Anonymous"
+    : (entry.user?.name ?? entry.surferName); // Use nullish coalescing
+
   return (
     <div className="flex items-center gap-2">
       <Link
-        href={isAnonymous ? "#" : `/profile/${entry.userId}`}
+        href={isAnonymous ? "#" : `/profile/${entry.user?.id}`}
         className={cn(
           "font-primary hover:text-brand-3 transition-colors",
           isAnonymous ? "text-gray-900 cursor-default" : "text-gray-900"
@@ -82,7 +93,20 @@ function LogEntryDisplay({ entry, isAnonymous }: LogEntryDisplayProps) {
   );
 }
 
-function ForecastInfo({ forecast }: { forecast: ForecastA | null }) {
+function ForecastInfo({
+  forecast,
+}: {
+  forecast:
+    | {
+        windSpeed?: number;
+        windDirection?: number;
+        swellHeight?: number;
+        swellPeriod?: number;
+        swellDirection?: number;
+      }
+    | null
+    | undefined;
+}) {
   if (!forecast) return null;
 
   // Ensure we have valid numeric values
@@ -210,6 +234,12 @@ const normalizeLogEntry = (entry: LogEntry): LogEntry => {
     hasAlert: entry.hasAlert ?? false,
     isMyAlert: entry.isMyAlert ?? false,
     alertId: entry.alertId ?? "",
+    user: entry.user
+      ? {
+          id: entry.user.id,
+          nationality: entry.user.nationality,
+        }
+      : undefined,
   };
 };
 
@@ -457,19 +487,13 @@ export default function RaidLogTable({
         {/* Mobile View - Cards */}
         <div className="md:hidden space-y-4">
           {filteredEntries.map((entry) => {
-            console.log("[TableDebug] Processing entry:", {
-              id: entry.id,
-              beachName: entry.beachName,
-              forecast: entry.forecast,
-            });
-
             return (
               <div
                 key={entry.id}
                 className="bg-white rounded-lg border border-gray-200 shadow p-3 sm:p-4 space-y-2 sm:space-y-3"
               >
-                <div className="flex flex-col sm:flex-row sm:justify-between sm:items-start gap-2 sm:gap-0">
-                  <div>
+                <div className="flex justify-between items-start gap-2">
+                  <div className="flex-grow">
                     <h3 className="text-sm sm:text-base font-medium">
                       {entry.beachName}
                     </h3>
@@ -480,7 +504,57 @@ export default function RaidLogTable({
                       {entry.region}
                     </p>
                   </div>
-                  <StarRating rating={entry.surferRating} />
+                  {session?.user?.email === entry.surferEmail && (
+                    <div className="flex gap-2">
+                      <button
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          handleEdit(entry);
+                        }}
+                        className="text-gray-500 hover:text-[var(--color-text-primary)]"
+                      >
+                        <Pencil className="w-4 h-4" />
+                      </button>
+                      <button
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          handleAlertClick(entry);
+                        }}
+                        className={cn(
+                          "text-gray-500 hover:text-[var(--color-alert-icon-rating)]"
+                        )}
+                      >
+                        <Bell
+                          className={cn(
+                            "w-4 h-4 cursor-pointer",
+                            entry.hasAlert
+                              ? entry.isMyAlert
+                                ? "text-[var(--color-alert-icon-rating)] fill-[var(--color-alert-icon-rating)]"
+                                : "text-[var(--color-alert-icon-rating)] fill-none hover:text-[var(--color-alert-icon-rating)]"
+                              : "text-gray-500 fill-none hover:text-[var(--color-alert-icon-rating)]"
+                          )}
+                        />
+                      </button>
+                      <button
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          handleDelete(entry.id);
+                        }}
+                        className="text-gray-500 hover:text-red-600"
+                        disabled={deleteMutation.isPending}
+                      >
+                        {deleteMutation.isPending ? (
+                          <span className="loading-spinner" />
+                        ) : (
+                          <X className="w-4 h-4" />
+                        )}
+                      </button>
+                    </div>
+                  )}
+                </div>
+
+                <div className="flex items-center gap-2">
+                  <StarRating rating={entry.surferRating ?? 0} />
                 </div>
 
                 <div className="text-sm">
@@ -572,7 +646,7 @@ export default function RaidLogTable({
                           />
                         </td>
                         <td className="px-4 py-4 sm:px-6 min-w-[140px]">
-                          <StarRating rating={entry.surferRating} />
+                          <StarRating rating={entry.surferRating ?? 0} />
                         </td>
                         <td className="px-4 py-4 sm:px-6 min-w-[200px]">
                           <ForecastInfo forecast={entry.forecast} />

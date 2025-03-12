@@ -20,7 +20,7 @@ import {
 } from "@/app/components/ui/Dialog";
 import { Input } from "@/app/components/ui/Input";
 import { Label } from "@/app/components/ui/Label";
-import { Slider } from "@/app/components/ui/slider";
+import { Slider } from "@/app/components/ui/Slider";
 import {
   Select,
   SelectContent,
@@ -42,7 +42,6 @@ import {
 } from "lucide-react";
 import { format } from "date-fns";
 import { cn } from "@/app/lib/utils";
-import { CustomCalendar } from "@/app/components/ui/custom-calendar";
 import { useQueryClient } from "@tanstack/react-query";
 import { Skeleton } from "@/app/components/ui/Skeleton";
 import { ScrollArea } from "@/app/components/ui/scroll-area";

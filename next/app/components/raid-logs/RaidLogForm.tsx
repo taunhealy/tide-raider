@@ -1,6 +1,6 @@
 "use client";
 import { useState, useEffect } from "react";
-import { Star, Search, X, Upload, Lock, Bell } from "lucide-react";
+import { Star, Search, X, Lock, Bell } from "lucide-react";
 import { useMutation, useQueryClient, useQuery } from "@tanstack/react-query";
 import { cn } from "@/app/lib/utils";
 import type { Beach } from "@/app/types/beaches";
@@ -17,16 +17,9 @@ import { useRouter } from "next/navigation";
 import { signIn } from "next-auth/react";
 import { format } from "date-fns";
 import { toast } from "sonner";
-import { Dialog, DialogContent } from "@/app/components/ui/Dialog";
 import { useForecast } from "@/app/hooks/useForecast";
 import { AlertConfiguration } from "../alerts/AlertConfiguration";
-import {
-  Alert,
-  AlertConfigTypes,
-  ForecastProperty,
-  NotificationMethod,
-} from "@/app/types/alerts";
-import { Checkbox } from "@/app/components/ui/Checkbox";
+import { AlertConfigTypes, ForecastProperty } from "@/app/types/alerts";
 
 interface RaidLogFormProps {
   userEmail?: string;

@@ -16,7 +16,7 @@ import { useHandleTrial } from "@/app/hooks/useHandleTrial";
 import { useRouter } from "next/navigation";
 import { signIn } from "next-auth/react";
 import { format } from "date-fns";
-import { useToast } from "@/app/components/ui/use-toast";
+import { toast } from "sonner";
 import { Dialog, DialogContent } from "@/app/components/ui/Dialog";
 import { useForecast } from "@/app/hooks/useForecast";
 import { AlertConfiguration } from "../alerts/AlertConfiguration";
@@ -94,7 +94,6 @@ export function RaidLogForm({
     forecastId: null,
     userId: session?.user?.id || "",
   });
-  const { toast } = useToast();
 
   // Add this query to fetch the alert
   const { data: existingAlert } = useQuery({
@@ -175,20 +174,14 @@ export function RaidLogForm({
             throw new Error("Failed to create alert");
           }
 
-          toast({
-            title: "Alert Created",
-            description:
-              "You'll be notified when forecast conditions match this session.",
-          });
+          toast.success(
+            "You'll be notified when forecast conditions match this session."
+          );
 
           queryClient.invalidateQueries({ queryKey: ["alerts"] });
         } catch (error) {
           console.error("Error creating alert:", error);
-          toast({
-            title: "Alert Creation Failed",
-            description: "Could not create alert. Please try again.",
-            variant: "destructive",
-          });
+          toast.error("Could not create alert. Please try again.");
         }
       }
 

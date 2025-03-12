@@ -16,7 +16,6 @@ import {
   DialogFooter,
   DialogHeader,
   DialogTitle,
-  DialogTrigger,
 } from "@/app/components/ui/Dialog";
 import { Input } from "@/app/components/ui/Input";
 import { Label } from "@/app/components/ui/Label";
@@ -386,7 +385,7 @@ export default function ForecastAlertModal({
             contactInfo: existingAlert.contactInfo || session?.user.email || "",
             notificationMethod: (existingAlert.notificationMethod ||
               "app") as NotificationMethod,
-          }) as AlertConfig
+          } as AlertConfig)
       );
 
       // Set properties
@@ -421,7 +420,7 @@ export default function ForecastAlertModal({
             contactInfo: existingAlert?.contactInfo || session.user.email || "",
             notificationMethod: (existingAlert?.notificationMethod ||
               "app") as NotificationMethod,
-          }) as AlertConfig
+          } as AlertConfig)
       );
     }
   }, [session, existingAlert]);
@@ -431,7 +430,9 @@ export default function ForecastAlertModal({
     if (selectedLogEntry && !isEditing) {
       setAlertConfig((prev) => ({
         ...prev,
-        name: `Alert for ${selectedLogEntry.beachName || selectedLogEntry.region}`,
+        name: `Alert for ${
+          selectedLogEntry.beachName || selectedLogEntry.region
+        }`,
         region: selectedLogEntry.region || "",
         logEntryId: selectedLogEntry.id,
         // Automatically set the forecast date to the log entry's date
@@ -616,8 +617,8 @@ export default function ForecastAlertModal({
         typeof date === "string"
           ? date
           : date instanceof Date && !isNaN(date.getTime())
-            ? date.toISOString().split("T")[0]
-            : "";
+          ? date.toISOString().split("T")[0]
+          : "";
     } catch (error) {
       console.error("Invalid date format:", date, error);
       dateStr = "";
@@ -641,7 +642,9 @@ export default function ForecastAlertModal({
       console.log(`Fetching forecast for ${region} on ${dateStr}`);
       // Use the existing raid-logs/forecast endpoint instead
       const response = await fetch(
-        `/api/raid-logs/forecast?region=${encodeURIComponent(region)}&date=${encodeURIComponent(dateStr)}`
+        `/api/raid-logs/forecast?region=${encodeURIComponent(
+          region
+        )}&date=${encodeURIComponent(dateStr)}`
       );
 
       if (!response.ok) {
@@ -847,9 +850,9 @@ export default function ForecastAlertModal({
           selectedLogEntry.surferRating && selectedLogEntry.surferRating >= 5
             ? "5"
             : selectedLogEntry.surferRating &&
-                selectedLogEntry.surferRating >= 4
-              ? "4+"
-              : prev.starRating,
+              selectedLogEntry.surferRating >= 4
+            ? "4+"
+            : prev.starRating,
       }));
     }
   }, [selectedLogEntry]);
@@ -877,15 +880,15 @@ export default function ForecastAlertModal({
             {existingAlert
               ? "Edit Alert"
               : logEntry
-                ? `Create Alert from ${logEntry.beachName}'s Log`
-                : "Create New Alert"}
+              ? `Create Alert from ${logEntry.beachName}'s Log`
+              : "Create New Alert"}
           </DialogTitle>
           <DialogDescription className="font-primary">
             {existingAlert
               ? "Modify your existing alert settings"
               : logEntry
-                ? "Create an alert based on these logged conditions"
-                : "Set up a new alert for specific conditions"}
+              ? "Create an alert based on these logged conditions"
+              : "Set up a new alert for specific conditions"}
           </DialogDescription>
         </DialogHeader>
 
@@ -1153,8 +1156,8 @@ export default function ForecastAlertModal({
                   {!logEntry && !isEditing && !selectedLogEntry
                     ? "5"
                     : selectedLogEntry || logEntry
-                      ? "2"
-                      : "4"}
+                    ? "2"
+                    : "4"}
                 </span>
                 Alert Type
               </Label>
@@ -1199,8 +1202,8 @@ export default function ForecastAlertModal({
                     {!logEntry && !isEditing && !selectedLogEntry
                       ? "6"
                       : selectedLogEntry || logEntry
-                        ? "3"
-                        : "5"}
+                      ? "3"
+                      : "5"}
                   </span>
                   Set Accuracy Range
                 </Label>
@@ -1316,8 +1319,8 @@ export default function ForecastAlertModal({
                     {!logEntry && !isEditing && !selectedLogEntry
                       ? "6"
                       : selectedLogEntry || logEntry
-                        ? "3"
-                        : "5"}
+                      ? "3"
+                      : "5"}
                   </span>
                   Select Star Rating
                 </Label>
@@ -1465,14 +1468,14 @@ export default function ForecastAlertModal({
                     {!logEntry && !isEditing && !selectedLogEntry
                       ? "8"
                       : selectedLogEntry || logEntry
-                        ? "5"
-                        : "7"}
+                      ? "5"
+                      : "7"}
                   </span>
                   {alertConfig.notificationMethod === "email"
                     ? "Email Address"
                     : alertConfig.notificationMethod === "whatsapp"
-                      ? "WhatsApp Number"
-                      : "Email & WhatsApp"}
+                    ? "WhatsApp Number"
+                    : "Email & WhatsApp"}
                 </Label>
                 <Input
                   id="contact-info"
@@ -1487,8 +1490,8 @@ export default function ForecastAlertModal({
                     alertConfig.notificationMethod === "email"
                       ? "you@example.com"
                       : alertConfig.notificationMethod === "whatsapp"
-                        ? "+1234567890"
-                        : "email@example.com, +1234567890"
+                      ? "+1234567890"
+                      : "email@example.com, +1234567890"
                   }
                   className="font-primary border-gray-300"
                 />
@@ -1603,8 +1606,8 @@ export default function ForecastAlertModal({
                 ? "Updating..."
                 : "Creating..."
               : isEditing
-                ? "Update Alert"
-                : "Create Alert"}
+              ? "Update Alert"
+              : "Create Alert"}
           </Button>
         </DialogFooter>
       </DialogContent>

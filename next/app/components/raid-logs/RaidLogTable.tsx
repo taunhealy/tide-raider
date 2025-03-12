@@ -22,7 +22,7 @@ import BeachDetailsModal from "@/app/components/BeachDetailsModal";
 import { beachData, type Beach } from "@/app/types/beaches";
 import { AlertConfig } from "@/app/types/alerts";
 
-import { useToast } from "@/app/components/ui/use-toast";
+import { toast } from "sonner";
 import ForecastAlertModal from "@/app/components/alerts/ForecastAlertModal";
 
 import { ForecastA } from "@prisma/client";
@@ -270,7 +270,6 @@ export default function RaidLogTable({
   const [selectedAlertForEdit, setSelectedAlertForEdit] = useState<
     AlertConfig | undefined
   >(undefined);
-  const { toast } = useToast();
   const { data: session } = useSession();
   const queryClient = useQueryClient();
 
@@ -332,11 +331,7 @@ export default function RaidLogTable({
   const handleAlertSaved = () => {
     // Refresh alerts data
     queryClient.invalidateQueries({ queryKey: ["alerts"] });
-    toast({
-      title: "Success",
-      description: "Alert saved successfully",
-      variant: "default",
-    });
+    toast.success("Alert saved successfully");
     setAlertModalOpen(false);
     setSelectedAlertForEdit(undefined);
     setSelectedLogForAlert(null);

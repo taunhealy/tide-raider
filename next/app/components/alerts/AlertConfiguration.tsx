@@ -21,7 +21,7 @@ import {
 } from "../ui/card";
 import { AlertConfigTypes, AlertConfig } from "@/app/types/alerts";
 import { ForecastProperty } from "@/app/types/alerts";
-import { Checkbox } from "../ui/Checkbox";
+import { Checkbox } from "@/app/components/ui/Checkbox";
 import { RadioGroup, RadioGroupItem } from "../ui/radio-group";
 import { StarIcon } from "lucide-react";
 

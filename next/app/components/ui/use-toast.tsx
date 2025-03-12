@@ -1,8 +1,12 @@
 "use client";
 
-import { useState, useEffect, createContext, useContext } from "react";
-import { Toast, ToastProps, ToastActionElement } from "./toast";
-import { ToastClose, ToastTitle, ToastDescription } from "./toast";
+import { useState, createContext, useContext } from "react";
+import { Toast, ToastActionElement } from "@/app/components/ui/toast";
+import {
+  ToastClose,
+  ToastTitle,
+  ToastDescription,
+} from "@/app/components/ui/toast";
 
 type ToastType = {
   id: string;

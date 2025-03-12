@@ -3,19 +3,14 @@
 import { Button } from "@/app/components/ui/Button";
 import { Switch } from "@/app/components/ui/Switch";
 import { Bell, Pencil, Trash2, Star as StarIcon } from "lucide-react";
-import {
-  Card,
-  CardContent,
-  CardHeader,
-  CardTitle,
-} from "@/app/components/ui/card";
+import { Card, CardTitle, CardContent, CardHeader } from "@/app/components/ui/Card";
 import { useState } from "react";
 import ForecastAlertModal from "./ForecastAlertModal";
 import { toast } from "sonner";
 import { useQuery, useQueryClient, useMutation } from "@tanstack/react-query";
 import { Loader2 } from "lucide-react";
 
-import { Alert, AlertConfig } from "@/app/types/alerts";
+import { Alert } from "@/app/types/alerts";
 import { LogEntry } from "@prisma/client";
 
 type ForecastProperty =

@@ -43,9 +43,9 @@ import { format } from "date-fns";
 import { cn } from "@/app/lib/utils";
 import { useQueryClient } from "@tanstack/react-query";
 import { Skeleton } from "@/app/components/ui/Skeleton";
-import { ScrollArea } from "@/app/components/ui/scroll-area";
+import { ScrollArea } from "@/app/components/ui/ScrollArea";
 import { AlertConfig } from "@/app/types/alerts";
-import { RadioGroup, RadioGroupItem } from "@/app/components/ui/radio-group";
+import { RadioGroup, RadioGroupItem } from "@/app/components/ui/RadioGroup";
 import { Checkbox } from "@/app/components/ui/Checkbox";
 
 interface ForecastAlertModalProps {
@@ -1163,7 +1163,7 @@ export default function ForecastAlertModal({
               </Label>
               <RadioGroup
                 value={alertType}
-                onValueChange={(value) => {
+                onValueChange={(value: string) => {
                   setAlertType(value as AlertType);
                   setAlertConfig({
                     ...alertConfig,
@@ -1326,7 +1326,7 @@ export default function ForecastAlertModal({
                 </Label>
                 <RadioGroup
                   value={starRating}
-                  onValueChange={(value) => {
+                  onValueChange={(value: string) => {
                     setStarRating(value as "4+" | "5");
                     setAlertConfig({
                       ...alertConfig,

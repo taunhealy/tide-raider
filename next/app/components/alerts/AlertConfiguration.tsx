@@ -18,11 +18,11 @@ import {
   CardFooter,
   CardHeader,
   CardTitle,
-} from "../ui/card";
+} from "@/app/components/ui/Card";
 import { AlertConfigTypes, AlertConfig } from "@/app/types/alerts";
 import { ForecastProperty } from "@/app/types/alerts";
 import { Checkbox } from "@/app/components/ui/Checkbox";
-import { RadioGroup, RadioGroupItem } from "../ui/radio-group";
+import { RadioGroup, RadioGroupItem } from "@/app/components/ui/RadioGroup";
 import { StarIcon } from "lucide-react";
 
 import { NotificationMethod } from "@/app/types/alerts";
@@ -223,7 +223,7 @@ export function AlertConfiguration({
           <Label className="font-primary">Alert Type</Label>
           <RadioGroup
             value={alertConfig.alertType}
-            onValueChange={(value) => {
+            onValueChange={(value: string) => {
               setAlertConfig({
                 ...alertConfig,
                 alertType: value as "variables" | "rating",
@@ -285,7 +285,7 @@ export function AlertConfiguration({
 
                 <Select
                   value={prop.property}
-                  onValueChange={(value) =>
+                  onValueChange={(value: string) =>
                     handlePropertyChange(index, "property", value)
                   }
                 >
@@ -356,7 +356,7 @@ export function AlertConfiguration({
             <Label className="font-primary">Select Star Rating</Label>
             <RadioGroup
               value={alertConfig.starRating || "4+"}
-              onValueChange={(value) => {
+              onValueChange={(value: string) => {
                 setAlertConfig({
                   ...alertConfig,
                   starRating: value as "4+" | "5",

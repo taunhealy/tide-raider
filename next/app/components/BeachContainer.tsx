@@ -46,7 +46,7 @@ import Link from "next/link";
 import SponsorContainer from "./SponsorContainer";
 import FavouriteSurfVideosSidebar from "@/app/components/FavouriteSurfVideosSidebar";
 import { useSurfConditions } from "@/app/hooks/useSurfConditions";
-import { RandomLoader } from "@/app/components/ui/randomloader";
+import { RandomLoader } from "./ui/randomloader";
 
 interface BeachContainerProps {
   initialBeaches: Beach[];

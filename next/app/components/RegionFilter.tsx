@@ -2,7 +2,7 @@
 
 import { Beach } from "@/app/types/beaches";
 import { WindData } from "@/app/types/wind";
-import { FilterButton } from "@/app/components/ui/FilterButton";
+import { FilterButton } from "@/app/components/ui/filterbuttons";
 import { useEffect, useState, memo, useMemo } from "react";
 import { useSession } from "next-auth/react";
 import { toast } from "sonner";

@@ -3,7 +3,7 @@
 import { RaidLogForm } from "@/app/components/raid-logs/RaidLogForm";
 import { useSession } from "next-auth/react";
 import { useRouter } from "next/navigation";
-import { RandomLoader } from "@/app/components/ui/RandomLoader";
+import { RandomLoader } from "@/app/components/ui/randomloader";
 import { useState } from "react";
 import type { Beach } from "@/app/types/beaches";
 import { beachData } from "@/app/types/beaches";

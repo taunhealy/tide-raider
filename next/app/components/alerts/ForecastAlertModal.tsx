@@ -17,9 +17,9 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/app/components/ui/dialog";
-import { Input } from "@/app/components/ui/Input";
-import { Label } from "@/app/components/ui/Label";
-import { Slider } from "@/app/components/ui/Slider";
+import { Input } from "@/app/components/ui/input";
+import { Label } from "@/app/components/ui/label";
+import { Slider } from "@/app/components/ui/slider";
 import { Button } from "@/app/components/ui/Button";
 import { useMutation, useQuery } from "@tanstack/react-query";
 import confetti from "canvas-confetti";
@@ -35,12 +35,12 @@ import {
 import { format } from "date-fns";
 import { cn } from "@/app/lib/utils";
 import { useQueryClient } from "@tanstack/react-query";
-import { Skeleton } from "@/app/components/ui/Skeleton";
-import { ScrollArea } from "@/app/components/ui/ScrollArea";
+import { Skeleton } from "@/app/components/ui/skeleton";
+import { ScrollArea } from "@/app/components/ui/scrollarea";
 import { AlertConfig } from "@/app/types/alerts";
 import { RadioGroup, RadioGroupItem } from "@/app/components/ui/radio-group";
 import { Checkbox } from "@/app/components/ui/checkbox";
-import { BasicSelect, BasicOption } from "@/app/components/ui/BasicSelect";
+import { BasicSelect, BasicOption } from "@/app/components/ui/basicselect";
 
 interface ForecastAlertModalProps {
   isOpen?: boolean;
@@ -849,13 +849,14 @@ export default function ForecastAlertModal({
   }, [existingAlert?.id, fetchAlert]);
 
   // Update the initialization to avoid "both" comparison
-  const [selectedNotificationMethods, setSelectedNotificationMethods] = useState<string[]>(
-    existingAlert?.notificationMethod 
-      ? (existingAlert.notificationMethod === "email" 
-        ? ["email"] 
-        : ["app"])
-      : ["app"]
-  );
+  const [selectedNotificationMethods, setSelectedNotificationMethods] =
+    useState<string[]>(
+      existingAlert?.notificationMethod
+        ? existingAlert.notificationMethod === "email"
+          ? ["email"]
+          : ["app"]
+        : ["app"]
+    );
 
   return (
     <Dialog

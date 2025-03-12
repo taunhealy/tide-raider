@@ -1,7 +1,7 @@
 "use client";
 
 import { Button } from "@/app/components/ui/Button";
-import { Switch } from "@/app/components/ui/Switch";
+import { Switch } from "@/app/components/ui/switch";
 import { Bell, Pencil, Trash2, Star as StarIcon } from "lucide-react";
 import {
   Card,

@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { Button } from "@/app/components/ui/Button";
-import { Input } from "@/app/components/ui/Input";
+import { Input } from "@/app/components/ui/input";
 import { countries } from "countries-list";
 import { Check } from "lucide-react";
 

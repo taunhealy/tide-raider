@@ -10,7 +10,7 @@ import { CreatePostModal } from "./CreatePostModal";
 import { PostCard } from "./StoriesCard";
 import { Story, StoryBeach } from "@/app/types/stories";
 import { STORY_CATEGORIES, type StoryCategory } from "@/app/lib/constants";
-import { RandomLoader } from "@/app/components/ui/RandomLoader";
+import { RandomLoader } from "@/app/components/ui/randomloader";
 
 interface WildStoriesProps {
   beaches: StoryBeach[];

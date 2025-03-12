@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react";
 import Link from "next/link";
-import { Skeleton } from "@/app/components/ui/Skeleton";
+import { Skeleton } from "@/app/components/ui/skeleton";
 import { Favorite } from "@/app/types/favorites";
 import { useSession } from "next-auth/react";
 import { toast } from "sonner";

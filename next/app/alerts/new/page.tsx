@@ -3,7 +3,7 @@
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import ForecastAlertModal from "@/app/components/alerts/ForecastAlertModal";
-import { RandomLoader } from "@/app/components/ui/RandomLoader";
+import { RandomLoader } from "@/app/components/ui/randomloader";
 import { useSession } from "next-auth/react";
 import { LogEntry } from "@/app/types/questlogs";
 

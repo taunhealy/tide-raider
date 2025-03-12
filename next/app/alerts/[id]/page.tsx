@@ -5,7 +5,7 @@ import { useRouter, useParams } from "next/navigation";
 import { useSession } from "next-auth/react";
 import { toast } from "sonner";
 import ForecastAlertModal from "@/app/components/alerts/ForecastAlertModal";
-import { RandomLoader } from "@/app/components/ui/RandomLoader";
+import { RandomLoader } from "@/app/components/ui/randomloader";
 import { AlertConfig } from "@/app/types/alerts";
 
 export default function AlertPage() {

@@ -1,7 +1,7 @@
 "use client ";
 
 import { Inter } from "next/font/google";
-import { FilterButton } from "./ui/FilterButton";
+import { FilterButton } from "./ui/filterbuttons";
 import { LogEntry } from "../types/questlogs";
 
 const inter = Inter({ subsets: ["latin"] });

@@ -1,7 +1,7 @@
 "use client";
 
-import { Switch } from "@/app/components/ui/Switch";
-import { Label } from "@/app/components/ui/Label";
+import { Switch } from "@/app/components/ui/switch";
+import { Label } from "@/app/components/ui/label";
 
 interface LogVisibilityToggleProps {
   isPrivate: boolean;

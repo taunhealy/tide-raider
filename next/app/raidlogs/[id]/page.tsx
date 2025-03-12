@@ -3,7 +3,7 @@
 import { useQuery } from "@tanstack/react-query";
 import { useSession } from "next-auth/react";
 import { RaidLogForm } from "@/app/components/raid-logs/RaidLogForm";
-import { RandomLoader } from "@/app/components/ui/RandomLoader";
+import { RandomLoader } from "@/app/components/ui/randomloader";
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { Beach } from "@/app/types/beaches";

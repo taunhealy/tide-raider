@@ -2,7 +2,7 @@
 
 import { redirect, useRouter } from "next/navigation";
 import Link from "next/link";
-import { DashboardTabs } from "@/app/components/ui/DashboardTabs";
+import { DashboardTabs } from "@/app/components/ui/dashboardtabs";
 import { useState, useEffect } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { Ad } from "@/app/types/ads";

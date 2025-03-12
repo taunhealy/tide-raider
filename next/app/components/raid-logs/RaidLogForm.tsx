@@ -11,7 +11,7 @@ import { Button } from "@/app/components/ui/Button";
 import { validateFile, compressImageIfNeeded } from "@/app/lib/file";
 import { useSubscription } from "@/app/context/SubscriptionContext";
 import { useSession } from "next-auth/react";
-import { BasicSelect, BasicOption } from "@/app/components/ui/BasicSelect";
+import { BasicSelect, BasicOption } from "@/app/components/ui/basicselect";
 import { useHandleTrial } from "@/app/hooks/useHandleTrial";
 import { useRouter } from "next/navigation";
 import { signIn } from "next-auth/react";

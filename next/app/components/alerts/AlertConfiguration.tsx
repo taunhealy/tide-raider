@@ -1,9 +1,9 @@
 import React, { useState, useEffect } from "react";
 import { Button } from "@/app/components/ui/Button";
-import { Input } from "@/app/components/ui/Input";
-import { Label } from "@/app/components/ui/Label";
-import { Slider } from "@/app/components/ui/Slider";
-import { Switch } from "@/app/components/ui/Switch";
+import { Input } from "@/app/components/ui/input";
+import { Label } from "@/app/components/ui/label";
+import { Slider } from "@/app/components/ui/slider";
+import { Switch } from "@/app/components/ui/switch";
 
 import {
   Card,
@@ -18,7 +18,7 @@ import { ForecastProperty } from "@/app/types/alerts";
 import { Checkbox } from "@/app/components/ui/checkbox";
 import { RadioGroup, RadioGroupItem } from "@/app/components/ui/radio-group";
 import { StarIcon } from "lucide-react";
-import { BasicSelect, BasicOption } from "@/app/components/ui/BasicSelect";
+import { BasicSelect, BasicOption } from "@/app/components/ui/basicselect";
 
 import { NotificationMethod } from "@/app/types/alerts";
 

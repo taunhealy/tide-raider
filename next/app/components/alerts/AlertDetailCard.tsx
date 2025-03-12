@@ -1,4 +1,3 @@
-import { Alert } from "@prisma/client";
 import { formatDate } from "@/app/lib/utils/dateUtils";
 
 interface AlertDetailCardProps {

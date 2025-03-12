@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { UserRole } from "@prisma/client";
 import { ROLE_OPTIONS } from "@/lib/users/constants";
-import { Button } from "@/components/ui/button";
+import { Button } from "@/app/components/ui/Button";
 import { toast } from "sonner";
 import { useSession } from "next-auth/react";
 

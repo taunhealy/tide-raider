@@ -4,7 +4,7 @@ import { useQuery } from "@tanstack/react-query";
 import Link from "next/link";
 import Image from "next/image";
 import RippleLoader from "@/app/components/ui/RippleLoader";
-import { Button } from "@/components/ui/button";
+import { Button } from "@/app/components/ui/Button";
 import { useState } from "react";
 
 import {

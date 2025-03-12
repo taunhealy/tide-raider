@@ -4,7 +4,7 @@ import {
   DialogContent,
   DialogHeader,
   DialogTitle,
-} from "@/app/components/ui/dialog";
+} from "@/app/components/ui/Dialog";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
 import {

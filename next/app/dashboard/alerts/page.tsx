@@ -4,7 +4,7 @@ import React, { useState, useEffect, useMemo } from "react";
 import { AlertConfig } from "@/app/types/alerts";
 import { AlertConfigTypes } from "@/app/types/alerts";
 import { AlertsList } from "@/app/components/alerts/AlertsList";
-import { Button } from "@/app/components/ui/button";
+import { Button } from "@/app/components/ui/Button";
 import { toast } from "sonner";
 import { v4 as uuidv4 } from "uuid";
 import { useRouter } from "next/navigation";
@@ -127,8 +127,7 @@ export default function AlertsPage() {
           your preferences.
         </p>
         <div className="bg-card rounded-lg p-6 shadow-sm">
-          <AlertsList
-          />
+          <AlertsList />
         </div>
       </div>
     </div>

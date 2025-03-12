@@ -17,7 +17,7 @@ import {
 } from "@/app/lib/forecastUtils";
 import gsap from "gsap";
 import { useQueries } from "@tanstack/react-query";
-import { Button } from "@/app/components/ui/button";
+import { Button } from "@/app/components/ui/Button";
 import { urlForImage } from "@/app/lib/urlForImage";
 
 const FEATURED_BEACHES = [

@@ -17,9 +17,9 @@ import {
   DialogHeader,
   DialogTitle,
   DialogTrigger,
-} from "@/app/components/ui/dialog";
-import { Input } from "@/app/components/ui/input";
-import { Label } from "@/app/components/ui/label";
+} from "@/app/components/ui/Dialog";
+import { Input } from "@/app/components/ui/Input";
+import { Label } from "@/app/components/ui/Label";
 import { Slider } from "@/app/components/ui/slider";
 import {
   Select,
@@ -27,16 +27,11 @@ import {
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from "@/app/components/ui/select";
-import { Button } from "@/app/components/ui/button";
+} from "@/app/components/ui/Select";
+import { Button } from "@/app/components/ui/Button";
 import { useMutation, useQuery } from "@tanstack/react-query";
 import confetti from "canvas-confetti";
 import { toast } from "sonner";
-import {
-  Popover,
-  PopoverContent,
-  PopoverTrigger,
-} from "@/app/components/ui/popover";
 import {
   CalendarIcon,
   Bell,
@@ -53,7 +48,7 @@ import { Skeleton } from "@/app/components/ui/Skeleton";
 import { ScrollArea } from "@/app/components/ui/scroll-area";
 import { AlertConfig } from "@/app/types/alerts";
 import { RadioGroup, RadioGroupItem } from "@/app/components/ui/radio-group";
-import { Checkbox } from "@/app/components/ui/checkbox";
+import { Checkbox } from "@/app/components/ui/Checkbox";
 
 interface ForecastAlertModalProps {
   isOpen: boolean;

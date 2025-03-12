@@ -1,6 +1,6 @@
 "use client";
 
-import { Button } from "../components/ui/button";
+import { Button } from "../components/ui/Button";
 import { useHandleSubscribe } from "../hooks/useHandleSubscribe";
 import { Check } from "lucide-react";
 import { cn } from "@/app/lib/utils";

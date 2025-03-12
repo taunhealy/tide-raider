@@ -6,7 +6,7 @@ import { format } from "date-fns";
 import { Beach } from "@prisma/client";
 import { RentalItemType, RENTAL_POLICIES } from "@/app/lib/rentals/constants";
 import { calculateRentalCost } from "@/app/lib/rentalUtility";
-import { Button } from "@/components/ui/button";
+import { Button } from "@/app/components/ui/Button";
 
 interface RentalRequestFormProps {
   rentalItemId: string;

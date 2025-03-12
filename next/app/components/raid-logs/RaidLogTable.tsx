@@ -20,28 +20,9 @@ import { ForecastData } from "@/types/wind";
 import Link from "next/link";
 import BeachDetailsModal from "@/app/components/BeachDetailsModal";
 import { beachData, type Beach } from "@/app/types/beaches";
-import { AlertConfig, AlertConfigTypes } from "@/app/types/alerts";
-import { v4 as uuidv4 } from "uuid";
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { Slider } from "@/components/ui/slider";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
+import { AlertConfig } from "@/app/types/alerts";
+
 import { useToast } from "@/app/components/ui/use-toast";
-import { Button } from "@/components/ui/button";
 import ForecastAlertModal from "@/app/components/alerts/ForecastAlertModal";
 
 import { ForecastA } from "@prisma/client";

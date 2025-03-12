@@ -7,17 +7,17 @@ import type { Beach } from "@/app/types/beaches";
 import type { CreateLogEntryInput, LogEntry } from "@/app/types/questlogs";
 import SurfForecastWidget from "../SurfForecastWidget";
 import confetti from "canvas-confetti";
-import { Button } from "@/components/ui/button";
+import { Button } from "@/app/components/ui/Button";
 import { validateFile, compressImageIfNeeded } from "@/app/lib/file";
 import { useSubscription } from "@/app/context/SubscriptionContext";
 import { useSession } from "next-auth/react";
-import { Select, SelectItem } from "@/components/ui/select";
+import { Select, SelectItem } from "@/app/components/ui/Select";
 import { useHandleTrial } from "@/app/hooks/useHandleTrial";
 import { useRouter } from "next/navigation";
 import { signIn } from "next-auth/react";
 import { format } from "date-fns";
 import { useToast } from "@/app/components/ui/use-toast";
-import { Dialog, DialogContent } from "@/components/ui/dialog";
+import { Dialog, DialogContent } from "@/app/components/ui/Dialog";
 import { useForecast } from "@/app/hooks/useForecast";
 import { AlertConfiguration } from "../alerts/AlertConfiguration";
 import {
@@ -26,7 +26,7 @@ import {
   ForecastProperty,
   NotificationMethod,
 } from "@/types/alerts";
-import { Checkbox } from "@/app/components/ui/checkbox";
+import { Checkbox } from "@/app/components/ui/Checkbox";
 
 interface RaidLogFormProps {
   userEmail?: string;

@@ -1,7 +1,6 @@
 "use client";
 
 import Link from "next/link";
-import { cn } from "@/app/lib/utils";
 
 export default function Footer() {
   const currentYear = new Date().getFullYear();

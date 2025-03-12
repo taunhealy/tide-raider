@@ -5,7 +5,7 @@ import { notFound, redirect } from "next/navigation";
 import { formatDate } from "@/app/lib/utils/dateUtils";
 import { AlertDetailCard } from "@/app/components/alerts/AlertDetailCard";
 import { AlertHistoryList } from "@/app/components/alerts/AlertHistoryList";
-import { Button } from "@/app/components/ui/button";
+import { Button } from "@/app/components/ui/Button";
 import { ArrowLeft, Bell, Edit } from "lucide-react";
 import Link from "next/link";
 

@@ -10,7 +10,7 @@ import {
 } from "@/lib/constants";
 import Image from "next/image";
 import { ChevronDown } from "lucide-react";
-import { Button } from "@/components/ui/button";
+import { Button } from "@/app/components/ui/Button";
 import { toast } from "sonner";
 
 // Import types from BeachContainer

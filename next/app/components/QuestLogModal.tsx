@@ -1,4 +1,4 @@
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from "./ui/dialog";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "./ui/Dialog";
 import { LogEntry } from "@/app/types/questlogs";
 import Image from "next/image";
 import { Star } from "lucide-react";

@@ -2,7 +2,7 @@
 
 import { useQuery } from "@tanstack/react-query";
 import { useSession } from "next-auth/react";
-import { RaidLogForm } from "@/components/raid-logs/RaidLogForm";
+import { RaidLogForm } from "@/app/components/raid-logs/RaidLogForm";
 import { RandomLoader } from "@/app/components/ui/RandomLoader";
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";

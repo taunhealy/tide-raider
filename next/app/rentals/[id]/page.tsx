@@ -7,7 +7,7 @@ import { prisma } from "@/lib/prisma";
 import { RentalRequestForm } from "@/app/components/rentals/RentalRequestForm";
 import { ContactOwnerButton } from "@/app/components/ContactOwnerButton";
 import { SubscriptionStatus } from "@/app/types/subscription";
-import { Button } from "@/components/ui/button";
+import { Button } from "@/app/components/ui/Button";
 import { RentalImagesDisplay } from "@/app/components/rentals/RentalImagesDisplay";
 import BeachLocationLinks from "@/app/components/rentals/BeachLocationLinks";
 import {

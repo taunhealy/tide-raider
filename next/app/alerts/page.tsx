@@ -1,5 +1,5 @@
 import { AlertsList } from "@/app/components/alerts/AlertsList";
-import { Button } from "@/app/components/ui/button";
+import { Button } from "@/app/components/ui/Button";
 import { Bell } from "lucide-react";
 import Link from "next/link";
 

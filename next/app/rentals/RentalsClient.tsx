@@ -7,7 +7,7 @@ import { RentalItemCard } from "@/app/components/rentals/RentalItemCard";
 import { RegionFilter } from "@/app/components/shared/RegionFilter";
 import { SearchFilterSidebar } from "@/app/components/shared/SearchFilterSidebar";
 import RippleLoader from "@/app/components/ui/RippleLoader";
-import { Button } from "@/components/ui/button";
+import { Button } from "@/app/components/ui/Button";
 import { RentalItemWithRelations } from "@/app/types/rentals";
 import { cn } from "@/app/lib/utils";
 import {

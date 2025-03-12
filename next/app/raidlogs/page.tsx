@@ -3,8 +3,7 @@
 import { RaidLogsComponent } from "@/app/components/raid-logs/RaidLogsComponent";
 import { useSession } from "next-auth/react";
 import { beachData } from "@/app/types/beaches"; // Import beach data
-import { RandomLoader } from "@/components/ui/RandomLoader";
-import { RaidLogForm } from "@/components/raid-logs/RaidLogForm";
+import { RandomLoader } from "@/app/components/ui/RandomLoader";
 import { useRouter } from "next/navigation";
 
 export default function RaidLogsPage() {

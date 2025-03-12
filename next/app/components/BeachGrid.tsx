@@ -14,6 +14,7 @@ interface BeachGridProps {
     score: number;
   };
   isLoading?: boolean;
+  onBeachClick: (beach: Beach) => void;
   children?: React.ReactNode;
 }
 
@@ -22,6 +23,7 @@ export default function BeachGrid({
   windData,
   isBeachSuitable,
   isLoading = false,
+  onBeachClick,
 }: BeachGridProps) {
   const { isSubscribed } = useSubscription();
 
@@ -38,6 +40,7 @@ export default function BeachGrid({
           isFirst={index === 0}
           isLoading={isLoading}
           index={index}
+          onClick={() => onBeachClick(beach)}
         />
       ))}
     </div>

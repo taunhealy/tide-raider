@@ -47,6 +47,7 @@ import SponsorContainer from "./SponsorContainer";
 import FavouriteSurfVideosSidebar from "@/app/components/FavouriteSurfVideosSidebar";
 import { useSurfConditions } from "@/app/hooks/useSurfConditions";
 import { RandomLoader } from "./ui/RandomLoader";
+import BeachDetailsModal from "./BeachDetailsModal";
 
 interface BeachContainerProps {
   initialBeaches: Beach[];
@@ -643,6 +644,22 @@ export default function BeachContainer({
     window.history.pushState({}, "", newUrl);
   }, [filters]);
 
+  // Add this state for tracking selected beach
+  const [selectedBeach, setSelectedBeach] = useState<Beach | null>(null);
+
+  // Add this handler for closing the modal
+  const handleCloseBeachModal = useCallback(() => {
+    setSelectedBeach(null);
+    // Clear any beach-related URL parameters if needed
+    const params = new URLSearchParams(window.location.search);
+    params.delete("beach");
+    window.history.replaceState(
+      {},
+      "",
+      `${window.location.pathname}?${params}`
+    );
+  }, []);
+
   return (
     <div className="bg-[var(--color-bg-secondary)] p-6 mx-auto relative min-h-[calc(100vh-72px)] flex flex-col">
       {/* Main Layout */}
@@ -911,6 +928,7 @@ export default function BeachContainer({
                       windData={windData}
                       isBeachSuitable={isBeachSuitable}
                       isLoading={isLoading}
+                      onBeachClick={(beach) => setSelectedBeach(beach)}
                     />
 
                     {/* Subscription Banner */}
@@ -1195,6 +1213,20 @@ export default function BeachContainer({
 
       {/* Add Sponsor Container */}
       <SponsorContainer />
+
+      {/* Add the modal component at the bottom of your return statement */}
+      {selectedBeach && (
+        <BeachDetailsModal
+          beach={selectedBeach}
+          isOpen={!!selectedBeach}
+          onClose={handleCloseBeachModal}
+          isSubscribed={isSubscribed}
+          onSubscribe={() => {
+            handleCloseBeachModal();
+            window.location.href = "/pricing";
+          }}
+        />
+      )}
     </div>
   );
 }

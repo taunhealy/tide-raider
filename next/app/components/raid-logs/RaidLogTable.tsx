@@ -25,8 +25,6 @@ import { AlertConfig } from "@/app/types/alerts";
 import { toast } from "sonner";
 import ForecastAlertModal from "@/app/components/alerts/ForecastAlertModal";
 
-import { ForecastA } from "@prisma/client";
-
 interface QuestTableProps {
   entries: LogEntry[];
   columns?: QuestLogTableColumn[];
@@ -304,7 +302,7 @@ export default function RaidLogTable({
       return savedAlerts ? JSON.parse(savedAlerts) : [];
     }
     return [];
-  }, [alertModalOpen]); // Refresh when dialog closes
+  }, []); // Only run once on component mount
 
   // Edit handler
   const handleEdit = (entry: LogEntry) => {

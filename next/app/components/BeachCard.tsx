@@ -7,7 +7,7 @@ import {
   getConditionReasons,
 } from "@/app/lib/surfUtils";
 import { useHandleSubscribe } from "@/app/hooks/useHandleSubscribe";
-import { useState, useEffect, useMemo } from "react";
+import { useState, useEffect, useMemo, useRef } from "react";
 import { InfoIcon, Search, Eye } from "lucide-react";
 import BeachDetailsModal from "@/app/components/BeachDetailsModal";
 import { useRouter, useSearchParams } from "next/navigation";
@@ -35,6 +35,7 @@ interface BeachCardProps {
   isLocked?: boolean;
   isLoading?: boolean;
   index: number;
+  onClick: () => void;
 }
 
 const ConditionsSkeleton = () => (
@@ -57,12 +58,13 @@ export default function BeachCard({
   isFirst = false,
   isLoading = false,
   index,
+  onClick,
 }: BeachCardProps) {
   const router = useRouter();
   const searchParams = useSearchParams();
   const { isSubscribed, hasActiveTrial } = useSubscription();
   const handleSubscribe = useHandleSubscribe();
-  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [isModalOpen, setIsModalOpen] = useState<boolean>(false);
   const [showWaveTypeHint, setShowWaveTypeHint] = useState(false);
   const [showRatingHint, setShowRatingHint] = useState(false);
   const queryClient = useQueryClient();
@@ -92,63 +94,6 @@ export default function BeachCard({
   const isRegionSupported = VALID_REGIONS.includes(beach.region as ValidRegion);
   const shouldBeLocked =
     !isSubscribed && !hasActiveTrial && (suitability?.score ?? 0) >= 3;
-
-  // Check URL params for modal state
-  useEffect(() => {
-    const beachParam = searchParams.get("beach");
-    if (beachParam === beach.name && !shouldBeLocked) {
-      setIsModalOpen(true);
-    }
-  }, [searchParams, beach.name, shouldBeLocked]);
-
-  const CHARACTER_LIMIT = 90;
-  const truncatedDescription =
-    beach.description.length > CHARACTER_LIMIT
-      ? beach.description.substring(0, CHARACTER_LIMIT) + "..."
-      : beach.description;
-
-  const handleOpenModal = (e?: React.MouseEvent<HTMLElement, MouseEvent>) => {
-    if (shouldBeLocked) return;
-
-    // Prevent default browser behavior
-    if (e) {
-      e.stopPropagation();
-      e.preventDefault();
-    }
-
-    const params = new URLSearchParams(searchParams.toString());
-    params.set("beach", beach.name);
-
-    // Use replace instead of push to avoid adding to history
-    router.replace(`?${params.toString()}`, { scroll: false });
-    setIsModalOpen(true);
-  };
-
-  const handleCloseModal = (e?: React.MouseEvent<HTMLElement, MouseEvent>) => {
-    // Prevent default browser behavior
-    if (e) {
-      e.stopPropagation();
-      e.preventDefault();
-    }
-
-    const params = new URLSearchParams(searchParams.toString());
-    params.delete("beach");
-
-    // Use replace instead of push to avoid adding to history
-    router.replace(`?${params.toString()}`, { scroll: false });
-    setIsModalOpen(false);
-  };
-
-  const handleCardClick = (e: React.MouseEvent) => {
-    // Don't open modal if text is selected
-    const selection = window.getSelection();
-    if (selection && selection.toString().length > 0) {
-      return;
-    }
-
-    if (shouldBeLocked) return;
-    handleOpenModal();
-  };
 
   // Get sessions from existing cache
   const recentEntries = queryClient.getQueryData<LogEntry[]>([
@@ -187,6 +132,46 @@ export default function BeachCard({
         ))}
       </div>
     );
+  };
+
+  const handleOpenModal = (e?: React.MouseEvent<HTMLElement, MouseEvent>) => {
+    if (shouldBeLocked) return;
+
+    if (e) {
+      e.stopPropagation();
+      e.preventDefault();
+    }
+
+    setIsModalOpen(true); // Only open on explicit user action
+
+    // Update URL without causing modal to open
+    const params = new URLSearchParams(searchParams.toString());
+    params.set("beach", beach.name);
+    router.replace(`?${params.toString()}`, { scroll: false });
+  };
+
+  const handleCloseModal = (e?: React.MouseEvent<HTMLElement, MouseEvent>) => {
+    if (e) {
+      e.stopPropagation();
+      e.preventDefault();
+    }
+
+    setIsModalOpen(false);
+
+    const params = new URLSearchParams(searchParams.toString());
+    params.delete("beach");
+    router.replace(`?${params.toString()}`, { scroll: false });
+  };
+
+  const handleCardClick = (e: React.MouseEvent) => {
+    // Don't open modal if text is selected
+    const selection = window.getSelection();
+    if (selection && selection.toString().length > 0) {
+      return;
+    }
+
+    if (shouldBeLocked) return;
+    handleOpenModal();
   };
 
   return (

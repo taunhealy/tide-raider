@@ -49,7 +49,7 @@ import { RadioGroup, RadioGroupItem } from "@/app/components/ui/RadioGroup";
 import { Checkbox } from "@/app/components/ui/Checkbox";
 
 interface ForecastAlertModalProps {
-  isOpen: boolean;
+  isOpen?: boolean;
   onClose: () => void;
   logEntry: LogEntry | null;
   existingAlert?: AlertConfig;
@@ -160,7 +160,7 @@ function usePropertyManager(initialProperties: AlertConfigTypes["properties"]) {
 type AlertType = "variables" | "rating";
 
 export default function ForecastAlertModal({
-  isOpen,
+  isOpen = false,
   onClose,
   logEntry,
   existingAlert,

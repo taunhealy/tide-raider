@@ -3,12 +3,16 @@
 import { Button } from "@/app/components/ui/Button";
 import { Switch } from "@/app/components/ui/Switch";
 import { Bell, Pencil, Trash2, Star as StarIcon } from "lucide-react";
-import { Card, CardTitle, CardContent, CardHeader } from "@/app/components/ui/Card";
+import {
+  Card,
+  CardTitle,
+  CardContent,
+  CardHeader,
+} from "@/app/components/ui/Card";
 import { useState } from "react";
-import ForecastAlertModal from "./ForecastAlertModal";
 import { toast } from "sonner";
 import { useQuery, useQueryClient, useMutation } from "@tanstack/react-query";
-import { Loader2 } from "lucide-react";
+import { useRouter } from "next/navigation";
 
 import { Alert } from "@/app/types/alerts";
 import { LogEntry } from "@prisma/client";
@@ -38,13 +42,7 @@ const getForecastProperty = (prop: string): ForecastProperty => {
 };
 
 export function AlertsList() {
-  const [isModalOpen, setIsModalOpen] = useState(false);
-  const [selectedAlert, setSelectedAlert] = useState<Alert | undefined>(
-    undefined
-  );
-  const [selectedLogEntry, setSelectedLogEntry] = useState<LogEntry | null>(
-    null
-  );
+  const router = useRouter();
   const [activeTab, setActiveTab] = useState<"all" | "variable" | "rating">(
     "all"
   );
@@ -120,28 +118,8 @@ export function AlertsList() {
     },
   });
 
-  const handleEditClick = (alertId: string) => {
-    const alert = alerts?.find((a: Alert) => a.id === alertId);
-    setSelectedAlert(alert);
-    setIsModalOpen(true);
-  };
-
-  const handleNewAlertFromLog = (logEntry: LogEntry) => {
-    setSelectedLogEntry(logEntry);
-    setSelectedAlert(undefined);
-    setIsModalOpen(true);
-  };
-
-  const handleModalClose = () => {
-    setIsModalOpen(false);
-    setSelectedAlert(undefined);
-    setSelectedLogEntry(null);
-  };
-
-  const handleAlertSaved = () => {
-    // Refresh the alerts list
-    queryClient.invalidateQueries({ queryKey: ["alerts"] });
-    handleModalClose();
+  const handleNewAlert = () => {
+    router.push("/alerts/new");
   };
 
   const handleDelete = (alertId: string) => {
@@ -169,18 +147,6 @@ export function AlertsList() {
         return "";
     }
   }
-
-  if (isLoading) {
-    return (
-      <div className="flex justify-center items-center py-12">
-        <Loader2 className="h-8 w-8 animate-spin text-gray-500" />
-        <span className="ml-2 text-gray-500 font-primary">
-          Loading alerts...
-        </span>
-      </div>
-    );
-  }
-
   if (!alerts || alerts.length === 0) {
     return (
       <div className="text-center py-8 border rounded-lg bg-[var(--color-bg-primary)]">
@@ -191,10 +157,7 @@ export function AlertsList() {
         <p className="mt-1 text-sm text-[var(--color-text-secondary)] font-primary">
           Create your first alert to get notified when conditions match.
         </p>
-        <Button
-          onClick={() => setIsModalOpen(true)}
-          className="mt-4 font-primary"
-        >
+        <Button onClick={handleNewAlert} className="mt-4 font-primary">
           Create Alert
         </Button>
       </div>
@@ -265,10 +228,7 @@ export function AlertsList() {
             <p className="mt-1 text-sm text-[var(--color-text-secondary)] font-primary">
               Create a new alert to get notified when conditions match.
             </p>
-            <Button
-              onClick={() => setIsModalOpen(true)}
-              className="mt-4 font-primary"
-            >
+            <Button onClick={handleNewAlert} className="mt-4 font-primary">
               Create Alert
             </Button>
           </div>
@@ -305,7 +265,9 @@ export function AlertsList() {
                     <Button
                       variant="ghost"
                       size="icon"
-                      onClick={() => alert.id && handleEditClick(alert.id)}
+                      onClick={() =>
+                        alert.id && router.push(`/alerts/${alert.id}`)
+                      }
                       className="h-9 w-9 hover:bg-[var(--color-bg-secondary)]"
                     >
                       <Pencil className="h-4 w-4" />
@@ -460,15 +422,6 @@ export function AlertsList() {
           ))
         )}
       </div>
-
-      <ForecastAlertModal
-        isOpen={isModalOpen}
-        onClose={handleModalClose}
-        logEntry={selectedLogEntry}
-        existingAlert={selectedAlert}
-        onSaved={handleAlertSaved}
-        isNew={!selectedAlert}
-      />
     </>
   );
 }

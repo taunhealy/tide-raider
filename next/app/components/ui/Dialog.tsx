@@ -11,33 +11,31 @@ interface DialogProps {
 }
 
 const Dialog = ({ open, onOpenChange, children }: DialogProps) => {
-  const [isOpen, setIsOpen] = React.useState(open || false);
+  // Use a ref to track first render
+  const isFirstRender = React.useRef(true);
 
   React.useEffect(() => {
-    if (open !== undefined) {
-      setIsOpen(open);
+    // Skip the first render to avoid auto-opening
+    if (isFirstRender.current) {
+      isFirstRender.current = false;
+      return;
     }
-  }, [open]);
 
-  const handleOpenChange = (newState: boolean) => {
-    setIsOpen(newState);
-    onOpenChange?.(newState);
-  };
-
-  // Lock body scroll when dialog is open
-  React.useEffect(() => {
-    if (isOpen) {
-      document.body.style.overflow = "hidden";
-    } else {
-      document.body.style.overflow = "unset";
+    // Only call onOpenChange when open changes after first render
+    if (onOpenChange) {
+      onOpenChange(!!open);
     }
-    return () => {
-      document.body.style.overflow = "unset";
-    };
-  }, [isOpen]);
+  }, [open, onOpenChange]);
 
   return (
-    <DialogContext.Provider value={{ isOpen, setOpen: handleOpenChange }}>
+    <DialogContext.Provider
+      value={{
+        isOpen: !!open,
+        setOpen: (newOpen) => {
+          if (onOpenChange) onOpenChange(newOpen);
+        },
+      }}
+    >
       {children}
     </DialogContext.Provider>
   );
@@ -75,18 +73,34 @@ const DialogContent = React.forwardRef<
     const dialog = dialogRef.current;
     if (!dialog) return;
 
-    if (isOpen) {
-      dialog.showModal();
-    } else {
-      dialog.close();
+    try {
+      if (isOpen) {
+        dialog.showModal();
+      } else {
+        dialog.close();
+      }
+    } catch (error) {
+      console.error("Dialog operation failed:", error);
     }
+
+    // Cleanup function to ensure dialog is closed when component unmounts
+    return () => {
+      try {
+        // Only call close() if the dialog is open
+        if (dialog.open) {
+          dialog.close();
+        }
+      } catch (e) {
+        // Silent catch for cleanup
+      }
+    };
   }, [isOpen]);
 
   return (
     <dialog
       ref={dialogRef}
       className={cn(
-        "fixed left-[50%] top-[50%] z-50 grid w-full max-w-lg translate-x-[-50%] translate-y-[-50%] gap-4 border bg-background p-6 shadow-lg duration-200 data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 data-[state=closed]:zoom-out-95 data-[state=open]:zoom-in-95 data-[state=closed]:slide-out-to-left-1/2 data-[state=closed]:slide-out-to-top-[48%] data-[state=open]:slide-in-from-left-1/2 data-[state=open]:slide-in-from-top-[48%] sm:rounded-lg backdrop:bg-black/80",
+        "relative flex flex-col z-50 grid w-full max-w-[95vw] md:max-w-3xl gap-4 border bg-background p-6 shadow-lg duration-200 data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 data-[state=closed]:zoom-out-95 data-[state=open]:zoom-in-95 data-[state=closed]:slide-out-to-left-1/2 data-[state=closed]:slide-out-to-top-[48%] data-[state=open]:slide-in-from-left-1/2 data-[state=open]:slide-in-from-top-[48%] rounded-lg backdrop:bg-black/80 font-primary",
         className
       )}
       onClick={(e) => {
@@ -115,7 +129,7 @@ const DialogHeader = ({
 }: React.HTMLAttributes<HTMLDivElement>) => (
   <div
     className={cn(
-      "flex flex-col space-y-1.5 text-center sm:text-left",
+      "flex flex-col space-y-1.5 text-center sm:text-left font-primary",
       className
     )}
     {...props}
@@ -144,7 +158,7 @@ const DialogTitle = React.forwardRef<
   <h2
     ref={ref}
     className={cn(
-      "text-lg font-semibold leading-none tracking-tight",
+      "text-lg font-semibold leading-none tracking-tight font-primary",
       className
     )}
     {...props}
@@ -158,7 +172,7 @@ const DialogDescription = React.forwardRef<
 >(({ className, ...props }, ref) => (
   <p
     ref={ref}
-    className={cn("text-sm text-muted-foreground", className)}
+    className={cn("text-sm text-muted-foreground font-primary", className)}
     {...props}
   />
 ));

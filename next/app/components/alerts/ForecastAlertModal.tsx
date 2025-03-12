@@ -165,8 +165,6 @@ export default function ForecastAlertModal({
   logEntry,
   existingAlert,
   onSaved,
-  isNew = false,
-  logEntries,
 }: ForecastAlertModalProps) {
   const isEditing = !!existingAlert;
   const isLinkedToLogEntry =
@@ -196,7 +194,9 @@ export default function ForecastAlertModal({
     notificationMethod: existingAlert?.notificationMethod || "app",
     contactInfo: existingAlert?.contactInfo || "",
     active: existingAlert?.active ?? true,
-    forecastDate: existingAlert?.forecastDate || new Date(),
+    forecastDate: existingAlert?.forecastDate
+      ? new Date(existingAlert.forecastDate)
+      : new Date(),
     alertType:
       existingAlert?.alertType ||
       (logEntry?.surferRating ? "rating" : "variables"),
@@ -309,61 +309,34 @@ export default function ForecastAlertModal({
   }, [alertConfig.region]);
 
   // Add this function to fetch an alert by ID
-  const fetchAlert = async (alertId: string) => {
+  const fetchAlert = useCallback(async () => {
+    if (!existingAlert?.id) return;
+
     try {
-      console.log(`Fetching alert with ID: ${alertId}`);
-      const response = await fetch(`/api/alerts/${alertId}`);
+      const response = await fetch(`/api/alerts/${existingAlert.id}`);
+      const data = await response.json();
 
-      if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.error || `HTTP error ${response.status}`);
+      if (!data) {
+        console.error("No alert data received");
+        return;
       }
 
-      const alert = await response.json();
-      console.log("Fetched alert:", alert);
-
-      // Set the alert config
       setAlertConfig({
-        ...alert,
-        // Ensure forecastDate is a Date object if it exists
-        forecastDate: alert.forecastDate
-          ? new Date(alert.forecastDate)
-          : undefined,
+        ...data,
+        forecastDate: data.forecastDate
+          ? new Date(data.forecastDate)
+          : new Date(),
+        logEntry: data.logEntry || null,
       });
-
-      // If the alert has a logEntryId, set it as the selected log entry
-      if (alert.logEntryId) {
-        // Fetch the log entry
-        try {
-          const logResponse = await fetch(`/api/logs/${alert.logEntryId}`);
-          if (logResponse.ok) {
-            const logEntry = await logResponse.json();
-            setSelectedLogEntry(logEntry);
-          }
-        } catch (logError) {
-          console.error("Error fetching log entry:", logError);
-        }
-      }
-
-      // Fetch forecast data if region is available
-      if (alert.region && alert.forecastDate) {
-        fetchForecast(alert.region, alert.forecastDate);
-      }
-
-      return alert;
     } catch (error) {
       console.error("Error fetching alert:", error);
-      toast.error(
-        error instanceof Error ? error.message : "Failed to load alert details"
-      );
-      return null;
     }
-  };
+  }, [existingAlert?.id]);
 
   // Use this in the useEffect for initializing with existing alert
   useEffect(() => {
     if (existingAlert?.id && isEditing) {
-      fetchAlert(existingAlert.id);
+      fetchAlert();
     } else if (existingAlert) {
       console.log("Loading existing alert data:", existingAlert);
 
@@ -860,16 +833,31 @@ export default function ForecastAlertModal({
   // Add React Query caching
   const { data: alert, isLoading } = useQuery({
     queryKey: ["alert", alertConfig.id],
-    queryFn: () => fetchAlert(alertConfig.id),
-    staleTime: 30000, // Consider data fresh for 30 seconds
-    gcTime: 5 * 60 * 1000, // Keep in cache for 5 minutes
+    queryFn: async () => {
+      console.log("Fetching alert with ID:", alertConfig.id);
+      if (!alertConfig.id) {
+        console.log("No alert ID to fetch");
+        return null; // Return null instead of undefined
+      }
+      return fetchAlert();
+    },
+    staleTime: 30000,
+    gcTime: 5 * 60 * 1000,
+    // Add this to prevent the query from running when there's no ID
+    enabled: !!alertConfig.id && !!existingAlert?.id,
   });
+
+  useEffect(() => {
+    if (existingAlert?.id) {
+      fetchAlert();
+    }
+  }, [existingAlert?.id, fetchAlert]);
 
   return (
     <Dialog
       open={isOpen}
       onOpenChange={(open) => {
-        if (!createAlertMutation.isPending && !updateAlertMutation.isPending) {
+        if (!open) {
           onClose();
         }
       }}

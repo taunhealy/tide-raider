@@ -64,13 +64,12 @@ export default function BeachCard({
   const searchParams = useSearchParams();
   const { isSubscribed, hasActiveTrial } = useSubscription();
   const handleSubscribe = useHandleSubscribe();
-  const [isModalOpen, setIsModalOpen] = useState<boolean>(false);
-  const [showWaveTypeHint, setShowWaveTypeHint] = useState(false);
-  const [showRatingHint, setShowRatingHint] = useState(false);
   const queryClient = useQueryClient();
 
   // Update the loading state logic
   const [isLocalLoading, setIsLocalLoading] = useState(true);
+  const [showWaveTypeHint, setShowWaveTypeHint] = useState(false);
+  const [showRatingHint, setShowRatingHint] = useState(false);
 
   useEffect(() => {
     // Only set loading if beach data is valid
@@ -134,30 +133,18 @@ export default function BeachCard({
     );
   };
 
+  const isModalOpen = searchParams.get("beach") === beach.name;
+
   const handleOpenModal = (e?: React.MouseEvent<HTMLElement, MouseEvent>) => {
     if (shouldBeLocked) return;
+    e?.stopPropagation();
 
-    if (e) {
-      e.stopPropagation();
-      e.preventDefault();
-    }
-
-    setIsModalOpen(true); // Only open on explicit user action
-
-    // Update URL without causing modal to open
     const params = new URLSearchParams(searchParams.toString());
     params.set("beach", beach.name);
-    router.replace(`?${params.toString()}`, { scroll: false });
+    router.push(`?${params.toString()}`, { scroll: false });
   };
 
-  const handleCloseModal = (e?: React.MouseEvent<HTMLElement, MouseEvent>) => {
-    if (e) {
-      e.stopPropagation();
-      e.preventDefault();
-    }
-
-    setIsModalOpen(false);
-
+  const handleCloseModal = () => {
     const params = new URLSearchParams(searchParams.toString());
     params.delete("beach");
     router.replace(`?${params.toString()}`, { scroll: false });
@@ -266,7 +253,13 @@ export default function BeachCard({
                 ) : (
                   <>
                     <div>
-                      <h4 className="text-base sm:text-[21px] font-primary font-semibold text-[var(--color-text-primary)] flex items-center gap-2">
+                      <h4
+                        className="text-base sm:text-[21px] font-primary font-semibold text-[var(--color-text-primary)] flex items-center gap-2 cursor-pointer transition-colors duration-300 hover:text-[var(--color-tertiary)]"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          handleOpenModal(e);
+                        }}
+                      >
                         {beach.name}
                         {windData?.windSpeed && windData.windSpeed > 25 && (
                           <span title="Strong winds">🌪️</span>
@@ -482,8 +475,8 @@ export default function BeachCard({
         )}
       </div>
 
-      {/* Modals */}
-      {!shouldBeLocked && (
+      {/* Only render modal if it's the selected beach */}
+      {isModalOpen && (
         <BeachDetailsModal
           beach={beach}
           isOpen={isModalOpen}

@@ -16,7 +16,6 @@ import { useSession } from "next-auth/react";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { useRouter } from "next/navigation";
 import { useMemo, useState, useEffect } from "react";
-import { ForecastData } from "@/app/types/wind";
 import Link from "next/link";
 import BeachDetailsModal from "@/app/components/BeachDetailsModal";
 import { beachData, type Beach } from "@/app/types/beaches";
@@ -262,7 +261,7 @@ export default function RaidLogTable({
   onBeachClick,
 }: QuestTableProps) {
   const [selectedBeach, setSelectedBeach] = useState<Beach | null>(null);
-  const [alertModalOpen, setAlertModalOpen] = useState(false);
+  const [alertModalOpen, setAlertModalOpen] = useState<boolean>(false);
   const [selectedLogForAlert, setSelectedLogForAlert] =
     useState<LogEntry | null>(null);
   const [selectedAlertForEdit, setSelectedAlertForEdit] = useState<
@@ -317,10 +316,12 @@ export default function RaidLogTable({
   // Create new alert handler
   const handleAlertClick = async (entry: LogEntry) => {
     if (entry.isMyAlert) {
-      // If it's my alert, navigate to the alerts page
+      if (!entry.alertId) {
+        toast.error("Alert ID is missing");
+        return;
+      }
       router.push(`/alerts/${entry.alertId}`);
     } else {
-      // If it's not my alert, open the modal to create a new one
       setSelectedLogForAlert(entry);
       setAlertModalOpen(true);
     }
@@ -374,19 +375,35 @@ export default function RaidLogTable({
       const entry = row.original;
       const isOwner = session?.user?.email === entry.surferEmail;
 
-      if (!isOwner) return null;
-
       return (
         <div className="flex gap-2">
-          <button
-            onClick={(e) => {
-              e.stopPropagation();
-              handleEdit(entry);
-            }}
-            className="text-gray-500 hover:text-[var(--color-text-primary)]"
-          >
-            <Pencil className="w-4 h-4" />
-          </button>
+          {isOwner && (
+            <>
+              <button
+                onClick={(e) => {
+                  e.stopPropagation();
+                  handleEdit(entry);
+                }}
+                className="text-gray-500 hover:text-[var(--color-text-primary)]"
+              >
+                <Pencil className="w-4 h-4" />
+              </button>
+              <button
+                onClick={(e) => {
+                  e.stopPropagation();
+                  handleDelete(entry.id);
+                }}
+                className="text-gray-500 hover:text-red-600"
+                disabled={deleteMutation.isPending}
+              >
+                {deleteMutation.isPending ? (
+                  <span className="loading-spinner" />
+                ) : (
+                  <X className="w-4 h-4" />
+                )}
+              </button>
+            </>
+          )}
           <button
             onClick={(e) => {
               e.stopPropagation();
@@ -409,20 +426,6 @@ export default function RaidLogTable({
                   : "text-gray-500 fill-none hover:text-[var(--color-alert-icon-rating)]"
               )}
             />
-          </button>
-          <button
-            onClick={(e) => {
-              e.stopPropagation();
-              handleDelete(entry.id);
-            }}
-            className="text-gray-500 hover:text-red-600"
-            disabled={deleteMutation.isPending}
-          >
-            {deleteMutation.isPending ? (
-              <span className="loading-spinner" />
-            ) : (
-              <X className="w-4 h-4" />
-            )}
           </button>
         </div>
       );
@@ -642,15 +645,33 @@ export default function RaidLogTable({
                         )}
                         <td className="px-6 py-4">
                           <div className="flex gap-2">
-                            <button
-                              onClick={(e) => {
-                                e.stopPropagation();
-                                handleEdit(entry);
-                              }}
-                              className="text-gray-500 hover:text-[var(--color-text-primary)]"
-                            >
-                              <Pencil className="w-4 h-4" />
-                            </button>
+                            {session?.user?.email === entry.surferEmail && (
+                              <>
+                                <button
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    handleEdit(entry);
+                                  }}
+                                  className="text-gray-500 hover:text-[var(--color-text-primary)]"
+                                >
+                                  <Pencil className="w-4 h-4" />
+                                </button>
+                                <button
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    handleDelete(entry.id);
+                                  }}
+                                  className="text-gray-500 hover:text-red-600"
+                                  disabled={deleteMutation.isPending}
+                                >
+                                  {deleteMutation.isPending ? (
+                                    <span className="loading-spinner" />
+                                  ) : (
+                                    <X className="w-4 h-4" />
+                                  )}
+                                </button>
+                              </>
+                            )}
                             <button
                               onClick={(e) => {
                                 e.stopPropagation();
@@ -673,20 +694,6 @@ export default function RaidLogTable({
                                     : "text-gray-500 fill-none hover:text-[var(--color-alert-icon-rating)]"
                                 )}
                               />
-                            </button>
-                            <button
-                              onClick={(e) => {
-                                e.stopPropagation();
-                                handleDelete(entry.id);
-                              }}
-                              className="text-gray-500 hover:text-red-600"
-                              disabled={deleteMutation.isPending}
-                            >
-                              {deleteMutation.isPending ? (
-                                <span className="loading-spinner" />
-                              ) : (
-                                <X className="w-4 h-4" />
-                              )}
                             </button>
                           </div>
                         </td>
@@ -712,18 +719,20 @@ export default function RaidLogTable({
       )}
 
       {/* Alert Modal */}
-      <ForecastAlertModal
-        isOpen={alertModalOpen}
-        onClose={() => {
-          setAlertModalOpen(false);
-          setSelectedAlertForEdit(undefined);
-          setSelectedLogForAlert(null);
-        }}
-        logEntry={selectedLogForAlert}
-        existingAlert={selectedAlertForEdit}
-        onSaved={handleAlertSaved}
-        isNew={!selectedAlertForEdit}
-      />
+      {alertModalOpen && selectedLogForAlert && (
+        <ForecastAlertModal
+          isOpen={alertModalOpen}
+          onClose={() => {
+            setAlertModalOpen(false);
+            setSelectedAlertForEdit(undefined);
+            setSelectedLogForAlert(null);
+          }}
+          logEntry={selectedLogForAlert}
+          existingAlert={selectedAlertForEdit}
+          onSaved={handleAlertSaved}
+          isNew={!selectedAlertForEdit}
+        />
+      )}
     </>
   );
 }

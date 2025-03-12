@@ -41,14 +41,9 @@ export default function NotificationsContainer() {
   const [isLoading, setIsLoading] = useState(true);
   const [activeTab, setActiveTab] = useState<"all" | "alerts" | "ads">("all");
 
-  useEffect(() => {
-    if (session?.user) {
-      fetchNotifications();
-    }
-  }, [session]);
-
   const fetchNotifications = async () => {
     try {
+      setIsLoading(true);
       const response = await fetch("/api/notifications");
       if (response.ok) {
         const data = await response.json();
@@ -59,6 +54,18 @@ export default function NotificationsContainer() {
     } finally {
       setIsLoading(false);
     }
+  };
+
+  // Initial fetch on mount
+  useEffect(() => {
+    if (session?.user) {
+      fetchNotifications();
+    }
+  }, [session]);
+
+  const handleTabChange = (tab: "all" | "alerts" | "ads") => {
+    setActiveTab(tab);
+    fetchNotifications(); // Refetch notifications when tab changes
   };
 
   const handleDelete = async (id: string) => {
@@ -155,7 +162,7 @@ export default function NotificationsContainer() {
       {/* Tabs for filtering notifications */}
       <div className="flex space-x-4 border-b border-gray-200">
         <button
-          onClick={() => setActiveTab("all")}
+          onClick={() => handleTabChange("all")}
           className={`py-2 px-4 font-primary ${
             activeTab === "all"
               ? "border-b-2 border-cyan-500 text-cyan-600 font-medium"
@@ -168,7 +175,7 @@ export default function NotificationsContainer() {
           </span>
         </button>
         <button
-          onClick={() => setActiveTab("alerts")}
+          onClick={() => handleTabChange("alerts")}
           className={`py-2 px-4 font-primary ${
             activeTab === "alerts"
               ? "border-b-2 border-cyan-500 text-cyan-600 font-medium"
@@ -181,7 +188,7 @@ export default function NotificationsContainer() {
           </span>
         </button>
         <button
-          onClick={() => setActiveTab("ads")}
+          onClick={() => handleTabChange("ads")}
           className={`py-2 px-4 font-primary ${
             activeTab === "ads"
               ? "border-b-2 border-cyan-500 text-cyan-600 font-medium"

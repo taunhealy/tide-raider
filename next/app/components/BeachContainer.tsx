@@ -47,7 +47,6 @@ import SponsorContainer from "./SponsorContainer";
 import FavouriteSurfVideosSidebar from "@/app/components/FavouriteSurfVideosSidebar";
 import { useSurfConditions } from "@/app/hooks/useSurfConditions";
 import { RandomLoader } from "./ui/RandomLoader";
-import BeachDetailsModal from "./BeachDetailsModal";
 
 interface BeachContainerProps {
   initialBeaches: Beach[];
@@ -179,10 +178,8 @@ export default function BeachContainer({
     }
   }, [defaultFilters]);
 
-  // Initialize without a default region
-  const [selectedRegion, setSelectedRegion] = useState<string>(
-    searchParams?.get("region") || ""
-  );
+  // 1. Remove URL parameter dependency for selectedRegion
+  const [selectedRegion, setSelectedRegion] = useState<string>(""); // Initialize with empty string
 
   // Move this function above updateFilters
   const handleRegionChange = (newRegion: string) => {
@@ -644,21 +641,55 @@ export default function BeachContainer({
     window.history.pushState({}, "", newUrl);
   }, [filters]);
 
+  // 2. Add explicit modal control
+  const [isModalOpen, setIsModalOpen] = useState(false);
+
+  // 3. Update the beach click handler
+  const handleBeachClick = useCallback((beach: Beach) => {
+    // Update URL without page reload
+    const params = new URLSearchParams(window.location.search);
+    params.set("beach", beach.id);
+    window.history.pushState({}, "", `?${params.toString()}`);
+
+    setSelectedBeach(beach);
+    setIsModalOpen(true);
+  }, []);
+
+  // 4. Update the modal close handler
+  const handleCloseBeachModal = useCallback(() => {
+    setIsModalOpen(false);
+    setSelectedBeach(null);
+  }, []);
+
   // Add this state for tracking selected beach
   const [selectedBeach, setSelectedBeach] = useState<Beach | null>(null);
 
-  // Add this handler for closing the modal
-  const handleCloseBeachModal = useCallback(() => {
-    setSelectedBeach(null);
-    // Clear any beach-related URL parameters if needed
+  // Add a useEffect to log when selectedBeach changes
+  useEffect(() => {
+    console.log("selectedBeach changed:", selectedBeach);
+  }, [selectedBeach]);
+
+  // Add at the top of the component
+  console.log("BeachContainer rendering with isModalOpen:", isModalOpen);
+
+  // Add this useEffect
+  useEffect(() => {
+    console.log("isModalOpen changed to:", isModalOpen);
+  }, [isModalOpen]);
+
+  // Add URL parameter synchronization
+  useEffect(() => {
     const params = new URLSearchParams(window.location.search);
-    params.delete("beach");
-    window.history.replaceState(
-      {},
-      "",
-      `${window.location.pathname}?${params}`
-    );
-  }, []);
+    const beachId = params.get("beach");
+
+    if (beachId) {
+      const beach = initialBeaches.find((b) => b.id === beachId);
+      if (beach) {
+        setSelectedBeach(beach);
+        setIsModalOpen(true);
+      }
+    }
+  }, [initialBeaches]);
 
   return (
     <div className="bg-[var(--color-bg-secondary)] p-6 mx-auto relative min-h-[calc(100vh-72px)] flex flex-col">
@@ -928,7 +959,7 @@ export default function BeachContainer({
                       windData={windData}
                       isBeachSuitable={isBeachSuitable}
                       isLoading={isLoading}
-                      onBeachClick={(beach) => setSelectedBeach(beach)}
+                      onBeachClick={handleBeachClick}
                     />
 
                     {/* Subscription Banner */}
@@ -1213,20 +1244,6 @@ export default function BeachContainer({
 
       {/* Add Sponsor Container */}
       <SponsorContainer />
-
-      {/* Add the modal component at the bottom of your return statement */}
-      {selectedBeach && (
-        <BeachDetailsModal
-          beach={selectedBeach}
-          isOpen={!!selectedBeach}
-          onClose={handleCloseBeachModal}
-          isSubscribed={isSubscribed}
-          onSubscribe={() => {
-            handleCloseBeachModal();
-            window.location.href = "/pricing";
-          }}
-        />
-      )}
     </div>
   );
 }

@@ -12,6 +12,7 @@ import {
   WAVE_TYPE_ICONS,
   WaveType,
 } from "@/app/lib/constants";
+import React from "react";
 
 interface BeachDetailsModalProps {
   beach: Beach;
@@ -51,6 +52,14 @@ export default function BeachDetailsModal({
   isSubscribed,
   onSubscribe,
 }: BeachDetailsModalProps) {
+  console.log("BeachDetailsModal render with isOpen:", isOpen);
+
+  // Add this useEffect to debug
+  React.useEffect(() => {
+    console.log("BeachDetailsModal isOpen changed to:", isOpen);
+    return () => console.log("BeachDetailsModal isOpen cleanup");
+  }, [isOpen]);
+
   const router = useRouter();
 
   const handleSubscribeClick = (e: React.MouseEvent) => {
@@ -61,7 +70,15 @@ export default function BeachDetailsModal({
   };
 
   return (
-    <Dialog open={isOpen} onOpenChange={onClose}>
+    <Dialog
+      open={isOpen}
+      onOpenChange={(open) => {
+        console.log("Dialog onOpenChange called with:", open);
+        if (!open) {
+          onClose();
+        }
+      }}
+    >
       <DialogContent className="max-w-2xl bg-white max-h-[90vh] overflow-y-auto">
         <DialogHeader>
           <div className="flex items-center gap-3">

@@ -1,7 +1,6 @@
 import { prisma } from "@/app/lib/prisma";
 import { sendAlertNotification } from "./notificationService";
 
-
 // Move the AlertMatch interface here
 export interface AlertMatch {
   alertId: string;
@@ -15,6 +14,7 @@ export interface AlertMatch {
     difference: number;
     withinRange: boolean;
   }>;
+  matchDetails: string;
 }
 
 export async function processUserAlerts(userId: string, today: Date) {
@@ -113,6 +113,7 @@ export async function processUserAlerts(userId: string, today: Date) {
           region: alert.region,
           timestamp: new Date(),
           matchedProperties: [],
+          matchDetails: "",
         };
 
         if (

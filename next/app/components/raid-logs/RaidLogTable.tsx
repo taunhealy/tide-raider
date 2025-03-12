@@ -408,14 +408,6 @@ export default function RaidLogTable({
                     : "text-[var(--color-alert-icon-rating)] fill-none hover:text-[var(--color-alert-icon-rating)]"
                   : "text-gray-500 fill-none hover:text-[var(--color-alert-icon-rating)]"
               )}
-              onClick={(e) => {
-                e.stopPropagation(); // Prevent event bubbling
-                if (!entry.isMyAlert) {
-                  // Set the selected log entry and open the modal directly
-                  setSelectedLogForAlert(entry);
-                  setAlertModalOpen(true);
-                }
-              }}
             />
           </button>
           <button
@@ -680,14 +672,6 @@ export default function RaidLogTable({
                                       : "text-[var(--color-alert-icon-rating)] fill-none hover:text-[var(--color-alert-icon-rating)]"
                                     : "text-gray-500 fill-none hover:text-[var(--color-alert-icon-rating)]"
                                 )}
-                                onClick={(e) => {
-                                  e.stopPropagation(); // Prevent event bubbling
-                                  if (!entry.isMyAlert) {
-                                    // Set the selected log entry and open the modal directly
-                                    setSelectedLogForAlert(entry);
-                                    setAlertModalOpen(true);
-                                  }
-                                }}
                               />
                             </button>
                             <button

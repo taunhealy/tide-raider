@@ -30,6 +30,22 @@ export async function sendAlertNotification(
     const resolvedBeachName =
       logEntry?.beachName || logEntry?.beach?.name || beachName;
 
+    // Check for existing notification first
+    const existingNotification = await prisma.alertNotification.findFirst({
+      where: {
+        alertId: alert.id,
+        createdAt: {
+          gte: new Date(new Date().setHours(0, 0, 0, 0)), // Today
+          lt: new Date(new Date().setHours(24, 0, 0, 0)),
+        },
+      },
+    });
+
+    if (existingNotification) {
+      console.log("Notification already sent today, skipping");
+      return true;
+    }
+
     // Prepare notification message
     const message = createNotificationMessage(alertMatch, resolvedBeachName);
 
@@ -92,9 +108,12 @@ export async function sendAlertNotification(
   }
 }
 
-function createNotificationMessage(
-  alertMatch: AlertMatch,
-  beachName: string
-): string {
-  return `Good news! Conditions at ${beachName} in ${alertMatch.region} match your alert criteria.`;
+function createNotificationMessage(alertMatch: AlertMatch, beachName: string) {
+  // Build details from matchedProperties
+  const details = alertMatch.matchedProperties
+    .filter((p) => p.withinRange)
+    .map((p) => `${p.property}: ${p.forecastValue} (vs ${p.logValue})`)
+    .join(", ");
+
+  return `Conditions at ${beachName} match: ${details}`;
 }

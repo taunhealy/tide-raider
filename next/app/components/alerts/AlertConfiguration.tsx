@@ -414,8 +414,8 @@ export function AlertConfiguration({
               <Checkbox
                 id="app-notification"
                 checked={alertConfig.notificationMethod === "app"}
-                onCheckedChange={(checked) => {
-                  if (checked) {
+                onChange={(e) => {
+                  if (e.target.checked) {
                     setAlertConfig((prev) => ({
                       ...prev,
                       notificationMethod: "app" as NotificationMethod,
@@ -436,8 +436,8 @@ export function AlertConfiguration({
               <Checkbox
                 id="email-notification"
                 checked={alertConfig.notificationMethod === "email"}
-                onCheckedChange={(checked) => {
-                  if (checked) {
+                onChange={(e) => {
+                  if (e.target.checked) {
                     setAlertConfig((prev) => ({
                       ...prev,
                       notificationMethod: "email" as NotificationMethod,
@@ -458,8 +458,8 @@ export function AlertConfiguration({
                 id="whatsapp-notification"
                 checked={alertConfig.notificationMethod === "whatsapp"}
                 disabled={true}
-                onCheckedChange={(checked) => {
-                  if (checked) {
+                onChange={(e) => {
+                  if (e.target.checked) {
                     setAlertConfig((prev) => ({
                       ...prev,
                       notificationMethod: "whatsapp" as NotificationMethod,
@@ -481,8 +481,11 @@ export function AlertConfiguration({
           <Switch
             id="active"
             checked={alertConfig.active}
-            onCheckedChange={(checked) =>
-              setAlertConfig({ ...alertConfig, active: checked })
+            onChange={(e) =>
+              setAlertConfig({
+                ...alertConfig,
+                active: (e.target as HTMLInputElement).checked,
+              })
             }
           />
           <Label htmlFor="active" className="font-primary">

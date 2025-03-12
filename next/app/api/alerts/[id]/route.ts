@@ -62,6 +62,11 @@ export async function PUT(
       },
     });
 
+    // Reset alert checks after update
+    await prisma.alertCheck.deleteMany({
+      where: { alertId: params.id },
+    });
+
     return NextResponse.json(alert);
   } catch (error) {
     console.error("Error updating alert:", error);
@@ -91,7 +96,7 @@ const AlertUpdateSchema = z.object({
       })
     )
     .optional(),
-  notificationMethod: z.enum(["email", "whatsapp", "both"]).optional(),
+  notificationMethod: z.enum(["email", "whatsapp", "app", "both"]).optional(),
   contactInfo: z.string().min(1).optional(),
   forecastDate: z.date().optional(),
 });
@@ -110,22 +115,36 @@ export async function DELETE(
 
     const alertId = params.id;
 
-    // Check if the alert exists and belongs to the user
+    // Verify alert ownership
     const alert = await prisma.alert.findUnique({
       where: {
         id: alertId,
+        userId: session.user.id,
       },
     });
 
     if (!alert) {
-      return NextResponse.json({ error: "Alert not found" }, { status: 404 });
+      return NextResponse.json(
+        { error: "Alert not found or unauthorized" },
+        { status: 404 }
+      );
     }
 
-    if (alert.userId !== session.user.id) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 403 });
-    }
+    // Delete related AlertNotification records first
+    await prisma.alertNotification.deleteMany({
+      where: {
+        alertId: alertId,
+      },
+    });
 
-    // Delete the alert
+    // Delete related AlertCheck records
+    await prisma.alertCheck.deleteMany({
+      where: {
+        alertId: alertId,
+      },
+    });
+
+    // Now delete the alert
     await prisma.alert.delete({
       where: {
         id: alertId,
@@ -190,6 +209,11 @@ export async function PATCH(
         id: alertId,
       },
       data: validationResult.data,
+    });
+
+    // Reset alert checks after update
+    await prisma.alertCheck.deleteMany({
+      where: { alertId },
     });
 
     return NextResponse.json(updatedAlert);

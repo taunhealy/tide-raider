@@ -4,13 +4,7 @@ import { Input } from "@/app/components/ui/Input";
 import { Label } from "@/app/components/ui/Label";
 import { Slider } from "@/app/components/ui/Slider";
 import { Switch } from "@/app/components/ui/Switch";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "../ui/Select";
+
 import {
   Card,
   CardContent,
@@ -21,9 +15,10 @@ import {
 } from "@/app/components/ui/Card";
 import { AlertConfigTypes, AlertConfig } from "@/app/types/alerts";
 import { ForecastProperty } from "@/app/types/alerts";
-import { Checkbox } from "@/app/components/ui/Checkbox";
-import { RadioGroup, RadioGroupItem } from "@/app/components/ui/RadioGroup";
+import { Checkbox } from "@/app/components/ui/checkbox";
+import { RadioGroup, RadioGroupItem } from "@/app/components/ui/radio-group";
 import { StarIcon } from "lucide-react";
+import { BasicSelect, BasicOption } from "@/app/components/ui/BasicSelect";
 
 import { NotificationMethod } from "@/app/types/alerts";
 
@@ -178,44 +173,29 @@ export function AlertConfiguration({
           <Label htmlFor="region" className="font-primary">
             Region
           </Label>
-          <Select
-            value={alertConfig.region}
-            onValueChange={(value) =>
-              setAlertConfig({ ...alertConfig, region: value })
-            }
-          >
-            <SelectTrigger id="region" className="font-primary">
-              <SelectValue placeholder="Select region">
-                {alertConfig.region || "Select region"}
-              </SelectValue>
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="north-sea" className="font-primary">
-                North Sea
-              </SelectItem>
-              <SelectItem value="baltic-sea" className="font-primary">
-                Baltic Sea
-              </SelectItem>
-              <SelectItem value="Western Cape" className="font-primary">
-                Western Cape
-              </SelectItem>
-              {selectedLogEntry?.region &&
-                !["north-sea", "baltic-sea", "Western Cape"].includes(
-                  selectedLogEntry.region
-                ) && (
-                  <SelectItem
-                    value={selectedLogEntry.region}
-                    className="font-primary"
-                  >
-                    {selectedLogEntry.region}
-                  </SelectItem>
-                )}
-            </SelectContent>
-          </Select>
-          {selectedLogEntry?.region && (
-            <p className="text-xs text-gray-500 mt-1 font-primary">
-              Region from selected log: {selectedLogEntry.region}
-            </p>
+          {selectedLogEntry?.region ? (
+            <div className="p-2 border rounded-md bg-gray-50 text-gray-700 font-primary">
+              {selectedLogEntry.region}
+              <p className="text-xs text-gray-500 mt-1">
+                Region is fixed based on the selected log entry
+              </p>
+            </div>
+          ) : (
+            <BasicSelect
+              id="region"
+              value={alertConfig.region}
+              onValueChange={(value) =>
+                setAlertConfig({ ...alertConfig, region: value })
+              }
+              className="font-primary"
+            >
+              <BasicOption value="" disabled>
+                Select region
+              </BasicOption>
+              <BasicOption value="north-sea">North Sea</BasicOption>
+              <BasicOption value="baltic-sea">Baltic Sea</BasicOption>
+              <BasicOption value="Western Cape">Western Cape</BasicOption>
+            </BasicSelect>
           )}
         </div>
 
@@ -283,30 +263,19 @@ export function AlertConfiguration({
                   </Button>
                 </div>
 
-                <Select
+                <BasicSelect
                   value={prop.property}
                   onValueChange={(value: string) =>
                     handlePropertyChange(index, "property", value)
                   }
+                  className="font-primary"
                 >
-                  <SelectTrigger className="font-primary">
-                    <SelectValue>
-                      {forecastProperties.find((fp) => fp.id === prop.property)
-                        ?.name || "Select property"}
-                    </SelectValue>
-                  </SelectTrigger>
-                  <SelectContent>
-                    {forecastProperties.map((forecastProp) => (
-                      <SelectItem
-                        key={forecastProp.id}
-                        value={forecastProp.id}
-                        className="font-primary"
-                      >
-                        {forecastProp.name}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
+                  {forecastProperties.map((forecastProp) => (
+                    <BasicOption key={forecastProp.id} value={forecastProp.id}>
+                      {forecastProp.name}
+                    </BasicOption>
+                  ))}
+                </BasicSelect>
 
                 <div className="mt-2">
                   <div className="flex justify-between items-center">
@@ -415,7 +384,7 @@ export function AlertConfiguration({
                 id="app-notification"
                 checked={alertConfig.notificationMethod === "app"}
                 onChange={(e) => {
-                  if (e.target.checked) {
+                  if ((e.target as HTMLInputElement).checked) {
                     setAlertConfig((prev) => ({
                       ...prev,
                       notificationMethod: "app" as NotificationMethod,
@@ -437,7 +406,7 @@ export function AlertConfiguration({
                 id="email-notification"
                 checked={alertConfig.notificationMethod === "email"}
                 onChange={(e) => {
-                  if (e.target.checked) {
+                  if ((e.target as HTMLInputElement).checked) {
                     setAlertConfig((prev) => ({
                       ...prev,
                       notificationMethod: "email" as NotificationMethod,
@@ -459,7 +428,7 @@ export function AlertConfiguration({
                 checked={alertConfig.notificationMethod === "whatsapp"}
                 disabled={true}
                 onChange={(e) => {
-                  if (e.target.checked) {
+                  if ((e.target as HTMLInputElement).checked) {
                     setAlertConfig((prev) => ({
                       ...prev,
                       notificationMethod: "whatsapp" as NotificationMethod,

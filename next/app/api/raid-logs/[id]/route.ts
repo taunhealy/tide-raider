@@ -146,18 +146,40 @@ export async function PATCH(
           where: { id: alertId },
           data: {
             ...cleanAlertConfig,
+            properties: alertConfig.properties || [
+              { property: "windSpeed", range: 2 },
+              { property: "windDirection", range: 10 },
+              { property: "swellHeight", range: 0.2 },
+              { property: "swellPeriod", range: 1 },
+              { property: "swellDirection", range: 10 },
+            ],
+            notificationMethod: alertConfig.notificationMethod || "app",
+            contactInfo: alertConfig.contactInfo || session.user.email || "",
             forecastDate: new Date(data.date),
+            alertType: alertConfig.alertType || "variables",
+            starRating: alertConfig.starRating || null,
           },
         });
       } else if (createAlert) {
         await prisma.alert.create({
           data: {
-            ...cleanAlertConfig,
-            forecastDate: new Date(data.date),
+            name: `Alert for ${updatedLogEntry.beachName || updatedLogEntry.region}`,
+            region: updatedLogEntry.region || "",
+            properties: alertConfig.properties || [
+              { property: "windSpeed", range: 2 },
+              { property: "windDirection", range: 10 },
+              { property: "swellHeight", range: 0.2 },
+              { property: "swellPeriod", range: 1 },
+              { property: "swellDirection", range: 10 },
+            ],
+            notificationMethod: alertConfig.notificationMethod || "app",
+            contactInfo: alertConfig.contactInfo || session.user.email || "",
+            active: true,
             userId: session.user.id,
-            logEntry: {
-              connect: { id: updatedLogEntry.id },
-            },
+            logEntryId: params.id,
+            forecastDate: new Date(updatedLogEntry.date),
+            alertType: alertConfig.alertType || "variables",
+            starRating: alertConfig.starRating || null,
           },
         });
       }

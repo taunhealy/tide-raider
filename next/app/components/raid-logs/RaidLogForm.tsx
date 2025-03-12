@@ -11,7 +11,7 @@ import { Button } from "@/app/components/ui/Button";
 import { validateFile, compressImageIfNeeded } from "@/app/lib/file";
 import { useSubscription } from "@/app/context/SubscriptionContext";
 import { useSession } from "next-auth/react";
-import { Select, SelectItem } from "@/app/components/ui/Select";
+import { BasicSelect, BasicOption } from "@/app/components/ui/BasicSelect";
 import { useHandleTrial } from "@/app/hooks/useHandleTrial";
 import { useRouter } from "next/navigation";
 import { signIn } from "next-auth/react";
@@ -148,33 +148,49 @@ export function RaidLogForm({
       // Create alert if requested
       if (createAlert && selectedBeach && forecastData) {
         try {
-          // Use the alertConfig instead of building a new object
           const alertToCreate = {
             ...alertConfig,
             name: alertConfig.name || `Alert for ${selectedBeach.name}`,
             region: selectedBeach.region,
             forecastDate: new Date(selectedDate),
             logEntryId: data.id,
+            properties: alertConfig.properties || [
+              { property: "windSpeed", range: 2 },
+              { property: "windDirection", range: 10 },
+              { property: "swellHeight", range: 0.2 },
+              { property: "swellPeriod", range: 1 },
+              { property: "swellDirection", range: 10 },
+            ],
+            notificationMethod: alertConfig.notificationMethod || "app",
+            contactInfo: alertConfig.contactInfo || userEmail || "",
+            active:
+              alertConfig.active !== undefined ? alertConfig.active : true,
           };
 
-          const alertResponse = await fetch("/api/alerts", {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify(alertToCreate),
-          });
+          // Use PATCH for existing alerts, POST for new ones
+          const alertResponse = await fetch(
+            `/api/alerts${alertConfig.id ? `/${alertConfig.id}` : ""}`,
+            {
+              method: alertConfig.id ? "PATCH" : "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify(alertToCreate),
+            }
+          );
 
           if (!alertResponse.ok) {
-            throw new Error("Failed to create alert");
+            throw new Error("Failed to update alert");
           }
 
           toast.success(
-            "You'll be notified when forecast conditions match this session."
+            alertConfig.id
+              ? "Alert updated successfully"
+              : "You'll be notified when forecast conditions match this session."
           );
 
           queryClient.invalidateQueries({ queryKey: ["alerts"] });
         } catch (error) {
-          console.error("Error creating alert:", error);
-          toast.error("Could not create alert. Please try again.");
+          console.error("Error updating alert:", error);
+          toast.error("Could not update alert. Please try again.");
         }
       }
 
@@ -553,28 +569,28 @@ export function RaidLogForm({
                     </div>
                   )}
 
-                  <Select
+                  <BasicSelect
                     value={selectedBeach?.name || ""}
                     onValueChange={(value) => {
                       const beach = beaches?.find((b) => b.name === value);
                       if (beach) handleBeachSelect(beach);
                     }}
                   >
-                    <SelectItem value="" disabled>
+                    <BasicOption value="" disabled>
                       {selectedBeach ? selectedBeach.name : "Choose a beach..."}
-                    </SelectItem>
+                    </BasicOption>
                     {Array.isArray(beaches) && beaches.length > 0 ? (
                       beaches.slice(0, 5).map((beach) => (
-                        <SelectItem key={beach.id} value={beach.name}>
+                        <BasicOption key={beach.id} value={beach.name}>
                           {beach.name}
-                        </SelectItem>
+                        </BasicOption>
                       ))
                     ) : (
-                      <SelectItem value="" disabled>
+                      <BasicOption value="" disabled>
                         No beaches available ({beaches?.length || 0} beaches)
-                      </SelectItem>
+                      </BasicOption>
                     )}
-                  </Select>
+                  </BasicSelect>
                 </div>
               </div>
 

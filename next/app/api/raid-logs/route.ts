@@ -15,6 +15,7 @@ const logEntrySchema = z.object({
   beachName: z.string(),
   date: z.string().regex(/^\d{4}-\d{2}-\d{2}$/),
   surferName: z.string(),
+  surferEmail: z.string(),
   surferRating: z.number().min(0).max(5),
   comments: z.string().optional(),
   imageUrl: z.string().optional(),
@@ -254,8 +255,8 @@ export async function POST(req: NextRequest) {
     const logEntry = await prisma.logEntry.create({
       data: {
         beachName: data.beachName,
-        date: new Date(data.date), // Prisma will ignore time with @db.Date
-        surferEmail: data.surferEmail,
+        date: new Date(data.date),
+        surferEmail: session.user.email,
         surferName: data.surferName,
         surferRating: data.surferRating,
         comments: data.comments,

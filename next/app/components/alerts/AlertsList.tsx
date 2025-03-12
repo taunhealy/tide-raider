@@ -15,7 +15,6 @@ import { useQuery, useQueryClient, useMutation } from "@tanstack/react-query";
 import { useRouter } from "next/navigation";
 
 import { Alert } from "@/app/types/alerts";
-import { LogEntry } from "@prisma/client";
 
 type ForecastProperty =
   | "windSpeed"
@@ -175,7 +174,7 @@ export function AlertsList() {
   return (
     <>
       <div className="mb-6 border-b border-[var(--color-border-light)]">
-        <div className="flex space-x-4">
+        <div className="flex space-x-4 overflow-x-auto pb-1 scrollbar-hide">
           <button
             onClick={() => setActiveTab("all")}
             className={`py-3 px-4 font-primary ${
@@ -218,7 +217,7 @@ export function AlertsList() {
         </div>
       </div>
 
-      <div className="space-y-6 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+      <div className="space-y-6 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4 auto-rows-fr">
         {filteredAlerts.length === 0 ? (
           <div className="text-center py-8 border rounded-lg bg-[var(--color-bg-primary)] border-[var(--color-border-light)] col-span-full">
             <Bell className="mx-auto h-12 w-12 text-[var(--color-text-secondary)]" />
@@ -283,8 +282,8 @@ export function AlertsList() {
                   </div>
                 </div>
               </CardHeader>
-              <CardContent className="flex-grow">
-                <div className="text-sm space-y-3 font-primary h-full flex flex-col">
+              <CardContent className="flex-grow flex-1">
+                <div className="text-sm space-y-2 sm:space-y-3 font-primary h-full flex flex-col">
                   <p className="text-[var(--color-text-secondary)]">
                     <span className="font-medium text-[var(--color-text-primary)]">
                       Region:
@@ -297,7 +296,7 @@ export function AlertsList() {
                     </span>{" "}
                     {alert.notificationMethod} ({alert.contactInfo})
                   </p>
-                  <div className="mt-3 pt-3 border-t border-[var(--color-border-light)] flex-grow">
+                  <div className="mt-2 sm:mt-3 pt-2 sm:pt-3 border-t border-[var(--color-border-light)] flex-grow">
                     {alert.alertType === "rating" ? (
                       <div>
                         <p className="text-[var(--color-text-primary)] font-medium mb-2">
@@ -359,7 +358,7 @@ export function AlertsList() {
                                     <div key={index} className="space-y-1">
                                       <div className="flex items-center gap-2">
                                         <div className="flex items-center gap-4">
-                                          <span className="text-[14px] font-medium text-[var(--color-text-primary)] font-primary">
+                                          <span className="text-[13px] sm:text-[14px] font-medium text-[var(--color-text-primary)] font-primary">
                                             {prop.property === "windSpeed"
                                               ? "Wind Speed"
                                               : prop.property ===
@@ -378,7 +377,7 @@ export function AlertsList() {
                                           </span>
                                           {forecastValue !== undefined && (
                                             <>
-                                              <span className="text-[21px] font-medium text-[var(--color-text-primary)] font-primary">
+                                              <span className="text-[18px] sm:text-[21px] font-medium text-[var(--color-text-primary)] font-primary">
                                                 {forecastValue.toFixed(1)}
                                                 {getUnit(prop.property)}
                                               </span>

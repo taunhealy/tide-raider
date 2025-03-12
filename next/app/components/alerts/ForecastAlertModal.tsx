@@ -16,17 +16,10 @@ import {
   DialogFooter,
   DialogHeader,
   DialogTitle,
-} from "@/app/components/ui/Dialog";
+} from "@/app/components/ui/dialog";
 import { Input } from "@/app/components/ui/Input";
 import { Label } from "@/app/components/ui/Label";
 import { Slider } from "@/app/components/ui/Slider";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/app/components/ui/Select";
 import { Button } from "@/app/components/ui/Button";
 import { useMutation, useQuery } from "@tanstack/react-query";
 import confetti from "canvas-confetti";
@@ -45,8 +38,9 @@ import { useQueryClient } from "@tanstack/react-query";
 import { Skeleton } from "@/app/components/ui/Skeleton";
 import { ScrollArea } from "@/app/components/ui/ScrollArea";
 import { AlertConfig } from "@/app/types/alerts";
-import { RadioGroup, RadioGroupItem } from "@/app/components/ui/RadioGroup";
-import { Checkbox } from "@/app/components/ui/Checkbox";
+import { RadioGroup, RadioGroupItem } from "@/app/components/ui/radio-group";
+import { Checkbox } from "@/app/components/ui/checkbox";
+import { BasicSelect, BasicOption } from "@/app/components/ui/BasicSelect";
 
 interface ForecastAlertModalProps {
   isOpen?: boolean;
@@ -666,6 +660,7 @@ export default function ForecastAlertModal({
     console.log("Saving alert with config:", alertConfig);
     console.log("Notification method:", alertConfig.notificationMethod);
     console.log("Contact info:", alertConfig.contactInfo);
+    console.log("Alert type:", alertType);
 
     // Check if all required fields are present
     if (
@@ -853,6 +848,15 @@ export default function ForecastAlertModal({
     }
   }, [existingAlert?.id, fetchAlert]);
 
+  // Update the initialization to avoid "both" comparison
+  const [selectedNotificationMethods, setSelectedNotificationMethods] = useState<string[]>(
+    existingAlert?.notificationMethod 
+      ? (existingAlert.notificationMethod === "email" 
+        ? ["email"] 
+        : ["app"])
+      : ["app"]
+  );
+
   return (
     <Dialog
       open={isOpen}
@@ -999,10 +1003,9 @@ export default function ForecastAlertModal({
                   </span>
                   Select Region
                 </Label>
-                <select
+                <BasicSelect
                   value={alertConfig.region || ""}
-                  onChange={(e) => {
-                    const value = e.target.value;
+                  onValueChange={(value) => {
                     console.log("Region selected:", value);
                     setAlertConfig({
                       ...alertConfig,
@@ -1010,18 +1013,18 @@ export default function ForecastAlertModal({
                       forecastDate: new Date(),
                     });
                   }}
-                  className="w-full p-2 border rounded-md font-primary border-gray-300"
+                  className="w-full font-primary border-gray-300"
                   disabled={
                     isLoadingRegions || isLinkedToLogEntry || !!selectedLogEntry
                   }
                 >
-                  <option value="">Select region</option>
+                  <BasicOption value="">Select region</BasicOption>
                   {regions.map((region) => (
-                    <option key={region} value={region}>
+                    <BasicOption key={region} value={region}>
                       {region}
-                    </option>
+                    </BasicOption>
                   ))}
-                </select>
+                </BasicSelect>
                 {isLoadingRegions && (
                   <p className="text-sm text-gray-500 font-primary">
                     Loading available regions...
@@ -1039,7 +1042,7 @@ export default function ForecastAlertModal({
                   </span>
                   Select Forecast Date
                 </Label>
-                <select
+                <BasicSelect
                   value={
                     alertConfig.forecastDate &&
                     !isNaN(new Date(alertConfig.forecastDate).getTime())
@@ -1048,15 +1051,14 @@ export default function ForecastAlertModal({
                           .split("T")[0]
                       : ""
                   }
-                  onChange={(e) => {
-                    const value = e.target.value;
+                  onValueChange={(value) => {
                     console.log("Date selected:", value);
                     setAlertConfig({
                       ...alertConfig,
                       forecastDate: value ? new Date(value) : new Date(),
                     });
                   }}
-                  className="w-full p-2 border rounded-md font-primary border-gray-300"
+                  className="w-full font-primary border-gray-300"
                   disabled={
                     !alertConfig.region ||
                     isLoadingDates ||
@@ -1064,13 +1066,13 @@ export default function ForecastAlertModal({
                     !!selectedLogEntry
                   }
                 >
-                  <option value="">Select date</option>
+                  <BasicOption value="">Select date</BasicOption>
                   {availableDates.map((date) => (
-                    <option key={date} value={date}>
+                    <BasicOption key={date} value={date}>
                       {new Date(date).toLocaleDateString()}
-                    </option>
+                    </BasicOption>
                   ))}
-                </select>
+                </BasicSelect>
                 {alertConfig.region && isLoadingDates && (
                   <p className="text-sm text-gray-500 font-primary">
                     Loading available forecast dates...
@@ -1153,10 +1155,10 @@ export default function ForecastAlertModal({
                 value={alertType}
                 onValueChange={(value: string) => {
                   setAlertType(value as AlertType);
-                  setAlertConfig({
-                    ...alertConfig,
+                  setAlertConfig((prev) => ({
+                    ...prev,
                     alertType: value as AlertType,
-                  });
+                  }));
                 }}
                 className="flex flex-col space-y-2"
               >
@@ -1202,7 +1204,7 @@ export default function ForecastAlertModal({
                       className="space-y-2 p-4 border rounded-md bg-[var(--color-bg-secondary)] border-[var(--color-border-light)]"
                     >
                       <div className="flex justify-between items-center">
-                        <Select
+                        <BasicSelect
                           value={prop.property}
                           onValueChange={(value) =>
                             updateProperty({
@@ -1211,28 +1213,18 @@ export default function ForecastAlertModal({
                               value: value as ForecastProperty,
                             })
                           }
+                          className="font-primary"
                         >
-                          <SelectTrigger className="font-primary">
-                            <SelectValue>
-                              {
-                                forecastProperties.find(
-                                  (fp) => fp.id === prop.property
-                                )?.name
-                              }
-                            </SelectValue>
-                          </SelectTrigger>
-                          <SelectContent>
-                            {forecastProperties.map((forecastProp) => (
-                              <SelectItem
-                                key={forecastProp.id}
-                                value={forecastProp.id}
-                                className="font-primary"
-                              >
-                                {forecastProp.name}
-                              </SelectItem>
-                            ))}
-                          </SelectContent>
-                        </Select>
+                          {forecastProperties.map((forecastProp) => (
+                            <BasicOption
+                              key={forecastProp.id}
+                              value={forecastProp.id}
+                              className="font-primary"
+                            >
+                              {forecastProp.name}
+                            </BasicOption>
+                          ))}
+                        </BasicSelect>
                         <Button
                           variant="ghost"
                           size="sm"
@@ -1316,10 +1308,10 @@ export default function ForecastAlertModal({
                   value={starRating}
                   onValueChange={(value: string) => {
                     setStarRating(value as "4+" | "5");
-                    setAlertConfig({
-                      ...alertConfig,
+                    setAlertConfig((prev) => ({
+                      ...prev,
                       starRating: value as "4+" | "5",
-                    });
+                    }));
                   }}
                   className="flex flex-col space-y-2"
                 >
@@ -1368,19 +1360,53 @@ export default function ForecastAlertModal({
 
             {/* Notification Method Checkboxes */}
             <div className="space-y-2">
-              <Label className="font-primary">Notification Method</Label>
+              <Label className="font-primary flex items-center">
+                <span className="bg-gray-200 text-gray-700 rounded-full w-5 h-5 inline-flex items-center justify-center mr-2 text-xs">
+                  {!logEntry && !isEditing && !selectedLogEntry
+                    ? "7"
+                    : selectedLogEntry || logEntry
+                      ? "4"
+                      : "6"}
+                </span>
+                Notification Methods
+              </Label>
               <div className="space-y-2">
-                <div className="flex items-center space-x-2">
+                <div className="flex items-center space-x-2 p-2 rounded-md hover:bg-gray-50">
                   <Checkbox
                     id="app-notification"
-                    checked={alertConfig.notificationMethod === "app"}
-                    onChange={(e) => {
-                      if ((e.target as HTMLInputElement).checked) {
+                    checked={selectedNotificationMethods.includes("app")}
+                    onCheckedChange={(checked) => {
+                      setSelectedNotificationMethods((prev) => {
+                        const newMethods = [...prev];
+                        if (checked) {
+                          if (!newMethods.includes("app")) {
+                            newMethods.push("app");
+                          }
+                        } else {
+                          const index = newMethods.indexOf("app");
+                          if (index !== -1) {
+                            newMethods.splice(index, 1);
+                          }
+                        }
+
+                        // Update the alertConfig with the appropriate value for backward compatibility
+                        let compatValue: NotificationMethod = "app";
+                        if (
+                          newMethods.includes("app") &&
+                          newMethods.includes("email")
+                        ) {
+                          compatValue = "app" as NotificationMethod; // Use app as default when both are selected
+                        } else if (newMethods.includes("email")) {
+                          compatValue = "email";
+                        }
+
                         setAlertConfig((prev) => ({
                           ...prev,
-                          notificationMethod: "app",
+                          notificationMethod: compatValue,
                         }));
-                      }
+
+                        return newMethods;
+                      });
                     }}
                   />
                   <Label
@@ -1391,17 +1417,42 @@ export default function ForecastAlertModal({
                   </Label>
                 </div>
 
-                <div className="flex items-center space-x-2">
+                <div className="flex items-center space-x-2 p-2 rounded-md hover:bg-gray-50">
                   <Checkbox
                     id="email-notification"
-                    checked={alertConfig.notificationMethod === "email"}
-                    onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
-                      if (e.currentTarget.checked) {
+                    checked={selectedNotificationMethods.includes("email")}
+                    onCheckedChange={(checked) => {
+                      setSelectedNotificationMethods((prev) => {
+                        const newMethods = [...prev];
+                        if (checked) {
+                          if (!newMethods.includes("email")) {
+                            newMethods.push("email");
+                          }
+                        } else {
+                          const index = newMethods.indexOf("email");
+                          if (index !== -1) {
+                            newMethods.splice(index, 1);
+                          }
+                        }
+
+                        // Update the alertConfig with the appropriate value for backward compatibility
+                        let compatValue: NotificationMethod = "app";
+                        if (
+                          newMethods.includes("app") &&
+                          newMethods.includes("email")
+                        ) {
+                          compatValue = "app" as NotificationMethod; // Use app as default when both are selected
+                        } else if (newMethods.includes("email")) {
+                          compatValue = "email";
+                        }
+
                         setAlertConfig((prev) => ({
                           ...prev,
-                          notificationMethod: "email",
+                          notificationMethod: compatValue,
                         }));
-                      }
+
+                        return newMethods;
+                      });
                     }}
                   />
                   <Label
@@ -1412,34 +1463,17 @@ export default function ForecastAlertModal({
                   </Label>
                 </div>
 
-                <div className="flex items-center space-x-2">
+                <div className="flex items-center space-x-2 p-2 rounded-md hover:bg-gray-50">
                   <Checkbox
                     id="whatsapp-notification"
-                    checked={alertConfig.notificationMethod === "whatsapp"}
-                    disabled={true}
-                    onChange={(e) => {
-                      if ((e.target as HTMLInputElement).checked) {
-                        setAlertConfig((prev) => ({
-                          ...prev,
-                          notificationMethod: "whatsapp",
-                        }));
-                      }
-                    }}
+                    disabled
+                    checked={selectedNotificationMethods.includes("whatsapp")}
                   />
                   <Label
                     htmlFor="whatsapp-notification"
                     className="font-primary cursor-pointer text-gray-400"
                   >
                     WhatsApp (Coming Soon)
-                  </Label>
-                </div>
-
-                <div className="flex items-center space-x-2">
-                  <Label
-                    htmlFor="both-notification"
-                    className="font-primary cursor-pointer text-gray-400"
-                  >
-                    Both (Coming Soon)
                   </Label>
                 </div>
               </div>

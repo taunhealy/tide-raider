@@ -8,7 +8,7 @@ import { useSession } from "next-auth/react";
 import { toast } from "sonner";
 import { ChevronDown } from "lucide-react";
 import { Region } from "@/app/types/beaches";
-import { cn } from "@/lib/utils";
+import { cn } from "@/app/lib/utils";
 import { useQuery } from "@tanstack/react-query";
 
 interface SavedFilters {

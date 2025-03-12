@@ -2,10 +2,10 @@
 
 import { useState, useEffect } from "react";
 import { useQuery } from "@tanstack/react-query";
-import { cn } from "@/lib/utils";
-import { getWindEmoji } from "@/lib/forecastUtils";
-import { getSwellEmoji } from "@/lib/forecastUtils";
-import { getDirectionEmoji } from "@/lib/forecastUtils";
+import { cn } from "@/app/lib/utils";
+import { getWindEmoji } from "@/app/lib/forecastUtils";
+import { getSwellEmoji } from "@/app/lib/forecastUtils";
+import { getDirectionEmoji } from "@/app/lib/forecastUtils";
 import { degreesToCardinal } from "@/app/lib/forecastUtils";
 import { LogEntry } from "@/app/types/questlogs";
 

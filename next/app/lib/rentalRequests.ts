@@ -1,4 +1,4 @@
-import { prisma } from "@/lib/prisma";
+import { prisma } from "@/app/lib/prisma";
 import { sendRequestExpiredNotification } from "@/app/lib/email";
 import { RequestStatus } from "@prisma/client";
 

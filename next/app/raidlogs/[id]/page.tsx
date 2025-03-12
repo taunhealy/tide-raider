@@ -6,7 +6,7 @@ import { RaidLogForm } from "@/app/components/raid-logs/RaidLogForm";
 import { RandomLoader } from "@/app/components/ui/RandomLoader";
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
-import { Beach } from "@/types/beaches";
+import { Beach } from "@/app/types/beaches";
 import { getBeaches } from "@/app/lib/data";
 
 export default function RaidLogPage({ params }: { params: { id: string } }) {

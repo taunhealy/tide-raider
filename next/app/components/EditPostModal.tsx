@@ -7,7 +7,7 @@ import { cn } from "@/app/lib/utils";
 import type { Story, StoryBeach } from "@/app/types/stories";
 import { beachData } from "@/app/types/beaches";
 import { Button } from "@/app/components/ui/Button";
-import { STORY_CATEGORIES, StoryCategory } from "@/lib/constants";
+import { STORY_CATEGORIES, StoryCategory } from "@/app/lib/constants";
 
 interface EditPostModalProps {
   isOpen: boolean;

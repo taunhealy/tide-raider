@@ -2,7 +2,7 @@ import { client } from "@/app/lib/sanity";
 import { notFound } from "next/navigation";
 import Image from "next/image";
 import BlogSidebar from "@/app/components/postsSidebars/BlogSidebar";
-import { postQuery } from "@/lib/queries";
+import { postQuery } from "@/app/lib/queries";
 import TripDetails from "@/app/components/TripDetails";
 import CustomPortableText from "@/app/components/PortableText";
 import { urlForImage } from "@/app/lib/urlForImage";

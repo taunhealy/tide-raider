@@ -3,7 +3,7 @@
 import { useState, useEffect } from "react";
 import Link from "next/link";
 import { Skeleton } from "@/app/components/ui/Skeleton";
-import { Favorite } from "@/types/favorites";
+import { Favorite } from "@/app/types/favorites";
 import { useSession } from "next-auth/react";
 import { toast } from "sonner";
 import confetti from "canvas-confetti";

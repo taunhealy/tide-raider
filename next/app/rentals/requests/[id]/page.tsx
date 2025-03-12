@@ -4,7 +4,7 @@ import Image from "next/image";
 import { format } from "date-fns";
 import { getServerSession } from "next-auth/next";
 import { authOptions } from "@/app/lib/authOptions";
-import { prisma } from "@/lib/prisma";
+import { prisma } from "@/app/lib/prisma";
 import { RentalRequestActions } from "@/app/components/rentals/RentalRequestActions";
 import { RentalRequestChat } from "@/app/components/rentals/RentalRequestChat";
 import { RentalRequestWithRelations } from "@/app/types/rentals";

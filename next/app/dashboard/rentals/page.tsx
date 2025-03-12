@@ -2,11 +2,11 @@ import { redirect } from "next/navigation";
 import Link from "next/link";
 import { getServerSession } from "next-auth/next";
 import { authOptions } from "@/app/lib/authOptions";
-import { prisma } from "@/lib/prisma";
+import { prisma } from "@/app/lib/prisma";
 import { RentalItemCard } from "@/app/components/rentals/RentalItemCard";
 import { SubscriptionStatus } from "@/app/types/subscription";
 import { calculateDailyPrice } from "@/app/lib/rentalUtility";
-import { RentalItemType } from "@/types/rentals";
+import { RentalItemType } from "@/app/types/rentals";
 
 export const metadata = {
   title: "Manage Rentals | Dashboard",

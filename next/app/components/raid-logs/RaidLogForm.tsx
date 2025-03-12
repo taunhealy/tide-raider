@@ -25,7 +25,7 @@ import {
   AlertConfigTypes,
   ForecastProperty,
   NotificationMethod,
-} from "@/types/alerts";
+} from "@/app/types/alerts";
 import { Checkbox } from "@/app/components/ui/Checkbox";
 
 interface RaidLogFormProps {

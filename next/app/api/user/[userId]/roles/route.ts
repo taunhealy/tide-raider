@@ -3,7 +3,7 @@ import { prisma } from "@/app/lib/prisma";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/app/lib/authOptions";
 import { UserRole } from "@prisma/client";
-import { ROLE_OPTIONS } from "@/lib/users/constants";
+import { ROLE_OPTIONS } from "@/app/lib/users/constants";
 
 export async function PUT(
   request: Request,

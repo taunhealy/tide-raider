@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { getServerSession } from "next-auth/next";
 import { authOptions } from "@/app/lib/authOptions";
-import { prisma } from "@/lib/prisma";
+import { prisma } from "@/app/lib/prisma";
 
 // GET comments for an entity
 export async function GET(request: Request) {

@@ -3,7 +3,7 @@ import Link from "next/link";
 import Image from "next/image";
 import { getServerSession } from "next-auth/next";
 import { authOptions } from "@/app/lib/authOptions";
-import { prisma } from "@/lib/prisma";
+import { prisma } from "@/app/lib/prisma";
 import { RentalRequestForm } from "@/app/components/rentals/RentalRequestForm";
 import { ContactOwnerButton } from "@/app/components/ContactOwnerButton";
 import { SubscriptionStatus } from "@/app/types/subscription";

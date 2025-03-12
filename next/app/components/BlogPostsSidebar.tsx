@@ -6,7 +6,7 @@ import type { Post } from "@/app/types/blog";
 import type { Trip } from "@/app/types/blog";
 import { useQuery } from "@tanstack/react-query";
 import { useCallback } from "react";
-import { HARDCODED_COUNTRIES } from "@/lib/location/countries/constants";
+import { HARDCODED_COUNTRIES } from "@/app/lib/location/countries/constants";
 import { PortableText } from "@portabletext/react";
 import { formatCountryList } from "@/app/lib/formatters";
 

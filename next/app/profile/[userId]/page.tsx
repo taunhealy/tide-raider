@@ -15,7 +15,7 @@ import RippleLoader from "@/app/components/ui/RippleLoader";
 import Image from "next/image";
 import { urlForImage } from "@/app/lib/urlForImage";
 import { groq } from "next-sanity";
-import { client } from "@/lib/sanity";
+import { client } from "@/app/lib/sanity";
 import NationalitySelector from "@/app/components/profile/NationalitySelector";
 import UserRentals from "@/app/components/profile/UserRentals";
 

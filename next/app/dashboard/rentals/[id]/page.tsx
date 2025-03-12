@@ -2,10 +2,9 @@ import { notFound, redirect } from "next/navigation";
 import Link from "next/link";
 import { getServerSession } from "next-auth/next";
 import { authOptions } from "@/app/lib/authOptions";
-import { prisma } from "@/lib/prisma";
+import { prisma } from "@/app/lib/prisma";
 import { RentalItemForm } from "@/app/components/rentals/RentalItemForm";
 import { DeleteRentalItemButton } from "@/app/components/rentals/DeleteRentalItemButton";
-import { BeachLocationsList } from "@/app/components/rentals/BeachLocationsList";
 import { RentalItemWithRelations } from "@/app/types/rentals";
 import { format } from "date-fns";
 

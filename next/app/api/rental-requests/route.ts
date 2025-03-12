@@ -1,8 +1,8 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/app/lib/authOptions";
-import { prisma } from "@/lib/prisma";
-import { sendRentalRequestEmail } from "@/lib/email";
+import { prisma } from "@/app/lib/prisma";
+import { sendRentalRequestEmail } from "@/app/lib/email";
 import type { Session } from "next-auth";
 import { RentalRequestWithRelations } from "@/app/types/rentals";
 

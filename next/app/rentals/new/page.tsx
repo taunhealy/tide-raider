@@ -1,7 +1,7 @@
 import { redirect } from "next/navigation";
 import { getServerSession } from "next-auth/next";
 import { authOptions } from "@/app/lib/authOptions";
-import { prisma } from "@/lib/prisma";
+import { prisma } from "@/app/lib/prisma";
 import { RentalItemForm } from "@/app/components/rentals/RentalItemForm";
 import { SubscriptionStatus } from "@/app/types/subscription";
 

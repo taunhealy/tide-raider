@@ -1,7 +1,7 @@
 import { Suspense } from "react";
 import { getServerSession } from "next-auth/next";
 import { authOptions } from "@/app/lib/authOptions";
-import { prisma } from "@/lib/prisma";
+import { prisma } from "@/app/lib/prisma";
 import RentalsClient from "./RentalsClient";
 import { RentalItemWithRelations } from "@/app/types/rentals";
 import Link from "next/link";

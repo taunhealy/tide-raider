@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import Link from "next/link";
-import { cn } from "@/lib/utils";
+import { cn } from "@/app/lib/utils";
 
 export function BookingsClient({ userId }: { userId: string }) {
   const [activeTab, setActiveTab] = useState<"my-bookings" | "rental-bookings">(

@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
-import type { Beach } from "@/types/beaches";
-import type { WindData } from "@/types/wind";
+import type { Beach } from "@/app/types/beaches";
+import type { WindData } from "@/app/types/wind";
 import SidebarFilter from "./SidebarFilter";
 import BeachGrid from "./BeachGrid";
 import BeachCard from "./BeachCard";

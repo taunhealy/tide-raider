@@ -1,4 +1,4 @@
-import { ForecastProperty } from "@/types/alerts";
+import { ForecastProperty } from "@/app/types/alerts";
 import { prisma } from "./prisma";
 import { ForecastA } from "@prisma/client";
 

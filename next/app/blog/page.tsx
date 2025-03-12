@@ -1,5 +1,5 @@
-import { landingPageQuery } from "@/lib/queries";
-import { client } from "@/lib/sanity";
+import { landingPageQuery } from "@/app/lib/queries";
+import { client } from "@/app/lib/sanity";
 import BlogGrid from "../sections/BlogGrid";
 import { groq } from "next-sanity";
 

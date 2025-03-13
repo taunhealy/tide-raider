@@ -36,25 +36,42 @@ export default function DashboardPage() {
   const [username, setUsername] = useState<string>("");
   const queryClient = useQueryClient();
   const handleSubscribe = useHandleSubscribe();
-  const { mutate: handleTrial } = useHandleTrial();
-  const { mutate: handleUnsubscribe } = useMutation({
+  const { mutate: handleTrial, isPending: isTrialLoading } = useMutation({
     mutationFn: async () => {
+      console.log("Starting trial...");
       const response = await fetch("/api/subscriptions", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ action: "unsubscribe" }),
+        body: JSON.stringify({ action: "start-trial" }),
       });
-      if (!response.ok) throw new Error("Failed to unsubscribe");
+
+      if (!response.ok) {
+        const error = await response.json();
+        throw new Error(error.message || "Failed to start trial");
+      }
       return response.json();
     },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["session"] });
+    onSuccess: async () => {
+      // Invalidate all relevant queries
+      await queryClient.invalidateQueries({ queryKey: ["user"] });
+      await queryClient.invalidateQueries({ queryKey: ["session"] });
+      await queryClient.invalidateQueries({
+        queryKey: ["subscriptionDetails"],
+      });
+
+      // Update the session
+      await update();
+
+      // Refresh the page to ensure all components update
+      router.refresh();
+
+      toast.success("Trial started successfully!");
     },
-    onMutate: () => {
-      setLoadingStates((prev) => ({ ...prev, unsubscribe: true }));
-    },
-    onSettled: () => {
-      setLoadingStates((prev) => ({ ...prev, unsubscribe: false }));
+    onError: (error) => {
+      console.error("Trial mutation error:", error);
+      toast.error(
+        error instanceof Error ? error.message : "Failed to start trial"
+      );
     },
   });
   const [isLoading, setIsLoading] = useState(false);
@@ -159,6 +176,13 @@ export default function DashboardPage() {
     setLoadingStates((prev) => ({ ...prev, subscribe: true }));
     try {
       await handleSubscribe();
+      // After successful subscription
+      await queryClient.invalidateQueries({
+        queryKey: ["subscriptionDetails"],
+      });
+      await queryClient.invalidateQueries({ queryKey: ["user"] });
+      await update();
+      router.refresh();
     } finally {
       setLoadingStates((prev) => ({ ...prev, subscribe: false }));
     }
@@ -175,6 +199,17 @@ export default function DashboardPage() {
       console.error("Subscription action failed:", error);
     } finally {
       setLoadingStates((prev) => ({ ...prev, pause: false }));
+    }
+  };
+
+  // Create a conditional handler function
+  const handleButtonClick = () => {
+    if (!subscriptionData?.hasTrialEnded && !subscriptionData?.hasActiveTrial) {
+      // Start free trial
+      handleTrial();
+    } else {
+      // Subscribe via PayPal
+      handleSubscribeWithLoading();
     }
   };
 
@@ -215,12 +250,17 @@ export default function DashboardPage() {
           <Button
             variant="outline"
             className="w-full sm:w-auto font-primary mt-4"
-            onClick={() => handleTrial({})}
-            disabled={loadingStates.trial}
+            onClick={() => handleTrial()}
+            disabled={isTrialLoading}
           >
-            {loadingStates.trial
-              ? "Starting Trial..."
-              : "Start 7-Day Free Trial"}
+            {isTrialLoading ? (
+              <div className="flex items-center gap-2">
+                <span className="animate-spin">⏳</span>
+                Starting Trial...
+              </div>
+            ) : (
+              "Start 7-Day Free Trial"
+            )}
           </Button>
         </div>
       );
@@ -229,11 +269,15 @@ export default function DashboardPage() {
     // Trial ended or subscription inactive
     return (
       <div className="mb-4">
-        <p className="font-primary text-red-600">
-          {subscriptionData?.hasTrialEnded
-            ? "Your free trial has expired"
-            : "No active subscription"}
-        </p>
+        {subscriptionData?.hasTrialEnded ? (
+          <div className="p-4 bg-amber-100 rounded-lg border border-amber-200 mb-4">
+            <p className="text-amber-800 font-medium">
+              ⚠️ Your free trial has expired. Upgrade to continue full access.
+            </p>
+          </div>
+        ) : (
+          <p className="font-primary text-black">No active subscription</p>
+        )}
         <Button
           variant="outline"
           className="w-full sm:w-auto font-primary mt-4"
@@ -445,7 +489,12 @@ export default function DashboardPage() {
                           <Button
                             variant="destructive"
                             className="w-full sm:w-auto font-primary text-[12px]"
-                            onClick={() => handleUnsubscribe()}
+                            onClick={() =>
+                              mutate({
+                                action: "cancel",
+                                subscriptionId: subscriptionData?.id || "",
+                              })
+                            }
                             disabled={loadingStates.unsubscribe}
                           >
                             <svg
@@ -470,13 +519,17 @@ export default function DashboardPage() {
                         <Button
                           variant="default"
                           className="w-full sm:w-auto font-primary"
-                          onClick={handleSubscribeWithLoading}
-                          disabled={loadingStates.subscribe}
+                          onClick={handleButtonClick}
+                          disabled={loadingStates.subscribe || isTrialLoading}
                         >
                           {!subscriptionData?.hasTrialEnded &&
                           !subscriptionData?.hasActiveTrial
-                            ? "Start Free Trial"
-                            : "Subscribe Now"}
+                            ? isTrialLoading
+                              ? "Starting Trial..."
+                              : "Start Free Trial"
+                            : loadingStates.subscribe
+                              ? "Processing..."
+                              : "Subscribe Now"}
                         </Button>
                       )}
                     </div>

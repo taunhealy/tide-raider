@@ -34,23 +34,18 @@ export async function POST(request: Request) {
 
   try {
     const { action } = await request.json();
+    console.log("Received action:", action); // Debug log
 
-    // Handle trial start
+    // Handle trial start FIRST, before any PayPal logic
     if (action === "start-trial") {
-      // First check if the user exists in the database
       const user = await prisma.user.findUnique({
         where: { email: session.user.email },
       });
 
-      // If user doesn't exist in the database, return an error
       if (!user) {
-        return NextResponse.json(
-          { error: "User not found in database" },
-          { status: 404 }
-        );
+        return NextResponse.json({ error: "User not found" }, { status: 404 });
       }
 
-      // Check if trial has been used before
       if (user.hasActiveTrial || user.hasTrialEnded) {
         return NextResponse.json(
           { error: "Trial already used" },
@@ -59,23 +54,23 @@ export async function POST(request: Request) {
       }
 
       const trialEndDate = new Date();
-      trialEndDate.setDate(trialEndDate.getDate() + 14);
+      trialEndDate.setDate(trialEndDate.getDate() + 7);
 
       await prisma.user.update({
         where: { email: session.user.email },
         data: {
           hasActiveTrial: true,
+          trialStartDate: new Date(),
           trialEndDate: trialEndDate,
-          subscriptionStatus: SubscriptionStatus.ACTIVE,
+          subscriptionStatus: "TRIAL",
         },
       });
 
       return NextResponse.json({ success: true });
     }
 
-    // Validate PayPal credentials before proceeding
+    // Only proceed with PayPal logic for non-trial actions
     if (!process.env.PAYPAL_CLIENT_ID || !process.env.PAYPAL_CLIENT_SECRET) {
-      console.error("Missing PayPal credentials");
       return NextResponse.json(
         { error: "PayPal configuration missing" },
         { status: 500 }
@@ -142,34 +137,100 @@ async function handleCreate(
   accessToken: string,
   baseUrl: string
 ) {
-  const response = await fetch(`${baseUrl}/v1/billing/subscriptions`, {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-      Authorization: `Bearer ${accessToken}`,
-    },
-    body: JSON.stringify({
+  try {
+    // Log all environment variables (redacted for security)
+    console.log("PayPal environment check:", {
+      hasClientId: !!process.env.PAYPAL_CLIENT_ID,
+      hasClientSecret: !!process.env.PAYPAL_CLIENT_SECRET,
+      hasPlanId: !!process.env.PAYPAL_PLAN_ID,
+      baseUrl: baseUrl,
+      returnUrl: process.env.NEXTAUTH_URL || process.env.NEXT_PUBLIC_BASE_URL,
+    });
+
+    // Make sure these environment variables are set
+    if (!process.env.PAYPAL_PLAN_ID) {
+      throw new Error("Missing PAYPAL_PLAN_ID environment variable");
+    }
+
+    // Use NEXT_PUBLIC_BASE_URL as fallback for return URLs
+    const returnBaseUrl =
+      process.env.NEXTAUTH_URL ||
+      process.env.NEXT_PUBLIC_BASE_URL ||
+      "http://localhost:3000";
+
+    const payload = {
       plan_id: process.env.PAYPAL_PLAN_ID,
       subscriber: { email_address: userEmail },
       application_context: {
         brand_name: "Tide Raider",
         user_action: "SUBSCRIBE_NOW",
-        return_url: `${process.env.NEXTAUTH_URL}/subscription/success`,
-        cancel_url: `${process.env.NEXTAUTH_URL}/subscription/cancel`,
+        return_url: `${returnBaseUrl}/subscription/success`,
+        cancel_url: `${returnBaseUrl}/subscription/cancel`,
       },
-    }),
-  });
+    };
 
-  if (!response.ok) {
-    throw new Error("Failed to create PayPal subscription");
+    console.log("PayPal subscription request payload:", {
+      url: `${baseUrl}/v1/billing/subscriptions`,
+      planId: process.env.PAYPAL_PLAN_ID,
+      returnUrl: `${returnBaseUrl}/subscription/success`,
+      cancelUrl: `${returnBaseUrl}/subscription/cancel`,
+    });
+
+    try {
+      const response = await fetch(`${baseUrl}/v1/billing/subscriptions`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${accessToken}`,
+        },
+        body: JSON.stringify(payload),
+      });
+
+      const responseText = await response.text();
+      console.log("PayPal API response:", {
+        status: response.status,
+        statusText: response.statusText,
+        responseBody: responseText,
+      });
+
+      if (!response.ok) {
+        let errorData;
+        try {
+          errorData = JSON.parse(responseText);
+        } catch (e) {
+          errorData = { raw: responseText };
+        }
+        throw new Error(`PayPal API error: ${JSON.stringify(errorData)}`);
+      }
+
+      const subscription = JSON.parse(responseText);
+      console.log("PayPal subscription created:", subscription.id);
+
+      const approvalUrl = subscription.links.find(
+        (link: { rel: string; href: string }) => link.rel === "approve"
+      )?.href;
+
+      if (!approvalUrl) {
+        throw new Error("No approval URL found in PayPal response");
+      }
+
+      return NextResponse.json({ url: approvalUrl });
+    } catch (fetchError) {
+      console.error("PayPal API fetch error:", fetchError);
+      throw fetchError;
+    }
+  } catch (error) {
+    console.error("Subscription creation error:", error);
+    return NextResponse.json(
+      {
+        error:
+          error instanceof Error
+            ? error.message
+            : "Failed to create subscription",
+      },
+      { status: 500 }
+    );
   }
-
-  const subscription = await response.json();
-  const approvalUrl = subscription.links.find(
-    (link: any) => link.rel === "approve"
-  ).href;
-
-  return NextResponse.json({ url: approvalUrl });
 }
 
 async function handleCancel(

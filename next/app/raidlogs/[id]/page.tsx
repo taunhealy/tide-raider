@@ -5,6 +5,8 @@ import { Star } from "lucide-react";
 import { cn } from "@/app/lib/utils";
 import CommentThread from "@/app/components/comments/CommentThread";
 import ProfileHeader from "@/app/components/profile/ProfileHeader";
+import { redirect } from "next/navigation";
+import { auth } from "@/app/lib/auth";
 
 // Add server-side data fetching
 async function getRaidLogData(id: string) {
@@ -49,6 +51,18 @@ export default async function RaidLogPage({
 }: {
   params: { id: string };
 }) {
+  // Add authentication and subscription check
+  const session = await auth();
+
+  if (!session) {
+    redirect("/login");
+  }
+
+  const hasAccess = session.user.isSubscribed || session.user.hasActiveTrial;
+  if (!hasAccess) {
+    redirect("/pricing");
+  }
+
   const entry = await getRaidLogData(params.id);
 
   if (!entry)

@@ -36,11 +36,13 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from "@/app/components/ui/tooltip";
+import { useSubscriptionDetails } from "@/app/hooks/useSubscriptionDetails";
 
 interface QuestTableProps {
   entries: LogEntry[];
   columns?: QuestLogTableColumn[];
   isSubscribed?: boolean;
+  isTrialing?: boolean;
   isLoading?: boolean;
   showPrivateOnly?: boolean;
   onFilterChange?: () => void;
@@ -285,12 +287,22 @@ const useComments = (logEntryId: string) => {
 };
 
 // Create a separate component for the comments cell
-function CommentsCell({ entry }: { entry: LogEntry }) {
+function CommentsCell({
+  entry,
+  hasAccess,
+}: {
+  entry: LogEntry;
+  hasAccess: boolean;
+}) {
   const { data: comments, isLoading } = useComments(entry.id);
   const router = useRouter();
 
   const handleMessageClick = (e: React.MouseEvent) => {
     e.stopPropagation();
+    if (!hasAccess) {
+      router.push("/pricing");
+      return;
+    }
     router.push(`/raidlogs/${entry.id}`);
   };
 
@@ -340,6 +352,7 @@ export default function RaidLogTable({
   entries,
   columns = DEFAULT_COLUMNS,
   isSubscribed = false,
+  isTrialing = false,
   isLoading = false,
   showPrivateOnly = false,
   onBeachClick,
@@ -352,6 +365,9 @@ export default function RaidLogTable({
   >();
   const { data: session } = useSession();
   const queryClient = useQueryClient();
+  const { data: subscriptionDetails } = useSubscriptionDetails();
+  const hasAccess =
+    isSubscribed || isTrialing || subscriptionDetails?.hasActiveTrial;
 
   const normalizedEntries = useMemo(() => {
     return entries.map(normalizeLogEntry);
@@ -528,6 +544,47 @@ export default function RaidLogTable({
     }
   }, [entries]);
 
+  // Update the image rendering in both mobile and desktop views
+  const renderImage = (
+    entry: LogEntry,
+    size: { width: number; height: number }
+  ) => (
+    <TooltipProvider>
+      <Tooltip>
+        <TooltipTrigger asChild>
+          <Link
+            href={hasAccess ? `/raidlogs/${entry.id}` : "/pricing"}
+            className={`relative w-${size.width} h-${size.height} cursor-pointer hover:opacity-80 transition-opacity`}
+          >
+            <div className="relative w-full h-full">
+              {entry.imageUrl && (
+                <Image
+                  src={entry.imageUrl}
+                  alt="Session photo"
+                  fill={true}
+                  className={cn(
+                    "object-cover rounded-md",
+                    !hasAccess && "blur-sm"
+                  )}
+                />
+              )}
+              {!hasAccess && (
+                <div className="absolute inset-0 flex items-center justify-center bg-black/10">
+                  <span className="text-4xl z-10">💩</span>
+                </div>
+              )}
+            </div>
+          </Link>
+        </TooltipTrigger>
+        {!hasAccess && (
+          <TooltipContent>
+            <p>💩 Subscribe to view details</p>
+          </TooltipContent>
+        )}
+      </Tooltip>
+    </TooltipProvider>
+  );
+
   if (isLoading) {
     return <TableSkeleton />;
   }
@@ -628,21 +685,8 @@ export default function RaidLogTable({
                   </p>
                 )}
 
-                {entry.imageUrl && (
-                  <Link href={`/raidlogs/${entry.id}`} className="block mt-2">
-                    <div className="relative w-20 h-20 cursor-pointer hover:opacity-80 transition-opacity">
-                      <Image
-                        src={entry.imageUrl}
-                        alt="Session photo"
-                        fill
-                        className="object-cover rounded-md"
-                        sizes="80px"
-                        placeholder="blur"
-                        blurDataURL="data:image/jpeg;base64,/9j/4AAQSkZJRgABAQAAAQABAAD/4gHYSUNDX1BST0ZJTEUAAQEAAAHIAAAAAAQwAABtbnRyUkdCIFhZWiAH4AABAAEAAAAAAABhY3NwAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAQAA9tYAAQAAAADTLQAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAlkZXNjAAAA8AAAACRyWFlaAAABFAAAABRnWFlaAAABKAAAABRiWFlaAAABPAAAABR3dHB0AAABUAAAABRyVFJDAAABZAAAAChnVFJDAAABZAAAAChiVFJDAAABZAAAAChjcHJ0AAABjAAAADxtbHVjAAAAAAAAAAEAAAAMZW5VUwAAAAgAAAAcAHMAUgBHAEJYWVogAAAAAAAAb6IAADj1AAADkFhZWiAAAAAAAABimQAAt4UAABjaWFlaIAAAAAAAACSgAAAPhAAAts9YWVogAAAAAAAA9tYAAQAAAADTLXBhcmEAAAAAAAQAAAACZmYAAPKnAAANWQAAE9AAAApbAAAAAAAAAABtbHVjAAAAAAAAAAEAAAAMZW5VUwAAACAAAAAcAEcAbwBvAGcAbABlACAASQBuAGMALgAgADIAMAAxADb/2wBDABQODxIPDRQSEBIXFRQdHx4eHRoaHSQtJSEkLzYvLy02Mi85OEI2PTZFOT5ZXVlphZmZnHR8f3yGhoaGhoaGhob/2wBDARUXFyAeIB4aGh4eIiIehoaGhoaGhoaGhoaGhoaGhoaGhoaGhoaGhoaGhoaGhoaGhoaGhoaGhoaGhoaGhoaGhob/wAARCAAIAAoDASIAAhEBAxEB/8QAFQABAQAAAAAAAAAAAAAAAAAAAAb/xAAUEAEAAAAAAAAAAAAAAAAAAAAA/8QAFQEBAQAAAAAAAAAAAAAAAAAAAAX/xAAUEQEAAAAAAAAAAAAAAAAAAAAA/9oADAMBAAIRAxEAPwCdABmX/9k="
-                      />
-                    </div>
-                  </Link>
-                )}
+                {entry.imageUrl &&
+                  renderImage(entry, { width: 20, height: 20 })}
               </div>
             );
           })}
@@ -741,20 +785,12 @@ export default function RaidLogTable({
                           <ForecastInfo forecast={entry.forecast} />
                         </td>
                         <td className="px-4 py-4 sm:px-8 max-w-[200px] min-w-[200px] whitespace-normal">
-                          <CommentsCell entry={entry} />
+                          <CommentsCell entry={entry} hasAccess={hasAccess} />
                         </td>
                         <td className="px-4 py-4 w-[80px]">
                           <div className="w-16 h-16 bg-gray-100 rounded-md flex items-center justify-center overflow-hidden">
                             {entry.imageUrl ? (
-                              <Link href={`/raidlogs/${entry.id}`}>
-                                <Image
-                                  src={entry.imageUrl}
-                                  alt="Session photo"
-                                  width={64}
-                                  height={64}
-                                  className="object-cover w-full h-full cursor-pointer hover:opacity-80 transition-opacity"
-                                />
-                              </Link>
+                              renderImage(entry, { width: 64, height: 64 })
                             ) : (
                               <ImageIcon className="w-6 h-6 text-gray-200" />
                             )}

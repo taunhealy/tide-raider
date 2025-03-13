@@ -119,18 +119,19 @@ export const postQuery = groq`*[_type == "post" && defined(slug.current) && slug
   ${postFields},
   "slug": slug.current,
   countries,
-  content[]{
+  "content": content[]{
     ...,
-    _type,
-    sectionHeading,
-    content,
+    content[]{
+      ...,
+    },
     videoLink,
     sectionImages[]{
-      _key,
-      uploadedImage{
-        asset->,
-        alt,
-        caption
+      ...,
+    },
+    sectionVideos[]{
+      ...,
+      video{
+        ...,
       }
     }
   },

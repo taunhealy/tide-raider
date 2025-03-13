@@ -11,6 +11,17 @@ import { SectionImage } from "@/app/types/blog";
 import { PortableTextBlock } from "next-sanity";
 import { MediaGrid } from "@/app/components/MediaGrid";
 import { beachData } from "@/app/types/beaches";
+import { formatCountryName } from "@/app/lib/formatters";
+
+interface VideoItem {
+  video: {
+    videoType: "youtube" | "vimeo";
+    videoUrl: string;
+    title?: string;
+    description?: string;
+  };
+  layout: "full" | "half";
+}
 
 // Helper function to get beach data by ID
 const getBeachById = (beachId: string) => {
@@ -76,10 +87,7 @@ export default async function BlogPost({
                 ></path>
               </svg>
               {safePost.countries
-                .map(
-                  (country: any) =>
-                    country.charAt(0).toUpperCase() + country.slice(1)
-                )
+                .map((country: any) => formatCountryName(country))
                 .join(", ")}
             </span>
           )}
@@ -108,6 +116,7 @@ export default async function BlogPost({
                     content: PortableTextBlock[];
                     sectionImages?: SectionImage[];
                     videoLink?: string;
+                    sectionVideos?: VideoItem[];
                   },
                   index: number
                 ) => (
@@ -171,17 +180,51 @@ export default async function BlogPost({
                         );
                       })}
 
+                    {/* Simple Video Link */}
                     {section.videoLink && (
                       <div className="my-4 sm:my-6">
-                        <iframe
-                          src={`https://www.youtube.com/embed/${getVideoId(section.videoLink)}`}
-                          title="YouTube Video"
-                          className="w-full aspect-video"
-                          frameBorder="0"
-                          allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-                          allowFullScreen
-                        />
+                        <div className="relative aspect-video">
+                          <iframe
+                            src={`https://www.youtube.com/embed/${getVideoId(section.videoLink)}`}
+                            title="Video"
+                            className="w-full h-full rounded-lg"
+                            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                            allowFullScreen
+                          />
+                        </div>
                       </div>
+                    )}
+
+                    {/* Structured Section Videos */}
+                    {section.sectionVideos?.map(
+                      (videoItem: VideoItem, videoIndex) => (
+                        <div
+                          key={videoIndex}
+                          className={`my-4 sm:my-6 ${videoItem.layout === "half" ? "lg:w-1/2" : "w-full"}`}
+                        >
+                          <div className="relative aspect-video">
+                            {videoItem.video?.videoUrl && (
+                              <iframe
+                                src={`https://www.youtube.com/embed/${getVideoId(videoItem.video.videoUrl)}`}
+                                title={videoItem.video.title || "Video"}
+                                className="w-full h-full rounded-lg"
+                                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                                allowFullScreen
+                              />
+                            )}
+                          </div>
+                          {videoItem.video?.title && (
+                            <h4 className="font-primary text-lg font-medium mt-2">
+                              {videoItem.video.title}
+                            </h4>
+                          )}
+                          {videoItem.video?.description && (
+                            <p className="text-sm text-gray-500 mt-1">
+                              {videoItem.video.description}
+                            </p>
+                          )}
+                        </div>
+                      )
                     )}
 
                     {section.sectionImages &&

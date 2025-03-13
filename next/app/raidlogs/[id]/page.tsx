@@ -142,7 +142,7 @@ export default async function RaidLogPage({
               </p>
             </div>
 
-            <div className="flex justify-between items-center">
+            <div className="flex items-center gap-1">
               <p className="text-gray-700 font-primary">
                 {entry.date
                   ? format(new Date(entry.date), "MMMM d, yyyy")
@@ -234,7 +234,7 @@ export default async function RaidLogPage({
             {entry.comments && (
               <div>
                 <h2 className="font-primary text-lg font-medium mb-2 text-gray-800">
-                  Comments
+                  Logger Comments
                 </h2>
                 <p className="text-gray-700 font-primary whitespace-pre-wrap bg-gray-50 p-4 rounded-lg border-l-4 border-gray-300">
                   {entry.comments}

@@ -19,6 +19,7 @@ import gsap from "gsap";
 import { useQueries } from "@tanstack/react-query";
 import { Button } from "@/app/components/ui/Button";
 import { urlForImage } from "@/app/lib/urlForImage";
+import Link from "next/link";
 
 const FEATURED_BEACHES = [
   "jeffreys-bay",
@@ -162,13 +163,15 @@ export default function HeroProduct({ data }: { data?: any }) {
           <p className="font-primary text-sm md:text-base mb-4 max-w-[540px] font-normal">
             Explore beyond your regular surf break.
           </p>
-          <Button
-            variant="default"
-            size="default"
-            className="font-primary text-base"
-          >
-            Start Raiding
-          </Button>
+          <Link href="/raid">
+            <Button
+              variant="default"
+              size="default"
+              className="font-primary text-base"
+            >
+              Start Raiding
+            </Button>
+          </Link>
         </div>
 
         <div className="slider-section px-2 md:px-6 lg:px-8">

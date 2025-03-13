@@ -12,5 +12,10 @@ export const youTube = defineType({
       type: 'url',
       title: 'YouTube video URL',
     }),
+    defineField({
+      name: 'title',
+      type: 'string',
+      title: 'Title',
+    }),
   ],
 })

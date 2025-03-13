@@ -139,7 +139,7 @@ export default function FavouriteSurfVideosSidebar({
                 >
                   <td className="p-4 text-sm text-gray-600 w-full">
                     <div className="flex flex-col gap-1">
-                      <div className="flex items-center gap-2">
+                      <div className="flex items-center gap-2 pb-2 border-b border-gray-100">
                         {favorite.user?.image ? (
                           <Image
                             src={favorite.user.image}
@@ -166,7 +166,7 @@ export default function FavouriteSurfVideosSidebar({
                           </span>
                         )}
                       </div>
-                      <span className="text-[var(--color-primary)] font-medium font-primary text-[12px] font-regular leading-tight max-w-[80ch]">
+                      <span className="text-[var(--color-primary)] font-medium font-primary text-[12px] font-regular leading-tight max-w-[80ch] bg-gray-50 rounded-md py-2 px-3">
                         {truncateString(favorite.title, 120)}
                       </span>
                     </div>

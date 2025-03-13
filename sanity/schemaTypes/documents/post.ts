@@ -225,6 +225,36 @@ export default defineType({
               ],
               validation: (Rule) => Rule.max(4),
             },
+            {
+              name: 'sectionVideos',
+              title: 'Section Videos',
+              type: 'array',
+              of: [
+                {
+                  type: 'object',
+                  name: 'sectionVideo',
+                  fields: [
+                    {
+                      name: 'video',
+                      title: 'Video',
+                      type: 'video',
+                    },
+                    {
+                      name: 'layout',
+                      title: 'Video Layout',
+                      type: 'string',
+                      options: {
+                        list: [
+                          {title: 'Full Width', value: 'full'},
+                          {title: 'Half Width', value: 'half'},
+                        ],
+                      },
+                    },
+                  ],
+                },
+              ],
+              validation: (Rule) => Rule.max(2),
+            },
           ],
         },
       ],
@@ -308,7 +338,7 @@ export default defineType({
       type: 'array',
       of: [{type: 'string'}],
       components: {
-        input: RegionReferenceInput,
+        input: RegionReferenceInput as any,
       },
     }),
   ],

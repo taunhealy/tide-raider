@@ -1,6 +1,5 @@
 import React, { useState, useEffect } from "react";
 import { Button } from "@/app/components/ui/Button";
-import { Input } from "@/app/components/ui/input";
 import { Label } from "@/app/components/ui/label";
 import { Slider } from "@/app/components/ui/slider";
 import { Switch } from "@/app/components/ui/switch";

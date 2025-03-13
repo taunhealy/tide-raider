@@ -41,6 +41,31 @@ const getForecastProperty = (prop: string): ForecastProperty => {
   }
 };
 
+// Add this skeleton loader component at the top level
+function AlertCardSkeleton() {
+  return (
+    <Card className="bg-[var(--color-bg-primary)] border-[var(--color-border-light)] h-full flex flex-col animate-pulse">
+      <CardHeader className="pb-2">
+        <div className="flex justify-between items-center">
+          <div className="h-6 w-32 bg-[var(--color-bg-secondary)] rounded"></div>
+          <div className="flex items-center gap-2">
+            <div className="h-6 w-10 bg-[var(--color-bg-secondary)] rounded"></div>
+            <div className="h-8 w-8 bg-[var(--color-bg-secondary)] rounded"></div>
+            <div className="h-8 w-8 bg-[var(--color-bg-secondary)] rounded"></div>
+          </div>
+        </div>
+      </CardHeader>
+      <CardContent className="flex-grow flex-1">
+        <div className="space-y-4">
+          <div className="h-4 w-24 bg-[var(--color-bg-secondary)] rounded"></div>
+          <div className="h-4 w-48 bg-[var(--color-bg-secondary)] rounded"></div>
+          <div className="h-32 bg-[var(--color-bg-secondary)] rounded mt-4"></div>
+        </div>
+      </CardContent>
+    </Card>
+  );
+}
+
 export function AlertsList() {
   const router = useRouter();
   const [activeTab, setActiveTab] = useState<"all" | "variable" | "rating">(
@@ -147,6 +172,18 @@ export function AlertsList() {
         return "";
     }
   }
+
+  // Replace the empty alerts check with this new condition
+  if (isLoading) {
+    return (
+      <div className="grid grid-cols-1 sm:grid-cols-1 lg:grid-cols-3 gap-4">
+        {[...Array(3)].map((_, i) => (
+          <AlertCardSkeleton key={i} />
+        ))}
+      </div>
+    );
+  }
+
   if (!alerts || alerts.length === 0) {
     return (
       <div className="text-center py-8 border rounded-lg bg-[var(--color-bg-primary)]">

@@ -39,7 +39,18 @@ function ProfileHeaderContent({
     },
   });
 
-  if (isLoading) return <div>Loading...</div>;
+  if (isLoading) {
+    return (
+      <div className="flex items-start gap-4 mb-6">
+        <div className="w-20 h-20 rounded-full bg-gray-200 animate-pulse" />
+        <div className="space-y-2">
+          <div className="h-8 w-48 bg-gray-200 rounded animate-pulse" />
+          <div className="h-4 w-32 bg-gray-200 rounded animate-pulse" />
+          <div className="h-4 w-40 bg-gray-200 rounded animate-pulse" />
+        </div>
+      </div>
+    );
+  }
 
   const displayName = userData?.name || "Anonymous";
 
@@ -99,7 +110,18 @@ function ProfileHeaderContent({
 
 export default function ProfileHeader(props: ProfileHeaderProps) {
   return (
-    <Suspense fallback={<div>Loading...</div>}>
+    <Suspense
+      fallback={
+        <div className="flex items-start gap-4 mb-6">
+          <div className="w-20 h-20 rounded-full bg-gray-200 animate-pulse" />
+          <div className="space-y-2">
+            <div className="h-8 w-48 bg-gray-200 rounded animate-pulse" />
+            <div className="h-4 w-32 bg-gray-200 rounded animate-pulse" />
+            <div className="h-4 w-40 bg-gray-200 rounded animate-pulse" />
+          </div>
+        </div>
+      }
+    >
       <ProfileHeaderContent {...props} />
     </Suspense>
   );

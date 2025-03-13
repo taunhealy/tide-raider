@@ -286,7 +286,7 @@ const useComments = (logEntryId: string) => {
 
 // Create a separate component for the comments cell
 function CommentsCell({ entry }: { entry: LogEntry }) {
-  const { data: comments } = useComments(entry.id);
+  const { data: comments, isLoading } = useComments(entry.id);
   const router = useRouter();
 
   const handleMessageClick = (e: React.MouseEvent) => {
@@ -305,28 +305,32 @@ function CommentsCell({ entry }: { entry: LogEntry }) {
   return (
     <div className="flex items-center justify-between w-full gap-2">
       <div className="flex-1 truncate">{entry.comments}</div>
-      {latestComment && (
-        <TooltipProvider>
-          <Tooltip>
-            <TooltipTrigger asChild>
-              <MessageCircle
-                onClick={handleMessageClick}
-                className="w-4 h-4 shrink-0 text-brand-3 cursor-pointer"
-              />
-            </TooltipTrigger>
-            <TooltipContent className="max-w-[300px]">
-              <div className="space-y-1">
-                <p className="text-sm font-medium">
-                  Latest comment (
-                  {format(new Date(latestComment.createdAt), "MMM d, yyyy")}):
-                </p>
-                <p className="text-sm text-gray-600 break-words">
-                  {latestComment.text}
-                </p>
-              </div>
-            </TooltipContent>
-          </Tooltip>
-        </TooltipProvider>
+      {isLoading ? (
+        <div className="w-4 h-4 rounded-full bg-gray-200 animate-pulse" />
+      ) : (
+        latestComment && (
+          <TooltipProvider>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <MessageCircle
+                  onClick={handleMessageClick}
+                  className="w-4 h-4 shrink-0 text-brand-3 cursor-pointer"
+                />
+              </TooltipTrigger>
+              <TooltipContent className="max-w-[300px]">
+                <div className="space-y-1">
+                  <p className="text-sm font-medium">
+                    Latest comment (
+                    {format(new Date(latestComment.createdAt), "MMM d, yyyy")}):
+                  </p>
+                  <p className="text-sm text-gray-600 break-words">
+                    {latestComment.text}
+                  </p>
+                </div>
+              </TooltipContent>
+            </Tooltip>
+          </TooltipProvider>
+        )
       )}
     </div>
   );

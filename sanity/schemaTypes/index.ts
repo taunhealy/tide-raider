@@ -21,6 +21,7 @@ import accommodation from './documents/accommodation'
 import {youTube} from './objects/youtube'
 import dashboard from './documents/dashboard'
 import profile from './documents/profile'
+import {video} from './objects/video'
 
 export const schemaTypes = [
   // Documents
@@ -45,4 +46,5 @@ export const schemaTypes = [
   unsplashGridWidget,
   // Objects
   youTube,
+  video,
 ]

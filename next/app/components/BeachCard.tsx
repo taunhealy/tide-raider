@@ -165,7 +165,6 @@ export default function BeachCard({
     <>
       {/* Main Card Container */}
       <div
-        onClick={handleCardClick}
         className={`
           group
           bg-[var(--color-bg-primary)]

@@ -76,19 +76,23 @@ export default function QuestLogSidebar() {
           <div key={entry.id} className="group">
             <article className="space-y-3">
               {entry.imageUrl && (
-                <div className="relative aspect-video rounded-lg overflow-hidden">
-                  <Image
-                    src={entry.imageUrl}
-                    alt={`Session at ${entry.beachName}`}
-                    fill
-                    className="object-cover"
-                  />
-                </div>
+                <Link href={`/raidlogs/${entry.id}`}>
+                  <div className="relative aspect-video rounded-lg overflow-hidden cursor-pointer">
+                    <Image
+                      src={entry.imageUrl}
+                      alt={`Session at ${entry.beachName}`}
+                      fill
+                      className="object-cover hover:opacity-90 transition-opacity"
+                    />
+                  </div>
+                </Link>
               )}
               <div className="flex-1 min-w-0">
-                <h4 className="text-sm font-medium text-gray-900 mb-1 truncate group-hover:text-[var(--color-text-secondary)] transition-colors">
-                  {entry.beachName}
-                </h4>
+                <Link href={`/raidlogs/${entry.id}`}>
+                  <h4 className="text-sm font-medium text-gray-900 mb-1 truncate group-hover:text-[var(--color-text-secondary)] transition-colors cursor-pointer">
+                    {entry.beachName}
+                  </h4>
+                </Link>
                 <div className="flex gap-1 mb-1">
                   {[1, 2, 3, 4, 5].map((rating) => (
                     <Star

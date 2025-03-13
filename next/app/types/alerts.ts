@@ -20,19 +20,19 @@ export interface Alert {
   name: string;
   region: string;
   forecastDate: Date;
-  properties: AlertProperty[];
-  notificationMethod: NotificationMethod;
+  properties: any;
+  notificationMethod: string;
   contactInfo: string;
   active: boolean;
   userId: string;
-  logEntryId: string | null;
-  alertType: "variables" | "rating";
-  starRating: "4+" | "5" | null;
-  forecast: ForecastA | null;
-  forecastId: string | null;
+  logEntryId?: string | null;
+  alertType: string;
+  starRating?: string | null;
+  forecastId?: string | null;
+  logEntry?: LogEntry | null;
+  forecast?: ForecastA | null;
   createdAt: Date;
   updatedAt: Date;
-  logEntry?: LogEntry | null;
 }
 
 export interface AlertProperty {
@@ -43,12 +43,13 @@ export interface AlertProperty {
 export interface AlertConfig {
   id: string;
   name: string;
-  region: string;
+  region: string | null;
   forecastDate: Date;
   properties: AlertProperty[];
   notificationMethod: NotificationMethod;
   contactInfo: string;
   active: boolean;
+  logEntry?: LogEntry | null;
   logEntryId: string | null;
   alertType: "variables" | "rating";
   starRating: "4+" | "5" | null;

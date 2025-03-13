@@ -17,9 +17,21 @@ export async function GET(
 
     console.log("Fetching alert with ID:", params.id);
     const alert = await prisma.alert.findUnique({
-      where: { id: params.id },
+      where: {
+        id: params.id,
+      },
+      include: {
+        logEntry: {
+          include: {
+            forecast: true,
+            beach: true, // Include beach data
+          },
+        },
+        forecast: true, // Include direct forecast relation
+      },
     });
 
+    console.log("Found alert:", alert); // Debug log
     return NextResponse.json(alert);
   } catch (error) {
     console.error("Error fetching alert:", error);
@@ -45,26 +57,27 @@ export async function PUT(
     const dateOnly = new Date(data.forecastDate).toISOString().split("T")[0];
 
     // Remove fields that shouldn't be directly updated
-    const { logEntry, logEntryId, forecast, forecastId, id, ...updateData } =
-      data;
+    const {
+      logEntry,
+      logEntryId,
+      forecast,
+      forecastId,
+      id,
+      userId,
+      ...updateData
+    } = data;
 
     const alert = await prisma.alert.update({
       where: { id: params.id },
       data: {
         ...updateData,
         forecastDate: new Date(dateOnly),
-        // Use connect if you need to update relationships
         ...(logEntryId && {
           logEntry: {
             connect: { id: logEntryId },
           },
         }),
       },
-    });
-
-    // Reset alert checks after update
-    await prisma.alertCheck.deleteMany({
-      where: { alertId: params.id },
     });
 
     return NextResponse.json(alert);

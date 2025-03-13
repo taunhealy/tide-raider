@@ -94,7 +94,7 @@ export default function ProfilePage() {
       <div className="flex flex-col sm:flex-row gap-6">
         <div className="flex-1">
           <ProfileHeader
-            userData={userData}
+            userId={userId}
             isOwnProfile={isOwnProfile}
             nationalitySelector={
               <NationalitySelector

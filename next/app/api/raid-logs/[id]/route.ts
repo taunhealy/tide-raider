@@ -8,29 +8,99 @@ export async function GET(
   { params }: { params: { id: string } }
 ) {
   try {
+    if (!params.id) {
+      return NextResponse.json(
+        { error: "Missing ID parameter" },
+        { status: 400 }
+      );
+    }
+
     const entry = await prisma.logEntry.findUnique({
       where: { id: params.id },
       select: {
         id: true,
-        date: true,
-        beachName: true,
-        surferRating: true,
-        comments: true,
-        imageUrl: true,
-        isPrivate: true,
-        surferEmail: true,
+        date: true, // DateTime @db.Date
+        surferName: true, // String?
+        surferEmail: true, // String?
+        beachName: true, // String?
+        surferRating: true, // Int @default(0)
+        comments: true, // String?
+        createdAt: true, // DateTime @default(now())
+        updatedAt: true, // DateTime @updatedAt
+        imageUrl: true, // String?
+        isPrivate: true, // Boolean @default(false)
+        isAnonymous: true, // Boolean @default(false)
+        continent: true,
+        country: true,
+        region: true,
+        waveType: true, // String?
+        beachId: true, // String?
+        userId: true, // String? @map("user_id")
+        forecast: {
+          select: {
+            id: true,
+            date: true,
+            windSpeed: true, // Int @default(0)
+            windDirection: true, // Float @default(0)
+            swellHeight: true, // Float @default(0)
+            swellPeriod: true, // Int @default(0)
+            swellDirection: true, // Float @default(0)
+            createdAt: true,
+            updatedAt: true,
+          },
+        },
+        user: {
+          select: {
+            id: true,
+            name: true,
+            image: true,
+            nationality: true,
+            email: true,
+          },
+        },
+        beach: {
+          select: {
+            id: true,
+            name: true,
+            region: true,
+            country: true,
+            continent: true,
+          },
+        },
       },
     });
 
     if (!entry) {
-      return NextResponse.json({ error: "Entry not found" }, { status: 404 });
+      return NextResponse.json(
+        { error: "Log entry not found" },
+        { status: 404 }
+      );
     }
+
+    // Check privacy settings
+    if (entry.isPrivate) {
+      const session = await getServerSession(authOptions);
+      if (!session?.user?.email || entry.userId !== session.user.id) {
+        return NextResponse.json(
+          { error: "Unauthorized to view this private entry" },
+          { status: 403 }
+        );
+      }
+    }
+
+    console.log("API Response:", {
+      id: entry.id,
+      region: entry.region,
+      country: entry.country,
+      continent: entry.continent,
+      fullEntry: entry,
+    });
 
     return NextResponse.json(entry);
   } catch (error) {
     console.error("Failed to fetch log entry:", error);
     return NextResponse.json(
-      { error: "Failed to fetch log entry" },
+      { error: "Internal server error" },
       { status: 500 }
     );
   }
@@ -83,6 +153,7 @@ export async function PATCH(
       where: { id: params.id },
       select: {
         userId: true,
+        imageUrl: true, // Add this to get existing image URL
       },
     });
 
@@ -110,6 +181,11 @@ export async function PATCH(
     // Ensure date is in ISO format
     if (logEntryData.date) {
       logEntryData.date = new Date(logEntryData.date).toISOString();
+    }
+
+    // Only update imageUrl if it's different from the existing one
+    if (logEntryData.imageUrl === undefined) {
+      delete logEntryData.imageUrl; // Don't update if not provided
     }
 
     // Update the log entry with cleaned data

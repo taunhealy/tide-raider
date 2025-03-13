@@ -21,21 +21,14 @@ import { StarIcon } from "lucide-react";
 import { BasicSelect, BasicOption } from "@/app/components/ui/basicselect";
 
 import { NotificationMethod } from "@/app/types/alerts";
+import { cn } from "@/app/lib/utils";
+import { X } from "lucide-react";
+import { LogEntry } from "@/app/types/questlogs";
 
 interface AlertConfigurationProps {
   onSave: (config: AlertConfigTypes) => void;
   existingConfig?: AlertConfigTypes;
-  selectedLogEntry?: {
-    forecast: {
-      windSpeed: number;
-      windDirection: number;
-      waveHeight: number;
-      wavePeriod: number;
-      temperature: number;
-      [key: string]: number; // For any other forecast properties
-    };
-    region: string;
-  };
+  selectedLogEntry?: LogEntry | null;
   isEmbedded?: boolean;
 }
 
@@ -99,7 +92,9 @@ export function AlertConfiguration({
   const handlePropertyChange = (index: number, field: string, value: any) => {
     const updatedProperties = [...alertConfig.properties];
     updatedProperties[index] = { ...updatedProperties[index], [field]: value };
-    setAlertConfig({ ...alertConfig, properties: updatedProperties });
+    const updatedConfig = { ...alertConfig, properties: updatedProperties };
+    setAlertConfig(updatedConfig);
+    onSave(updatedConfig);
   };
 
   const addProperty = () => {
@@ -142,8 +137,17 @@ export function AlertConfiguration({
           : propertyId.includes("Direction")
             ? 1
             : 1,
+      unit: prop?.unit || "",
     };
   };
+
+  // Inside the component, transform the LogEntry to the expected format
+  const logEntryForConfig = selectedLogEntry
+    ? {
+        forecast: selectedLogEntry.forecast,
+        region: selectedLogEntry.region || null,
+      }
+    : null;
 
   return (
     <Card className="w-full max-w-2xl">
@@ -153,228 +157,85 @@ export function AlertConfiguration({
           Set up alerts for specific surf conditions
         </CardDescription>
       </CardHeader>
-      <CardContent className="space-y-4">
-        <div className="space-y-2">
-          <Label htmlFor="alert-name" className="font-primary">
-            Alert Name
-          </Label>
-          <Input
-            id="alert-name"
-            value={alertConfig.name}
-            onChange={(e) =>
-              setAlertConfig({ ...alertConfig, name: e.target.value })
-            }
-            placeholder="My Surf Alert"
-            className="font-primary"
-          />
-        </div>
-
-        <div className="space-y-2">
-          <Label htmlFor="region" className="font-primary">
-            Region
-          </Label>
-          {selectedLogEntry?.region ? (
-            <div className="p-2 border rounded-md bg-gray-50 text-gray-700 font-primary">
-              {selectedLogEntry.region}
-              <p className="text-xs text-gray-500 mt-1">
-                Region is fixed based on the selected log entry
-              </p>
-            </div>
-          ) : (
-            <BasicSelect
-              id="region"
-              value={alertConfig.region}
-              onValueChange={(value) =>
-                setAlertConfig({ ...alertConfig, region: value })
-              }
+      <CardContent className="space-y-6">
+        <div className="space-y-6">
+          <div className="flex justify-between items-center">
+            <Label className="text-lg font-semibold font-primary text-gray-600">
+              Forecast Properties
+            </Label>
+            <Button
+              type="button"
+              variant="outline"
+              size="sm"
+              onClick={addProperty}
               className="font-primary"
             >
-              <BasicOption value="" disabled>
-                Select region
-              </BasicOption>
-              <BasicOption value="north-sea">North Sea</BasicOption>
-              <BasicOption value="baltic-sea">Baltic Sea</BasicOption>
-              <BasicOption value="Western Cape">Western Cape</BasicOption>
-            </BasicSelect>
-          )}
-        </div>
+              Add Property
+            </Button>
+          </div>
 
-        <div className="space-y-2">
-          <Label className="font-primary">Alert Type</Label>
-          <RadioGroup
-            value={alertConfig.alertType}
-            onValueChange={(value: string) => {
-              setAlertConfig({
-                ...alertConfig,
-                alertType: value as "variables" | "rating",
-              });
-            }}
-            className="flex flex-col space-y-2"
-          >
-            <div className="flex items-center space-x-2">
-              <RadioGroupItem value="variables" id="variables" />
-              <Label
-                htmlFor="variables"
-                className="font-primary cursor-pointer"
-              >
-                Set Forecast Variables
-              </Label>
-            </div>
-            <div className="flex items-center space-x-2">
-              <RadioGroupItem value="rating" id="rating" />
-              <Label htmlFor="rating" className="font-primary cursor-pointer">
-                Set Star Rating
-              </Label>
-            </div>
-          </RadioGroup>
-        </div>
-
-        {alertConfig.alertType === "variables" ? (
           <div className="space-y-4">
-            <div className="flex justify-between items-center">
-              <Label className="font-primary">Forecast Properties</Label>
-              <Button
-                type="button"
-                variant="outline"
-                size="sm"
-                onClick={addProperty}
-                className="font-primary"
-              >
-                Add Property
-              </Button>
-            </div>
-
             {alertConfig.properties.map((prop, index) => (
               <div
                 key={index}
-                className="space-y-2 p-4 border rounded-md bg-[var(--color-bg-secondary)] border-[var(--color-border-light)]"
+                className="p-4 rounded-lg border border-gray-200 bg-white"
               >
-                <div className="flex justify-between items-center">
-                  <Label className="font-primary text-[var(--color-text-primary)]">
+                <div className="flex justify-between items-center mb-4">
+                  <Label className="font-primary text-gray-700">
                     Property {index + 1}
                   </Label>
                   <Button
                     variant="ghost"
                     size="sm"
                     onClick={() => removeProperty(index)}
-                    className="h-8 w-8 p-0 text-red-500 hover:text-red-700 hover:bg-red-50"
+                    className="h-8 w-8 p-0 text-gray-400 hover:text-red-500 hover:bg-red-50 transition-colors"
                   >
-                    ✕
+                    <X className="h-4 w-4" />
                   </Button>
                 </div>
 
-                <BasicSelect
-                  value={prop.property}
-                  onValueChange={(value: string) =>
-                    handlePropertyChange(index, "property", value)
-                  }
-                  className="font-primary"
-                >
-                  {forecastProperties.map((forecastProp) => (
-                    <BasicOption key={forecastProp.id} value={forecastProp.id}>
-                      {forecastProp.name}
-                    </BasicOption>
-                  ))}
-                </BasicSelect>
-
-                <div className="mt-2">
-                  <div className="flex justify-between items-center">
-                    <Label className="font-primary">
-                      Variation Range: ±{prop.range}
-                      {
-                        forecastProperties.find((fp) => fp.id === prop.property)
-                          ?.unit
-                      }
-                    </Label>
-                    <span className="text-xs text-gray-500 font-primary">
-                      {getPropertyConfig(prop.property).step} increments
-                    </span>
-                  </div>
-                  <Slider
-                    min={0}
-                    max={getPropertyConfig(prop.property).maxRange}
-                    step={getPropertyConfig(prop.property).step}
-                    value={[prop.range]}
-                    onValueChange={(value) =>
-                      handlePropertyChange(index, "range", value[0])
+                <div className="space-y-4">
+                  <BasicSelect
+                    value={prop.property}
+                    onValueChange={(value: string) =>
+                      handlePropertyChange(index, "property", value)
                     }
-                    className="mt-2"
-                  />
-                  {selectedLogEntry?.forecast && (
-                    <div className="text-xs text-[var(--color-text-secondary)] font-primary mt-1">
-                      Range:{" "}
-                      {(
-                        selectedLogEntry.forecast[prop.property] - prop.range
-                      ).toFixed(1)}
-                      -{" "}
-                      {(
-                        selectedLogEntry.forecast[prop.property] + prop.range
-                      ).toFixed(1)}{" "}
-                      {
-                        forecastProperties.find((fp) => fp.id === prop.property)
-                          ?.unit
-                      }
+                    className="font-primary"
+                  >
+                    {forecastProperties.map((forecastProp) => (
+                      <BasicOption
+                        key={forecastProp.id}
+                        value={forecastProp.id}
+                      >
+                        {forecastProp.name}
+                      </BasicOption>
+                    ))}
+                  </BasicSelect>
+
+                  <div className="space-y-2">
+                    <div className="flex justify-between">
+                      <Label className="font-primary text-sm text-gray-600">
+                        Accuracy Range
+                      </Label>
+                      <span className="text-sm text-gray-500 font-primary">
+                        ±{prop.range} {getPropertyConfig(prop.property).unit}
+                      </span>
                     </div>
-                  )}
+                    <Slider
+                      value={[prop.range]}
+                      onValueChange={(value) =>
+                        handlePropertyChange(index, "range", value[0])
+                      }
+                      max={getPropertyConfig(prop.property).maxRange}
+                      step={getPropertyConfig(prop.property).step}
+                      className="[&>span]:bg-[var(--color-tertiary)]"
+                    />
+                  </div>
                 </div>
               </div>
             ))}
           </div>
-        ) : (
-          <div className="space-y-2">
-            <Label className="font-primary">Select Star Rating</Label>
-            <RadioGroup
-              value={alertConfig.starRating || "4+"}
-              onValueChange={(value: string) => {
-                setAlertConfig({
-                  ...alertConfig,
-                  starRating: value as "4+" | "5",
-                });
-              }}
-              className="flex flex-col space-y-2"
-            >
-              <div className="flex items-center space-x-2 p-3 border rounded-md hover:bg-gray-50 cursor-pointer">
-                <RadioGroupItem value="4+" id="four-plus" />
-                <Label
-                  htmlFor="four-plus"
-                  className="font-primary cursor-pointer flex items-center"
-                >
-                  <div className="flex">
-                    {[1, 2, 3, 4].map((i) => (
-                      <StarIcon
-                        key={i}
-                        className="h-5 w-5 fill-yellow-400 text-yellow-400"
-                      />
-                    ))}
-                    <StarIcon className="h-5 w-5 text-gray-300" />
-                  </div>
-                  <span className="ml-2">4+ Stars (Good conditions)</span>
-                </Label>
-              </div>
-              <div className="flex items-center space-x-2 p-3 border rounded-md hover:bg-gray-50 cursor-pointer">
-                <RadioGroupItem value="5" id="five" />
-                <Label
-                  htmlFor="five"
-                  className="font-primary cursor-pointer flex items-center"
-                >
-                  <div className="flex">
-                    {[1, 2, 3, 4, 5].map((i) => (
-                      <StarIcon
-                        key={i}
-                        className="h-5 w-5 fill-yellow-400 text-yellow-400"
-                      />
-                    ))}
-                  </div>
-                  <span className="ml-2">5 Stars (Perfect conditions)</span>
-                </Label>
-              </div>
-            </RadioGroup>
-            <p className="text-sm text-gray-500 font-primary mt-2">
-              You'll be notified when the beach conditions match your selected
-              star rating.
-            </p>
-          </div>
-        )}
+        </div>
 
         <div className="space-y-2">
           <Label className="font-primary">Notification Method</Label>

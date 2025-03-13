@@ -7,59 +7,38 @@ import { toast } from "sonner";
 import ForecastAlertModal from "@/app/components/alerts/ForecastAlertModal";
 import { RandomLoader } from "@/app/components/ui/random-loader";
 import { AlertConfig } from "@/app/types/alerts";
+import { useQuery } from "@tanstack/react-query";
 
 export default function AlertPage() {
   const router = useRouter();
   const params = useParams();
   const { data: session, status } = useSession();
   const alertId = params?.id as string;
-
-  const [isLoading, setIsLoading] = useState(true);
-  const [alert, setAlert] = useState<AlertConfig | null>(null);
   const [isModalOpen, setIsModalOpen] = useState(true);
+
+  // Fetch the alert data
+  const { data: alert, isLoading } = useQuery({
+    queryKey: ["alert", alertId],
+    queryFn: async () => {
+      if (!alertId || alertId === "new") return null;
+
+      const response = await fetch(`/api/alerts/${alertId}?include=logEntry`);
+      if (!response.ok) {
+        throw new Error("Failed to fetch alert");
+      }
+      return response.json();
+    },
+    enabled: !!alertId && alertId !== "new" && !!session,
+  });
 
   useEffect(() => {
     if (status === "loading") return;
 
     if (!session) {
-      toast.error("Please log in to edit alerts", {
-        description: "Unauthorized access",
-      });
+      toast.error("Please log in to edit alerts");
       router.push("/");
-      return;
     }
-
-    // If this is a new alert, we don't need to fetch anything
-    if (alertId === "new") {
-      setIsLoading(false);
-      return;
-    }
-
-    const fetchAlert = async () => {
-      try {
-        console.log("Fetching alert with ID:", alertId);
-        const response = await fetch(`/api/alerts/${alertId}`);
-
-        if (!response.ok) {
-          console.error("Failed to fetch alert:", response.statusText);
-          setAlert(null);
-          setIsLoading(false);
-          return;
-        }
-
-        const data = await response.json();
-        console.log("Fetched alert data:", data);
-        setAlert(data);
-      } catch (error) {
-        console.error("Error fetching alert:", error);
-        setAlert(null);
-      } finally {
-        setIsLoading(false);
-      }
-    };
-
-    fetchAlert();
-  }, [alertId, router, session, status]);
+  }, [session, status, router]);
 
   const handleClose = () => {
     setIsModalOpen(false);
@@ -98,8 +77,8 @@ export default function AlertPage() {
     <ForecastAlertModal
       isOpen={isModalOpen}
       onClose={handleClose}
-      logEntry={null}
-      existingAlert={alert || undefined}
+      logEntry={alert?.logEntry || null}
+      existingAlert={alert}
       onSaved={handleSaved}
       isNew={alertId === "new"}
     />

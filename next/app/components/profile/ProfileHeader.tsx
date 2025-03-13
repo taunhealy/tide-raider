@@ -1,7 +1,9 @@
 "use client";
 
+import { useQuery } from "@tanstack/react-query";
+import Link from "next/link";
 import Image from "next/image";
-import { useState } from "react";
+import { Suspense } from "react";
 import { countries } from "countries-list";
 
 type CountryWithEmoji = {
@@ -10,17 +12,9 @@ type CountryWithEmoji = {
 };
 
 interface ProfileHeaderProps {
-  userData: {
-    name: string;
-    image: string | null;
-    id: string;
-    createdAt?: Date | string;
-    link?: string;
-    nationality?: string;
-    nationalityName?: string;
-  };
-  isOwnProfile?: boolean;
-  nationalitySelector?: React.ReactNode;
+  userId: string;
+  isOwnProfile: boolean;
+  nationalitySelector: React.ReactNode;
 }
 
 function getFlagEmoji(countryCode: string) {
@@ -31,79 +25,47 @@ function getFlagEmoji(countryCode: string) {
   return String.fromCodePoint(...codePoints);
 }
 
-export default function ProfileHeader({
-  userData,
+function ProfileHeaderContent({
+  userId,
   isOwnProfile,
   nationalitySelector,
 }: ProfileHeaderProps) {
-  const [isUploading, setIsUploading] = useState(false);
+  const { data: userData, isLoading } = useQuery({
+    queryKey: ["profileHeader", userId],
+    queryFn: async () => {
+      const res = await fetch(`/api/user/${userId}/profile`);
+      if (!res.ok) throw new Error("Failed to fetch profile data");
+      return res.json();
+    },
+  });
 
-  const handleAvatarUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    if (!e.target.files?.[0]) return;
+  if (isLoading) return <div>Loading...</div>;
 
-    setIsUploading(true);
-    const file = e.target.files[0];
-    const formData = new FormData();
-    formData.append("file", file);
-
-    try {
-      const response = await fetch("/api/user/avatar", {
-        method: "POST",
-        body: formData,
-      });
-
-      if (!response.ok) {
-        throw new Error("Failed to upload avatar");
-      }
-
-      // Force a page refresh to show the new avatar
-      window.location.reload();
-    } catch (error) {
-      console.error("Error uploading avatar:", error);
-    } finally {
-      setIsUploading(false);
-    }
-  };
+  const displayName = userData?.name || "Anonymous";
 
   return (
-    <div className="flex items-center gap-4 mb-8">
-      <div className="relative group">
-        {userData.image ? (
-          <Image
-            src={userData.image}
-            alt={`${userData.name}'s profile picture`}
-            width={100}
-            height={100}
-            className="rounded-full"
-          />
-        ) : (
-          <div className="w-[100px] h-[100px] bg-gray-200 rounded-full flex items-center justify-center">
-            <span className="text-2xl font-primary text-gray-500">
-              {userData.name?.[0]?.toUpperCase() || "?"}
-            </span>
-          </div>
-        )}
-
-        {isOwnProfile && (
-          <div className="absolute bottom-0 left-0 right-0 bg-black/50 text-white text-center text-sm py-1 rounded-b-full opacity-0 group-hover:opacity-100 transition-opacity">
-            <label className="cursor-pointer w-full block">
-              {isUploading ? "Uploading..." : "Change"}
-              <input
-                type="file"
-                className="hidden"
-                accept="image/*"
-                onChange={handleAvatarUpload}
-                disabled={isUploading}
-              />
-            </label>
-          </div>
-        )}
+    <div className="flex items-start gap-4 mb-6">
+      <div className="w-20 h-20 relative rounded-full overflow-hidden">
+        <Image
+          src={userData?.image || "/default-avatar.png"}
+          alt={`${displayName}'s avatar`}
+          fill
+          className="object-cover"
+        />
       </div>
-
       <div>
         <div className="flex items-center gap-2">
           <h1 className="text-2xl font-bold font-primary">
-            {userData?.name || "Anonymous"}
+            {isOwnProfile ? (
+              displayName
+            ) : (
+              <Link
+                href={`/profile/${userId}`}
+                className="hover:text-[var(--color-tertiary)] transition-colors"
+              >
+                {displayName}
+              </Link>
+            )}
           </h1>
           {nationalitySelector}
         </div>
@@ -132,5 +94,13 @@ export default function ProfileHeader({
         )}
       </div>
     </div>
+  );
+}
+
+export default function ProfileHeader(props: ProfileHeaderProps) {
+  return (
+    <Suspense fallback={<div>Loading...</div>}>
+      <ProfileHeaderContent {...props} />
+    </Suspense>
   );
 }

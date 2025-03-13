@@ -4,7 +4,7 @@ import { Star, Search, X, Lock, Bell } from "lucide-react";
 import { useMutation, useQueryClient, useQuery } from "@tanstack/react-query";
 import { cn } from "@/app/lib/utils";
 import type { Beach } from "@/app/types/beaches";
-import type { CreateLogEntryInput, LogEntry } from "@/app/types/questlogs";
+import type { LogEntry } from "@/app/types/questlogs";
 import SurfForecastWidget from "../SurfForecastWidget";
 import confetti from "canvas-confetti";
 import { Button } from "@/app/components/ui/Button";
@@ -18,8 +18,7 @@ import { signIn } from "next-auth/react";
 import { format } from "date-fns";
 import { toast } from "sonner";
 import { useForecast } from "@/app/hooks/useForecast";
-import { AlertConfiguration } from "../alerts/AlertConfiguration";
-import { AlertConfigTypes, ForecastProperty } from "@/app/types/alerts";
+import Image from "next/image";
 
 interface RaidLogFormProps {
   userEmail?: string;
@@ -29,6 +28,11 @@ interface RaidLogFormProps {
   entry?: LogEntry;
   isEditing?: boolean;
 }
+
+type LogEntryInput = Omit<
+  LogEntry,
+  "id" | "createdAt" | "updatedAt" | "hasAlert" | "isMyAlert" | "alertId"
+>;
 
 export function RaidLogForm({
   userEmail,
@@ -63,52 +67,6 @@ export function RaidLogForm({
   const [isPrivate, setIsPrivate] = useState<boolean>(
     entry?.isPrivate || false
   );
-  const [createAlert, setCreateAlert] = useState<boolean>(
-    !!entry?.existingAlert
-  );
-  const [alertConfig, setAlertConfig] = useState<AlertConfigTypes>({
-    id: entry?.existingAlert?.id || crypto.randomUUID(),
-    name: entry?.existingAlert?.name || "",
-    region: selectedBeach?.region || "",
-    properties: entry?.existingAlert?.properties || [
-      { property: "windSpeed", range: 5 },
-      { property: "windDirection", range: 15 },
-      { property: "swellHeight", range: 0.5 },
-      { property: "swellPeriod", range: 2 },
-    ],
-    notificationMethod: entry?.existingAlert?.notificationMethod || "app",
-    contactInfo: userEmail || "",
-    active: true,
-    forecastDate: new Date(),
-    alertType: entry?.existingAlert?.alertType || "rating",
-    starRating: entry?.existingAlert?.starRating || "4+",
-    logEntryId: entry?.id || null,
-    forecast: null,
-    forecastId: null,
-    userId: session?.user?.id || "",
-  });
-
-  // Add this query to fetch the alert
-  const { data: existingAlert } = useQuery({
-    queryKey: ["alert", entry?.id],
-    queryFn: async () => {
-      if (!entry?.id) return null;
-      const response = await fetch(`/api/alerts?logEntryId=${entry.id}`);
-      if (!response.ok) return null;
-      return response.json();
-    },
-    enabled: !!entry?.id,
-  });
-
-  // Initialize contact info with user email if available
-  useEffect(() => {
-    if (userEmail) {
-      setAlertConfig((prev) => ({
-        ...prev,
-        contactInfo: userEmail,
-      }));
-    }
-  }, [userEmail]);
 
   const { data: forecastData } = useForecast(
     selectedBeach?.region || "",
@@ -116,7 +74,7 @@ export function RaidLogForm({
   );
 
   const createLogEntry = useMutation({
-    mutationFn: async (newEntry: CreateLogEntryInput) => {
+    mutationFn: async (newEntry: LogEntryInput) => {
       const method = entry?.id ? "PATCH" : "POST";
       const response = await fetch(
         `/api/raid-logs${entry?.id ? `/${entry.id}` : ""}`,
@@ -145,56 +103,6 @@ export function RaidLogForm({
       });
       setIsSubmitted(true);
 
-      // Create alert if requested
-      if (createAlert && selectedBeach && forecastData) {
-        try {
-          const alertToCreate = {
-            ...alertConfig,
-            name: alertConfig.name || `Alert for ${selectedBeach.name}`,
-            region: selectedBeach.region,
-            forecastDate: new Date(selectedDate),
-            logEntryId: data.id,
-            properties: alertConfig.properties || [
-              { property: "windSpeed", range: 2 },
-              { property: "windDirection", range: 10 },
-              { property: "swellHeight", range: 0.2 },
-              { property: "swellPeriod", range: 1 },
-              { property: "swellDirection", range: 10 },
-            ],
-            notificationMethod: alertConfig.notificationMethod || "app",
-            contactInfo: alertConfig.contactInfo || userEmail || "",
-            active:
-              alertConfig.active !== undefined ? alertConfig.active : true,
-          };
-
-          // Use PATCH for existing alerts, POST for new ones
-          const alertResponse = await fetch(
-            `/api/alerts${alertConfig.id ? `/${alertConfig.id}` : ""}`,
-            {
-              method: alertConfig.id ? "PATCH" : "POST",
-              headers: { "Content-Type": "application/json" },
-              body: JSON.stringify(alertToCreate),
-            }
-          );
-
-          if (!alertResponse.ok) {
-            throw new Error("Failed to update alert");
-          }
-
-          toast.success(
-            alertConfig.id
-              ? "Alert updated successfully"
-              : "You'll be notified when forecast conditions match this session."
-          );
-
-          queryClient.invalidateQueries({ queryKey: ["alerts"] });
-        } catch (error) {
-          console.error("Error updating alert:", error);
-          toast.error("Could not update alert. Please try again.");
-        }
-      }
-
-      // Close the modal and redirect after everything is done
       router.push("/raidlogs");
       if (onClose) {
         onClose();
@@ -221,26 +129,33 @@ export function RaidLogForm({
     e.preventDefault();
 
     if (!selectedBeach || !selectedDate) {
-      alert("Please select a beach and date");
+      toast.error("Please select a beach and date");
       return;
     }
 
     setIsSubmitting(true);
 
     try {
-      // First, ensure we have the forecast data
-      if (!forecastData) {
-        console.log("Fetching forecast before submission...");
-        await fetchForecastData(selectedBeach);
-        // Add a small delay to ensure forecast is set
-        await new Promise((resolve) => setTimeout(resolve, 1000));
+      // Handle image upload if an image is selected (for any rating)
+      let imageUrl = "";
+      if (selectedImage) {
+        const formData = new FormData();
+        formData.append("file", selectedImage);
+
+        const uploadResponse = await fetch("/api/upload", {
+          method: "POST",
+          body: formData,
+        });
+
+        if (!uploadResponse.ok) {
+          throw new Error("Failed to upload image");
+        }
+
+        const uploadData = await uploadResponse.json();
+        imageUrl = uploadData.imageUrl;
       }
 
-      if (!forecastData) {
-        throw new Error("Failed to fetch forecast data");
-      }
-
-      // Create the log entry data with the forecast object properly structured
+      // Create the log entry with the image URL
       const newEntry = {
         beachName: selectedBeach.name,
         date: new Date(selectedDate),
@@ -251,7 +166,7 @@ export function RaidLogForm({
             userEmail?.split("@")[0] ||
             "Anonymous Surfer",
         userId: session!.user.id,
-        surferRating: surferRating,
+        surferRating,
         comments,
         continent: selectedBeach.continent,
         country: selectedBeach.country,
@@ -260,16 +175,15 @@ export function RaidLogForm({
         isAnonymous,
         isPrivate,
         forecast: forecastData,
-        createAlert,
-        alertConfig: createAlert ? alertConfig : undefined,
+        imageUrl: imageUrl || undefined, // Add the image URL to the entry
       };
 
-      const logEntryResponse = await createLogEntry.mutateAsync(newEntry);
+      await createLogEntry.mutateAsync(newEntry);
 
-      // No need for separate alert creation here as it's handled in the mutation's onSuccess
+      toast.success("Session logged successfully!");
     } catch (error) {
       console.error("Form submission error:", error);
-      alert("Failed to submit log entry: " + (error as Error).message);
+      toast.error("Failed to submit log entry: " + (error as Error).message);
     } finally {
       setIsSubmitting(false);
     }
@@ -308,7 +222,6 @@ export function RaidLogForm({
         const data = await response.json();
 
         if (response.status === 202) {
-          // Server requested retry
           console.log(`Attempt ${retryAttempt + 1}: Retrying in 5 seconds...`);
           await new Promise((resolve) => setTimeout(resolve, 5000));
           return fetchWithRetry(retryAttempt + 1, maxRetries);
@@ -324,7 +237,6 @@ export function RaidLogForm({
 
         console.log("Received forecast data:", data);
 
-        // Ensure data is properly formatted according to ForecastA schema
         const formattedData = {
           date: new Date(selectedDate),
           region: beach.region,
@@ -344,7 +256,6 @@ export function RaidLogForm({
     } catch (error) {
       console.error("Error loading forecast:", error);
       setForecast(null);
-      // Optionally show user-friendly error message
       alert(
         `Unable to load forecast data: ${error instanceof Error ? error.message : "Unknown error"}`
       );
@@ -356,7 +267,6 @@ export function RaidLogForm({
     const file = e.target.files?.[0];
     if (!file) return;
 
-    // Validate file
     const validation = validateFile(file);
     if (!validation.valid) {
       alert(validation.error);
@@ -364,7 +274,6 @@ export function RaidLogForm({
     }
 
     try {
-      // Compress if needed
       const processedFile = await compressImageIfNeeded(file);
       setSelectedImage(processedFile);
       setImagePreview(URL.createObjectURL(processedFile));
@@ -374,7 +283,6 @@ export function RaidLogForm({
     }
   };
 
-  // Initialize selected beach when entry changes
   useEffect(() => {
     if (!beaches || !entry?.beachName) return;
 
@@ -382,36 +290,14 @@ export function RaidLogForm({
     setSelectedBeach(initialBeach || null);
   }, [entry, beaches]);
 
-  // Update useEffect to use this function
   useEffect(() => {
     if (selectedBeach && selectedDate) {
       fetchForecastData(selectedBeach);
     }
   }, [selectedBeach, selectedDate]);
 
-  // Update useEffect to set the region in alertConfig when selectedBeach changes
-  useEffect(() => {
-    if (selectedBeach) {
-      setAlertConfig((prev) => ({
-        ...prev,
-        region: selectedBeach.region,
-        name: `Alert for ${selectedBeach.name}`,
-      }));
-    }
-  }, [selectedBeach]);
-
-  // Update the initial state setup
-  useEffect(() => {
-    if (existingAlert) {
-      setCreateAlert(true);
-      setAlertConfig(existingAlert);
-    }
-  }, [existingAlert]);
-
-  // Improve the safeParseFloat function to handle more edge cases
   const safeParseFloat = (value: any): number => {
     if (value === undefined || value === null) return 0;
-    // Handle string numbers with commas
     if (typeof value === "string") {
       value = value.replace(",", ".");
     }
@@ -419,7 +305,6 @@ export function RaidLogForm({
     return isNaN(parsed) ? 0 : parsed;
   };
 
-  // Add a debug function to help identify issues
   const debugForecastData = (data: any) => {
     if (!data) return;
     console.log("Forecast data for alert:", {
@@ -431,7 +316,6 @@ export function RaidLogForm({
     });
   };
 
-  // Add this useEffect to log forecast data when it changes
   useEffect(() => {
     if (forecastData) {
       debugForecastData(forecastData);
@@ -451,7 +335,6 @@ export function RaidLogForm({
     }
   };
 
-  // Only render if isOpen is true
   if (!isOpen) return null;
 
   return (
@@ -489,7 +372,7 @@ export function RaidLogForm({
         <div className="relative">
           <button
             onClick={() => {
-              console.log("Close button clicked"); // Add this for debugging
+              console.log("Close button clicked");
               onClose();
             }}
             className="absolute top-0 right-0 text-gray-400 hover:text-gray-500 z-[102]"
@@ -498,17 +381,16 @@ export function RaidLogForm({
             <X className="h-6 w-6" />
           </button>
 
-          <h2 className="text-xl font-semibold mb-4 font-primary">
+          <h2 className="text-2xl font-bold mb-6 font-primary text-[var(--color-primary)]">
             Log Session
           </h2>
 
-          <form onSubmit={handleSubmit} className="space-y-4">
-            <div className="steps-container space-y-6">
-              {/* Step 1: Date Selection */}
+          <form onSubmit={handleSubmit} className="space-y-6">
+            <div className="steps-container space-y-8">
               <div className="step">
-                <h4 className="text-[12px] font-semibold mb-2 font-primary">
+                <h3 className="text-lg font-semibold mb-3 font-primary text-[var(--color-secondary)]">
                   1. Select Date
-                </h4>
+                </h3>
                 <input
                   type="date"
                   value={selectedDate}
@@ -517,15 +399,14 @@ export function RaidLogForm({
                   }
                   max={new Date().toISOString().split("T")[0]}
                   required
-                  className="p-2 border rounded"
+                  className="p-2 border rounded w-full"
                 />
               </div>
 
-              {/* Step 2: Beach Selection */}
               <div className="step">
-                <h4 className="text-[12px] font-semibold mb-2 font-primary">
+                <h3 className="text-lg font-semibold mb-3 font-primary text-[var(--color-secondary)]">
                   2. Select Beach
-                </h4>
+                </h3>
                 <div className="relative">
                   <div className="flex items-center border rounded-md mb-2">
                     <Search className="h-4 w-4 ml-2 text-gray-400" />
@@ -549,7 +430,7 @@ export function RaidLogForm({
 
                   {searchTerm && filteredBeaches.length > 0 && (
                     <div className="absolute z-10 w-full bg-white border rounded-md shadow-lg max-h-60 overflow-y-auto">
-                      {filteredBeaches.slice(0, 5).map((beach) => (
+                      {filteredBeaches.map((beach) => (
                         <div
                           key={beach.id}
                           className="p-2 hover:bg-gray-100 cursor-pointer font-primary"
@@ -561,45 +442,31 @@ export function RaidLogForm({
                           {beach.name}
                         </div>
                       ))}
-                      {filteredBeaches.length > 5 && (
-                        <div className="p-2 text-sm text-gray-500 font-primary text-center border-t">
-                          {filteredBeaches.length - 5} more results...
-                        </div>
-                      )}
                     </div>
                   )}
 
-                  <BasicSelect
-                    value={selectedBeach?.name || ""}
-                    onValueChange={(value) => {
-                      const beach = beaches?.find((b) => b.name === value);
-                      if (beach) handleBeachSelect(beach);
-                    }}
-                  >
-                    <BasicOption value="" disabled>
+                  <div className="p-2 border rounded-md flex justify-between items-center">
+                    <span className="font-primary">
                       {selectedBeach ? selectedBeach.name : "Choose a beach..."}
-                    </BasicOption>
-                    {Array.isArray(beaches) && beaches.length > 0 ? (
-                      beaches.slice(0, 5).map((beach) => (
-                        <BasicOption key={beach.id} value={beach.name}>
-                          {beach.name}
-                        </BasicOption>
-                      ))
-                    ) : (
-                      <BasicOption value="" disabled>
-                        No beaches available ({beaches?.length || 0} beaches)
-                      </BasicOption>
+                    </span>
+                    {selectedBeach && (
+                      <button
+                        type="button"
+                        onClick={() => setSelectedBeach(null)}
+                        className="text-gray-400 hover:text-gray-600"
+                      >
+                        <X className="h-4 w-4" />
+                      </button>
                     )}
-                  </BasicSelect>
+                  </div>
                 </div>
               </div>
 
-              {/* Step 3: Forecast Display */}
               {selectedBeach && selectedDate && (
                 <div className="step">
-                  <h4 className="text-[12px] font-semibold mb-2 font-primary">
+                  <h3 className="text-lg font-semibold mb-3 font-primary text-[var(--color-secondary)]">
                     3. Surf Conditions
-                  </h4>
+                  </h3>
                   <div className="border rounded-lg p-4 bg-gray-50">
                     {forecast === null ? (
                       <div className="text-black font-primary">Loading...</div>
@@ -618,10 +485,9 @@ export function RaidLogForm({
                 </div>
               )}
 
-              {/* Step 4: Rating */}
               {forecastData && (
                 <div className="step">
-                  <h3 className="text-lg font-semibold mb-2 font-primary">
+                  <h3 className="text-lg font-semibold mb-3 font-primary text-[var(--color-secondary)]">
                     4. Rate Your Session
                   </h3>
                   <div className="flex gap-1">
@@ -637,17 +503,16 @@ export function RaidLogForm({
                             : "text-gray-300"
                         )}
                       >
-                        <Star className="w-6 h-6 fill-current" />
+                        <Star className="w-8 h-8 fill-current" />
                       </button>
                     ))}
                   </div>
                 </div>
               )}
 
-              {/* Step 5: Comments */}
               {surferRating > 0 && (
                 <div className="step">
-                  <h3 className="text-lg font-semibold mb-2 font-primary">
+                  <h3 className="text-lg font-semibold mb-3 font-primary text-[var(--color-secondary)]">
                     5. Add Comments
                   </h3>
                   <textarea
@@ -664,9 +529,43 @@ export function RaidLogForm({
                 </div>
               )}
 
-              {/* Optional Steps */}
-              <div className="step">
-                <h3 className="text-lg font-semibold mb-2 font-primary">
+              {surferRating > 0 && (
+                <div className="step">
+                  <h3 className="text-lg font-semibold mb-3 font-primary text-[var(--color-secondary)]">
+                    6. Add Photo
+                  </h3>
+                  <div className="space-y-2">
+                    <input
+                      type="file"
+                      accept="image/*"
+                      onChange={handleFileChange}
+                      className="w-full"
+                    />
+                    {imagePreview && (
+                      <div className="relative w-32 h-32">
+                        <Image
+                          src={imagePreview}
+                          alt="Preview"
+                          fill
+                          className="object-cover rounded-md"
+                        />
+                        <button
+                          onClick={() => {
+                            setImagePreview(null);
+                            setSelectedImage(null);
+                          }}
+                          className="absolute -top-2 -right-2 bg-white rounded-full p-1"
+                        >
+                          <X className="h-4 w-4" />
+                        </button>
+                      </div>
+                    )}
+                  </div>
+                </div>
+              )}
+
+              <div className="step border-t pt-6">
+                <h3 className="text-lg font-semibold mb-4 font-primary text-[var(--color-secondary)]">
                   Additional Options
                 </h3>
                 <div className="space-y-4">
@@ -676,6 +575,7 @@ export function RaidLogForm({
                       id="anonymous"
                       checked={isAnonymous}
                       onChange={(e) => setIsAnonymous(e.target.checked)}
+                      className="h-4 w-4"
                     />
                     <label htmlFor="anonymous" className="font-primary">
                       Post Anonymously
@@ -687,106 +587,11 @@ export function RaidLogForm({
                       id="private"
                       checked={isPrivate}
                       onChange={(e) => setIsPrivate(e.target.checked)}
+                      className="h-4 w-4"
                     />
                     <label htmlFor="private" className="font-primary">
                       Keep Private
                     </label>
-                  </div>
-                  <div className="border-t pt-3">
-                    <div className="flex items-center space-x-2 mb-2">
-                      <input
-                        type="checkbox"
-                        id="create-alert"
-                        checked={createAlert}
-                        onChange={(e) => {
-                          setCreateAlert(e.target.checked);
-                          // Initialize alert config with forecast data when checkbox is checked
-                          if (e.target.checked && forecastData) {
-                            setAlertConfig((prev) => ({
-                              ...prev,
-                              name: `Alert for ${selectedBeach?.name || "session"}`,
-                              region: selectedBeach?.region || "",
-                              // Set alert type to rating by default since we're creating from a rated session
-                              alertType: "rating",
-                              // Use the user's rating for this session as the minimum star rating
-                              starRating: surferRating >= 5 ? "5" : "4+",
-                              properties: [
-                                {
-                                  property: "windSpeed" as ForecastProperty,
-                                  range: 5,
-                                },
-                                {
-                                  property: "windDirection" as ForecastProperty,
-                                  range: 15,
-                                },
-                                {
-                                  property: "swellHeight" as ForecastProperty,
-                                  range: 0.5,
-                                },
-                                {
-                                  property: "swellPeriod" as ForecastProperty,
-                                  range: 2,
-                                },
-                              ],
-                              forecast: forecastData || null,
-                            }));
-                          }
-                        }}
-                      />
-                      <label
-                        htmlFor="create-alert"
-                        className="font-primary flex items-center"
-                      >
-                        <Bell className="h-4 w-4 mr-1" />
-                        {existingAlert
-                          ? "Edit Alert"
-                          : "Create Alert for Similar Conditions"}
-                      </label>
-                    </div>
-
-                    {createAlert && (
-                      <div className="pl-6 mt-2">
-                        <AlertConfiguration
-                          onSave={(config) => setAlertConfig(config)}
-                          existingConfig={{
-                            ...alertConfig,
-                            region: selectedBeach?.region || "",
-                            forecast: null, // Don't pass forecast here to avoid conflicts
-                            notificationMethod: alertConfig.notificationMethod,
-                            // Make sure we pass the alert type and star rating
-                            alertType: alertConfig.alertType,
-                            starRating: alertConfig.starRating,
-                          }}
-                          selectedLogEntry={
-                            forecastData
-                              ? {
-                                  forecast: {
-                                    // Explicitly convert each value to a number and provide fallbacks
-                                    windSpeed: Number(
-                                      forecastData.windSpeed || 0
-                                    ),
-                                    windDirection: Number(
-                                      forecastData.windDirection || 0
-                                    ),
-                                    waveHeight: Number(
-                                      forecastData.swellHeight || 0
-                                    ),
-                                    wavePeriod: Number(
-                                      forecastData.swellPeriod || 0
-                                    ),
-                                    swellDirection: Number(
-                                      forecastData.swellDirection || 0
-                                    ),
-                                    temperature: 0,
-                                  },
-                                  region: selectedBeach?.region || "",
-                                }
-                              : undefined
-                          }
-                          isEmbedded={true}
-                        />
-                      </div>
-                    )}
                   </div>
                 </div>
               </div>
@@ -798,14 +603,9 @@ export function RaidLogForm({
                   !selectedDate ||
                   isSubmitting
                 }
-                variant="outline"
-                className="w-full font-primary"
+                className="w-full font-primary bg-[var(--color-tertiary)] text-white hover:bg-[var(--color-tertiary)]/90 py-2 mt-4"
               >
-                {isSubmitting
-                  ? "Submitting..."
-                  : createAlert
-                    ? "Save Log & Alert"
-                    : "Log Session"}
+                {isSubmitting ? "Submitting..." : "Log Session"}
               </Button>
             </div>
           </form>

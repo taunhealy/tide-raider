@@ -266,6 +266,7 @@ export async function POST(req: NextRequest) {
         waveType: data.waveType,
         isAnonymous: data.isAnonymous,
         isPrivate: data.isPrivate,
+        imageUrl: data.imageUrl,
         user: {
           connect: { id: session.user.id },
         },

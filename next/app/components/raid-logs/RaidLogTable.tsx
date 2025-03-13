@@ -3,7 +3,14 @@
 import { QuestLogTableColumn, LogEntry } from "@/app/types/questlogs";
 
 import { format } from "date-fns";
-import { Star, Pencil, X, Bell } from "lucide-react";
+import {
+  Star,
+  Pencil,
+  X,
+  Bell,
+  Image as ImageIcon,
+  MessageCircle,
+} from "lucide-react";
 import { cn } from "@/app/lib/utils";
 import {
   getWindEmoji,
@@ -13,7 +20,7 @@ import {
 } from "@/app/lib/forecastUtils";
 import Image from "next/image";
 import { useSession } from "next-auth/react";
-import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { useMutation, useQueryClient, useQuery } from "@tanstack/react-query";
 import { useRouter } from "next/navigation";
 import { useMemo, useState, useEffect } from "react";
 import Link from "next/link";
@@ -23,6 +30,12 @@ import { AlertConfig } from "@/app/types/alerts";
 
 import { toast } from "sonner";
 import ForecastAlertModal from "@/app/components/alerts/ForecastAlertModal";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/app/components/ui/tooltip";
 
 interface QuestTableProps {
   entries: LogEntry[];
@@ -250,7 +263,74 @@ export const DEFAULT_COLUMNS: QuestLogTableColumn[] = [
     key: "comments",
     label: "Comments",
   },
+  {
+    key: "imageUrl",
+    label: "Photo",
+  },
 ];
+
+// Move useComments hook definition outside of the component
+const useComments = (logEntryId: string) => {
+  return useQuery({
+    queryKey: ["comments", logEntryId],
+    queryFn: async () => {
+      const response = await fetch(
+        `/api/comments?entityId=${logEntryId}&entityType=LogEntry`
+      );
+      if (!response.ok) throw new Error("Failed to fetch comments");
+      return response.json();
+    },
+    enabled: !!logEntryId,
+  });
+};
+
+// Create a separate component for the comments cell
+function CommentsCell({ entry }: { entry: LogEntry }) {
+  const { data: comments } = useComments(entry.id);
+  const router = useRouter();
+
+  const handleMessageClick = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    router.push(`/raidlogs/${entry.id}`);
+  };
+
+  const latestComment =
+    comments?.length > 0
+      ? [...comments].sort(
+          (a, b) =>
+            new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
+        )[0]
+      : null;
+
+  return (
+    <div className="flex items-center justify-between w-full gap-2">
+      <div className="flex-1 truncate">{entry.comments}</div>
+      {latestComment && (
+        <TooltipProvider>
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <MessageCircle
+                onClick={handleMessageClick}
+                className="w-4 h-4 shrink-0 text-brand-3 cursor-pointer"
+              />
+            </TooltipTrigger>
+            <TooltipContent className="max-w-[300px]">
+              <div className="space-y-1">
+                <p className="text-sm font-medium">
+                  Latest comment (
+                  {format(new Date(latestComment.createdAt), "MMM d, yyyy")}):
+                </p>
+                <p className="text-sm text-gray-600 break-words">
+                  {latestComment.text}
+                </p>
+              </div>
+            </TooltipContent>
+          </Tooltip>
+        </TooltipProvider>
+      )}
+    </div>
+  );
+}
 
 export default function RaidLogTable({
   entries,
@@ -261,12 +341,11 @@ export default function RaidLogTable({
   onBeachClick,
 }: QuestTableProps) {
   const [selectedBeach, setSelectedBeach] = useState<Beach | null>(null);
-  const [alertModalOpen, setAlertModalOpen] = useState<boolean>(false);
   const [selectedLogForAlert, setSelectedLogForAlert] =
     useState<LogEntry | null>(null);
   const [selectedAlertForEdit, setSelectedAlertForEdit] = useState<
-    AlertConfig | undefined
-  >(undefined);
+    string | undefined
+  >();
   const { data: session } = useSession();
   const queryClient = useQueryClient();
 
@@ -305,7 +384,7 @@ export default function RaidLogTable({
 
   // Edit handler
   const handleEdit = (entry: LogEntry) => {
-    router.push(`/raidlogs/${entry.id}`);
+    router.push(`/raidlogs/${entry.id}/edit`);
   };
 
   // Delete handler
@@ -322,16 +401,15 @@ export default function RaidLogTable({
       }
       router.push(`/alerts/${entry.alertId}`);
     } else {
-      setSelectedLogForAlert(entry);
-      setAlertModalOpen(true);
+      // Store the selected log entry in localStorage before redirecting
+      localStorage.setItem("selectedLogEntry", JSON.stringify(entry));
+      router.push("/alerts/new");
     }
   };
 
   const handleAlertSaved = () => {
-    // Refresh alerts data
     queryClient.invalidateQueries({ queryKey: ["alerts"] });
     toast.success("Alert saved successfully");
-    setAlertModalOpen(false);
     setSelectedAlertForEdit(undefined);
     setSelectedLogForAlert(null);
   };
@@ -545,6 +623,22 @@ export default function RaidLogTable({
                     {entry.comments}
                   </p>
                 )}
+
+                {entry.imageUrl && (
+                  <Link href={`/raidlogs/${entry.id}`} className="block mt-2">
+                    <div className="relative w-20 h-20 cursor-pointer hover:opacity-80 transition-opacity">
+                      <Image
+                        src={entry.imageUrl}
+                        alt="Session photo"
+                        fill
+                        className="object-cover rounded-md"
+                        sizes="80px"
+                        placeholder="blur"
+                        blurDataURL="data:image/jpeg;base64,/9j/4AAQSkZJRgABAQAAAQABAAD/4gHYSUNDX1BST0ZJTEUAAQEAAAHIAAAAAAQwAABtbnRyUkdCIFhZWiAH4AABAAEAAAAAAABhY3NwAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAQAA9tYAAQAAAADTLQAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAlkZXNjAAAA8AAAACRyWFlaAAABFAAAABRnWFlaAAABKAAAABRiWFlaAAABPAAAABR3dHB0AAABUAAAABRyVFJDAAABZAAAAChnVFJDAAABZAAAAChiVFJDAAABZAAAAChjcHJ0AAABjAAAADxtbHVjAAAAAAAAAAEAAAAMZW5VUwAAAAgAAAAcAHMAUgBHAEJYWVogAAAAAAAAb6IAADj1AAADkFhZWiAAAAAAAABimQAAt4UAABjaWFlaIAAAAAAAACSgAAAPhAAAts9YWVogAAAAAAAA9tYAAQAAAADTLXBhcmEAAAAAAAQAAAACZmYAAPKnAAANWQAAE9AAAApbAAAAAAAAAABtbHVjAAAAAAAAAAEAAAAMZW5VUwAAACAAAAAcAEcAbwBvAGcAbABlACAASQBuAGMALgAgADIAMAAxADb/2wBDABQODxIPDRQSEBIXFRQdHx4eHRoaHSQtJSEkLzYvLy02Mi85OEI2PTZFOT5ZXVlphZmZnHR8f3yGhoaGhoaGhob/2wBDARUXFyAeIB4aGh4eIiIehoaGhoaGhoaGhoaGhoaGhoaGhoaGhoaGhoaGhoaGhoaGhoaGhoaGhoaGhoaGhoaGhob/wAARCAAIAAoDASIAAhEBAxEB/8QAFQABAQAAAAAAAAAAAAAAAAAAAAb/xAAUEAEAAAAAAAAAAAAAAAAAAAAA/8QAFQEBAQAAAAAAAAAAAAAAAAAAAAX/xAAUEQEAAAAAAAAAAAAAAAAAAAAA/9oADAMBAAIRAxEAPwCdABmX/9k="
+                      />
+                    </div>
+                  </Link>
+                )}
               </div>
             );
           })}
@@ -569,7 +663,9 @@ export default function RaidLogTable({
                           column.key === "date"
                             ? "min-w-[140px]"
                             : "min-w-[180px]",
-                          column.key === "comments" && "min-w-[300px]",
+                          column.key === "comments" &&
+                            "max-w-[200px] min-w-[200px]",
+                          column.key === "imageUrl" && "w-[80px]",
                           "h-[40px]"
                         )}
                       >
@@ -592,18 +688,38 @@ export default function RaidLogTable({
                           {format(new Date(entry.date), "MMM d, yyyy")}
                         </td>
                         <td className="px-4 py-4 sm:px-6 whitespace-nowrap min-w-[180px]">
-                          <button
-                            onClick={() => {
-                              const foundBeach = beachData.find(
-                                (b) => b.name === entry.beachName
-                              );
-                              console.log("Found beach data:", foundBeach);
-                              setSelectedBeach(foundBeach || null);
-                            }}
-                            className="font-primary text-gray-900 hover:text-brand-3 transition-colors text-left"
-                          >
-                            {entry.beachName}
-                          </button>
+                          <div className="flex items-center gap-2">
+                            <button
+                              onClick={() => {
+                                const foundBeach = beachData.find(
+                                  (b) => b.name === entry.beachName
+                                );
+                                console.log("Found beach data:", foundBeach);
+                                setSelectedBeach(foundBeach || null);
+                              }}
+                              className="font-primary text-gray-900 hover:text-brand-3 transition-colors text-left"
+                            >
+                              {entry.beachName}
+                            </button>
+                            {entry.hasAlert && (
+                              <button
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  handleAlertClick(entry);
+                                }}
+                                className="flex items-center"
+                              >
+                                <Bell
+                                  className={cn(
+                                    "w-4 h-4 cursor-pointer",
+                                    entry.isMyAlert
+                                      ? "text-[var(--color-alert-icon-rating)] fill-[var(--color-alert-icon-rating)]"
+                                      : "text-[var(--color-alert-icon-rating)] fill-none hover:text-[var(--color-alert-icon-rating)]"
+                                  )}
+                                />
+                              </button>
+                            )}
+                          </div>
                         </td>
                         <td className="px-4 py-4 sm:px-6 whitespace-nowrap min-w-[180px]">
                           {entry.region}
@@ -620,29 +736,26 @@ export default function RaidLogTable({
                         <td className="px-4 py-4 sm:px-6 min-w-[200px]">
                           <ForecastInfo forecast={entry.forecast} />
                         </td>
-                        <td className="px-4 py-4 sm:px-6 min-w-[300px] whitespace-normal">
-                          {entry.comments}
+                        <td className="px-4 py-4 sm:px-8 max-w-[200px] min-w-[200px] whitespace-normal">
+                          <CommentsCell entry={entry} />
                         </td>
-                        {isSubscribed && entry.imageUrl && (
-                          <td className="px-2 py-2 sm:px-4">
-                            <div className="relative w-[80px] h-[80px] sm:w-[120px] sm:h-[120px]">
-                              <Image
-                                src={entry.imageUrl}
-                                alt="Session photo"
-                                width={80}
-                                height={80}
-                                className="object-cover rounded-md"
-                                unoptimized={
-                                  process.env.NODE_ENV === "development"
-                                }
-                                onError={(e) => {
-                                  (e.target as HTMLImageElement).style.display =
-                                    "none";
-                                }}
-                              />
-                            </div>
-                          </td>
-                        )}
+                        <td className="px-4 py-4 w-[80px]">
+                          <div className="w-16 h-16 bg-gray-100 rounded-md flex items-center justify-center overflow-hidden">
+                            {entry.imageUrl ? (
+                              <Link href={`/raidlogs/${entry.id}`}>
+                                <Image
+                                  src={entry.imageUrl}
+                                  alt="Session photo"
+                                  width={64}
+                                  height={64}
+                                  className="object-cover w-full h-full cursor-pointer hover:opacity-80 transition-opacity"
+                                />
+                              </Link>
+                            ) : (
+                              <ImageIcon className="w-6 h-6 text-gray-200" />
+                            )}
+                          </div>
+                        </td>
                         <td className="px-6 py-4">
                           <div className="flex gap-2">
                             {session?.user?.email === entry.surferEmail && (
@@ -715,22 +828,6 @@ export default function RaidLogTable({
           onClose={() => setSelectedBeach(null)}
           isSubscribed={isSubscribed}
           onSubscribe={() => {}}
-        />
-      )}
-
-      {/* Alert Modal */}
-      {alertModalOpen && selectedLogForAlert && (
-        <ForecastAlertModal
-          isOpen={alertModalOpen}
-          onClose={() => {
-            setAlertModalOpen(false);
-            setSelectedAlertForEdit(undefined);
-            setSelectedLogForAlert(null);
-          }}
-          logEntry={selectedLogForAlert}
-          existingAlert={selectedAlertForEdit}
-          onSaved={handleAlertSaved}
-          isNew={!selectedAlertForEdit}
         />
       )}
     </>

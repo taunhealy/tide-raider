@@ -1,123 +1,169 @@
-import { useState } from "react";
+"use client";
+
+import { useState, useEffect } from "react";
 import { useSession } from "next-auth/react";
+import * as Avatar from "@radix-ui/react-avatar";
 import { Button } from "@/app/components/ui/Button";
+import Textarea from "@/app/components/ui/textarea";
+import { format } from "date-fns";
+import { Loader2 } from "lucide-react";
 
 interface Comment {
   id: string;
   text: string;
-  createdAt: Date;
+  userId: string;
+  createdAt: string;
   user: {
-    id: string;
     name: string;
-    image?: string | null;
+    image?: string;
   };
 }
 
-interface CommentThreadProps {
-  comments: Comment[];
-  entityId: string; // ID of the board, beach, etc. that comments are for
-  entityType: "board" | "beach" | "story"; // Type of entity
-  onAddComment: (text: string) => Promise<void>;
-}
-
-function Avatar({
-  src,
-  alt,
-  fallback,
-}: {
-  src?: string;
-  alt: string;
-  fallback: string;
-}) {
-  if (src) {
-    return (
-      <div className="h-10 w-10 rounded-full overflow-hidden">
-        <img src={src} alt={alt} className="h-full w-full object-cover" />
-      </div>
-    );
-  }
-
-  return (
-    <div className="h-10 w-10 rounded-full bg-black text-white flex items-center justify-center font-medium">
-      {fallback}
-    </div>
-  );
-}
-
-export function CommentThread({
-  comments,
-  entityId,
-  entityType,
-  onAddComment,
-}: CommentThreadProps) {
+export default function CommentThread({ logEntryId }: { logEntryId: string }) {
   const { data: session } = useSession();
+  const [comments, setComments] = useState<Comment[]>([]);
   const [newComment, setNewComment] = useState("");
+  const [isLoading, setIsLoading] = useState(true);
   const [isSubmitting, setIsSubmitting] = useState(false);
+
+  useEffect(() => {
+    fetchComments();
+  }, [logEntryId]);
+
+  const fetchComments = async () => {
+    setIsLoading(true);
+    try {
+      const response = await fetch(
+        `/api/comments?entityId=${logEntryId}&entityType=LogEntry`
+      );
+      if (response.ok) {
+        const data = await response.json();
+        setComments(data);
+      }
+    } catch (error) {
+      console.error("Error fetching comments:", error);
+    } finally {
+      setIsLoading(false);
+    }
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!newComment.trim() || !session?.user) return;
+    if (!newComment.trim() || !session) return;
 
     setIsSubmitting(true);
     try {
-      await onAddComment(newComment);
-      setNewComment("");
+      const response = await fetch("/api/comments", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          text: newComment,
+          entityId: logEntryId,
+          entityType: "LogEntry",
+        }),
+      });
+
+      if (response.ok) {
+        setNewComment("");
+        fetchComments();
+      }
     } catch (error) {
-      console.error("Failed to add comment:", error);
+      console.error("Error posting comment:", error);
     } finally {
       setIsSubmitting(false);
     }
   };
 
   return (
-    <div className="mt-8 font-primary">
-      <h3 className="text-xl font-semibold mb-4">Comments</h3>
-
-      {comments.length > 0 ? (
-        <div className="space-y-4 mb-6">
+    <div className="space-y-4 max-w-2xl">
+      {isLoading ? (
+        <div className="flex justify-center py-4">
+          <Loader2 className="h-6 w-6 animate-spin text-gray-400" />
+        </div>
+      ) : comments.length > 0 ? (
+        <div className="space-y-3">
           {comments.map((comment) => (
             <div
               key={comment.id}
-              className="flex gap-3 p-3 bg-gray-50 rounded-lg"
+              className="flex space-x-3 p-3 bg-gray-50 rounded-lg"
             >
-              <Avatar
-                src={comment.user.image || ""}
-                alt={comment.user.name}
-                fallback={comment.user.name.charAt(0)}
-              />
-              <div>
-                <div className="flex items-center gap-2">
-                  <span className="font-medium">{comment.user.name}</span>
-                  <span className="text-sm text-gray-500">
-                    {new Date(comment.createdAt).toLocaleDateString()}
+              <Avatar.Root className="h-10 w-10 rounded-full overflow-hidden">
+                <Avatar.Image
+                  src={comment.user.image || ""}
+                  alt={comment.user.name}
+                  className="h-full w-full object-cover rounded-full"
+                />
+                <Avatar.Fallback className="h-full w-full flex items-center justify-center rounded-full bg-gray-100">
+                  {comment.user.name
+                    ?.split(" ")
+                    .map((n) => n[0])
+                    .join("")
+                    .toUpperCase()}
+                </Avatar.Fallback>
+              </Avatar.Root>
+              <div className="flex-1">
+                <div className="flex items-center justify-between">
+                  <h4 className="font-primary text-sm font-medium">
+                    {comment.user.name}
+                  </h4>
+                  <span className="text-xs text-gray-500">
+                    {format(
+                      new Date(comment.createdAt),
+                      "MMM d, yyyy 'at' h:mm a"
+                    )}
                   </span>
                 </div>
-                <p className="mt-1">{comment.text}</p>
+                <p className="mt-1 text-sm text-gray-700 whitespace-pre-wrap">
+                  {comment.text}
+                </p>
               </div>
             </div>
           ))}
         </div>
       ) : (
-        <p className="text-gray-500 mb-6">
+        <p className="text-center text-gray-500 py-4">
           No comments yet. Be the first to comment!
         </p>
       )}
 
-      {session?.user ? (
-        <form onSubmit={handleSubmit} className="space-y-3">
-          <textarea
+      {session ? (
+        <form onSubmit={handleSubmit} className="mt-4">
+          <Textarea
             value={newComment}
             onChange={(e) => setNewComment(e.target.value)}
             placeholder="Add a comment..."
-            className="w-full p-3 border rounded-lg font-primary"
-            rows={3}
+            className="min-h-[80px] font-primary"
+            disabled={isSubmitting}
           />
-          <Button type="submit" disabled={isSubmitting || !newComment.trim()}>
-            {isSubmitting ? "Posting..." : "Post Comment"}
+          <Button
+            type="submit"
+            className="mt-2"
+            disabled={!newComment.trim() || isSubmitting}
+          >
+            {isSubmitting ? (
+              <>
+                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                Posting...
+              </>
+            ) : (
+              "Post Comment"
+            )}
           </Button>
         </form>
       ) : (
-        <p className="text-gray-500">Please sign in to leave a comment.</p>
+        <div className="bg-gray-50 p-4 rounded-lg text-center">
+          <p className="text-gray-600 font-primary">
+            Please sign in to leave a comment
+          </p>
+          <Button
+            className="mt-2"
+            onClick={() => (window.location.href = "/api/auth/signin")}
+          >
+            Sign In
+          </Button>
+        </div>
       )}
     </div>
   );

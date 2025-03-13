@@ -1,55 +1,44 @@
+import { ForecastA } from "@prisma/client";
 import React from "react";
-import {
-  getWindEmoji,
-  getSwellEmoji,
-  getDirectionEmoji,
-} from "../lib/forecastUtils";
-
-import { Prisma } from "@prisma/client";
-import type { Beach, ForecastA } from "@prisma/client";
-import type { Alert } from "./alerts";
 
 export interface LogEntry {
   id: string;
-  userId: string | null;
-  nationality?: string;
-  user?: {
-    id: string;
-    nationality?: string;
-  };
-  date: string | Date;
-  sessionDate?: Date;
-  surferName: string | null;
-  surferEmail: string | null;
+  date: Date;
+  surferName?: string | null;
+  surferEmail?: string | null;
   beachName?: string | null;
+  surferRating: number;
+  comments?: string | null;
+  isPrivate: boolean;
+  isAnonymous: boolean;
+  continent?: string | null;
+  country?: string | null;
+  region?: string | null;
+  waveType?: string | null;
   beachId?: string | null;
+  forecastId?: string | null;
+  userId?: string | null;
+  hasAlert?: boolean;
+  isMyAlert?: boolean;
+  alertId?: string;
+  imageUrl?: string | null;
   forecast?: {
+    id: string;
+    date: Date;
+    region: string;
+    createdAt: Date;
+    updatedAt: Date;
     windSpeed: number;
     windDirection: number;
     swellHeight: number;
     swellPeriod: number;
     swellDirection: number;
   } | null;
-  surferRating: number;
-  comments: string | null;
-  imageUrl: string | null;
-  isPrivate: boolean;
-  createdAt: Date;
-  updatedAt: Date;
-  windSpeed?: number;
-  windDirection?: number;
-  swellHeight?: number;
-  swellDirection?: number;
-  beach?: Beach | null;
-  isAnonymous: boolean;
-  continent: string | null;
-  country: string | null;
-  region: string | null;
-  waveType: string | null;
-  hasAlert?: boolean;
-  alertId?: string;
-  existingAlert?: Alert | null;
-  isMyAlert?: boolean;
+  user?: {
+    id: string;
+    nationality?: string;
+    name?: string;
+  };
 }
 
 export interface CreateLogEntryInput {

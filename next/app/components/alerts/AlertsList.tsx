@@ -13,6 +13,7 @@ import { useState } from "react";
 import { toast } from "sonner";
 import { useQuery, useQueryClient, useMutation } from "@tanstack/react-query";
 import { useRouter } from "next/navigation";
+import { cn } from "@/app/lib/utils";
 
 import { Alert } from "@/app/types/alerts";
 
@@ -217,7 +218,7 @@ export function AlertsList() {
         </div>
       </div>
 
-      <div className="space-y-6 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4 auto-rows-fr">
+      <div className=" grid grid-cols-1 sm:grid-cols-1 lg:grid-cols-3 gap-4">
         {filteredAlerts.length === 0 ? (
           <div className="text-center py-8 border rounded-lg bg-[var(--color-bg-primary)] border-[var(--color-border-light)] col-span-full">
             <Bell className="mx-auto h-12 w-12 text-[var(--color-text-secondary)]" />
@@ -235,10 +236,13 @@ export function AlertsList() {
           filteredAlerts.map((alert: Alert) => (
             <Card
               key={alert.id}
-              className="bg-[var(--color-bg-primary)] border-[var(--color-border-light)] hover:border-[var(--color-border-medium)] hover:shadow-sm transition-all duration-300 h-full flex flex-col"
+              className={cn(
+                "bg-[var(--color-bg-primary)] border-[var(--color-border-light)] hover:border-[var(--color-border-medium)] hover:shadow-sm transition-all duration-300 h-full flex flex-col",
+                !alert.logEntry && "border-red-400 hover:border-red-500"
+              )}
             >
               <CardHeader className="pb-2">
-                <div className="flex justify-between items-center">
+                <div className="flex justify-between items-center flex-wrap gap-2">
                   <CardTitle className="text-lg font-primary text-[var(--color-text-primary)] flex items-center">
                     {alert.alertType === "rating" ? (
                       <span className="mr-2 text-[var(--color-alert-icon-rating)]">
@@ -248,8 +252,13 @@ export function AlertsList() {
                       <span className="mr-2">📊</span>
                     )}
                     {alert.name}
+                    {!alert.logEntry && (
+                      <span className="ml-2 text-xs text-red-500 font-normal">
+                        (Reference session deleted)
+                      </span>
+                    )}
                   </CardTitle>
-                  <div className="flex items-center gap-3">
+                  <div className="flex items-center gap-2">
                     <Switch
                       checked={alert.active}
                       onCheckedChange={(checked) => {
@@ -264,10 +273,13 @@ export function AlertsList() {
                     <Button
                       variant="ghost"
                       size="icon"
-                      onClick={() =>
-                        alert.id && router.push(`/alerts/${alert.id}`)
-                      }
-                      className="h-9 w-9 hover:bg-[var(--color-bg-secondary)]"
+                      onClick={() => {
+                        if (alert?.id) {
+                          console.log("Editing alert:", alert);
+                          router.push(`/alerts/${alert.id}`);
+                        }
+                      }}
+                      className="h-8 w-8 hover:bg-[var(--color-bg-secondary)]"
                     >
                       <Pencil className="h-4 w-4" />
                     </Button>
@@ -275,7 +287,7 @@ export function AlertsList() {
                       variant="ghost"
                       size="icon"
                       onClick={() => alert.id && handleDelete(alert.id)}
-                      className="h-9 w-9 text-red-500 hover:text-red-700 hover:bg-red-50"
+                      className="h-8 w-8 text-red-500 hover:text-red-700 hover:bg-red-50"
                     >
                       <Trash2 className="h-4 w-4" />
                     </Button>
@@ -348,66 +360,72 @@ export function AlertsList() {
                                 Reference Conditions:
                               </p>
                               <div className="flex flex-col gap-4">
-                                {alert.properties?.map((prop, index) => {
-                                  const forecastValue =
-                                    alert.logEntry?.forecast?.[
-                                      getForecastProperty(prop.property)
-                                    ];
+                                {alert.properties?.map(
+                                  (
+                                    prop: { property: string; range: number },
+                                    index: any
+                                  ) => {
+                                    const forecastValue =
+                                      alert.logEntry?.forecast?.[
+                                        getForecastProperty(prop.property)
+                                      ];
 
-                                  return (
-                                    <div key={index} className="space-y-1">
-                                      <div className="flex items-center gap-2">
-                                        <div className="flex items-center gap-4">
-                                          <span className="text-[13px] sm:text-[14px] font-medium text-[var(--color-text-primary)] font-primary">
-                                            {prop.property === "windSpeed"
-                                              ? "Wind Speed"
-                                              : prop.property ===
-                                                  "windDirection"
-                                                ? "Wind Direction"
+                                    return (
+                                      <div key={index} className="space-y-1">
+                                        <div className="flex items-center gap-2">
+                                          <div className="flex items-center gap-4">
+                                            <span className="text-[13px] sm:text-[14px] font-medium text-[var(--color-text-primary)] font-primary">
+                                              {prop.property === "windSpeed"
+                                                ? "Wind Speed"
                                                 : prop.property ===
-                                                    "swellHeight"
-                                                  ? "Swell Height"
+                                                    "windDirection"
+                                                  ? "Wind Direction"
                                                   : prop.property ===
-                                                      "swellPeriod"
-                                                    ? "Swell Period"
+                                                      "swellHeight"
+                                                    ? "Swell Height"
                                                     : prop.property ===
-                                                        "swellDirection"
-                                                      ? "Swell Direction"
-                                                      : prop.property}
-                                          </span>
-                                          {forecastValue !== undefined && (
-                                            <>
-                                              <span className="text-[18px] sm:text-[21px] font-medium text-[var(--color-text-primary)] font-primary">
-                                                {forecastValue.toFixed(1)}
-                                                {getUnit(prop.property)}
-                                              </span>
-                                              <span className="px-2 py-0.5 bg-[var(--color-alert-badge)] text-[var(--color-alert-badge-text)] rounded-full text-xs font-medium">
-                                                ±{prop.range}
-                                                {getUnit(prop.property)}
-                                              </span>
-                                            </>
-                                          )}
+                                                        "swellPeriod"
+                                                      ? "Swell Period"
+                                                      : prop.property ===
+                                                          "swellDirection"
+                                                        ? "Swell Direction"
+                                                        : prop.property}
+                                            </span>
+                                            {forecastValue !== undefined && (
+                                              <>
+                                                <span className="text-[18px] sm:text-[21px] font-medium text-[var(--color-text-primary)] font-primary">
+                                                  {forecastValue.toFixed(1)}
+                                                  {getUnit(prop.property)}
+                                                </span>
+                                                <span className="px-2 py-0.5 bg-[var(--color-alert-badge)] text-[var(--color-alert-badge-text)] rounded-full text-xs font-medium">
+                                                  ±{prop.range}
+                                                  {getUnit(prop.property)}
+                                                </span>
+                                              </>
+                                            )}
+                                          </div>
                                         </div>
+                                        {forecastValue !== undefined && (
+                                          <div className="text-[12px] text-[var(--color-text-secondary)] font-primary">
+                                            Range:{" "}
+                                            {(
+                                              forecastValue - prop.range
+                                            ).toFixed(1)}{" "}
+                                            -{" "}
+                                            {(
+                                              forecastValue + prop.range
+                                            ).toFixed(1)}
+                                            {getUnit(prop.property)}
+                                          </div>
+                                        )}
+                                        {index <
+                                          alert.properties.length - 1 && (
+                                          <div className="border-b border-[var(--color-border-light)] my-3"></div>
+                                        )}
                                       </div>
-                                      {forecastValue !== undefined && (
-                                        <div className="text-[12px] text-[var(--color-text-secondary)] font-primary">
-                                          Range:{" "}
-                                          {(forecastValue - prop.range).toFixed(
-                                            1
-                                          )}{" "}
-                                          -{" "}
-                                          {(forecastValue + prop.range).toFixed(
-                                            1
-                                          )}
-                                          {getUnit(prop.property)}
-                                        </div>
-                                      )}
-                                      {index < alert.properties.length - 1 && (
-                                        <div className="border-b border-[var(--color-border-light)] my-3"></div>
-                                      )}
-                                    </div>
-                                  );
-                                })}
+                                    );
+                                  }
+                                )}
                               </div>
                             </div>
                           )}

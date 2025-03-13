@@ -1,10 +1,10 @@
-import { NextResponse } from "next/server";
-import { getServerSession } from "next-auth/next";
+import { NextRequest, NextResponse } from "next/server";
+import { getServerSession } from "next-auth";
 import { authOptions } from "@/app/lib/authOptions";
 import { prisma } from "@/app/lib/prisma";
 
-// GET comments for an entity
-export async function GET(request: Request) {
+// GET /api/comments?entityId=xxx&entityType=xxx
+export async function GET(request: NextRequest) {
   const { searchParams } = new URL(request.url);
   const entityId = searchParams.get("entityId");
   const entityType = searchParams.get("entityType");
@@ -22,17 +22,16 @@ export async function GET(request: Request) {
         entityId,
         entityType,
       },
+      orderBy: {
+        createdAt: "asc",
+      },
       include: {
         user: {
           select: {
-            id: true,
             name: true,
             image: true,
           },
         },
-      },
-      orderBy: {
-        createdAt: "asc",
       },
     });
 
@@ -46,15 +45,12 @@ export async function GET(request: Request) {
   }
 }
 
-// POST a new comment
-export async function POST(request: Request) {
+// POST /api/comments
+export async function POST(request: NextRequest) {
   const session = await getServerSession(authOptions);
 
-  if (!session?.user?.id) {
-    return NextResponse.json(
-      { error: "You must be signed in to comment" },
-      { status: 401 }
-    );
+  if (!session || !session.user) {
+    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
   try {
@@ -67,17 +63,26 @@ export async function POST(request: Request) {
       );
     }
 
+    // Get the user ID from the session
+    const user = await prisma.user.findUnique({
+      where: { email: session.user.email as string },
+    });
+
+    if (!user) {
+      return NextResponse.json({ error: "User not found" }, { status: 404 });
+    }
+
+    // Create the comment
     const comment = await prisma.comment.create({
       data: {
         text,
         entityId,
         entityType,
-        userId: session.user.id,
+        userId: user.id,
       },
       include: {
         user: {
           select: {
-            id: true,
             name: true,
             image: true,
           },

@@ -55,7 +55,7 @@ export function AlertConfiguration({
     ...((existingConfig as AlertConfig) || {
       id: undefined,
       name: "",
-      region: selectedLogEntry?.region || "",
+      region: selectedLogEntry?.region || null,
       notificationMethod: (existingConfig?.notificationMethod || "email") as
         | "email"
         | "whatsapp",
@@ -84,7 +84,7 @@ export function AlertConfiguration({
     if (selectedLogEntry?.region && !alertConfig.region) {
       setAlertConfig((prev) => ({
         ...prev,
-        region: selectedLogEntry.region,
+        region: selectedLogEntry.region || null,
       }));
     }
   }, [selectedLogEntry, alertConfig.region]);

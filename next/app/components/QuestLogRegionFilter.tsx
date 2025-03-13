@@ -25,8 +25,8 @@ export function LogbookRegionFilter({
   const uniqueRegions = [
     ...new Set(
       entries
-        .map((entry) => entry.beach?.regionId)
-        .filter((regionId): regionId is string => regionId !== undefined)
+        .map((entry) => entry.beachId)
+        .filter((beachId): beachId is string => beachId !== undefined)
     ),
   ].sort();
 

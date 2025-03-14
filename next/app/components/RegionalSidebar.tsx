@@ -3,6 +3,7 @@
 import { useState, useEffect } from "react";
 import { Ad } from "@/app/types/ads";
 import { AD_CATEGORIES } from "@/app/lib/advertising/constants";
+import { Badge } from "@/app/components/ui/Badge";
 
 interface RegionalSidebarProps {
   selectedRegion: string;
@@ -59,6 +60,9 @@ export default function RegionalSidebar({
   return (
     <aside className="hidden lg:block w-64 space-y-4 flex-shrink-0">
       {filteredAds.map((ad) => {
+        const categoryKey = ad.category as keyof typeof AD_CATEGORIES;
+        const categoryInfo = AD_CATEGORIES[categoryKey];
+
         if ("isPlaceholder" in ad) {
           return (
             <a
@@ -66,11 +70,14 @@ export default function RegionalSidebar({
               href="/advertising"
               className="block bg-[var(--color-bg-primary)] rounded-lg p-6 text-center hover:bg-gray-50 transition-colors border border-gray-200"
             >
-              <p className="text-small mb-2 font-primary">
-                {AD_CATEGORIES[ad.category as keyof typeof AD_CATEGORIES].label}{" "}
-                in {selectedRegion}?
+              <Badge variant="secondary" className="mx-auto mb-3">
+                {categoryInfo?.emoji} {categoryInfo?.label}
+              </Badge>
+              <p className="text-sm text-gray-600 mb-2 font-primary">
+                {categoryInfo?.label || ad.category} in {selectedRegion}?
               </p>
-              <p className="heading-7 text-[var(--color-text-secondary)] font-primary">
+              <div className="h-px bg-gray-100 my-3 w-2/3 mx-auto"></div>
+              <p className="heading-7 text-[var(--color-text-secondary)] font-primary font-medium">
                 Sponsor this space
               </p>
             </a>
@@ -85,12 +92,31 @@ export default function RegionalSidebar({
             rel="noopener noreferrer"
             className="block bg-[var(--color-bg-primary)] rounded-lg p-6 hover:shadow-md transition-shadow border border-gray-200"
           >
-            <h3 className="heading-7 mb-2 font-primary">
+            <div className="flex justify-between items-start mb-3">
+              <Badge variant="secondary" className="mb-2">
+                {categoryInfo?.emoji} {categoryInfo?.label}
+              </Badge>
+              <span className="text-xs text-gray-400 font-primary">Ad</span>
+            </div>
+
+            <h3 className="heading-7 font-primary font-semibold text-gray-900 mb-1">
               {ad.title || ad.companyName}
             </h3>
-            <p className="text-main font-primary">
-              {AD_CATEGORIES[ad.category as keyof typeof AD_CATEGORIES].label}
+
+            <p className="text-sm font-primary text-gray-500 mb-3">
+              {selectedRegion}
             </p>
+
+            <div className="h-px bg-gray-100 my-3"></div>
+
+            <div className="flex justify-between items-center">
+              <span className="text-xs font-primary text-gray-400">
+                Sponsored
+              </span>
+              <span className="text-xs font-primary text-[var(--color-text-secondary)] hover:underline">
+                Learn more
+              </span>
+            </div>
           </a>
         );
       })}

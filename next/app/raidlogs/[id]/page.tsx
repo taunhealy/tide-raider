@@ -92,27 +92,7 @@ export default async function RaidLogPage({
 
       <div className="bg-white rounded-lg shadow-lg overflow-hidden">
         <div className="grid md:grid-cols-2">
-          {/* Image Section */}
-          <div className="relative aspect-video w-full overflow-hidden">
-            {entry.imageUrl ? (
-              <Image
-                src={entry.imageUrl}
-                alt="Session photo"
-                fill
-                className="object-cover"
-                sizes="(max-width: 768px) 100vw, 50vw"
-                priority
-              />
-            ) : (
-              <div className="w-full h-full bg-gray-100 flex items-center justify-center">
-                <span className="text-gray-400 font-primary">
-                  No image available
-                </span>
-              </div>
-            )}
-          </div>
-
-          {/* Details Section */}
+          {/* Details Section - Now on the left */}
           <div className="p-6 space-y-6">
             {/* Logger Section - Using ProfileHeader */}
             {!entry.isAnonymous && entry.userId && (
@@ -156,7 +136,7 @@ export default async function RaidLogPage({
               </p>
             </div>
 
-            <div className="flex items-center gap-1">
+            <div className="flex items-center gap-6">
               <p className="text-gray-700 font-primary">
                 {entry.date
                   ? format(new Date(entry.date), "MMMM d, yyyy")
@@ -247,7 +227,7 @@ export default async function RaidLogPage({
 
             {entry.comments && (
               <div>
-                <h2 className="font-primary text-lg font-medium mb-2 text-gray-800">
+                <h2 className="font-primary text-[18px] font-medium mb-4 text-gray-800">
                   Logger Comments
                 </h2>
                 <p className="text-gray-700 font-primary whitespace-pre-wrap bg-gray-50 p-4 rounded-lg border-l-4 border-gray-300">
@@ -267,11 +247,33 @@ export default async function RaidLogPage({
               </div>
             )}
           </div>
+
+          {/* Image Section - Now on the right */}
+          <div className="p-8">
+            <div className="relative aspect-video w-full rounded-lg">
+              {entry.imageUrl ? (
+                <Image
+                  src={entry.imageUrl}
+                  alt="Session photo"
+                  fill
+                  className="object-cover rounded-lg"
+                  sizes="(max-width: 768px) 100vw, 50vw"
+                  priority
+                />
+              ) : (
+                <div className="w-full h-full bg-gray-100 flex items-center justify-center rounded-lg">
+                  <span className="text-gray-400 font-primary">
+                    No image available
+                  </span>
+                </div>
+              )}
+            </div>
+          </div>
         </div>
 
-        {/* Comments Section */}
+        {/* User Comments Section - Moved outside the grid */}
         <div className="border-t border-gray-200 p-6">
-          <h2 className="font-primary text-xl font-medium mb-4 text-gray-800">
+          <h2 className="font-primary text-[18px] font-medium mb-4 text-gray-800">
             Comments
           </h2>
           <CommentThread logEntryId={params.id} />

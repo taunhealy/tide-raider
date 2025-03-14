@@ -106,6 +106,7 @@ export async function GET(req: NextRequest) {
   const page = Number(searchParams.get("page")) || 1;
   const limit = Number(searchParams.get("limit")) || 50;
   const isPrivate = searchParams.get("isPrivate") === "true";
+  const filterUserId = searchParams.get("userId");
 
   const session = await getServerSession(authOptions);
   console.log("👤 Session state:", session ? "Authenticated" : "Public");
@@ -114,21 +115,40 @@ export async function GET(req: NextRequest) {
     // Build dynamic where clause
     let whereClause: any = {};
 
-    // Handle private/public filtering
-    if (session?.user?.id) {
-      // If user is logged in, show public logs and their private logs
-      whereClause.OR = [{ isPrivate: false }, { userId: session.user.id }];
-    } else {
-      // If not logged in, only show public logs
-      whereClause.isPrivate = false;
-    }
+    // If a specific userId filter is provided, use it
+    if (filterUserId) {
+      whereClause.userId = filterUserId;
 
-    // Override with isPrivate filter if specifically requested
-    if (isPrivate && session?.user?.id) {
-      whereClause = {
-        isPrivate: true,
-        userId: session.user.id,
-      };
+      // If viewing someone else's profile (not your own)
+      if (!session?.user?.id || session.user.id !== filterUserId) {
+        // Only show public logs that are not anonymous
+        whereClause.isPrivate = false;
+        whereClause.isAnonymous = false;
+      }
+      // If viewing your own profile, show all your logs (including anonymous ones)
+    } else {
+      // Original privacy logic when not filtering by userId
+      if (session?.user?.id) {
+        // If user is logged in, show:
+        // 1. Public logs that are not anonymous, OR
+        // 2. Their own logs (both private and anonymous)
+        whereClause.OR = [
+          { isPrivate: false, isAnonymous: false },
+          { userId: session.user.id },
+        ];
+      } else {
+        // If not logged in, only show public logs that are not anonymous
+        whereClause.isPrivate = false;
+        whereClause.isAnonymous = false;
+      }
+
+      // Override with isPrivate filter if specifically requested
+      if (isPrivate && session?.user?.id) {
+        whereClause = {
+          isPrivate: true,
+          userId: session.user.id,
+        };
+      }
     }
 
     // Add other filters

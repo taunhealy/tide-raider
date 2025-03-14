@@ -37,6 +37,17 @@ import {
   TooltipTrigger,
 } from "@/app/components/ui/tooltip";
 import { useSubscriptionDetails } from "@/app/hooks/useSubscriptionDetails";
+import { Tabs, TabsList, TabsTrigger } from "@/app/components/ui/tabs";
+import { useLocalStorage } from "@/app/hooks/useLocalStorage";
+import { LayoutGrid, Table as TableIcon } from "lucide-react";
+import {
+  Pagination,
+  PaginationContent,
+  PaginationItem,
+  PaginationLink,
+  PaginationNext,
+  PaginationPrevious,
+} from "@/app/components/ui/pagination";
 
 interface QuestTableProps {
   entries: LogEntry[];
@@ -73,7 +84,7 @@ function LogEntryDisplay({ entry, isAnonymous }: LogEntryDisplayProps) {
       <Link
         href={isAnonymous ? "#" : `/profile/${entry.user?.id}`}
         className={cn(
-          "font-primary hover:text-brand-3 transition-colors",
+          "font-primary text-sm hover:text-brand-3 transition-colors",
           isAnonymous ? "text-gray-900 cursor-default" : "text-gray-900"
         )}
       >
@@ -88,6 +99,8 @@ function LogEntryDisplay({ entry, isAnonymous }: LogEntryDisplayProps) {
 
 function ForecastInfo({
   forecast,
+  entry,
+  hasAccess,
 }: {
   forecast:
     | {
@@ -99,33 +112,52 @@ function ForecastInfo({
       }
     | null
     | undefined;
+  entry: LogEntry;
+  hasAccess: boolean;
 }) {
-  if (!forecast) return null;
+  const router = useRouter();
 
-  // Ensure we have valid numeric values
-  const windSpeed =
-    typeof forecast.windSpeed === "number" ? forecast.windSpeed : 0;
-  const windDirection =
-    typeof forecast.windDirection === "number" ? forecast.windDirection : 0;
-  const swellHeight =
-    typeof forecast.swellHeight === "number" ? forecast.swellHeight : 0;
-  const swellPeriod =
-    typeof forecast.swellPeriod === "number" ? forecast.swellPeriod : 0;
-  const swellDirection =
-    typeof forecast.swellDirection === "number" ? forecast.swellDirection : 0;
+  const handleAlertClick = async (e: React.MouseEvent) => {
+    e.stopPropagation();
+    if (!hasAccess) {
+      router.push("/pricing");
+      return;
+    }
+
+    localStorage.setItem("selectedLogEntry", JSON.stringify(entry));
+    router.push("/alerts/new");
+  };
+
+  const getBellTooltipText = () => {
+    if (!hasAccess) return "Subscribe to create alerts";
+    if (entry.hasAlert) {
+      return entry.isMyAlert
+        ? "You have an active alert for these conditions"
+        : "Another user has an alert for these conditions";
+    }
+    return "Create alert for these conditions";
+  };
 
   return (
-    <div className="space-y-1 text-sm">
-      <p>
-        {getWindEmoji(windSpeed)} {windSpeed}kts{" "}
-        {degreesToCardinal(windDirection)}
-      </p>
-      <p>
-        {getSwellEmoji(swellHeight)} {swellHeight}m @ {swellPeriod}s
-      </p>
-      <p>
-        {getDirectionEmoji(swellDirection)} {degreesToCardinal(swellDirection)}
-      </p>
+    <div className="space-y-1 text-xs">
+      <div className="flex items-center justify-between gap-2">
+        <div>
+          <p>
+            {getWindEmoji(forecast?.windSpeed ?? 0)} {forecast?.windSpeed ?? 0}
+            kts{" "}
+            {forecast?.windDirection &&
+              degreesToCardinal(forecast.windDirection)}
+          </p>
+          <p>
+            {getSwellEmoji(forecast?.swellHeight ?? 0)} {forecast?.swellHeight}m
+            @ {forecast?.swellPeriod}s
+          </p>
+          <p>
+            {forecast?.swellDirection &&
+              degreesToCardinal(forecast.swellDirection)}
+          </p>
+        </div>
+      </div>
     </div>
   );
 }
@@ -369,6 +401,16 @@ export default function RaidLogTable({
   const hasAccess =
     isSubscribed || isTrialing || subscriptionDetails?.hasActiveTrial;
 
+  // Set default view mode based on screen size
+  const [viewMode, setViewMode] = useLocalStorage<"table" | "card">(
+    "raidLogViewMode",
+    typeof window !== "undefined" && window.innerWidth >= 768 ? "table" : "card"
+  );
+
+  // Pagination state
+  const [currentPage, setCurrentPage] = useState(1);
+  const itemsPerPage = 9; // 3x3 grid
+
   const normalizedEntries = useMemo(() => {
     return entries.map(normalizeLogEntry);
   }, [entries]);
@@ -463,6 +505,22 @@ export default function RaidLogTable({
     return visibleEntries;
   }, [normalizedEntries, session, showPrivateOnly]);
 
+  // Calculate total pages
+  const totalPages = Math.ceil(filteredEntries.length / itemsPerPage);
+
+  // Get current page items
+  const currentItems = useMemo(() => {
+    const startIndex = (currentPage - 1) * itemsPerPage;
+    return filteredEntries.slice(startIndex, startIndex + itemsPerPage);
+  }, [filteredEntries, currentPage, itemsPerPage]);
+
+  // Handle page change
+  const handlePageChange = (page: number) => {
+    setCurrentPage(page);
+    // Scroll to top of the component
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  };
+
   console.log("[RaidLogTable] Filtered entries:", filteredEntries);
 
   const actionColumn = {
@@ -502,29 +560,6 @@ export default function RaidLogTable({
               </button>
             </>
           )}
-          <button
-            onClick={(e) => {
-              e.stopPropagation();
-              handleAlertClick(entry);
-            }}
-            className={cn(
-              "text-gray-500 hover:text-[var(--color-alert-icon-rating)]",
-              entry.hasAlert
-                ? "text-[var(--color-alert-icon-rating)] fill-[var(--color-alert-icon-rating)]"
-                : ""
-            )}
-          >
-            <Bell
-              className={cn(
-                "w-4 h-4 cursor-pointer",
-                entry.hasAlert
-                  ? entry.isMyAlert
-                    ? "text-[var(--color-alert-icon-rating)] fill-[var(--color-alert-icon-rating)]"
-                    : "text-[var(--color-alert-icon-rating)] fill-none hover:text-[var(--color-alert-icon-rating)]"
-                  : "text-gray-500 fill-none hover:text-[var(--color-alert-icon-rating)]"
-              )}
-            />
-          </button>
         </div>
       );
     },
@@ -564,13 +599,13 @@ export default function RaidLogTable({
                   fill={true}
                   className={cn(
                     "object-cover rounded-md",
-                    !hasAccess && "blur-sm"
+                    !hasAccess && "blur-xl"
                   )}
                 />
               )}
               {!hasAccess && (
                 <div className="absolute inset-0 flex items-center justify-center bg-black/10">
-                  <span className="text-4xl z-10">💩</span>
+                  <span className="text-2xl z-10">💩</span>
                 </div>
               )}
             </div>
@@ -592,249 +627,56 @@ export default function RaidLogTable({
   return (
     <>
       <div className="w-full">
-        {/* Mobile View - Cards */}
-        <div className="md:hidden space-y-4">
-          {filteredEntries.map((entry) => {
-            return (
-              <div
-                key={entry.id}
-                className="bg-white rounded-lg border border-gray-200 shadow p-3 sm:p-4 space-y-2 sm:space-y-3"
-              >
-                <div className="flex justify-between items-start gap-2">
-                  <div className="flex-grow">
-                    <h3 className="text-sm sm:text-base font-medium">
-                      {entry.beachName}
-                    </h3>
-                    <p className="text-xs sm:text-sm text-gray-500">
-                      {format(new Date(entry.date), "MMM d, yyyy")}
-                    </p>
-                    <p className="text-xs sm:text-sm text-gray-500">
-                      {entry.region}
-                    </p>
-                  </div>
-                  {session?.user?.email === entry.surferEmail && (
-                    <div className="flex gap-2">
-                      <button
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          handleEdit(entry);
-                        }}
-                        className="text-gray-500 hover:text-[var(--color-text-primary)]"
-                      >
-                        <Pencil className="w-4 h-4" />
-                      </button>
-                      <button
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          handleAlertClick(entry);
-                        }}
-                        className={cn(
-                          "text-gray-500 hover:text-[var(--color-alert-icon-rating)]"
-                        )}
-                      >
-                        <Bell
-                          className={cn(
-                            "w-4 h-4 cursor-pointer",
-                            entry.hasAlert
-                              ? entry.isMyAlert
-                                ? "text-[var(--color-alert-icon-rating)] fill-[var(--color-alert-icon-rating)]"
-                                : "text-[var(--color-alert-icon-rating)] fill-none hover:text-[var(--color-alert-icon-rating)]"
-                              : "text-gray-500 fill-none hover:text-[var(--color-alert-icon-rating)]"
-                          )}
-                        />
-                      </button>
-                      <button
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          handleDelete(entry.id);
-                        }}
-                        className="text-gray-500 hover:text-red-600"
-                        disabled={deleteMutation.isPending}
-                      >
-                        {deleteMutation.isPending ? (
-                          <span className="loading-spinner" />
-                        ) : (
-                          <X className="w-4 h-4" />
-                        )}
-                      </button>
-                    </div>
-                  )}
-                </div>
-
-                <div className="flex items-center gap-2">
-                  <StarRating rating={entry.surferRating ?? 0} />
-                </div>
-
-                <div className="text-sm">
-                  <p className="text-gray-600">
-                    Logger:{" "}
-                    <LogEntryDisplay
-                      entry={entry}
-                      isAnonymous={entry.isAnonymous ?? false}
-                    />
-                  </p>
-                  <div className="mt-2">
-                    <ForecastInfo forecast={entry.forecast} />
-                  </div>
-                </div>
-
-                {entry.comments && (
-                  <p className="text-sm text-gray-600 break-words">
-                    <span className="font-medium">Comments:</span>{" "}
-                    {entry.comments}
-                  </p>
-                )}
-
-                {entry.imageUrl &&
-                  renderImage(entry, { width: 20, height: 20 })}
-              </div>
-            );
-          })}
+        <div className="mb-4 flex justify-end">
+          <Tabs
+            value={viewMode}
+            onValueChange={(value) => setViewMode(value as "table" | "card")}
+          >
+            <TabsList className="grid w-[180px] grid-cols-2">
+              <TabsTrigger value="card" className="flex items-center gap-2">
+                <LayoutGrid className="h-4 w-4" />
+                <span className="text-sm font-primary">Cards</span>
+              </TabsTrigger>
+              <TabsTrigger value="table" className="flex items-center gap-2">
+                <TableIcon className="h-4 w-4" />
+                <span className="text-sm font-primary">Table</span>
+              </TabsTrigger>
+            </TabsList>
+          </Tabs>
         </div>
 
-        {/* Desktop View - Table */}
-        <div className="hidden md:block rounded-lg border border-gray-200 shadow">
-          <div className="min-h-[500px] w-full">
-            {isLoading ? (
-              <div className="text-center p-4">Loading...</div>
-            ) : entries.length === 0 ? (
-              <div className="text-center p-4">No matching sessions found</div>
-            ) : (
-              <table className="w-full divide-y divide-gray-200">
-                <thead className="bg-gray-50">
-                  <tr>
-                    {columnsWithAction.map((column) => (
-                      <th
-                        key={column.key}
-                        className={cn(
-                          "px-4 py-3 sm:px-6 sm:py-4 text-sm text-left text-gray-500 uppercase tracking-wider",
-                          column.key === "date"
-                            ? "min-w-[140px]"
-                            : "min-w-[180px]",
-                          column.key === "comments" &&
-                            "max-w-[200px] min-w-[200px]",
-                          column.key === "imageUrl" && "w-[80px]",
-                          "h-[40px]"
-                        )}
-                      >
-                        {(column as QuestLogTableColumn).label}
-                      </th>
-                    ))}
-                  </tr>
-                </thead>
-                <tbody className="bg-white divide-y divide-gray-200">
-                  {filteredEntries.map((entry) => {
-                    console.log("[TableDebug] Processing entry:", {
-                      id: entry.id,
-                      beachName: entry.beachName,
-                      forecast: entry.forecast,
-                    });
-
-                    return (
-                      <tr key={entry.id} className="hover:bg-gray-50">
-                        <td className="px-4 py-4 sm:px-6 whitespace-nowrap text-sm min-w-[140px]">
-                          {format(new Date(entry.date), "MMM d, yyyy")}
-                        </td>
-                        <td className="px-4 py-4 sm:px-6 whitespace-nowrap min-w-[180px]">
-                          <div className="flex items-center gap-2">
-                            <button
-                              onClick={() => {
-                                const foundBeach = beachData.find(
-                                  (b) => b.name === entry.beachName
-                                );
-                                console.log("Found beach data:", foundBeach);
-                                setSelectedBeach(foundBeach || null);
-                              }}
-                              className="font-primary text-gray-900 hover:text-brand-3 transition-colors text-left"
-                            >
-                              {entry.beachName}
-                            </button>
-                            {entry.hasAlert && (
-                              <button
-                                onClick={(e) => {
-                                  e.stopPropagation();
-                                  handleAlertClick(entry);
-                                }}
-                                className="flex items-center"
-                              >
-                                <Bell
-                                  className={cn(
-                                    "w-4 h-4 cursor-pointer",
-                                    entry.isMyAlert
-                                      ? "text-[var(--color-alert-icon-rating)] fill-[var(--color-alert-icon-rating)]"
-                                      : "text-[var(--color-alert-icon-rating)] fill-none hover:text-[var(--color-alert-icon-rating)]"
-                                  )}
-                                />
-                              </button>
-                            )}
-                          </div>
-                        </td>
-                        <td className="px-4 py-4 sm:px-6 whitespace-nowrap min-w-[180px]">
-                          {entry.region}
-                        </td>
-                        <td className="px-4 py-4 sm:px-6 whitespace-nowrap min-w-[180px]">
-                          <LogEntryDisplay
-                            entry={entry}
-                            isAnonymous={entry.isAnonymous ?? false}
-                          />
-                        </td>
-                        <td className="px-4 py-4 sm:px-6 min-w-[140px]">
-                          <StarRating rating={entry.surferRating ?? 0} />
-                        </td>
-                        <td className="px-4 py-4 sm:px-6 min-w-[200px]">
-                          <ForecastInfo forecast={entry.forecast} />
-                        </td>
-                        <td className="px-4 py-4 sm:px-8 max-w-[200px] min-w-[200px] whitespace-normal">
-                          <CommentsCell entry={entry} hasAccess={hasAccess} />
-                        </td>
-                        <td className="px-4 py-4 w-[80px]">
-                          <div className="w-16 h-16 bg-gray-100 rounded-md flex items-center justify-center overflow-hidden">
-                            {entry.imageUrl ? (
-                              renderImage(entry, { width: 64, height: 64 })
-                            ) : (
-                              <ImageIcon className="w-6 h-6 text-gray-200" />
-                            )}
-                          </div>
-                        </td>
-                        <td className="px-6 py-4">
-                          <div className="flex gap-2">
-                            {session?.user?.email === entry.surferEmail && (
-                              <>
-                                <button
-                                  onClick={(e) => {
-                                    e.stopPropagation();
-                                    handleEdit(entry);
-                                  }}
-                                  className="text-gray-500 hover:text-[var(--color-text-primary)]"
-                                >
-                                  <Pencil className="w-4 h-4" />
-                                </button>
-                                <button
-                                  onClick={(e) => {
-                                    e.stopPropagation();
-                                    handleDelete(entry.id);
-                                  }}
-                                  className="text-gray-500 hover:text-red-600"
-                                  disabled={deleteMutation.isPending}
-                                >
-                                  {deleteMutation.isPending ? (
-                                    <span className="loading-spinner" />
-                                  ) : (
-                                    <X className="w-4 h-4" />
-                                  )}
-                                </button>
-                              </>
-                            )}
+        {/* Card View - Grid Layout */}
+        {viewMode === "card" && (
+          <>
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 max-w-full">
+              {currentItems.map((entry) => (
+                <div
+                  key={entry.id}
+                  className="bg-white rounded-lg border border-gray-200 shadow-sm hover:shadow-md transition-shadow p-4 space-y-4 h-full flex flex-col"
+                >
+                  <div className="flex justify-between items-start gap-2">
+                    <div className="flex-grow">
+                      <h3 className="text-base font-medium font-primary text-gray-900">
+                        {entry.beachName}
+                      </h3>
+                      <p className="text-sm text-gray-500 font-primary">
+                        {format(new Date(entry.date), "MMM d, yyyy")}
+                      </p>
+                      <p className="text-sm text-gray-500 font-primary">
+                        {entry.region}
+                      </p>
+                    </div>
+                    <div className="flex gap-2">
+                      <TooltipProvider>
+                        <Tooltip>
+                          <TooltipTrigger asChild>
                             <button
                               onClick={(e) => {
                                 e.stopPropagation();
                                 handleAlertClick(entry);
                               }}
                               className={cn(
-                                "text-gray-500 hover:text-[var(--color-alert-icon-rating)]",
-                                entry.hasAlert
-                                  ? "text-[var(--color-alert-icon-rating)] fill-[var(--color-alert-icon-rating)]"
-                                  : ""
+                                "text-gray-500 hover:text-[var(--color-alert-icon-rating)]"
                               )}
                             >
                               <Bell
@@ -848,16 +690,386 @@ export default function RaidLogTable({
                                 )}
                               />
                             </button>
-                          </div>
-                        </td>
-                      </tr>
-                    );
-                  })}
-                </tbody>
-              </table>
+                          </TooltipTrigger>
+                          <TooltipContent>
+                            <p className="text-sm">
+                              {getBellTooltipText(entry, hasAccess)}
+                            </p>
+                          </TooltipContent>
+                        </Tooltip>
+                      </TooltipProvider>
+                      {session?.user?.email === entry.surferEmail && (
+                        <>
+                          <button
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              handleEdit(entry);
+                            }}
+                            className="text-gray-500 hover:text-[var(--color-text-primary)]"
+                          >
+                            <Pencil className="w-4 h-4" />
+                          </button>
+                          <button
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              handleDelete(entry.id);
+                            }}
+                            className="text-gray-500 hover:text-red-600"
+                            disabled={deleteMutation.isPending}
+                          >
+                            {deleteMutation.isPending ? (
+                              <span className="loading-spinner" />
+                            ) : (
+                              <X className="w-4 h-4" />
+                            )}
+                          </button>
+                        </>
+                      )}
+                    </div>
+                  </div>
+
+                  <div className="flex items-center justify-between">
+                    <StarRating rating={entry.surferRating ?? 0} />
+                  </div>
+
+                  <div className="text-sm font-primary">
+                    <div className="flex items-center gap-2 mb-2">
+                      <span className="text-gray-600">Logger:</span>
+                      <LogEntryDisplay
+                        entry={entry}
+                        isAnonymous={entry.isAnonymous ?? false}
+                      />
+                    </div>
+
+                    {/* Forecast info with badges */}
+                    {entry.forecast && (
+                      <div className="bg-gray-50 p-3 rounded-lg space-y-2">
+                        <div className="flex flex-wrap gap-2">
+                          {entry.forecast.windSpeed != null && (
+                            <div className="inline-flex items-center bg-blue-100 text-blue-800 px-2 py-1 rounded-full text-xs font-primary">
+                              <span className="mr-1">
+                                {getWindEmoji(entry.forecast.windSpeed)}
+                              </span>
+                              <span>{entry.forecast.windSpeed}kts</span>
+                            </div>
+                          )}
+
+                          {entry.forecast.windDirection != null && (
+                            <div className="inline-flex items-center bg-blue-100 text-blue-800 px-2 py-1 rounded-full text-xs font-primary">
+                              <span>
+                                {degreesToCardinal(
+                                  entry.forecast.windDirection
+                                )}
+                              </span>
+                            </div>
+                          )}
+                        </div>
+
+                        <div className="flex flex-wrap gap-2">
+                          {entry.forecast.swellHeight != null && (
+                            <div className="inline-flex items-center bg-cyan-100 text-cyan-800 px-2 py-1 rounded-full text-xs font-primary">
+                              <span className="mr-1">
+                                {getSwellEmoji(entry.forecast.swellHeight)}
+                              </span>
+                              <span>{entry.forecast.swellHeight}m</span>
+                            </div>
+                          )}
+
+                          {entry.forecast.swellPeriod != null && (
+                            <div className="inline-flex items-center bg-cyan-100 text-cyan-800 px-2 py-1 rounded-full text-xs font-primary">
+                              <span>{entry.forecast.swellPeriod}s</span>
+                            </div>
+                          )}
+
+                          {entry.forecast.swellDirection != null && (
+                            <div className="inline-flex items-center bg-cyan-100 text-cyan-800 px-2 py-1 rounded-full text-xs font-primary">
+                              <span>
+                                {degreesToCardinal(
+                                  entry.forecast.swellDirection
+                                )}
+                              </span>
+                            </div>
+                          )}
+                        </div>
+                      </div>
+                    )}
+                  </div>
+
+                  {entry.comments && (
+                    <p className="text-sm text-gray-700 break-words font-primary line-clamp-2 mt-2">
+                      <span className="font-medium">Comments:</span>{" "}
+                      {entry.comments}
+                    </p>
+                  )}
+
+                  {/* Image section */}
+                  {entry.imageUrl ? (
+                    <div className="mt-auto pt-2 w-full">
+                      <div className="relative w-full aspect-video rounded-md overflow-hidden">
+                        <Link
+                          href={
+                            hasAccess ? `/raidlogs/${entry.id}` : "/pricing"
+                          }
+                        >
+                          <Image
+                            src={entry.imageUrl}
+                            alt="Session photo"
+                            fill={true}
+                            className={cn(
+                              "object-cover rounded-md hover:opacity-90 transition-opacity",
+                              !hasAccess && "blur-xl"
+                            )}
+                          />
+                          {!hasAccess && (
+                            <div className="absolute inset-0 flex items-center justify-center bg-black/10">
+                              <span className="text-2xl z-10">💩</span>
+                            </div>
+                          )}
+                        </Link>
+                      </div>
+                      <div className="mt-3 text-right">
+                        <Link
+                          href={
+                            hasAccess ? `/raidlogs/${entry.id}` : "/pricing"
+                          }
+                          className="text-sm text-brand-3 hover:underline font-primary"
+                        >
+                          View details →
+                        </Link>
+                      </div>
+                    </div>
+                  ) : (
+                    <div className="mt-auto pt-2 w-full">
+                      <div className="relative w-full aspect-video bg-gray-100 rounded-md flex items-center justify-center">
+                        <ImageIcon className="w-8 h-8 text-gray-300" />
+                      </div>
+                      <div className="mt-3 text-right">
+                        <Link
+                          href={
+                            hasAccess ? `/raidlogs/${entry.id}` : "/pricing"
+                          }
+                          className="text-sm text-brand-3 hover:underline font-primary"
+                        >
+                          View details →
+                        </Link>
+                      </div>
+                    </div>
+                  )}
+                </div>
+              ))}
+            </div>
+
+            {/* Pagination */}
+            {totalPages > 1 && (
+              <div className="mt-6">
+                <Pagination>
+                  <PaginationContent>
+                    <PaginationItem>
+                      <PaginationPrevious
+                        onClick={() =>
+                          handlePageChange(Math.max(1, currentPage - 1))
+                        }
+                        className={cn(
+                          currentPage === 1 && "pointer-events-none opacity-50"
+                        )}
+                      />
+                    </PaginationItem>
+
+                    {Array.from({ length: totalPages }).map((_, i) => (
+                      <PaginationItem key={i}>
+                        <PaginationLink
+                          onClick={() => handlePageChange(i + 1)}
+                          isActive={currentPage === i + 1}
+                        >
+                          {i + 1}
+                        </PaginationLink>
+                      </PaginationItem>
+                    ))}
+
+                    <PaginationItem>
+                      <PaginationNext
+                        onClick={() =>
+                          handlePageChange(
+                            Math.min(totalPages, currentPage + 1)
+                          )
+                        }
+                        className={cn(
+                          currentPage === totalPages &&
+                            "pointer-events-none opacity-50"
+                        )}
+                      />
+                    </PaginationItem>
+                  </PaginationContent>
+                </Pagination>
+              </div>
             )}
+          </>
+        )}
+
+        {/* Table View */}
+        {viewMode === "table" && (
+          <div className="rounded-lg border border-gray-200 shadow">
+            <div className="min-h-[500px] w-full">
+              {isLoading ? (
+                <div className="text-center p-4 font-primary">Loading...</div>
+              ) : entries.length === 0 ? (
+                <div className="text-center p-4 font-primary">
+                  No matching sessions found
+                </div>
+              ) : (
+                <table className="w-full divide-y divide-gray-200">
+                  <thead className="bg-gray-50">
+                    <tr>
+                      {columnsWithAction.map((column) => (
+                        <th
+                          key={column.key}
+                          className={cn(
+                            "px-2 py-2 text-xs text-left text-gray-500 uppercase tracking-wider font-primary",
+                            column.key === "date"
+                              ? "min-w-[100px]"
+                              : "min-w-[120px]",
+                            column.key === "comments" &&
+                              "max-w-[150px] min-w-[150px]",
+                            column.key === "imageUrl" && "w-[60px]",
+                            "h-[36px]"
+                          )}
+                        >
+                          {(column as QuestLogTableColumn).label}
+                        </th>
+                      ))}
+                    </tr>
+                  </thead>
+                  <tbody className="bg-white divide-y divide-gray-200">
+                    {filteredEntries.map((entry) => {
+                      console.log("[TableDebug] Processing entry:", {
+                        id: entry.id,
+                        beachName: entry.beachName,
+                        forecast: entry.forecast,
+                      });
+
+                      return (
+                        <tr key={entry.id} className="hover:bg-gray-50">
+                          <td className="px-2 py-3 whitespace-nowrap text-sm min-w-[100px] font-primary">
+                            {format(new Date(entry.date), "MMM d, yyyy")}
+                          </td>
+                          <td className="px-2 py-3 whitespace-nowrap min-w-[120px]">
+                            <div className="flex items-center gap-2">
+                              <button
+                                onClick={() => {
+                                  const foundBeach = beachData.find(
+                                    (b) => b.name === entry.beachName
+                                  );
+                                  console.log("Found beach data:", foundBeach);
+                                  setSelectedBeach(foundBeach || null);
+                                }}
+                                className="font-primary text-sm text-gray-900 hover:text-brand-3 transition-colors text-left"
+                              >
+                                {entry.beachName}
+                              </button>
+                            </div>
+                          </td>
+                          <td className="px-2 py-3 whitespace-nowrap min-w-[100px] text-sm font-primary">
+                            {entry.region}
+                          </td>
+                          <td className="px-2 py-3 whitespace-nowrap min-w-[120px]">
+                            <LogEntryDisplay
+                              entry={entry}
+                              isAnonymous={entry.isAnonymous ?? false}
+                            />
+                          </td>
+                          <td className="px-2 py-3 min-w-[100px]">
+                            <StarRating rating={entry.surferRating ?? 0} />
+                          </td>
+                          <td className="px-2 py-3 min-w-[150px]">
+                            <ForecastInfo
+                              forecast={entry.forecast}
+                              entry={entry}
+                              hasAccess={hasAccess}
+                            />
+                          </td>
+                          <td className="px-2 py-3 max-w-[150px] min-w-[150px] whitespace-normal">
+                            <CommentsCell entry={entry} hasAccess={hasAccess} />
+                          </td>
+                          <td className="px-2 py-3 w-[60px]">
+                            <div className="w-12 h-12 bg-gray-100 rounded-md flex items-center justify-center overflow-hidden">
+                              {entry.imageUrl ? (
+                                renderImage(entry, { width: 48, height: 48 })
+                              ) : (
+                                <ImageIcon className="w-4 h-4 text-gray-200" />
+                              )}
+                            </div>
+                          </td>
+                          <td className="px-2 py-3">
+                            <div className="flex gap-2">
+                              <TooltipProvider>
+                                <Tooltip>
+                                  <TooltipTrigger asChild>
+                                    <button
+                                      onClick={(e) => {
+                                        e.stopPropagation();
+                                        handleAlertClick(entry);
+                                      }}
+                                      className={cn(
+                                        "text-gray-500 hover:text-[var(--color-alert-icon-rating)]"
+                                      )}
+                                    >
+                                      <Bell
+                                        className={cn(
+                                          "w-4 h-4 cursor-pointer",
+                                          entry.hasAlert
+                                            ? entry.isMyAlert
+                                              ? "text-[var(--color-alert-icon-rating)] fill-[var(--color-alert-icon-rating)]"
+                                              : "text-[var(--color-alert-icon-rating)] fill-none hover:text-[var(--color-alert-icon-rating)]"
+                                            : "text-gray-500 fill-none hover:text-[var(--color-alert-icon-rating)]"
+                                        )}
+                                      />
+                                    </button>
+                                  </TooltipTrigger>
+                                  <TooltipContent>
+                                    <p className="text-sm">
+                                      {getBellTooltipText(entry, hasAccess)}
+                                    </p>
+                                  </TooltipContent>
+                                </Tooltip>
+                              </TooltipProvider>
+                              {session?.user?.email === entry.surferEmail && (
+                                <>
+                                  <button
+                                    onClick={(e) => {
+                                      e.stopPropagation();
+                                      handleEdit(entry);
+                                    }}
+                                    className="text-gray-500 hover:text-[var(--color-text-primary)]"
+                                  >
+                                    <Pencil className="w-4 h-4" />
+                                  </button>
+                                  <button
+                                    onClick={(e) => {
+                                      e.stopPropagation();
+                                      handleDelete(entry.id);
+                                    }}
+                                    className="text-gray-500 hover:text-red-600"
+                                    disabled={deleteMutation.isPending}
+                                  >
+                                    {deleteMutation.isPending ? (
+                                      <span className="loading-spinner" />
+                                    ) : (
+                                      <X className="w-4 h-4" />
+                                    )}
+                                  </button>
+                                </>
+                              )}
+                            </div>
+                          </td>
+                        </tr>
+                      );
+                    })}
+                  </tbody>
+                </table>
+              )}
+            </div>
           </div>
-        </div>
+        )}
       </div>
 
       {/* Beach Details Modal */}
@@ -872,4 +1084,15 @@ export default function RaidLogTable({
       )}
     </>
   );
+}
+
+// Extract getBellTooltipText as a standalone function
+function getBellTooltipText(entry: LogEntry, hasAccess: boolean) {
+  if (!hasAccess) return "Subscribe to create alerts";
+  if (entry.hasAlert) {
+    return entry.isMyAlert
+      ? "You have an active alert for these conditions"
+      : "Another user has an alert for these conditions";
+  }
+  return "Create alert for these conditions";
 }

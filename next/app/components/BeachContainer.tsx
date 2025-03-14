@@ -692,11 +692,11 @@ export default function BeachContainer({
   }, [initialBeaches]);
 
   return (
-    <div className="bg-[var(--color-bg-secondary)] p-6 mx-auto relative min-h-[calc(100vh-72px)] flex flex-col">
+    <div className="bg-[var(--color-bg-secondary)] p-4 sm:p-6 mx-auto relative min-h-[calc(100vh-72px)] flex flex-col">
       {/* Main Layout */}
-      <div className="flex flex-col lg:flex-row gap-6 lg:gap-[54px]">
-        {/* Left Sidebar */}
-        <aside className="hidden lg:block lg:w-[300px] flex-shrink-0">
+      <div className="flex flex-col lg:flex-row gap-4 sm:gap-6 lg:gap-[30px] xl:gap-[54px]">
+        {/* Left Sidebar - Show only on laptop and larger screens */}
+        <aside className="hidden lg:block lg:w-[250px] xl:w-[300px] flex-shrink-0">
           <div className="hidden lg:block">
             <BlogPostsSidebar
               posts={blogPosts}
@@ -722,12 +722,12 @@ export default function BeachContainer({
         </aside>
 
         {/* Main Content and Right Sidebar */}
-        <div className="grid grid-cols-1 lg:grid-cols-[1fr_400px] gap-6 lg:gap-[54px] flex-1 overflow-hidden">
+        <div className="grid grid-cols-1 lg:grid-cols-[1fr_350px] xl:grid-cols-[1fr_400px] gap-4 sm:gap-6 lg:gap-[30px] xl:gap-[54px] flex-1 overflow-hidden">
           <main className="min-w-0 overflow-y-auto">
-            {/* Header Section - Moved inside main content */}
-            <div className="flex flex-col gap-6 mb-9">
+            {/* Header Section */}
+            <div className="flex flex-col gap-4 sm:gap-6 mb-6 sm:mb-9">
               <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
-                <h3 className="sm:text-2xl font-semi-bold text-[var(--color-text-primary)] font-primary">
+                <h3 className="text-xl sm:text-2xl font-semi-bold text-[var(--color-text-primary)] font-primary">
                   This Morning's Recommendations
                 </h3>
               </div>
@@ -758,11 +758,11 @@ export default function BeachContainer({
                   value={searchQuery}
                   onChange={setSearchQuery}
                   placeholder="Search by name, region or description..."
-                  className="font-primary"
+                  className="font-primary w-full sm:w-auto"
                 />
 
                 {/* View Toggle */}
-                <div className="flex items-center gap-2 bg-white rounded-md border border-gray-200">
+                <div className="flex items-center gap-2 bg-white rounded-md border border-gray-200 mt-3 sm:mt-0">
                   <button
                     onClick={() => setViewMode("list")}
                     className={cn(
@@ -787,61 +787,9 @@ export default function BeachContainer({
 
             {viewMode === "list" ? (
               <>
-                {/* Region filters */}
-                <div className="mb-6">
-                  <RegionFilter
-                    continents={uniqueContinents}
-                    countries={uniqueCountries}
-                    regions={uniqueRegions}
-                    selectedContinents={filters.continent}
-                    selectedCountries={filters.country}
-                    selectedRegions={filters.region}
-                    beaches={initialBeaches}
-                    windData={windData || null}
-                    onContinentClick={(continent) =>
-                      updateFilters("continent", continent)
-                    }
-                    onCountryClick={(country) =>
-                      updateFilters("country", country)
-                    }
-                    onRegionClick={(region) => updateFilters("region", region)}
-                    isPro={isSubscribed}
-                    selectedRegion={selectedRegion}
-                    onRegionChange={handleRegionChange}
-                    getGoodBeachCount={async (region: string) => {
-                      const today = new Date().toISOString().split("T")[0];
-                      const res = await fetch(
-                        `/api/beach-counts?region=${region}&date=${today}`
-                      );
-                      const data = await res.json();
-                      return data.count;
-                    }}
-                    BeachCountBadge={({ region }) => {
-                      const count = regionScoreCounts[region] || 0;
-
-                      if (isAllDataLoading) {
-                        return (
-                          <div className="inline-flex items-center justify-center w-6 h-6 ml-2">
-                            <div className="animate-pulse w-4 h-4 bg-gray-200 rounded-full" />
-                          </div>
-                        );
-                      }
-
-                      if (!count) return null;
-
-                      return (
-                        <div className="inline-flex items-center justify-center w-6 h-6 ml-2 text-sm text-white bg-[var(--color-bg-tertiary)] rounded-full">
-                          {count}
-                        </div>
-                      );
-                    }}
-                    isLoading={isAllDataLoading}
-                  />
-                </div>
-
-                {/* Wave Type Icons - Separate section above beach grid */}
-                <div className="mb-6">
-                  <div className="flex flex-wrap gap-2">
+                {/* Wave Type Icons - Make scrollable on mobile */}
+                <div className="mb-6 overflow-x-auto pb-2">
+                  <div className="flex flex-nowrap gap-2 min-w-max">
                     {waveTypes.map((waveType) => (
                       <button
                         key={waveType}
@@ -883,7 +831,7 @@ export default function BeachContainer({
                   </div>
                 </div>
 
-                {/* Replace grid with inline forecast */}
+                {/* Forecast widget - Improve mobile layout */}
                 <div className="mb-6">
                   {isLoading ? (
                     <RandomLoader isLoading={isLoading} />
@@ -896,7 +844,7 @@ export default function BeachContainer({
                       No forecast data, please adjust filters.
                     </div>
                   ) : (
-                    <div className="flex items-center gap-4 font-primary bg-gray-50 px-4 py-2 rounded-lg border border-gray-200">
+                    <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4 font-primary bg-gray-50 px-4 py-3 rounded-lg border border-gray-200">
                       <div className="flex items-center gap-2 text-sm">
                         <span className="font-semibold text-gray-800">
                           🌬️ Wind
@@ -909,7 +857,7 @@ export default function BeachContainer({
                         <span>{windData.windSpeed}kts</span>
                       </div>
 
-                      <div className="h-4 w-px bg-gray-300" />
+                      <div className="hidden sm:block h-4 w-px bg-gray-300" />
 
                       <div className="flex items-center gap-2 text-sm">
                         <span className="font-semibold text-gray-800">
@@ -922,7 +870,7 @@ export default function BeachContainer({
                         </span>
                       </div>
 
-                      <div className="h-4 w-px bg-gray-300" />
+                      <div className="hidden sm:block h-4 w-px bg-gray-300" />
 
                       <div className="flex items-center gap-2 text-sm">
                         <span className="font-semibold text-gray-800">
@@ -932,6 +880,58 @@ export default function BeachContainer({
                       </div>
                     </div>
                   )}
+                </div>
+
+                {/* Region filters */}
+                <div className="mb-6">
+                  <RegionFilter
+                    continents={uniqueContinents}
+                    countries={uniqueCountries}
+                    regions={uniqueRegions}
+                    selectedContinents={filters.continent}
+                    selectedCountries={filters.country}
+                    selectedRegions={filters.region}
+                    beaches={initialBeaches}
+                    windData={windData || null}
+                    onContinentClick={(continent) =>
+                      updateFilters("continent", continent)
+                    }
+                    onCountryClick={(country) =>
+                      updateFilters("country", country)
+                    }
+                    onRegionClick={(region) => updateFilters("region", region)}
+                    isPro={isSubscribed}
+                    selectedRegion={selectedRegion}
+                    onRegionChange={handleRegionChange}
+                    getGoodBeachCount={async (region: string) => {
+                      const today = new Date().toISOString().split("T")[0];
+                      const res = await fetch(
+                        `/api/beach-counts?region=${region}&date=${today}`
+                      );
+                      const data = await res.json();
+                      return data.count;
+                    }}
+                    BeachCountBadge={({ region }) => {
+                      const count = regionScoreCounts[region] || 0;
+
+                      if (isAllDataLoading) {
+                        return (
+                          <div className="inline-flex items-center justify-center w-6 h-6 ml-2 bg-gray-200 rounded-full animate-pulse">
+                            <span className="sr-only">Loading</span>
+                          </div>
+                        );
+                      }
+
+                      if (!count) return null;
+
+                      return (
+                        <div className="inline-flex items-center justify-center w-6 h-6 ml-2 text-sm text-white bg-[var(--color-bg-tertiary)] rounded-full font-primary">
+                          {count}
+                        </div>
+                      );
+                    }}
+                    isLoading={isAllDataLoading}
+                  />
                 </div>
 
                 {filteredBeaches.length === 0 ? (
@@ -1054,10 +1054,23 @@ export default function BeachContainer({
                 </div>
               </>
             ) : (
-              <div className="h-full relative">
+              <div className="h-[50vh] sm:h-[60vh] lg:h-[calc(100vh-300px)] w-full relative">
                 <Map
-                  beaches={filteredBeaches}
-                  windData={windData}
+                  beaches={filteredBeaches.map((beach) => {
+                    // If user is not subscribed and not on trial, mask the beach names for good beaches
+                    if (
+                      !isSubscribed &&
+                      !hasActiveTrial &&
+                      beachScores[beach.id] >= 4
+                    ) {
+                      return {
+                        ...beach,
+                        name: "Subscribe To View",
+                      };
+                    }
+                    return beach;
+                  })}
+                  windData={windData || null}
                   regions={uniqueRegions}
                   selectedRegions={filters.region}
                   onRegionClick={handleRegionChange}
@@ -1068,8 +1081,8 @@ export default function BeachContainer({
             )}
           </main>
 
-          {/* Right Sidebar */}
-          <aside className="bg-[var(--color-bg-primary)] p-6 rounded-lg shadow-sm h-fit order-first lg:order-last mb-9 lg:mb-0">
+          {/* Right Sidebar - Make it full width on mobile, adjust for iPad */}
+          <aside className="bg-[var(--color-bg-primary)] p-4 sm:p-6 rounded-lg shadow-sm h-fit order-first lg:order-last mb-6 sm:mb-9 lg:mb-0">
             {/* Single Responsive Forecast Widget */}
             <div
               className="bg-white p-6 rounded-lg shadow-sm min-h-[300px]"
@@ -1193,11 +1206,12 @@ export default function BeachContainer({
           </aside>
         </div>
       </div>
-      {/* Filter Sidebar */}
+
+      {/* Filter Sidebar - Improve tablet experience */}
       <div
         className={`
           fixed top-0 left-0 h-full 
-          w-full sm:w-[360px] 
+          w-full sm:w-[360px] md:w-[400px]
           bg-[var(--color-bg-primary)]
           transform transition-transform duration-300 ease-in-out z-50
           ${isSidebarOpen ? "translate-x-0" : "-translate-x-full"}
@@ -1231,6 +1245,7 @@ export default function BeachContainer({
           />
         </div>
       </div>
+
       {/* Backdrop */}
       {isSidebarOpen && (
         <div

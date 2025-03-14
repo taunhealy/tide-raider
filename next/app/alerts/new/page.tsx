@@ -10,10 +10,21 @@ import { LogEntry } from "@/app/types/questlogs";
 export default function NewAlertPage() {
   const [isLoading, setIsLoading] = useState(true);
   const [logEntries, setLogEntries] = useState<LogEntry[]>([]);
+  const [selectedLogEntry, setSelectedLogEntry] = useState<LogEntry | null>(
+    null
+  );
   const router = useRouter();
   const { status } = useSession();
 
   useEffect(() => {
+    // Get the selected log entry from localStorage
+    const storedLogEntry = localStorage.getItem("selectedLogEntry");
+    if (storedLogEntry) {
+      setSelectedLogEntry(JSON.parse(storedLogEntry));
+      // Clear the stored entry to prevent it from persisting
+      localStorage.removeItem("selectedLogEntry");
+    }
+
     // Fetch log entries when component mounts
     const fetchLogEntries = async () => {
       try {
@@ -61,7 +72,7 @@ export default function NewAlertPage() {
       <ForecastAlertModal
         isOpen={true}
         onClose={handleClose}
-        logEntry={null}
+        logEntry={selectedLogEntry}
         existingAlert={undefined}
         onSaved={handleAlertSaved}
         isNew={true}

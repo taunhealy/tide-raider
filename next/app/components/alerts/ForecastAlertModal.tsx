@@ -43,6 +43,7 @@ import { Checkbox } from "@/app/components/ui/checkbox";
 import { BasicSelect, BasicOption } from "@/app/components/ui/basicselect";
 import { useRouter } from "next/navigation";
 import { AlertConfiguration } from "@/app/components/alerts/AlertConfiguration";
+import { degreesToCardinal } from "@/app/lib/forecastUtils";
 
 interface ForecastAlertModalProps {
   isOpen?: boolean;
@@ -811,99 +812,103 @@ export default function ForecastAlertModal({
             <DialogDescription className="font-primary text-gray-600 mt-2">
               {isEditing
                 ? "Modify your alert settings below"
-                : "Select a logged session to create an alert for similar conditions"}
+                : logEntry
+                  ? `Creating alert for ${logEntry.beachName}`
+                  : "Select a logged session to create an alert for similar conditions"}
             </DialogDescription>
           </DialogHeader>
         </div>
 
         <div className="px-6 py-4 space-y-8">
           <div className="space-y-6">
-            <div className="space-y-4">
-              <h3 className="text-lg font-semibold font-primary text-gray-600 flex items-center">
-                <span className="flex items-center justify-center w-6 h-6 rounded-full bg-[var(--color-tertiary)] text-white text-sm mr-2">
-                  1
-                </span>
-                Select Log Entry
-              </h3>
+            {!logEntry && (
+              <div className="space-y-4">
+                <h3 className="text-lg font-semibold font-primary text-gray-600 flex items-center">
+                  <span className="flex items-center justify-center w-6 h-6 rounded-full bg-[var(--color-tertiary)] text-white text-sm mr-2">
+                    1
+                  </span>
+                  Select Log Entry
+                </h3>
 
-              <div className="relative">
-                <div className="relative flex items-center">
-                  <Search className="absolute left-3 text-gray-400 h-4 w-4" />
-                  <Input
-                    placeholder="Search your log entries..."
-                    className="pl-10 py-2 font-primary bg-white border-gray-200 focus:border-[var(--color-tertiary)] transition-colors"
-                    value={searchTerm}
-                    onChange={(e) => setSearchTerm(e.target.value)}
-                  />
+                <div className="relative">
+                  <div className="relative flex items-center">
+                    <Search className="absolute left-3 text-gray-400 h-4 w-4" />
+                    <Input
+                      placeholder="Search your log entries..."
+                      className="pl-10 py-2 font-primary bg-white border-gray-200 focus:border-[var(--color-tertiary)] transition-colors"
+                      value={searchTerm}
+                      onChange={(e) => setSearchTerm(e.target.value)}
+                    />
+                  </div>
                 </div>
-              </div>
 
-              {isLoadingLogEntries ? (
-                <div className="space-y-3">
-                  <Skeleton className="h-20 w-full" />
-                  <Skeleton className="h-20 w-full" />
-                  <Skeleton className="h-20 w-full" />
-                </div>
-              ) : (
-                <ScrollArea className="h-[300px] rounded-lg border border-gray-200">
-                  <div className="p-2 space-y-2">
-                    {filteredLogEntries.length > 0 ? (
-                      filteredLogEntries.map((entry: LogEntry) => (
-                        <div
-                          key={entry.id}
-                          onClick={() => setSelectedLogEntry(entry)}
-                          className={cn(
-                            "p-4 rounded-lg cursor-pointer transition-all",
-                            "hover:bg-gray-50 hover:border-[var(--color-tertiary)]/20",
-                            "border",
-                            selectedLogEntry?.id === entry.id
-                              ? "border-[var(--color-tertiary)] bg-[var(--color-tertiary)]/5"
-                              : "border-gray-200"
-                          )}
-                        >
-                          <div className="flex justify-between items-start mb-2">
-                            <h4 className="font-medium font-primary text-gray-900">
-                              {entry.beachName || "Unnamed Beach"}
-                            </h4>
-                            <span className="text-sm text-gray-500 font-primary">
-                              {format(new Date(entry.date), "MMM d, yyyy")}
-                            </span>
-                          </div>
-                          <div className="flex justify-between items-center">
-                            <span className="text-sm text-gray-600">
-                              {entry.region}
-                            </span>
-                            {entry.surferRating && (
-                              <div className="flex items-center gap-0.5">
-                                {Array.from({ length: entry.surferRating }).map(
-                                  (_, i) => (
+                {isLoadingLogEntries ? (
+                  <div className="space-y-3">
+                    <Skeleton className="h-20 w-full" />
+                    <Skeleton className="h-20 w-full" />
+                    <Skeleton className="h-20 w-full" />
+                  </div>
+                ) : (
+                  <ScrollArea className="h-[300px] rounded-lg border border-gray-200">
+                    <div className="p-2 space-y-2">
+                      {filteredLogEntries.length > 0 ? (
+                        filteredLogEntries.map((entry: LogEntry) => (
+                          <div
+                            key={entry.id}
+                            onClick={() => setSelectedLogEntry(entry)}
+                            className={cn(
+                              "p-4 rounded-lg cursor-pointer transition-all",
+                              "hover:bg-gray-50 hover:border-[var(--color-tertiary)]/20",
+                              "border",
+                              selectedLogEntry?.id === entry.id
+                                ? "border-[var(--color-tertiary)] bg-[var(--color-tertiary)]/5"
+                                : "border-gray-200"
+                            )}
+                          >
+                            <div className="flex justify-between items-start mb-2">
+                              <h4 className="font-medium font-primary text-gray-900">
+                                {entry.beachName || "Unnamed Beach"}
+                              </h4>
+                              <span className="text-sm text-gray-500 font-primary">
+                                {format(new Date(entry.date), "MMM d, yyyy")}
+                              </span>
+                            </div>
+                            <div className="flex justify-between items-center">
+                              <span className="text-sm text-gray-600">
+                                {entry.region}
+                              </span>
+                              {entry.surferRating && (
+                                <div className="flex items-center gap-0.5">
+                                  {Array.from({
+                                    length: entry.surferRating,
+                                  }).map((_, i) => (
                                     <StarIcon
                                       key={i}
                                       className="h-4 w-4 text-yellow-400 fill-current"
                                     />
-                                  )
-                                )}
-                              </div>
-                            )}
+                                  ))}
+                                </div>
+                              )}
+                            </div>
                           </div>
+                        ))
+                      ) : (
+                        <div className="flex flex-col items-center justify-center h-[200px] text-gray-500">
+                          <Search className="h-8 w-8 mb-2 text-gray-400" />
+                          <p className="font-primary">
+                            {searchTerm
+                              ? "No matching log entries found"
+                              : "No log entries available"}
+                          </p>
                         </div>
-                      ))
-                    ) : (
-                      <div className="flex flex-col items-center justify-center h-[200px] text-gray-500">
-                        <Search className="h-8 w-8 mb-2 text-gray-400" />
-                        <p className="font-primary">
-                          {searchTerm
-                            ? "No matching log entries found"
-                            : "No log entries available"}
-                        </p>
-                      </div>
-                    )}
-                  </div>
-                </ScrollArea>
-              )}
-            </div>
+                      )}
+                    </div>
+                  </ScrollArea>
+                )}
+              </div>
+            )}
 
-            {selectedLogEntry && (
+            {(selectedLogEntry || logEntry) && (
               <div className="space-y-8 pt-4">
                 <div className="space-y-4">
                   <h3 className="text-lg font-semibold font-primary text-gray-600 flex items-center">
@@ -918,9 +923,95 @@ export default function ForecastAlertModal({
                       setAlertConfig({ ...alertConfig, name: e.target.value })
                     }
                     className="font-primary bg-white border-gray-200 focus:border-[var(--color-tertiary)]"
-                    placeholder={`Alert for ${selectedLogEntry.beachName}`}
+                    placeholder={`Alert for ${selectedLogEntry?.beachName}`}
                   />
                 </div>
+
+                {/* Add Reference Forecast section */}
+                {(selectedLogEntry?.forecast || logEntry?.forecast) && (
+                  <div className="space-y-4">
+                    <h3 className="text-lg font-semibold font-primary text-gray-600 flex items-center">
+                      Alert Reference Forecast
+                    </h3>
+                    <div className="rounded-lg border border-gray-200 p-4 space-y-2">
+                      <div className="grid grid-cols-2 gap-4">
+                        <div>
+                          <p className="text-sm text-gray-600">Wind Speed</p>
+                          <p className="font-medium">
+                            {(
+                              selectedLogEntry?.forecast?.windSpeed ||
+                              logEntry?.forecast?.windSpeed ||
+                              0
+                            ).toFixed(1)}{" "}
+                            kts
+                          </p>
+                        </div>
+                        <div>
+                          <p className="text-sm text-gray-600">
+                            Wind Direction
+                          </p>
+                          <p className="font-medium">
+                            {degreesToCardinal(
+                              selectedLogEntry?.forecast?.windDirection ||
+                                logEntry?.forecast?.windDirection ||
+                                0
+                            )}
+                          </p>
+                        </div>
+                        <div>
+                          <p className="text-sm text-gray-600">Swell Height</p>
+                          <p className="font-medium">
+                            {(
+                              selectedLogEntry?.forecast?.swellHeight ||
+                              logEntry?.forecast?.swellHeight ||
+                              0
+                            ).toFixed(1)}{" "}
+                            m
+                          </p>
+                        </div>
+                        <div>
+                          <p className="text-sm text-gray-600">Swell Period</p>
+                          <p className="font-medium">
+                            {(
+                              selectedLogEntry?.forecast?.swellPeriod ||
+                              logEntry?.forecast?.swellPeriod ||
+                              0
+                            ).toFixed(1)}{" "}
+                            s
+                          </p>
+                        </div>
+                        <div>
+                          <p className="text-sm text-gray-600">
+                            Swell Direction
+                          </p>
+                          <p className="font-medium">
+                            {degreesToCardinal(
+                              selectedLogEntry?.forecast?.swellDirection ||
+                                logEntry?.forecast?.swellDirection ||
+                                0
+                            )}
+                          </p>
+                        </div>
+                        <div>
+                          <p className="text-sm text-gray-600">Rating</p>
+                          <div className="flex items-center gap-0.5">
+                            {Array.from({
+                              length:
+                                selectedLogEntry?.surferRating ||
+                                logEntry?.surferRating ||
+                                0,
+                            }).map((_, i) => (
+                              <StarIcon
+                                key={i}
+                                className="h-4 w-4 text-yellow-400 fill-current"
+                              />
+                            ))}
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                )}
 
                 <div className="space-y-4">
                   <h3 className="text-lg font-semibold font-primary text-gray-600 flex items-center">

@@ -166,290 +166,289 @@ export default function BeachCard({
       {/* Main Card Container */}
       <div
         className={`
-          group
-          bg-[var(--color-bg-primary)]
+          relative 
+          group 
+          bg-[var(--color-bg-primary)] 
           rounded-lg 
-          p-[24px] md:p-[32px]
-          border
-          border-[var(--color-border-light)]
-          transition-all
-          duration-300
-          relative
-          w-full
-          h-full
-          min-h-[280px] md:min-h-[360px]
-          ${
-            !shouldBeLocked &&
-            "hover:border-[var(--color-border-medium)] hover:shadow-sm cursor-pointer"
-          } 
-          ${suitability?.suitable ? "bg-brand-secondary" : ""}
+          shadow-sm 
+          border border-gray-200 
+          overflow-hidden 
+          transition-all 
+          duration-300 
+          hover:shadow-md
+          ${shouldBeLocked ? "opacity-70" : ""}
+          ${isLocalLoading ? "animate-pulse" : ""}
         `}
+        onClick={handleCardClick}
       >
-        {isLocalLoading || isLoading ? (
-          <ConditionsSkeleton />
-        ) : (
-          <div className="flex flex-col gap-[24px] md:gap-[32px]">
-            {/* Beach Information Header */}
-            <div className="flex items-center justify-between">
-              {/* Wave Type Icon and Beach Details */}
-              <div className="flex items-center gap-2 md:gap-3">
-                {/* Wave Type Icon with Tooltip */}
-                <div
-                  className="relative min-w-[40px] w-10 h-10 md:min-w-[54px] md:w-14 md:h-14 rounded-full overflow-hidden bg-gray-100 border border-gray-200"
-                  onMouseEnter={() => setShowWaveTypeHint(true)}
-                  onMouseLeave={() => setShowWaveTypeHint(false)}
-                >
-                  <Image
-                    src={
-                      beach.waveType &&
-                      WAVE_TYPE_ICONS[beach.waveType as WaveType]
-                        ? WAVE_TYPE_ICONS[beach.waveType as WaveType]
-                        : WAVE_TYPE_ICONS["Beach Break"]
-                    }
-                    alt={`${beach.waveType || "Default"} icon`}
-                    fill
-                    className="object-cover"
-                  />
-                  {beach.waveType && (
-                    <div
-                      className={`
-                        absolute bottom-full left-1/2 -translate-x-1/2 mb-2
-                        bg-black bg-opacity-50 
-                        px-3 py-1 rounded-md 
-                        text-white text-sm 
-                        transition-all duration-300 ease-in-out
-                        whitespace-nowrap
-                        ${
-                          showWaveTypeHint
-                            ? "opacity-100 translate-y-0"
-                            : "opacity-0 translate-y-2"
-                        }
-                      `}
-                    >
-                      {beach.waveType}
+        <div className="p-4 md:p-6">
+          {isLocalLoading ? (
+            <ConditionsSkeleton />
+          ) : (
+            <div className="space-y-4">
+              <div className="flex items-center justify-between">
+                {/* Wave Type Icon and Beach Details */}
+                <div className="flex items-center gap-2 md:gap-3">
+                  {/* Wave Type Icon with Tooltip */}
+                  <div
+                    className="relative min-w-[40px] w-10 h-10 md:min-w-[54px] md:w-14 md:h-14 rounded-full overflow-hidden bg-gray-100 border border-gray-200"
+                    onMouseEnter={() => setShowWaveTypeHint(true)}
+                    onMouseLeave={() => setShowWaveTypeHint(false)}
+                  >
+                    <Image
+                      src={
+                        beach.waveType &&
+                        WAVE_TYPE_ICONS[beach.waveType as WaveType]
+                          ? WAVE_TYPE_ICONS[beach.waveType as WaveType]
+                          : WAVE_TYPE_ICONS["Beach Break"]
+                      }
+                      alt={`${beach.waveType || "Default"} icon`}
+                      fill
+                      className="object-cover"
+                    />
+                    {beach.waveType && (
+                      <div
+                        className={`
+                          absolute bottom-full left-1/2 -translate-x-1/2 mb-2
+                          bg-black bg-opacity-50 
+                          px-3 py-1 rounded-md 
+                          text-white text-sm 
+                          transition-all duration-300 ease-in-out
+                          whitespace-nowrap
+                          ${
+                            showWaveTypeHint
+                              ? "opacity-100 translate-y-0"
+                              : "opacity-0 translate-y-2"
+                          }
+                        `}
+                      >
+                        {beach.waveType}
+                      </div>
+                    )}
+                  </div>
+
+                  {/* Locked/Unlocked Beach Information */}
+                  {shouldBeLocked ? (
+                    <div className="flex items-center gap-[8px]">
+                      <svg
+                        className="w-5 h-5 text-[var(--color-text-tertiary)]"
+                        fill="currentColor"
+                        viewBox="0 0 20 20"
+                      >
+                        <path
+                          fillRule="evenodd"
+                          d="M5 9V7a5 5 0 0110 0v2a2 2 0 012 2v5a2 2 0 01-2 2H5a2 2 0 01-2-2v-5a2 2 0 012-2zm8-2v2H7V7a3 3 0 016 0z"
+                          clipRule="evenodd"
+                        />
+                      </svg>
+                      <span className="text-[var(--color-text-tertiary)] heading-6">
+                        Members Only
+                      </span>
                     </div>
+                  ) : (
+                    <>
+                      <div>
+                        <h4
+                          className="text-base sm:text-[21px] font-primary font-semibold text-[var(--color-text-primary)] flex items-center gap-2 cursor-pointer transition-colors duration-300 hover:text-[var(--color-tertiary)]"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            handleOpenModal(e);
+                          }}
+                        >
+                          {beach.name}
+                          {windData?.windSpeed && windData.windSpeed > 25 && (
+                            <span title="Strong winds">🌪️</span>
+                          )}
+                          {beach.sharkAttack.hasAttack && (
+                            <span title="At least 1 shark attack reported">
+                              {beach.sharkAttack.incidents?.some(
+                                (incident) =>
+                                  new Date(incident.date).getTime() >
+                                  new Date().getTime() -
+                                    5 * 365 * 24 * 60 * 60 * 1000
+                              )
+                                ? "🦈 ⋆༺𓆩☠︎︎𓆪༻⋆🪦"
+                                : "🦈"}
+                            </span>
+                          )}
+                        </h4>
+                        <h6 className="text-[12px] sm:text-[12px] font-primary text-[var(--color-text-secondary)]">
+                          {beach.region}
+                        </h6>
+                      </div>
+                    </>
                   )}
                 </div>
 
-                {/* Locked/Unlocked Beach Information */}
-                {shouldBeLocked ? (
-                  <div className="flex items-center gap-[8px]">
-                    <svg
-                      className="w-5 h-5 text-[var(--color-text-tertiary)]"
-                      fill="currentColor"
-                      viewBox="0 0 20 20"
+                {/* Action Buttons */}
+                {!shouldBeLocked && (
+                  <div className="flex items-center gap-1 md:gap-2">
+                    <GoogleMapsButton
+                      coordinates={beach.coordinates}
+                      name={beach.name}
+                      region={beach.region}
+                      location={beach.location}
+                      className="hidden md:flex"
+                    />
+                    <button
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        handleOpenModal();
+                      }}
+                      className="p-1.5 md:p-2 hover:bg-gray-100 rounded-full transition-colors"
                     >
-                      <path
-                        fillRule="evenodd"
-                        d="M5 9V7a5 5 0 0110 0v2a2 2 0 012 2v5a2 2 0 01-2 2H5a2 2 0 01-2-2v-5a2 2 0 012-2zm8-2v2H7V7a3 3 0 016 0z"
-                        clipRule="evenodd"
-                      />
-                    </svg>
-                    <span className="text-[var(--color-text-tertiary)] heading-6">
-                      Members Only
-                    </span>
+                      <InfoIcon className="w-4 h-4 md:w-5 md:h-5 text-gray-500" />
+                    </button>
                   </div>
-                ) : (
-                  <>
-                    <div>
-                      <h4
-                        className="text-base sm:text-[21px] font-primary font-semibold text-[var(--color-text-primary)] flex items-center gap-2 cursor-pointer transition-colors duration-300 hover:text-[var(--color-tertiary)]"
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          handleOpenModal(e);
-                        }}
-                      >
-                        {beach.name}
-                        {windData?.windSpeed && windData.windSpeed > 25 && (
-                          <span title="Strong winds">🌪️</span>
-                        )}
-                        {beach.sharkAttack.hasAttack && (
-                          <span title="At least 1 shark attack reported">
-                            {beach.sharkAttack.incidents?.some(
-                              (incident) =>
-                                new Date(incident.date).getTime() >
-                                new Date().getTime() -
-                                  5 * 365 * 24 * 60 * 60 * 1000
-                            )
-                              ? "🦈 ⋆༺𓆩☠︎︎𓆪༻⋆🪦"
-                              : "🦈"}
-                          </span>
-                        )}
-                      </h4>
-                      <h6 className="text-[12px] sm:text-[12px] font-primary text-[var(--color-text-secondary)]">
-                        {beach.region}
-                      </h6>
-                    </div>
-                  </>
                 )}
               </div>
 
-              {/* Action Buttons */}
-              {!shouldBeLocked && (
-                <div className="flex items-center gap-1 md:gap-2">
-                  <GoogleMapsButton
-                    coordinates={beach.coordinates}
-                    name={beach.name}
-                    region={beach.region}
-                    location={beach.location}
-                    className="hidden md:flex"
-                  />
-                  <button
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      handleOpenModal();
-                    }}
-                    className="p-1.5 md:p-2 hover:bg-gray-100 rounded-full transition-colors"
-                  >
-                    <InfoIcon className="w-4 h-4 md:w-5 md:h-5 text-gray-500" />
-                  </button>
-                </div>
-              )}
-            </div>
-
-            {/* Suitability Rating and Conditions */}
-            <div className="font-medium">
-              {isLoading ? (
-                <ConditionsSkeleton />
-              ) : windData ? (
-                // Show actual conditions when windData is available
-                <div className="flex flex-col gap-1 md:gap-2">
-                  <div className="flex items-center gap-2">
-                    <div
-                      className="flex items-center gap-2 relative px-2 py-1"
-                      onMouseEnter={() => setShowRatingHint(true)}
-                      onMouseLeave={() => setShowRatingHint(false)}
-                    >
-                      <div>{scoreDisplay.emoji}</div>
-                      <div className="text-amber-400">{scoreDisplay.stars}</div>
+              {/* Suitability Rating and Conditions */}
+              <div className="mt-2 md:mt-4">
+                {isLoading ? (
+                  <ConditionsSkeleton />
+                ) : windData ? (
+                  // Show actual conditions when windData is available
+                  <div className="flex flex-col gap-1 md:gap-2">
+                    <div className="flex items-center gap-2">
                       <div
-                        className={`
-                        absolute z-50 bottom-full left-1/2 -translate-x-1/2 mb-2 
-                        px-3 py-1 bg-gray-900 text-white text-sm rounded-md 
-                        transition-opacity whitespace-nowrap
-                        ${showRatingHint ? "opacity-100" : "opacity-0"}
-                      `}
+                        className="flex items-center gap-2 relative px-2 py-1"
+                        onMouseEnter={() => setShowRatingHint(true)}
+                        onMouseLeave={() => setShowRatingHint(false)}
                       >
-                        {scoreDisplay.description}
+                        <div>{scoreDisplay.emoji}</div>
+                        <div className="text-amber-400">
+                          {scoreDisplay.stars}
+                        </div>
+                        <div
+                          className={`
+                          absolute z-50 bottom-full left-1/2 -translate-x-1/2 mb-2 
+                          px-3 py-1 bg-gray-900 text-white text-sm rounded-md 
+                          transition-opacity whitespace-nowrap
+                          ${showRatingHint ? "opacity-100" : "opacity-0"}
+                        `}
+                        >
+                          {scoreDisplay.description}
+                        </div>
                       </div>
                     </div>
-                  </div>
 
-                  {/* Current Conditions */}
-                  <div className="text-sm flex flex-col gap-1 md:gap-2">
-                    <h6 className="text-sm md:text-base font-primary">
-                      Current Conditions:
-                    </h6>
-                    <ul className="space-y-2">
-                      {getConditionReasons(
-                        beach,
-                        windData,
-                        false
-                      ).optimalConditions.map((condition, index, array) => (
-                        <li
-                          key={index}
-                          className={`flex items-center gap-2 md:gap-4 pb-1 md:pb-2 ${
-                            index !== array.length - 1
-                              ? "border-b border-gray-200"
-                              : ""
-                          }`}
-                        >
-                          <span className="inline-flex items-center justify-center w-4 h-4">
-                            {condition.isMet ? (
-                              <svg
-                                viewBox="0 0 24 24"
-                                className="w-4 h-4 text-[var(--color-tertiary)]"
-                                fill="none"
-                                stroke="currentColor"
-                                strokeWidth="3"
-                              >
-                                <path
-                                  d="M20 6L9 17L4 12"
-                                  strokeLinecap="round"
-                                  strokeLinejoin="round"
-                                />
-                              </svg>
-                            ) : (
-                              <svg
-                                viewBox="0 0 24 24"
-                                className="w-4 h-4 text-[var(--color-text-secondary)]"
-                                fill="none"
-                                stroke="currentColor"
-                                strokeWidth="3"
-                              >
-                                <path
-                                  d="M18 6L6 18M6 6l12 12"
-                                  strokeLinecap="round"
-                                  strokeLinejoin="round"
-                                />
-                              </svg>
-                            )}
-                          </span>
-                          <span
-                            className={`text-xs md:text-sm ${
-                              condition.isMet
-                                ? "text-gray-800"
-                                : "text-gray-500"
+                    {/* Current Conditions */}
+                    <div className="text-sm flex flex-col gap-1 md:gap-2">
+                      <h6 className="text-sm md:text-base font-primary">
+                        Current Conditions:
+                      </h6>
+                      <ul className="space-y-2">
+                        {getConditionReasons(
+                          beach,
+                          windData,
+                          false
+                        ).optimalConditions.map((condition, index, array) => (
+                          <li
+                            key={index}
+                            className={`flex items-center gap-2 md:gap-4 pb-1 md:pb-2 ${
+                              index !== array.length - 1
+                                ? "border-b border-gray-200"
+                                : ""
                             }`}
                           >
-                            <span className="font-medium md:font-semibold font-primary">
-                              {condition.text.split(":")[0]}:
-                            </span>{" "}
-                            <span className="font-normal font-primary">
-                              {condition.text.split(":")[1]}
+                            <span className="inline-flex items-center justify-center w-4 h-4">
+                              {condition.isMet ? (
+                                <svg
+                                  viewBox="0 0 24 24"
+                                  className="w-4 h-4 text-[var(--color-tertiary)]"
+                                  fill="none"
+                                  stroke="currentColor"
+                                  strokeWidth="3"
+                                >
+                                  <path
+                                    d="M20 6L9 17L4 12"
+                                    strokeLinecap="round"
+                                    strokeLinejoin="round"
+                                  />
+                                </svg>
+                              ) : (
+                                <svg
+                                  viewBox="0 0 24 24"
+                                  className="w-4 h-4 text-[var(--color-text-secondary)]"
+                                  fill="none"
+                                  stroke="currentColor"
+                                  strokeWidth="3"
+                                >
+                                  <path
+                                    d="M18 6L6 18M6 6l12 12"
+                                    strokeLinecap="round"
+                                    strokeLinejoin="round"
+                                  />
+                                </svg>
+                              )}
                             </span>
-                          </span>
-                        </li>
-                      ))}
+                            <span
+                              className={`text-xs md:text-sm ${
+                                condition.isMet
+                                  ? "text-gray-800"
+                                  : "text-gray-500"
+                              }`}
+                            >
+                              <span className="font-medium md:font-semibold font-primary">
+                                {condition.text.split(":")[0]}:
+                              </span>{" "}
+                              <span className="font-normal font-primary">
+                                {condition.text.split(":")[1]}
+                              </span>
+                            </span>
+                          </li>
+                        ))}
+                      </ul>
+                    </div>
+                  </div>
+                ) : (
+                  // Show optimal conditions when no windData is available
+                  <div className="text-sm flex flex-col gap-1 md:gap-2">
+                    <p className="text-sm md:text-base font-semibold font-primary">
+                      Optimal Conditions:
+                    </p>
+                    <ul className="space-y-1">
+                      <li className="text-main flex items-center font-primary gap-2 text-gray-600 text-main mb-1">
+                        <span className="font-medium font-primary">
+                          Wind Direction:
+                        </span>{" "}
+                        {beach.optimalWindDirections.join(", ")}
+                      </li>
+                      <li className="text-main flex items-center font-primary gap-2 text-gray-600 text-main mb-1">
+                        <span className="font-medium font-primary">
+                          Swell Direction:
+                        </span>{" "}
+                        {beach.optimalSwellDirections.min}° -{" "}
+                        {beach.optimalSwellDirections.max}°
+                      </li>
+                      <li className="text-main flex items-center gap-2 font-primary text-gray-600 text-main mb-1">
+                        <span className="font-medium font-primary">
+                          Wave Size:
+                        </span>{" "}
+                        {beach.swellSize.min}m - {beach.swellSize.max}m
+                      </li>
+                      <li className="text-main flex items-center gap-2 font-primary text-gray-600 text-main mb-1">
+                        <span className="font-medium font-primary">
+                          Swell Period:
+                        </span>{" "}
+                        {beach.idealSwellPeriod.min}s -{" "}
+                        {beach.idealSwellPeriod.max}s
+                      </li>
                     </ul>
                   </div>
-                </div>
-              ) : (
-                // Show optimal conditions when no windData is available
-                <div className="text-sm flex flex-col gap-1 md:gap-2">
-                  <p className="text-sm md:text-base font-semibold font-primary">
-                    Optimal Conditions:
-                  </p>
-                  <ul className="space-y-1">
-                    <li className="text-main flex items-center font-primary gap-2 text-gray-600 text-main mb-1">
-                      <span className="font-medium font-primary">
-                        Wind Direction:
-                      </span>{" "}
-                      {beach.optimalWindDirections.join(", ")}
-                    </li>
-                    <li className="text-main flex items-center font-primary gap-2 text-gray-600 text-main mb-1">
-                      <span className="font-medium font-primary">
-                        Swell Direction:
-                      </span>{" "}
-                      {beach.optimalSwellDirections.min}° -{" "}
-                      {beach.optimalSwellDirections.max}°
-                    </li>
-                    <li className="text-main flex items-center gap-2 font-primary text-gray-600 text-main mb-1">
-                      <span className="font-medium font-primary">
-                        Wave Size:
-                      </span>{" "}
-                      {beach.swellSize.min}m - {beach.swellSize.max}m
-                    </li>
-                    <li className="text-main flex items-center gap-2 font-primary text-gray-600 text-main mb-1">
-                      <span className="font-medium font-primary">
-                        Swell Period:
-                      </span>{" "}
-                      {beach.idealSwellPeriod.min}s -{" "}
-                      {beach.idealSwellPeriod.max}s
-                    </li>
-                  </ul>
+                )}
+              </div>
+
+              {/* Media Grid - Now inside the card */}
+              {!shouldBeLocked && beach.videos && beach.videos.length > 0 && (
+                <div className="mt-2">
+                  <MediaGrid beach={beach} videos={beach.videos} />
                 </div>
               )}
             </div>
-
-            {/* Media Grid - Now inside the card */}
-            {!shouldBeLocked && beach.videos && beach.videos.length > 0 && (
-              <div className="mt-2">
-                <MediaGrid beach={beach} videos={beach.videos} />
-              </div>
-            )}
-          </div>
-        )}
+          )}
+        </div>
 
         {/* Quick View Button */}
         {!shouldBeLocked && (

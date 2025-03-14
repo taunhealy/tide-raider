@@ -216,6 +216,27 @@
   .btn-clear-filters {
     @apply w-full px-4 py-2 bg-gray-100 text-gray-700 rounded-md hover:bg-gray-200 transition-colors font-primary text-[14px] font-medium;
   }
+
+  /* Badge styles for forecast data */
+  .badge-wind {
+    @apply inline-flex items-center bg-blue-100 text-blue-800 px-2 py-1 rounded-full text-xs font-primary;
+  }
+
+  .badge-swell {
+    @apply inline-flex items-center bg-cyan-100 text-cyan-800 px-2 py-1 rounded-full text-xs font-primary;
+  }
+
+  .badge-generic {
+    @apply inline-flex items-center bg-gray-100 text-gray-800 px-2 py-1 rounded-full text-xs font-primary;
+  }
+
+  .forecast-container {
+    @apply bg-gray-50 p-3 rounded-lg space-y-2;
+  }
+
+  .badge-group {
+    @apply flex flex-wrap gap-2;
+  }
 }
 
 @layer utilities {

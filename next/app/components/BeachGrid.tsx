@@ -31,7 +31,7 @@ export default function BeachGrid({
   const displayedBeaches = isSubscribed ? beaches : beaches.slice(0, 3);
 
   return (
-    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-1 gap-[16px]">
+    <div className="grid grid-cols-1 gap-[16px]">
       {beaches.map((beach, index) => (
         <BeachCard
           key={beach.name}

@@ -389,83 +389,75 @@ export function AlertsList() {
                         <p className="text-[var(--color-text-primary)] font-medium mb-2">
                           Match conditions within:
                         </p>
-                        <div className="space-y-4">
-                          {/* Reference Forecast Section */}
-                          {alert.logEntry && alert.logEntry.forecast && (
-                            <div className="bg-[var(--color-bg-secondary)] p-3 rounded-md">
-                              <p className="text-sm font-medium mb-2">
-                                Reference Conditions:
-                              </p>
-                              <div className="flex flex-col gap-4">
-                                {alert.properties?.map(
-                                  (
-                                    prop: { property: string; range: number },
-                                    index: any
-                                  ) => {
-                                    const forecastValue =
-                                      alert.logEntry?.forecast?.[
-                                        getForecastProperty(prop.property)
-                                      ];
+                        <div className="forecast-container">
+                          <p className="text-sm font-medium mb-2">
+                            Reference Conditions:
+                          </p>
+                          <div className="flex flex-col gap-4">
+                            {alert.properties?.map(
+                              (
+                                prop: { property: string; range: number },
+                                index: any
+                              ) => {
+                                const forecastValue =
+                                  alert.logEntry?.forecast?.[
+                                    getForecastProperty(prop.property)
+                                  ];
 
-                                    return (
-                                      <div key={index} className="space-y-1">
-                                        <div className="flex items-center gap-2">
-                                          <div className="flex items-center gap-4">
-                                            <span className="text-[13px] sm:text-[14px] font-medium text-[var(--color-text-primary)] font-primary">
-                                              {prop.property === "windSpeed"
-                                                ? "Wind Speed"
+                                return (
+                                  <div key={index} className="space-y-1">
+                                    <div className="flex items-center gap-2">
+                                      <div className="flex items-center gap-4">
+                                        <span className="text-[13px] sm:text-[14px] font-medium text-[var(--color-text-primary)] font-primary">
+                                          {prop.property === "windSpeed"
+                                            ? "Wind Speed"
+                                            : prop.property === "windDirection"
+                                              ? "Wind Direction"
+                                              : prop.property === "swellHeight"
+                                                ? "Swell Height"
                                                 : prop.property ===
-                                                    "windDirection"
-                                                  ? "Wind Direction"
+                                                    "swellPeriod"
+                                                  ? "Swell Period"
                                                   : prop.property ===
-                                                      "swellHeight"
-                                                    ? "Swell Height"
-                                                    : prop.property ===
-                                                        "swellPeriod"
-                                                      ? "Swell Period"
-                                                      : prop.property ===
-                                                          "swellDirection"
-                                                        ? "Swell Direction"
-                                                        : prop.property}
-                                            </span>
-                                            {forecastValue !== undefined && (
-                                              <>
-                                                <span className="text-[18px] sm:text-[21px] font-medium text-[var(--color-text-primary)] font-primary">
-                                                  {forecastValue.toFixed(1)}
-                                                  {getUnit(prop.property)}
-                                                </span>
-                                                <span className="px-2 py-0.5 bg-[var(--color-alert-badge)] text-[var(--color-alert-badge-text)] rounded-full text-xs font-medium">
-                                                  ±{prop.range}
-                                                  {getUnit(prop.property)}
-                                                </span>
-                                              </>
-                                            )}
-                                          </div>
-                                        </div>
+                                                      "swellDirection"
+                                                    ? "Swell Direction"
+                                                    : prop.property}
+                                        </span>
                                         {forecastValue !== undefined && (
-                                          <div className="text-[12px] text-[var(--color-text-secondary)] font-primary">
-                                            Range:{" "}
-                                            {(
-                                              forecastValue - prop.range
-                                            ).toFixed(1)}{" "}
-                                            -{" "}
-                                            {(
-                                              forecastValue + prop.range
-                                            ).toFixed(1)}
-                                            {getUnit(prop.property)}
-                                          </div>
-                                        )}
-                                        {index <
-                                          alert.properties.length - 1 && (
-                                          <div className="border-b border-[var(--color-border-light)] my-3"></div>
+                                          <>
+                                            <span className="text-[18px] sm:text-[21px] font-medium text-[var(--color-text-primary)] font-primary">
+                                              {forecastValue.toFixed(1)}
+                                              {getUnit(prop.property)}
+                                            </span>
+                                            <span className="badge-generic">
+                                              ±{prop.range}
+                                              {getUnit(prop.property)}
+                                            </span>
+                                          </>
                                         )}
                                       </div>
-                                    );
-                                  }
-                                )}
-                              </div>
-                            </div>
-                          )}
+                                    </div>
+                                    {forecastValue !== undefined && (
+                                      <div className="text-[12px] text-[var(--color-text-secondary)] font-primary">
+                                        Range:{" "}
+                                        {(forecastValue - prop.range).toFixed(
+                                          1
+                                        )}{" "}
+                                        -{" "}
+                                        {(forecastValue + prop.range).toFixed(
+                                          1
+                                        )}
+                                        {getUnit(prop.property)}
+                                      </div>
+                                    )}
+                                    {index < alert.properties.length - 1 && (
+                                      <div className="border-b border-[var(--color-border-light)] my-3"></div>
+                                    )}
+                                  </div>
+                                );
+                              }
+                            )}
+                          </div>
                         </div>
                       </div>
                     )}

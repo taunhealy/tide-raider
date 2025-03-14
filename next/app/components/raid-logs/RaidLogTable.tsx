@@ -48,6 +48,8 @@ import {
   PaginationNext,
   PaginationPrevious,
 } from "@/app/components/ui/pagination";
+import { useAppMode } from "@/app/context/AppModeContext";
+import { useContentGating } from "@/app/lib/gateUtils";
 
 interface QuestTableProps {
   entries: LogEntry[];
@@ -387,8 +389,20 @@ export default function RaidLogTable({
   isTrialing = false,
   isLoading = false,
   showPrivateOnly = false,
+  onFilterChange,
   onBeachClick,
+  nationality,
 }: QuestTableProps) {
+  const { isBetaMode } = useAppMode();
+  const {
+    isGated,
+    isLoggedOut,
+    isLoggedOutGated,
+    renderGatedContent,
+    getGatedEmoji,
+    getGatedTooltip,
+    getBlurClass,
+  } = useContentGating();
   const [selectedBeach, setSelectedBeach] = useState<Beach | null>(null);
   const [selectedLogForAlert, setSelectedLogForAlert] =
     useState<LogEntry | null>(null);
@@ -399,7 +413,10 @@ export default function RaidLogTable({
   const queryClient = useQueryClient();
   const { data: subscriptionDetails } = useSubscriptionDetails();
   const hasAccess =
-    isSubscribed || isTrialing || subscriptionDetails?.hasActiveTrial;
+    isBetaMode ||
+    isSubscribed ||
+    isTrialing ||
+    subscriptionDetails?.hasActiveTrial;
 
   // Set default view mode based on screen size
   const [viewMode, setViewMode] = useLocalStorage<"table" | "card">(
@@ -630,6 +647,7 @@ export default function RaidLogTable({
         <div className="mb-4 flex justify-end">
           <Tabs
             value={viewMode}
+            defaultValue={viewMode}
             onValueChange={(value) => setViewMode(value as "table" | "card")}
           >
             <TabsList className="grid w-[180px] grid-cols-2">
@@ -657,7 +675,7 @@ export default function RaidLogTable({
                   <div className="flex justify-between items-start gap-2">
                     <div className="flex-grow">
                       <h3 className="text-base font-medium font-primary text-gray-900">
-                        {entry.beachName}
+                        {renderGatedContent(entry.beachName, "Sign in to view")}
                       </h3>
                       <p className="text-sm text-gray-500 font-primary">
                         {format(new Date(entry.date), "MMM d, yyyy")}
@@ -693,7 +711,9 @@ export default function RaidLogTable({
                           </TooltipTrigger>
                           <TooltipContent>
                             <p className="text-sm">
-                              {getBellTooltipText(entry, hasAccess)}
+                              {getGatedTooltip(
+                                getBellTooltipText(entry, hasAccess)
+                              )}
                             </p>
                           </TooltipContent>
                         </Tooltip>
@@ -748,7 +768,9 @@ export default function RaidLogTable({
                           {entry.forecast.windSpeed != null && (
                             <div className="inline-flex items-center bg-blue-100 text-blue-800 px-2 py-1 rounded-full text-xs font-primary">
                               <span className="mr-1">
-                                {getWindEmoji(entry.forecast.windSpeed)}
+                                {getGatedEmoji(
+                                  getWindEmoji(entry.forecast.windSpeed)
+                                )}
                               </span>
                               <span>{entry.forecast.windSpeed}kts</span>
                             </div>
@@ -769,7 +791,9 @@ export default function RaidLogTable({
                           {entry.forecast.swellHeight != null && (
                             <div className="inline-flex items-center bg-cyan-100 text-cyan-800 px-2 py-1 rounded-full text-xs font-primary">
                               <span className="mr-1">
-                                {getSwellEmoji(entry.forecast.swellHeight)}
+                                {getGatedEmoji(
+                                  getSwellEmoji(entry.forecast.swellHeight)
+                                )}
                               </span>
                               <span>{entry.forecast.swellHeight}m</span>
                             </div>
@@ -964,7 +988,10 @@ export default function RaidLogTable({
                                 }}
                                 className="font-primary text-sm text-gray-900 hover:text-brand-3 transition-colors text-left"
                               >
-                                {entry.beachName}
+                                {renderGatedContent(
+                                  entry.beachName,
+                                  "Sign in to view"
+                                )}
                               </button>
                             </div>
                           </td>
@@ -1027,7 +1054,9 @@ export default function RaidLogTable({
                                   </TooltipTrigger>
                                   <TooltipContent>
                                     <p className="text-sm">
-                                      {getBellTooltipText(entry, hasAccess)}
+                                      {getGatedTooltip(
+                                        getBellTooltipText(entry, hasAccess)
+                                      )}
                                     </p>
                                   </TooltipContent>
                                 </Tooltip>

@@ -5,6 +5,7 @@ import {
   isBeachSuitable,
   getScoreDisplay,
   getConditionReasons,
+  FREE_BEACH_LIMIT,
 } from "@/app/lib/surfUtils";
 import { useHandleSubscribe } from "@/app/hooks/useHandleSubscribe";
 import { useState, useEffect, useMemo, useRef } from "react";
@@ -27,6 +28,7 @@ import { Star } from "lucide-react";
 import { cn } from "@/app/lib/utils";
 import { ValidRegion } from "@/app/lib/regions";
 import { VALID_REGIONS } from "@/app/lib/regions";
+import { useAppMode } from "@/app/context/AppModeContext";
 
 interface BeachCardProps {
   beach: Beach;
@@ -63,6 +65,7 @@ export default function BeachCard({
   const router = useRouter();
   const searchParams = useSearchParams();
   const { isSubscribed, hasActiveTrial } = useSubscription();
+  const { isBetaMode } = useAppMode();
   const handleSubscribe = useHandleSubscribe();
   const queryClient = useQueryClient();
 
@@ -92,7 +95,10 @@ export default function BeachCard({
 
   const isRegionSupported = VALID_REGIONS.includes(beach.region as ValidRegion);
   const shouldBeLocked =
-    !isSubscribed && !hasActiveTrial && (suitability?.score ?? 0) >= 3;
+    !isBetaMode &&
+    !isSubscribed &&
+    !hasActiveTrial &&
+    index >= FREE_BEACH_LIMIT;
 
   // Get sessions from existing cache
   const recentEntries = queryClient.getQueryData<LogEntry[]>([

@@ -6,6 +6,7 @@ import SidebarFilter from "./SidebarFilter";
 import BeachGrid from "./BeachGrid";
 import Map from "./Map";
 import { useSubscription } from "../context/SubscriptionContext";
+import { useAppMode } from "../context/AppModeContext";
 
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import {
@@ -83,6 +84,7 @@ export default function BeachContainer({
   availableAds,
 }: BeachContainerProps) {
   const { isSubscribed, hasActiveTrial } = useSubscription();
+  const { isBetaMode } = useAppMode();
   const [minPoints, setMinPoints] = useState(0);
   const searchParams = useSearchParams();
   const queryClient = useQueryClient();
@@ -407,12 +409,13 @@ export default function BeachContainer({
     searchQuery,
   ]);
 
-  // Modify the pagination to respect subscription status
+  // Modify the pagination to respect subscription status and app mode
   const { visibleBeaches, lockedBeaches } = getGatedBeaches(
     filteredBeaches,
     windData || null,
     isSubscribed,
-    hasActiveTrial
+    hasActiveTrial,
+    isBetaMode
   );
 
   // Apply pagination to the VISIBLE beaches only
@@ -1057,8 +1060,9 @@ export default function BeachContainer({
               <div className="h-[50vh] sm:h-[60vh] lg:h-[calc(100vh-300px)] w-full relative">
                 <Map
                   beaches={filteredBeaches.map((beach) => {
-                    // If user is not subscribed and not on trial, mask the beach names for good beaches
+                    // If user is not subscribed and not on trial and not in beta mode, mask the beach names for good beaches
                     if (
+                      !isBetaMode &&
                       !isSubscribed &&
                       !hasActiveTrial &&
                       beachScores[beach.id] >= 4
@@ -1076,6 +1080,7 @@ export default function BeachContainer({
                   onRegionClick={handleRegionChange}
                   filters={filters}
                   hasActiveTrial={hasActiveTrial}
+                  isBetaMode={isBetaMode}
                 />
               </div>
             )}

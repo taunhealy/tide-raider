@@ -2,6 +2,7 @@ import type { Beach } from "../types/beaches";
 import { WindDataProp } from "@/app/types/wind";
 import BeachCard from "./BeachCard";
 import { useSubscription } from "../context/SubscriptionContext";
+import { useAppMode } from "../context/AppModeContext";
 
 interface BeachGridProps {
   beaches: Beach[];
@@ -26,13 +27,16 @@ export default function BeachGrid({
   onBeachClick,
 }: BeachGridProps) {
   const { isSubscribed } = useSubscription();
+  const { isBetaMode } = useAppMode();
 
-  // Show only first 3 beaches for non-subscribed users
-  const displayedBeaches = isSubscribed ? beaches : beaches.slice(0, 3);
+  // In Beta mode, show all beaches regardless of subscription
+  // In Paid mode, show only first 3 beaches for non-subscribed users
+  const displayedBeaches =
+    isBetaMode || isSubscribed ? beaches : beaches.slice(0, 3);
 
   return (
     <div className="grid grid-cols-1 gap-[16px]">
-      {beaches.map((beach, index) => (
+      {displayedBeaches.map((beach, index) => (
         <BeachCard
           key={beach.name}
           beach={beach}

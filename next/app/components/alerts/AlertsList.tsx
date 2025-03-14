@@ -14,6 +14,7 @@ import { toast } from "sonner";
 import { useQuery, useQueryClient, useMutation } from "@tanstack/react-query";
 import { useRouter } from "next/navigation";
 import { cn } from "@/app/lib/utils";
+import { SpiralAnimation } from "@/app/components/alerts/SpiralAnimation";
 
 import { Alert } from "@/app/types/alerts";
 
@@ -187,8 +188,8 @@ export function AlertsList() {
   if (!alerts || alerts.length === 0) {
     return (
       <div className="text-center py-8 border rounded-lg bg-[var(--color-bg-primary)]">
-        <Bell className="mx-auto h-12 w-12 text-[var(--color-text-secondary)]" />
-        <h3 className="mt-2 text-lg font-medium font-primary text-[var(--color-text-primary)]">
+        <SpiralAnimation size={120} className="mx-auto" />
+        <h3 className="mt-4 text-lg font-medium font-primary text-[var(--color-text-primary)]">
           No alerts yet
         </h3>
         <p className="mt-1 text-sm text-[var(--color-text-secondary)] font-primary">
@@ -258,8 +259,8 @@ export function AlertsList() {
       <div className=" grid grid-cols-1 sm:grid-cols-1 lg:grid-cols-3 gap-4">
         {filteredAlerts.length === 0 ? (
           <div className="text-center py-8 border rounded-lg bg-[var(--color-bg-primary)] border-[var(--color-border-light)] col-span-full">
-            <Bell className="mx-auto h-12 w-12 text-[var(--color-text-secondary)]" />
-            <h3 className="mt-2 text-lg font-medium font-primary text-[var(--color-text-primary)]">
+            <SpiralAnimation size={120} className="mx-auto" />
+            <h3 className="mt-4 text-lg font-medium font-primary text-[var(--color-text-primary)]">
               No {activeTab !== "all" ? activeTab : ""} alerts found
             </h3>
             <p className="mt-1 text-sm text-[var(--color-text-secondary)] font-primary">

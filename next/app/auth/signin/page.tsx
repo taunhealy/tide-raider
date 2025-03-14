@@ -4,6 +4,28 @@ import { signIn, getProviders } from "next-auth/react";
 import { useSearchParams } from "next/navigation";
 import { Suspense, useEffect, useState } from "react";
 
+function SignInSkeleton() {
+  return (
+    <div className="min-h-[80vh] flex items-center justify-center bg-[var(--color-bg-secondary)]">
+      <div className="max-w-md w-full p-8 bg-[var(--color-bg-primary)] rounded-lg shadow-sm border border-gray-200">
+        <div className="text-center mb-8">
+          <div className="h-8 w-32 bg-gray-200 rounded-md mx-auto mb-2 animate-pulse"></div>
+          <div className="h-4 w-48 bg-gray-200 rounded-md mx-auto animate-pulse"></div>
+        </div>
+
+        <div className="space-y-4">
+          <div className="w-full h-12 bg-gray-200 rounded-lg animate-pulse"></div>
+          <div className="w-full h-12 bg-gray-200 rounded-lg animate-pulse"></div>
+        </div>
+
+        <div className="mt-8 text-center">
+          <div className="h-3 w-64 bg-gray-200 rounded-md mx-auto animate-pulse"></div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 function SignInContent() {
   const searchParams = useSearchParams();
   const error = searchParams.get("error");
@@ -89,9 +111,10 @@ function SignInContent() {
     </div>
   );
 }
+
 export default function SignInPage() {
   return (
-    <Suspense fallback={<div>Loading...</div>}>
+    <Suspense fallback={<SignInSkeleton />}>
       <SignInContent />
     </Suspense>
   );

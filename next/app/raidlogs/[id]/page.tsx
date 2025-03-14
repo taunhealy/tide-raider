@@ -161,7 +161,10 @@ export default async function RaidLogPage({
             {(entry.waveType || forecastData) && (
               <div className="bg-gray-50 p-4 rounded-lg">
                 <h2 className="font-primary text-lg font-medium mb-3 text-gray-800">
-                  Wave Information
+                  Conditions on{" "}
+                  {entry.date
+                    ? format(new Date(entry.date), "MMM d, yyyy")
+                    : "this day"}
                 </h2>
                 {entry.waveType && (
                   <div className="inline-block bg-blue-100 text-blue-800 px-3 py-1 rounded-full text-sm font-primary mb-3">
@@ -169,57 +172,59 @@ export default async function RaidLogPage({
                   </div>
                 )}
                 {forecastData && (
-                  <div className="grid grid-cols-2 gap-3">
-                    {forecastData.swellHeight != null && (
-                      <div className="flex flex-col">
-                        <span className="text-xs text-gray-500 font-primary">
-                          Swell Height
-                        </span>
-                        <span className="text-gray-800 font-primary font-medium">
-                          {forecastData.swellHeight}m
-                        </span>
-                      </div>
-                    )}
-                    {forecastData.swellPeriod != null && (
-                      <div className="flex flex-col">
-                        <span className="text-xs text-gray-500 font-primary">
-                          Swell Period
-                        </span>
-                        <span className="text-gray-800 font-primary font-medium">
-                          {forecastData.swellPeriod}s
-                        </span>
-                      </div>
-                    )}
-                    {forecastData.swellDirection != null && (
-                      <div className="flex flex-col">
-                        <span className="text-xs text-gray-500 font-primary">
-                          Swell Direction
-                        </span>
-                        <span className="text-gray-800 font-primary font-medium">
-                          {forecastData.swellDirection}°
-                        </span>
-                      </div>
-                    )}
-                    {forecastData.windSpeed != null && (
-                      <div className="flex flex-col">
-                        <span className="text-xs text-gray-500 font-primary">
-                          Wind Speed
-                        </span>
-                        <span className="text-gray-800 font-primary font-medium">
-                          {forecastData.windSpeed}kts
-                        </span>
-                      </div>
-                    )}
-                    {forecastData.windDirection != null && (
-                      <div className="flex flex-col">
-                        <span className="text-xs text-gray-500 font-primary">
-                          Wind Direction
-                        </span>
-                        <span className="text-gray-800 font-primary font-medium">
-                          {forecastData.windDirection}°
-                        </span>
-                      </div>
-                    )}
+                  <div>
+                    <div className="grid grid-cols-2 gap-3">
+                      {forecastData.swellHeight != null && (
+                        <div className="flex flex-col">
+                          <span className="text-xs text-gray-500 font-primary">
+                            Swell Height
+                          </span>
+                          <span className="text-gray-800 font-primary font-medium">
+                            {forecastData.swellHeight}m
+                          </span>
+                        </div>
+                      )}
+                      {forecastData.swellPeriod != null && (
+                        <div className="flex flex-col">
+                          <span className="text-xs text-gray-500 font-primary">
+                            Swell Period
+                          </span>
+                          <span className="text-gray-800 font-primary font-medium">
+                            {forecastData.swellPeriod}s
+                          </span>
+                        </div>
+                      )}
+                      {forecastData.swellDirection != null && (
+                        <div className="flex flex-col">
+                          <span className="text-xs text-gray-500 font-primary">
+                            Swell Direction
+                          </span>
+                          <span className="text-gray-800 font-primary font-medium">
+                            {forecastData.swellDirection}°
+                          </span>
+                        </div>
+                      )}
+                      {forecastData.windSpeed != null && (
+                        <div className="flex flex-col">
+                          <span className="text-xs text-gray-500 font-primary">
+                            Wind Speed
+                          </span>
+                          <span className="text-gray-800 font-primary font-medium">
+                            {forecastData.windSpeed}kts
+                          </span>
+                        </div>
+                      )}
+                      {forecastData.windDirection != null && (
+                        <div className="flex flex-col">
+                          <span className="text-xs text-gray-500 font-primary">
+                            Wind Direction
+                          </span>
+                          <span className="text-gray-800 font-primary font-medium">
+                            {forecastData.windDirection}°
+                          </span>
+                        </div>
+                      )}
+                    </div>
                   </div>
                 )}
               </div>

@@ -41,7 +41,7 @@ type PaginationLinkProps = {
 const PaginationLink = ({
   className,
   isActive,
-  size = "icon",
+  size = "sm",
   ...props
 }: PaginationLinkProps) => (
   <button
@@ -49,7 +49,7 @@ const PaginationLink = ({
     className={cn(
       buttonVariants({
         variant: isActive ? "default" : "outline",
-        size,
+        size: size === "icon" ? "sm" : size,
       }),
       className
     )}

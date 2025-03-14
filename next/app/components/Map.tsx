@@ -35,6 +35,7 @@ interface MapProps {
   onRegionClick: any;
   filters: any;
   hasActiveTrial: boolean;
+  isBetaMode: boolean;
 }
 
 export default function Map({ beaches, windData, hasActiveTrial }: MapProps) {

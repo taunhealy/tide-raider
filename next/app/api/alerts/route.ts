@@ -32,14 +32,17 @@ export async function GET(req: NextRequest) {
   const { searchParams } = new URL(req.url);
   const region = searchParams.get("region");
   const logEntryId = searchParams.get("logEntryId");
+  const isBetaMode = process.env.NEXT_PUBLIC_APP_MODE === "beta";
 
   try {
-    // Case 0: If logEntryId is provided, return the forecast data from that log entry
-    // and check if an alert already exists for this log entry
-    if (logEntryId) {
-      const session = await getServerSession(authOptions);
+    // Get session - but don't immediately return 401 if not authenticated
+    const session = await getServerSession(authOptions);
+    const isAuthenticated = !!session?.user?.id;
 
-      if (!session?.user?.id) {
+    // Case 0: If logEntryId is provided...
+    if (logEntryId) {
+      // Only require authentication if not in beta mode
+      if (!isAuthenticated && !isBetaMode) {
         return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
       }
 
@@ -59,13 +62,16 @@ export async function GET(req: NextRequest) {
         );
       }
 
-      // Check if an alert already exists for this log entry
-      const existingAlert = await prisma.alert.findFirst({
-        where: {
-          logEntryId: logEntryId,
-          userId: session.user.id,
-        },
-      });
+      // Check for existing alert only if authenticated
+      let existingAlert = null;
+      if (isAuthenticated) {
+        existingAlert = await prisma.alert.findFirst({
+          where: {
+            logEntryId: logEntryId,
+            userId: session.user.id,
+          },
+        });
+      }
 
       return NextResponse.json({
         forecast: logEntry.forecast,
@@ -75,7 +81,7 @@ export async function GET(req: NextRequest) {
       });
     }
 
-    // Case 1: If "region" parameter exists but has no value, return all regions
+    // Case 1 & 2: Region-related queries don't need authentication
     if (searchParams.has("region") && !region) {
       const forecasts = await prisma.forecastA.findMany({
         select: {
@@ -88,7 +94,6 @@ export async function GET(req: NextRequest) {
       return NextResponse.json(regions);
     }
 
-    // Case 2: If region parameter has a value, return available dates for that region
     if (region) {
       const forecasts = await prisma.forecastA.findMany({
         where: {
@@ -109,10 +114,12 @@ export async function GET(req: NextRequest) {
       return NextResponse.json(dates);
     }
 
-    // Case 3: No query parameters - return all alerts for the current user
-    const session = await getServerSession(authOptions);
-
-    if (!session?.user?.id) {
+    // Case 3: Fetching user's alerts - requires authentication
+    if (!isAuthenticated) {
+      // In beta mode, return empty array instead of 401
+      if (isBetaMode) {
+        return NextResponse.json([]);
+      }
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 

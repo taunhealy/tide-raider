@@ -356,8 +356,17 @@ export function getGatedBeaches(
   beaches: Beach[],
   windData: WindData | null,
   isSubscribed: boolean,
-  hasActiveTrial: boolean
+  hasActiveTrial: boolean,
+  isBetaMode: boolean = false
 ) {
+  // In Beta mode, show all beaches regardless of subscription status
+  if (isBetaMode) {
+    return {
+      visibleBeaches: beaches,
+      lockedBeaches: [],
+    };
+  }
+
   // Show all beaches for subscribed users or those in trial
   if (isSubscribed || hasActiveTrial) {
     return {

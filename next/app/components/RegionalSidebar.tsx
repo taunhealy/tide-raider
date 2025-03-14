@@ -3,7 +3,7 @@
 import { useState, useEffect } from "react";
 import { Ad } from "@/app/types/ads";
 import { AD_CATEGORIES } from "@/app/lib/advertising/constants";
-import { Badge } from "@/app/components/ui/Badge";
+import { Badge } from "@/app/components/ui/badge";
 
 interface RegionalSidebarProps {
   selectedRegion: string;

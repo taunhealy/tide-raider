@@ -63,12 +63,21 @@ export default function RegionalSidebar({
         const categoryKey = ad.category as keyof typeof AD_CATEGORIES;
         const categoryInfo = AD_CATEGORIES[categoryKey];
 
+        // Debug logging
+        console.log("Ad category:", ad.category);
+        console.log("Is clown?", ad.category === "clown");
+        console.log("Category info:", categoryInfo);
+
         if ("isPlaceholder" in ad) {
           return (
             <a
               key={ad.id}
               href="/advertising"
-              className="block bg-[var(--color-bg-primary)] rounded-lg p-6 text-center hover:bg-gray-50 transition-colors border border-gray-200"
+              className={`block bg-[var(--color-bg-primary)] rounded-lg p-6 text-center hover:bg-gray-50 transition-colors border border-gray-200 ${
+                categoryInfo?.id === "clown"
+                  ? "border-pink-300 border-[1px]"
+                  : ""
+              }`}
             >
               <Badge variant="secondary" className="mx-auto mb-3">
                 {categoryInfo?.emoji} {categoryInfo?.label}
@@ -90,7 +99,11 @@ export default function RegionalSidebar({
             href={ad.linkUrl}
             target="_blank"
             rel="noopener noreferrer"
-            className="block bg-[var(--color-bg-primary)] rounded-lg p-6 hover:shadow-md transition-shadow border border-gray-200"
+            className={`block bg-[var(--color-bg-primary)] rounded-lg p-6 hover:shadow-md transition-shadow border border-gray-200 ${
+              categoryInfo?.id === "clown"
+                ? "border-pink-600 border-[1.5px]"
+                : ""
+            }`}
           >
             <div className="flex justify-between items-start mb-3">
               <Badge variant="secondary" className="mb-2">

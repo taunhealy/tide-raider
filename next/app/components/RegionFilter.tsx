@@ -10,6 +10,7 @@ import { ChevronDown } from "lucide-react";
 import { Region } from "@/app/types/beaches";
 import { cn } from "@/app/lib/utils";
 import { useQuery } from "@tanstack/react-query";
+import RegionFilterButton from "@/app/components/RegionFilterButton";
 
 interface SavedFilters {
   continents: string[];
@@ -214,26 +215,14 @@ const RegionFilter = memo(function RegionFilter({
   // Memoize the region buttons to prevent unnecessary re-renders
   const regionButtons = useMemo(() => {
     return visibleRegions.map((region) => (
-      <button
+      <RegionFilterButton
         key={region}
+        region={region}
+        isSelected={selectedRegion === region}
         onClick={() => onRegionChange(region)}
-        className={cn(
-          "flex items-center justify-between px-4 py-2 text-left rounded-lg transition-colors font-primary",
-          selectedRegion === region
-            ? "bg-[var(--color-bg-tertiary)] text-white"
-            : "hover:bg-gray-100"
-        )}
-      >
-        <span>{region}</span>
-        {region === selectedRegion &&
-          (isCountLoading ? (
-            <div className="w-6 h-6 animate-pulse bg-[var(--color-brand-tertiary)]/20 rounded-full" />
-          ) : (
-            <span className="inline-flex items-center justify-center w-6 h-6 text-sm bg-white rounded-full text-black font-primary">
-              {regionCount}
-            </span>
-          ))}
-      </button>
+        count={selectedRegion === region ? regionCount : undefined}
+        isLoading={selectedRegion === region ? isCountLoading : false}
+      />
     ));
   }, [
     visibleRegions,
@@ -249,7 +238,7 @@ const RegionFilter = memo(function RegionFilter({
         className="flex items-center justify-between cursor-pointer"
         onClick={() => setIsOpen(!isOpen)}
       >
-        <h6 className="heading-6">Regions</h6>
+        <h6 className="heading-6 font-primary">Regions</h6>
         <ChevronDown
           className={`w-5 h-5 transition-transform ${isOpen ? "transform rotate-180" : ""}`}
         />
@@ -304,9 +293,7 @@ const RegionFilter = memo(function RegionFilter({
 
           {/* Regions */}
           {visibleRegions.length > 0 && (
-            <div className="flex flex-col gap-3 w-[210px] min-w-[210px]">
-              {regionButtons}
-            </div>
+            <div className="flex flex-wrap gap-2 mb-4">{regionButtons}</div>
           )}
 
           {renderSaveButton()}

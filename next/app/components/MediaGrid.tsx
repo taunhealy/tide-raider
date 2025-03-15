@@ -114,35 +114,37 @@ function MediaGridBase({ videos = [], beach }: MediaGridProps) {
           <h2 className="text-base font-medium font-primary text-[var(--color-text-primary)] mb-4">
             Local Services
           </h2>
-          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
             {services.map((service, index) => {
+              // Get emoji based on service type
+              let emoji = "🏄‍♂️";
+              if (service.type === "coffee_shop") emoji = "☕";
+              if (service.type === "shaper") emoji = "🛠️";
+              if (service.type === "beer") emoji = "🍺";
+
               return (
                 <a
                   key={`service-${index}`}
-                  href={service.url}
+                  href={service.url || "/advertising"}
                   target="_blank"
                   rel="noopener noreferrer"
                   className={`
-                    group
-                    relative aspect-video rounded-lg overflow-visible 
-                    transition-all duration-200 
-                    flex flex-col items-center justify-center
-                    bg-[var(--color-bg-secondary)] hover:shadow-md
+                    block 
+                    bg-[var(--color-bg-primary)] 
+                    rounded-lg 
+                    p-6 
+                    hover:bg-gray-50 
+                    transition-colors 
                     ${
                       service.isAd
-                        ? "border-[0.5px] border-[var(--color-tertiary)] animate-border-glow"
-                        : "border border-[var(--color-border-light)] hover:border-[var(--color-border-medium)]"
+                        ? "border border-[var(--color-border-light)] hover:border-[var(--color-border-medium)]"
+                        : "border border-gray-200"
                     }
                   `}
-                  style={
-                    service.isAd
-                      ? {
-                          boxShadow:
-                            "0 0 5px var(--color-tertiary), inset 0 0 5px var(--color-tertiary)",
-                        }
-                      : undefined
-                  }
-                  onClick={() => {
+                  onClick={(e) => {
+                    // Stop propagation to prevent opening the BeachDetailsModal
+                    e.stopPropagation();
+
                     if (service.isAd && (service as any).adId) {
                       fetch("/api/advertising/track", {
                         method: "POST",
@@ -156,36 +158,36 @@ function MediaGridBase({ videos = [], beach }: MediaGridProps) {
                     }
                   }}
                 >
-                  {service.isAd && (
-                    <div
-                      className="
-                      absolute z-50 -top-8 left-1/2 -translate-x-1/2
-                      px-2 py-1 
-                      bg-black/90 
-                      rounded-md 
-                      text-white 
-                      text-xs 
-                      font-primary
-                      opacity-0 
-                      group-hover:opacity-100
-                      transition-opacity 
-                      duration-200
-                      pointer-events-none
-                      whitespace-nowrap
-                    "
-                    >
-                      Sponsored
+                  <div className="flex justify-between items-start mb-3">
+                    <div className="flex items-center gap-1.5">
+                      <span>{emoji}</span>
+                      <span className="text-sm font-primary font-medium text-gray-600">
+                        {service.category}
+                      </span>
                     </div>
-                  )}
-                  <div className="text-center p-3 flex flex-col items-center justify-center h-full">
-                    <h3 className="font-medium text-sm mb-1 font-primary text-[var(--color-text-primary)] line-clamp-1">
-                      {service.name}
-                    </h3>
-                    <span className="text-xs text-[var(--color-text-secondary)] font-primary">
-                      {service.category}
-                    </span>
                   </div>
-                  <div className="absolute inset-0 bg-[var(--color-brand-secondary)] opacity-0 group-hover:opacity-5 transition-opacity duration-200" />
+
+                  <h3 className="heading-7 font-primary font-semibold text-gray-900 mb-1">
+                    {service.name}
+                  </h3>
+
+                  <p className="text-sm font-primary text-gray-500 mb-3">
+                    {beach.region}
+                  </p>
+
+                  <div className="h-px bg-gray-100 my-3"></div>
+
+                  <div className="flex justify-between items-center">
+                    <span className="text-xs font-primary text-[var(--color-text-secondary)] hover:underline">
+                      View details
+                    </span>
+
+                    {service.isAd && (
+                      <span className="text-xs font-primary text-gray-400">
+                        Ad
+                      </span>
+                    )}
+                  </div>
                 </a>
               );
             })}

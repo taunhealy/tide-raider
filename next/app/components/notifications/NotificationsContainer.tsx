@@ -5,6 +5,7 @@ import { useSession } from "next-auth/react";
 import { Bell, ShoppingBag, AlertTriangle } from "lucide-react";
 import { formatDistanceToNow } from "date-fns";
 import Link from "next/link";
+import { SpiralAnimation } from "@/app/components/alerts/SpiralAnimation";
 
 interface Notification {
   id: string;
@@ -146,7 +147,9 @@ export default function NotificationsContainer() {
   if (notifications.length === 0) {
     return (
       <div className="text-center py-8 bg-gray-50 rounded-lg border border-gray-200 shadow-sm">
-        <Bell className="h-12 w-12 text-gray-400 mx-auto mb-3" />
+        <div className="mb-3">
+          <SpiralAnimation size={80} />
+        </div>
         <h3 className="font-primary text-lg font-medium text-gray-800">
           No notifications
         </h3>
@@ -204,7 +207,9 @@ export default function NotificationsContainer() {
 
       {filteredNotifications.length === 0 ? (
         <div className="text-center py-8 bg-gray-50 rounded-lg border border-gray-200">
-          <Bell className="h-12 w-12 text-gray-400 mx-auto mb-3" />
+          <div className="mb-3">
+            <SpiralAnimation size={80} />
+          </div>
           <h3 className="font-primary text-lg font-medium text-gray-800">
             No {activeTab !== "all" ? activeTab : ""} notifications
           </h3>

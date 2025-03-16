@@ -15,7 +15,6 @@ import { cn } from "@/app/lib/utils";
 import {
   getWindEmoji,
   getSwellEmoji,
-  getDirectionEmoji,
   degreesToCardinal,
 } from "@/app/lib/forecastUtils";
 import Image from "next/image";
@@ -26,10 +25,9 @@ import { useMemo, useState, useEffect } from "react";
 import Link from "next/link";
 import BeachDetailsModal from "@/app/components/BeachDetailsModal";
 import { beachData, type Beach } from "@/app/types/beaches";
-import { AlertConfig } from "@/app/types/alerts";
 
 import { toast } from "sonner";
-import ForecastAlertModal from "@/app/components/alerts/ForecastAlertModal";
+
 import {
   Tooltip,
   TooltipContent,
@@ -637,6 +635,30 @@ export default function RaidLogTable({
     </TooltipProvider>
   );
 
+  // State to track if we're on mobile
+  const [isMobile, setIsMobile] = useState(false);
+
+  // Check if we're on mobile when component mounts and when window resizes
+  useEffect(() => {
+    const checkIfMobile = () => {
+      setIsMobile(window.innerWidth < 768);
+
+      // If we're on mobile and in table view, switch to card view
+      if (window.innerWidth < 768 && viewMode === "table") {
+        setViewMode("card");
+      }
+    };
+
+    // Initial check
+    checkIfMobile();
+
+    // Add resize listener
+    window.addEventListener("resize", checkIfMobile);
+
+    // Cleanup
+    return () => window.removeEventListener("resize", checkIfMobile);
+  }, [viewMode, setViewMode]);
+
   if (isLoading) {
     return <TableSkeleton />;
   }
@@ -648,14 +670,26 @@ export default function RaidLogTable({
           <Tabs
             value={viewMode}
             defaultValue={viewMode}
-            onValueChange={(value) => setViewMode(value as "table" | "card")}
+            onValueChange={(value) => {
+              // Only allow changing to table view if not on mobile
+              if (value === "table" && isMobile) {
+                return;
+              }
+              setViewMode(value as "table" | "card");
+            }}
           >
             <TabsList className="grid w-[180px] grid-cols-2">
               <TabsTrigger value="card" className="flex items-center gap-2">
                 <LayoutGrid className="h-4 w-4" />
                 <span className="text-sm font-primary">Cards</span>
               </TabsTrigger>
-              <TabsTrigger value="table" className="flex items-center gap-2">
+              <TabsTrigger
+                value="table"
+                className={cn(
+                  "flex items-center gap-2",
+                  isMobile && "opacity-50 pointer-events-none"
+                )}
+              >
                 <TableIcon className="h-4 w-4" />
                 <span className="text-sm font-primary">Table</span>
               </TabsTrigger>
@@ -674,15 +708,17 @@ export default function RaidLogTable({
                 >
                   <div className="flex justify-between items-start gap-2">
                     <div className="flex-grow">
-                      <h3 className="text-base font-medium font-primary text-gray-900">
+                      <h3 className="text-base font-medium font-primary text-gray-900 mb-1">
                         {renderGatedContent(entry.beachName, "Sign in to view")}
                       </h3>
-                      <p className="text-sm text-gray-500 font-primary">
-                        {format(new Date(entry.date), "MMM d, yyyy")}
-                      </p>
-                      <p className="text-sm text-gray-500 font-primary">
-                        {entry.region}
-                      </p>
+                      <div className="space-y-1">
+                        <p className="text-sm text-gray-500 font-primary">
+                          📖 {format(new Date(entry.date), "MMM d, yyyy")}
+                        </p>
+                        <p className="text-sm text-gray-500 font-primary">
+                          📍 {entry.region}
+                        </p>
+                      </div>
                     </div>
                     <div className="flex gap-2">
                       <TooltipProvider>

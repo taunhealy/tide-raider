@@ -239,7 +239,10 @@ export async function PATCH(
       } else if (createAlert) {
         await prisma.alert.create({
           data: {
-            name: `Alert for ${updatedLogEntry.beachName || updatedLogEntry.region}`,
+            name:
+              updatedLogEntry.beachName ||
+              updatedLogEntry.region ||
+              "Unnamed location",
             region: updatedLogEntry.region || "",
             properties: alertConfig.properties || [
               { property: "windSpeed", range: 2 },

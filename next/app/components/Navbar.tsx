@@ -48,7 +48,12 @@ export default function Navbar() {
       >
         <Link
           href="/"
-          onClick={handleHomeClick}
+          onClick={(e) => {
+            e.preventDefault();
+            router.push("/");
+            router.refresh();
+            setIsMenuOpen(false); // Close mobile menu if open
+          }}
           className="font-semibold hover:text-[var(--color-bg-tertiary)] transition-all duration-300"
         >
           <h6 className="heading-6 text-[var(--color-text-primary)]">

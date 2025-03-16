@@ -495,3 +495,73 @@ canvas {
 body {
   font-family: var(--font-inter);
 }
+
+@keyframes bounce-cartoon {
+  0%,
+  100% {
+    transform: translateY(0) scale(1) perspective(500px) rotateX(0deg);
+  }
+  50% {
+    transform: translateY(-8px) scale(1.05) perspective(1000px) rotateX(-3deg)
+      rotateZ(0.5deg);
+  }
+}
+
+.animate-bounce-cartoon {
+  animation: bounce-cartoon 1.5s cubic-bezier(0.28, 0.84, 0.42, 1) infinite;
+  transform-style: preserve-3d;
+  backface-visibility: hidden;
+}
+
+.animate-bounce-cartoon::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 40%;
+  height: 100%;
+  background: linear-gradient(
+    to right,
+    transparent 0%,
+    rgba(255, 255, 255, 0.1) 50%,
+    transparent 100%
+  );
+  animation: highlight-slide 3s infinite;
+  filter: blur(8px);
+  z-index: 10;
+  transform: translateZ(0);
+}
+
+@keyframes highlight-slide {
+  0% {
+    transform: translateX(-75%);
+  }
+  100% {
+    transform: translateX(250%);
+  }
+}
+
+/* For gradient transition */
+.group:hover .animate-bounce-cartoon {
+  animation-duration: 1.5s;
+}
+
+/* Add text warping */
+.animate-bounce-cartoon span {
+  display: inline-block;
+  transform: translateZ(0);
+  transition: transform 0.3s ease;
+}
+
+@keyframes text-bulge {
+  50% {
+    transform: scale(1.05) skewX(-1deg) translateY(-1px);
+    text-shadow:
+      0 2px 4px rgba(0, 0, 0, 0.1),
+      0 0 8px rgba(255, 255, 255, 0.2);
+  }
+}
+
+.animate-bounce-cartoon:hover span {
+  animation: text-bulge 1.5s ease infinite;
+}

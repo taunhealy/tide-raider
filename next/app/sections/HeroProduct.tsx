@@ -20,6 +20,7 @@ import { useQueries } from "@tanstack/react-query";
 import { Button } from "@/app/components/ui/Button";
 import { urlForImage } from "@/app/lib/urlForImage";
 import Link from "next/link";
+import { Bell, Star, ImageIcon } from "lucide-react";
 
 const FEATURED_BEACHES = [
   "jeffreys-bay",
@@ -104,6 +105,10 @@ export default function HeroProduct({ data }: { data?: any }) {
   const isLoading = regionQueries.some((query) => query.isLoading);
 
   const imageRef = useRef(null);
+  const alertCardRef = useRef(null);
+  const logCardRef = useRef(null);
+  const bellIconRef = useRef(null);
+  const bookIconRef = useRef(null);
 
   useEffect(() => {
     if (imageRef.current) {
@@ -116,6 +121,175 @@ export default function HeroProduct({ data }: { data?: any }) {
       });
     }
   }, [selectedBeachId]); // Re-run when beach changes
+
+  // Add GSAP animation for the bell icon
+  useEffect(() => {
+    if (bellIconRef.current) {
+      gsap.to(bellIconRef.current, {
+        rotation: 45, // Start with 45 degree rotation
+        duration: 0,
+      });
+
+      // Create a timeline for continuous animation
+      const bellTl = gsap.timeline({ repeat: -1 });
+
+      bellTl
+        .to(bellIconRef.current, {
+          scale: 1.1,
+          opacity: 1,
+          stroke: "#FF8C00", // Orange color for the bell
+          duration: 1,
+          ease: "power1.inOut",
+        })
+        .to(bellIconRef.current, {
+          rotation: 35,
+          duration: 0.1,
+          ease: "power1.inOut",
+        })
+        .to(bellIconRef.current, {
+          rotation: 55,
+          duration: 0.1,
+          ease: "power1.inOut",
+        })
+        .to(bellIconRef.current, {
+          rotation: 35,
+          duration: 0.1,
+          ease: "power1.inOut",
+        })
+        .to(bellIconRef.current, {
+          rotation: 45,
+          duration: 0.1,
+          ease: "power1.inOut",
+        })
+        .to(bellIconRef.current, {
+          scale: 1,
+          opacity: 0.8,
+          stroke: "#000000", // Back to black
+          duration: 1,
+          ease: "power1.inOut",
+        });
+    }
+  }, []);
+
+  // Add GSAP animation for the book icon
+  useEffect(() => {
+    if (bookIconRef.current) {
+      // Create a timeline for continuous animation
+      const bookTl = gsap.timeline({ repeat: -1 });
+
+      bookTl
+        .to(bookIconRef.current, {
+          y: -5,
+          stroke: "var(--color-tertiary)", // Change to brand cyan color during bounce
+          scale: 1.1,
+          duration: 0.5,
+          ease: "back.out(1.7)",
+        })
+        .to(bookIconRef.current, {
+          y: 0,
+          stroke: "#000000", // Back to black
+          scale: 1,
+          duration: 0.5,
+          ease: "bounce.out",
+        })
+        .to({}, { duration: 1.5 }); // Pause before repeating
+    }
+  }, []);
+
+  // Update the GSAP animation for the alert card
+  useEffect(() => {
+    if (alertCardRef.current) {
+      // Create a timeline for the alert card animation with seamless looping
+      const alertTl = gsap.timeline({
+        repeat: -1,
+        repeatDelay: 0.5,
+      });
+
+      // Initial state
+      gsap.set(alertCardRef.current, { opacity: 0, y: 20 });
+
+      // Animation sequence
+      alertTl
+        .to(alertCardRef.current, {
+          opacity: 1,
+          y: 0,
+          duration: 0.8,
+          ease: "power2.out",
+        })
+        .to(
+          alertCardRef.current,
+          {
+            scale: 1.03,
+            duration: 0.7,
+            ease: "power1.inOut",
+            yoyo: true,
+            repeat: 1,
+          },
+          "+=1"
+        )
+        // Add a smooth fade out at the end of the cycle
+        .to(alertCardRef.current, {
+          opacity: 0,
+          y: -10,
+          duration: 0.6,
+          ease: "power2.in",
+          delay: 1,
+        })
+        // Reset position for next cycle
+        .set(alertCardRef.current, {
+          y: 20,
+          immediateRender: false,
+        });
+    }
+  }, []);
+
+  // Update the GSAP animation for the log card
+  useEffect(() => {
+    if (logCardRef.current) {
+      // Create a timeline for the log card animation with seamless looping
+      const logTl = gsap.timeline({
+        repeat: -1,
+        repeatDelay: 0.5,
+      });
+
+      // Initial state
+      gsap.set(logCardRef.current, { opacity: 0, y: 20 });
+
+      // Animation sequence
+      logTl
+        .to(logCardRef.current, {
+          opacity: 1,
+          y: 0,
+          duration: 0.8,
+          ease: "power2.out",
+          delay: 0.3, // Slight delay compared to alert card
+        })
+        .to(
+          logCardRef.current,
+          {
+            y: -5,
+            duration: 0.5,
+            ease: "power1.inOut",
+            yoyo: true,
+            repeat: 1,
+          },
+          "+=1"
+        )
+        // Add a smooth fade out at the end of the cycle
+        .to(logCardRef.current, {
+          opacity: 0,
+          y: -10,
+          duration: 0.6,
+          ease: "power2.in",
+          delay: 1,
+        })
+        // Reset position for next cycle
+        .set(logCardRef.current, {
+          y: 20,
+          immediateRender: false,
+        });
+    }
+  }, []);
 
   useEffect(() => {
     const updateCardsPerView = () => {
@@ -153,14 +327,13 @@ export default function HeroProduct({ data }: { data?: any }) {
   const currentBeachData = surfData[selectedBeachId];
 
   return (
-    <section className="pt-[54px] pb-[81px] md:pt-[54px] md:pb-[121.51px] px-4 md:px-[121.51px] bg-[var(--color-bg-primary)]">
+    <section className="pt-16 pb-24 md:pt-20 md:pb-32 px-4 md:px-8 lg:px-16 bg-[var(--color-bg-primary)]">
       <div className="container mx-auto max-w-[1440px]">
-        <div className="mb-8 md:mb-8 lg:mb-8 w-full md:w-2/3">
-          <h3 className="font-primary text-xl md:text-2xl lg:text-3xl font-semibold mb-3 md:mb-4 text-black">
+        <div className="mb-12 md:mb-16 lg:mb-20 w-full md:w-2/3">
+          <h3 className="font-primary text-xl md:text-2xl lg:text-3xl font-semibold mb-2 text-black">
             Daily surf spot recommendations
           </h3>
-
-          <p className="font-primary text-sm md:text-base mb-4 max-w-[540px] font-normal">
+          <p className="font-primary text-sm md:text-base mb-6 max-w-[540px] font-normal">
             Explore beyond your regular surf break.
           </p>
           <Link href="/raid">
@@ -174,7 +347,7 @@ export default function HeroProduct({ data }: { data?: any }) {
           </Link>
         </div>
 
-        <div className="slider-section px-2 md:px-6 lg:px-8">
+        <div className="slider-section px-2 md:px-6 lg:px-8 mb-20 md:mb-24 lg:mb-32">
           <div className="flex flex-col lg:flex-row gap-4 md:gap-6 lg:gap-12">
             {/* Slider Section */}
             <div className="w-full lg:w-2/5">
@@ -299,7 +472,7 @@ export default function HeroProduct({ data }: { data?: any }) {
                   </div>
                 )}
                 <div className="mt-4 md:mt-8 lg:mt-12 bg-white rounded-lg md:rounded-xl p-3 md:p-4 lg:p-6 shadow-sm border border-gray-100 max-w-[640px] mx-auto lg:mx-0">
-                  <h3 className="font-primary text-sm md:text-base lg:text-lg font-semibold mb-2 md:mb-4">
+                  <h3 className="font-primary text-[16pxx] font-medium mb-2 md:mb-4">
                     Optimal Conditions
                   </h3>
 
@@ -369,7 +542,7 @@ export default function HeroProduct({ data }: { data?: any }) {
                                 )}
                               </span>
                               <span
-                                className={`font-primary ${
+                                className={`font-primary text-sm ${
                                   condition.isMet
                                     ? "text-gray-800"
                                     : "text-gray-500"
@@ -530,14 +703,89 @@ export default function HeroProduct({ data }: { data?: any }) {
           </div>
         </div>
 
-        {/* Alerts Feature Promotion */}
-        <div className="mt-12 md:mt-16 lg:mt-24 bg-gradient-to-r from-[var(--color-tertiary-light)] to-[var(--color-tertiary)] rounded-xl p-6 md:p-8 lg:p-10 shadow-lg">
-          <div className="flex flex-col md:flex-row items-center justify-between gap-6 md:gap-8">
-            <div className="w-full md:w-2/3">
-              <h3 className="font-primary text-xl md:text-2xl lg:text-3xl font-semibold mb-3 md:mb-4 text-black">
+        {/* Alerts Feature Promotion with improved alignment */}
+        <div className="mb-16 md:mb-20 lg:mb-24 bg-gradient-to-r from-[var(--color-tertiary-light)] to-[var(--color-tertiary)] rounded-xl p-8 md:p-10 lg:p-12 border-b border-gray-200">
+          <div className="flex flex-col md:flex-row items-center justify-between max-w-6xl mx-auto">
+            <div className="w-full md:w-1/2 lg:w-2/5 flex items-center justify-center md:justify-start order-2 md:order-1 mt-8 md:mt-0">
+              <div
+                className="relative w-[220px] h-[280px] md:w-[280px] md:h-[320px]"
+                ref={alertCardRef}
+              >
+                {/* Alert Card Animation */}
+                <div className="absolute inset-0 bg-white rounded-lg border border-gray-100 overflow-hidden transform">
+                  <div className="p-5">
+                    <div className="flex justify-between items-center mb-3">
+                      <h4 className="font-primary text-sm font-medium">
+                        Jeffreys Bay Alert
+                      </h4>
+                      <div className="flex items-center gap-2">
+                        <div className="w-8 h-4 bg-[var(--color-tertiary)] rounded-full"></div>
+                        <Bell className="w-4 h-4 text-[var(--color-alert-icon-rating)] fill-[var(--color-alert-icon-rating)] bell-icon" />
+                      </div>
+                    </div>
+                    <div className="space-y-3">
+                      <div className="text-xs font-primary">
+                        <p className="text-gray-700 font-medium mb-2">
+                          Reference Conditions:
+                        </p>
+                        <div className="bg-gray-50 p-2 rounded-lg space-y-3">
+                          {/* Wind Speed with Range */}
+                          <div className="space-y-1">
+                            <div className="flex flex-wrap gap-2">
+                              <div className="inline-flex items-center bg-blue-100 text-blue-800 px-2 py-1 rounded-full text-xs font-primary">
+                                <span className="mr-1">💨</span>
+                                <span className="font-medium">Wind Speed</span>
+                              </div>
+                              <div className="inline-flex items-center bg-blue-100 text-blue-800 px-2 py-1 rounded-full text-xs font-primary">
+                                <span>12kts</span>
+                              </div>
+                              <div className="inline-flex items-center bg-gray-200 text-gray-700 px-2 py-1 rounded-full text-xs font-primary cursor-help">
+                                <span className="font-medium">±3kts</span>
+                              </div>
+                            </div>
+                            <div className="text-[10px] text-gray-500 font-primary">
+                              <span className="font-medium">Range:</span> 9 -
+                              15kts
+                            </div>
+                          </div>
+
+                          {/* Swell Height with Range */}
+                          <div className="space-y-1">
+                            <div className="flex flex-wrap gap-2">
+                              <div className="inline-flex items-center bg-cyan-100 text-cyan-800 px-2 py-1 rounded-full text-xs font-primary">
+                                <span className="mr-1">🌊</span>
+                                <span className="font-medium">
+                                  Swell Height
+                                </span>
+                              </div>
+                              <div className="inline-flex items-center bg-cyan-100 text-cyan-800 px-2 py-1 rounded-full text-xs font-primary">
+                                <span>1.5m</span>
+                              </div>
+                              <div className="inline-flex items-center bg-gray-200 text-gray-700 px-2 py-1 rounded-full text-xs font-primary cursor-help">
+                                <span className="font-medium">±0.5m</span>
+                              </div>
+                            </div>
+                            <div className="text-[10px] text-gray-500 font-primary">
+                              <span className="font-medium">Range:</span> 1.0 -
+                              2.0m
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+            <div className="w-full md:w-1/2 lg:w-3/5 flex flex-col items-start justify-center order-1 md:order-2">
+              <h3 className="font-primary text-xl md:text-2xl lg:text-3xl font-semibold mb-2 text-black flex items-center gap-2">
+                <Bell
+                  ref={bellIconRef}
+                  className="w-5 h-5 text-[var(--color-tertiary-dark)] fill-transparent"
+                />
                 Get alerted to great conditions
               </h3>
-              <p className="font-primary text-sm md:text-base mb-4 max-w-[540px] font-normal">
+              <p className="font-primary text-sm md:text-base mb-6 max-w-[540px] font-normal">
                 Get notified when your favorite spots are firing. Set up custom
                 alerts based on swell size, wind direction, star ratings and
                 more.
@@ -550,66 +798,92 @@ export default function HeroProduct({ data }: { data?: any }) {
                 Set Up Alerts
               </Button>
             </div>
-            <div className="w-full md:w-1/3 flex justify-center">
-              <div className="relative w-[180px] h-[180px] md:w-[220px] md:h-[220px]">
-                {data?.heroAlertImage ? (
-                  <Image
-                    src={urlForImage(data.heroAlertImage).url()}
-                    alt="Surf alerts illustration"
-                    fill
-                    className="object-contain"
-                  />
-                ) : (
-                  <Image
-                    src="/alerts-illustration.svg"
-                    alt="Surf alerts illustration"
-                    fill
-                    className="object-contain"
-                  />
-                )}
-              </div>
-            </div>
           </div>
         </div>
 
-        {/* Log Book Feature Promotion */}
-        <div className="mt-12 md:mt-16 lg:mt-24 bg-gradient-to-r from-[var(--color-secondary-light)] to-[var(--color-secondary)] rounded-xl p-6 md:p-8 lg:p-10 shadow-lg">
-          <div className="flex flex-col md:flex-row-reverse items-center justify-between gap-8 md:gap-10">
-            <div className="w-full md:w-2/3">
-              <h3 className="font-primary text-xl md:text-2xl lg:text-3xl font-semibold mb-3 md:mb-4 text-black">
+        {/* Log Book Feature Promotion with improved alignment */}
+        <div className="bg-gradient-to-r from-[var(--color-secondary-light)] to-[var(--color-secondary)] rounded-xl p-8 md:p-10 lg:p-12 border-b border-gray-200">
+          <div className="flex flex-col md:flex-row items-center justify-between max-w-6xl mx-auto">
+            <div className="w-full md:w-1/2 lg:w-2/5 flex items-center justify-center md:justify-start order-2 md:order-1 mt-8 md:mt-0">
+              <div
+                className="relative w-[220px] h-[280px] md:w-[280px] md:h-[320px]"
+                ref={logCardRef}
+              >
+                {/* Log Card Animation */}
+                <div className="absolute inset-0 bg-white rounded-lg border border-gray-100 overflow-hidden transform">
+                  <div className="p-5">
+                    <div className="flex justify-between items-center mb-3">
+                      <h4 className="font-primary text-sm font-medium">
+                        Surf Session Log
+                      </h4>
+                      <div className="flex items-center gap-1 star-icons">
+                        {[1, 2, 3, 4].map((i) => (
+                          <Star
+                            key={i}
+                            className="w-3 h-3 fill-[var(--color-alert-icon-rating)] text-[var(--color-alert-icon-rating)]"
+                          />
+                        ))}
+                        <Star className="w-3 h-3 text-gray-300" />
+                      </div>
+                    </div>
+                    <div className="space-y-3 text-xs font-primary">
+                      <p>📍 Muizenberg, South Africa</p>
+                      <p>📆 June 15, 2023</p>
+                      <div className="flex flex-wrap gap-2 mt-2">
+                        <div className="inline-flex items-center bg-blue-100 text-blue-800 px-2 py-1 rounded-full text-xs font-primary">
+                          <span>SW @ 8kts</span>
+                        </div>
+                        <div className="inline-flex items-center bg-cyan-100 text-cyan-800 px-2 py-1 rounded-full text-xs font-primary">
+                          <span>1.2m @ 10s</span>
+                        </div>
+                      </div>
+                      <div className="mt-2">
+                        <p className="font-medium mb-1">Notes:</p>
+                        <p className="text-gray-600 text-[11px] line-clamp-2">
+                          Great session with clean waves. Used my 6'2"
+                          shortboard. Caught about 10 waves and practiced
+                          cutbacks.
+                        </p>
+                      </div>
+                      <div className="h-16 bg-gray-100 rounded-md mt-2 flex items-center justify-center">
+                        <ImageIcon className="w-5 h-5 text-gray-400" />
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+            <div className="w-full md:w-1/2 lg:w-3/5 flex flex-col items-start justify-center order-1 md:order-2">
+              <h3 className="font-primary text-xl md:text-2xl lg:text-3xl font-semibold mb-2 text-black flex items-center gap-2">
+                <svg
+                  ref={bookIconRef}
+                  xmlns="http://www.w3.org/2000/svg"
+                  width="20"
+                  height="20"
+                  viewBox="0 0 24 24"
+                  fill="transparent"
+                  stroke="currentColor"
+                  strokeWidth="2"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  className="w-5 h-5 text-[var(--color-secondary-dark)]"
+                >
+                  <path d="M4 19.5v-15A2.5 2.5 0 0 1 6.5 2H20v20H6.5a2.5 2.5 0 0 1 0-5H20" />
+                </svg>
                 Track your surf journey
               </h3>
-              <p className="font-primary text-sm md:text-base mb-4 max-w-[540px] font-normal text-black/90">
+              <p className="font-primary text-sm md:text-base mb-6 max-w-[540px] font-normal text-black/90">
                 Keep a digital record of your surf sessions. Log wave quality,
                 board performance, and personal achievements to improve your
                 surfing.
               </p>
               <Button
-                variant="outline"
+                variant="default"
                 size="default"
-                className="font-primary text-base bg-white/10 hover:bg-white/20 text-white border-white/30"
+                className="font-primary text-base"
               >
                 Start Your Log Book
               </Button>
-            </div>
-            <div className="w-full md:w-1/3 flex justify-center">
-              <div className="relative w-[180px] h-[180px] md:w-[220px] md:h-[220px]">
-                {data?.heroLogBookImage ? (
-                  <Image
-                    src={urlForImage(data.heroLogBookImage).url()}
-                    alt="Surf log book illustration"
-                    fill
-                    className="object-contain"
-                  />
-                ) : (
-                  <Image
-                    src="/logbook-illustration.svg"
-                    alt="Surf log book illustration"
-                    fill
-                    className="object-contain"
-                  />
-                )}
-              </div>
             </div>
           </div>
         </div>

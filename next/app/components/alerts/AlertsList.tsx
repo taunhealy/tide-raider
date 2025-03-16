@@ -15,8 +15,16 @@ import { useQuery, useQueryClient, useMutation } from "@tanstack/react-query";
 import { useRouter } from "next/navigation";
 import { cn } from "@/app/lib/utils";
 import { SpiralAnimation } from "@/app/components/alerts/SpiralAnimation";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/app/components/ui/tooltip";
 
 import { Alert } from "@/app/types/alerts";
+import { getSwellEmoji, getWindEmoji } from "@/app/lib/forecastUtils";
+import { formatItemType } from "@/app/lib/formatters";
 
 type ForecastProperty =
   | "windSpeed"
@@ -216,47 +224,47 @@ export function AlertsList() {
         <div className="flex space-x-4 overflow-x-auto pb-1 scrollbar-hide">
           <button
             onClick={() => setActiveTab("all")}
-            className={`py-3 px-4 font-primary ${
+            className={`py-3 px-2 sm:px-4 font-primary text-xs sm:text-sm ${
               activeTab === "all"
                 ? "border-b-2 border-[var(--color-alert-tab-active)] text-[var(--color-alert-tab-active)] font-medium"
                 : "text-[var(--color-text-secondary)] hover:text-[var(--color-text-primary)]"
             }`}
           >
             All Alerts
-            <span className="ml-2 text-xs bg-[var(--color-bg-secondary)] px-2 py-1 rounded-full">
+            <span className="ml-1 sm:ml-2 text-xs bg-[var(--color-bg-secondary)] px-1.5 sm:px-2 py-0.5 sm:py-1 rounded-full">
               {alerts.length}
             </span>
           </button>
           <button
             onClick={() => setActiveTab("variable")}
-            className={`py-3 px-4 font-primary ${
+            className={`py-3 px-2 sm:px-4 font-primary text-xs sm:text-sm ${
               activeTab === "variable"
                 ? "border-b-2 border-[var(--color-alert-tab-active)] text-[var(--color-alert-tab-active)] font-medium"
                 : "text-[var(--color-text-secondary)] hover:text-[var(--color-text-primary)]"
             }`}
           >
             Variable Alerts
-            <span className="ml-2 text-xs bg-[var(--color-bg-secondary)] px-2 py-1 rounded-full">
+            <span className="ml-1 sm:ml-2 text-xs bg-[var(--color-bg-secondary)] px-1.5 sm:px-2 py-0.5 sm:py-1 rounded-full">
               {alerts.filter((a: Alert) => a.alertType !== "rating").length}
             </span>
           </button>
           <button
             onClick={() => setActiveTab("rating")}
-            className={`py-3 px-4 font-primary ${
+            className={`py-3 px-2 sm:px-4 font-primary text-xs sm:text-sm ${
               activeTab === "rating"
                 ? "border-b-2 border-[var(--color-alert-tab-active)] text-[var(--color-alert-tab-active)] font-medium"
                 : "text-[var(--color-text-secondary)] hover:text-[var(--color-text-primary)]"
             }`}
           >
             Star Rating Alerts
-            <span className="ml-2 text-xs bg-[var(--color-bg-secondary)] px-2 py-1 rounded-full">
+            <span className="ml-1 sm:ml-2 text-xs bg-[var(--color-bg-secondary)] px-1.5 sm:px-2 py-0.5 sm:py-1 rounded-full">
               {alerts.filter((a: Alert) => a.alertType === "rating").length}
             </span>
           </button>
         </div>
       </div>
 
-      <div className=" grid grid-cols-1 sm:grid-cols-1 lg:grid-cols-3 gap-4">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 max-w-full">
         {filteredAlerts.length === 0 ? (
           <div className="text-center py-8 border rounded-lg bg-[var(--color-bg-primary)] border-[var(--color-border-light)] col-span-full">
             <SpiralAnimation size={120} className="mx-auto" />
@@ -275,84 +283,88 @@ export function AlertsList() {
             <Card
               key={alert.id}
               className={cn(
-                "bg-[var(--color-bg-primary)] border-[var(--color-border-light)] hover:border-[var(--color-border-medium)] hover:shadow-sm transition-all duration-300 h-full flex flex-col",
+                "bg-white rounded-lg border border-gray-200 shadow-sm hover:shadow-md transition-shadow h-full flex flex-col",
                 !alert.logEntry && "border-red-400 hover:border-red-500"
               )}
             >
-              <CardHeader className="pb-2">
-                <div className="flex justify-between items-center flex-wrap gap-2">
-                  <CardTitle className="text-lg font-primary text-[var(--color-text-primary)] flex items-center">
-                    {alert.alertType === "rating" ? (
-                      <span className="mr-2 text-[var(--color-alert-icon-rating)]">
-                        ⭐
-                      </span>
-                    ) : (
-                      <span className="mr-2">📊</span>
-                    )}
-                    {alert.name}
-                    {!alert.logEntry && (
-                      <span className="ml-2 text-xs text-red-500 font-normal">
-                        (Reference session deleted)
-                      </span>
-                    )}
-                  </CardTitle>
-                  <div className="flex items-center gap-2">
-                    <Switch
-                      checked={alert.active}
-                      onCheckedChange={(checked) => {
-                        if (alert.id) {
-                          handleToggleActive(alert.id, checked);
-                        }
-                      }}
-                      aria-label={
-                        alert.active ? "Deactivate alert" : "Activate alert"
+              <CardHeader className="pb-2 relative">
+                <div className="absolute top-3 right-3 flex items-center gap-2">
+                  <TooltipProvider>
+                    <Tooltip>
+                      <TooltipTrigger asChild>
+                        <span>
+                          <Switch
+                            checked={alert.active}
+                            onCheckedChange={(checked) => {
+                              if (alert.id) {
+                                handleToggleActive(alert.id, checked);
+                              }
+                            }}
+                            aria-label={
+                              alert.active
+                                ? "Deactivate alert"
+                                : "Activate alert"
+                            }
+                          />
+                        </span>
+                      </TooltipTrigger>
+                      <TooltipContent
+                        side="top"
+                        className="font-primary text-sm"
+                      >
+                        {alert.active ? "Alert is active" : "Alert is inactive"}
+                      </TooltipContent>
+                    </Tooltip>
+                  </TooltipProvider>
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    onClick={() => {
+                      if (alert?.id) {
+                        router.push(`/alerts/${alert.id}`);
                       }
-                    />
-                    <Button
-                      variant="ghost"
-                      size="icon"
-                      onClick={() => {
-                        if (alert?.id) {
-                          console.log("Editing alert:", alert);
-                          router.push(`/alerts/${alert.id}`);
-                        }
-                      }}
-                      className="h-8 w-8 hover:bg-[var(--color-bg-secondary)]"
-                    >
-                      <Pencil className="h-4 w-4" />
-                    </Button>
-                    <Button
-                      variant="ghost"
-                      size="icon"
-                      onClick={() => alert.id && handleDelete(alert.id)}
-                      className="h-8 w-8 text-red-500 hover:text-red-700 hover:bg-red-50"
-                    >
-                      <Trash2 className="h-4 w-4" />
-                    </Button>
-                  </div>
+                    }}
+                    className="h-8 w-8 hover:bg-gray-100"
+                  >
+                    <Pencil className="h-4 w-4" />
+                  </Button>
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    onClick={() => alert.id && handleDelete(alert.id)}
+                    className="h-8 w-8 text-red-500 hover:text-red-700 hover:bg-red-50"
+                  >
+                    <Trash2 className="h-4 w-4" />
+                  </Button>
                 </div>
+                <CardTitle className="text-base font-primary text-gray-900 flex items-center pr-24">
+                  {alert.alertType === "rating" ? (
+                    <span className="mr-2 text-[var(--color-alert-icon-rating)]">
+                      ⭐
+                    </span>
+                  ) : (
+                    <span className="mr-2">🧙</span>
+                  )}
+                  {alert.name}
+                  {!alert.logEntry && (
+                    <span className="ml-2 text-xs text-red-500 font-normal">
+                      (Reference session deleted)
+                    </span>
+                  )}
+                </CardTitle>
               </CardHeader>
               <CardContent className="flex-grow flex-1">
                 <div className="text-sm space-y-2 sm:space-y-3 font-primary h-full flex flex-col">
-                  <p className="text-[var(--color-text-secondary)]">
-                    <span className="font-medium text-[var(--color-text-primary)]">
-                      Region:
-                    </span>{" "}
-                    {alert.region}
+                  <p className="text-gray-500">{alert.region}</p>
+                  <p className="text-gray-500">
+                    <span className="font-medium text-gray-900">🔔</span>{" "}
+                    {formatItemType(alert.notificationMethod)}
                   </p>
-                  <p className="text-[var(--color-text-secondary)]">
-                    <span className="font-medium text-[var(--color-text-primary)]">
-                      Notification:
-                    </span>{" "}
-                    {alert.notificationMethod} ({alert.contactInfo})
-                  </p>
-                  <div className="mt-2 sm:mt-3 pt-2 sm:pt-3 border-t border-[var(--color-border-light)] flex-grow">
+                  <div className="mt-2 sm:mt-3 pt-2 sm:pt-3 border-t border-gray-200 flex-grow">
                     {alert.alertType === "rating" ? (
                       <div>
-                        <p className="text-[var(--color-text-primary)] font-medium mb-2">
-                          Alert when conditions reach:
-                        </p>
-                        <div className="flex items-center mt-1 bg-[var(--color-bg-secondary)] p-3 rounded-md">
+                        <p className="text-main font-medium mb-2">Alert for:</p>
+                        <div className="flex items-center mt-1 bg-gray-50 p-3 rounded-md">
                           {alert.starRating === "5" ? (
                             <>
                               <div className="flex">
@@ -363,8 +375,11 @@ export function AlertsList() {
                                   />
                                 ))}
                               </div>
-                              <span className="ml-3 font-primary">
-                                5 Stars (Perfect conditions)
+                              <span className="ml-3 font-primary font-medium">
+                                5 Stars
+                              </span>
+                              <span className="ml-1 font-primary">
+                                (Firey conditions)
                               </span>
                             </>
                           ) : (
@@ -387,14 +402,11 @@ export function AlertsList() {
                       </div>
                     ) : (
                       <div>
-                        <p className="text-[var(--color-text-primary)] font-medium mb-2">
-                          Match conditions within:
-                        </p>
                         <div className="forecast-container">
-                          <p className="text-sm font-medium mb-2">
+                          <p className="text-main font-medium mb-2">
                             Reference Conditions:
                           </p>
-                          <div className="flex flex-col gap-4">
+                          <div className="bg-gray-50 p-3 rounded-lg space-y-3">
                             {alert.properties?.map(
                               (
                                 prop: { property: string; range: number },
@@ -404,12 +416,32 @@ export function AlertsList() {
                                   alert.logEntry?.forecast?.[
                                     getForecastProperty(prop.property)
                                   ];
+                                const propName = prop.property.toLowerCase();
+                                const isWind = propName.includes("wind");
+                                const isSwell = propName.includes("swell");
 
                                 return (
-                                  <div key={index} className="space-y-1">
-                                    <div className="flex items-center gap-2">
-                                      <div className="flex items-center gap-4">
-                                        <span className="text-[13px] sm:text-[14px] font-medium text-[var(--color-text-primary)] font-primary">
+                                  <div key={index} className="space-y-2">
+                                    <div className="flex flex-wrap gap-2">
+                                      <div
+                                        className={cn(
+                                          "inline-flex items-center px-2 py-1 rounded-full text-xs font-primary",
+                                          isWind
+                                            ? "bg-blue-100 text-blue-800"
+                                            : "bg-cyan-100 text-cyan-800"
+                                        )}
+                                      >
+                                        {propName === "windspeed" && (
+                                          <span className="mr-1">
+                                            {getWindEmoji(forecastValue ?? 0)}
+                                          </span>
+                                        )}
+                                        {propName === "swellheight" && (
+                                          <span className="mr-1">
+                                            {getSwellEmoji(forecastValue ?? 0)}
+                                          </span>
+                                        )}
+                                        <span className="font-medium">
                                           {prop.property === "windSpeed"
                                             ? "Wind Speed"
                                             : prop.property === "windDirection"
@@ -424,26 +456,63 @@ export function AlertsList() {
                                                     ? "Swell Direction"
                                                     : prop.property}
                                         </span>
-                                        {forecastValue !== undefined && (
-                                          <>
-                                            <span className="text-[18px] sm:text-[21px] font-medium text-[var(--color-text-primary)] font-primary">
-                                              {forecastValue.toFixed(1)}
-                                              {getUnit(prop.property)}
-                                            </span>
-                                            <span className="badge-generic">
-                                              ±{prop.range}
-                                              {getUnit(prop.property)}
-                                            </span>
-                                          </>
-                                        )}
                                       </div>
+
+                                      {forecastValue !== undefined && (
+                                        <div
+                                          className={cn(
+                                            "inline-flex items-center px-2 py-1 rounded-full text-xs font-primary",
+                                            isWind
+                                              ? "bg-blue-100 text-blue-800"
+                                              : "bg-cyan-100 text-cyan-800"
+                                          )}
+                                        >
+                                          <span>
+                                            {forecastValue.toFixed(1)}
+                                            {getUnit(prop.property)}
+                                          </span>
+                                        </div>
+                                      )}
+
+                                      <TooltipProvider>
+                                        <Tooltip>
+                                          <TooltipTrigger asChild>
+                                            <div
+                                              className={cn(
+                                                "inline-flex items-center px-2 py-1 rounded-full text-xs font-primary bg-gray-200 text-gray-700 cursor-help z-10"
+                                              )}
+                                            >
+                                              <span className="font-medium">
+                                                ±{prop.range}
+                                              </span>
+                                              <span>
+                                                {getUnit(prop.property)}
+                                              </span>
+                                            </div>
+                                          </TooltipTrigger>
+                                          <TooltipContent
+                                            side="top"
+                                            className="z-50"
+                                          >
+                                            <p className="text-sm">
+                                              Alert range: You'll be notified
+                                              when conditions are within this
+                                              range of the reference value
+                                            </p>
+                                          </TooltipContent>
+                                        </Tooltip>
+                                      </TooltipProvider>
                                     </div>
+
                                     {forecastValue !== undefined && (
-                                      <div className="text-[12px] text-[var(--color-text-secondary)] font-primary">
-                                        Range:{" "}
-                                        {(forecastValue - prop.range).toFixed(
-                                          1
-                                        )}{" "}
+                                      <div className="text-[12px] text-gray-500 font-primary">
+                                        <span className="font-medium">
+                                          Range:
+                                        </span>{" "}
+                                        {Math.max(
+                                          0,
+                                          forecastValue - prop.range
+                                        ).toFixed(1)}{" "}
                                         -{" "}
                                         {(forecastValue + prop.range).toFixed(
                                           1
@@ -451,8 +520,9 @@ export function AlertsList() {
                                         {getUnit(prop.property)}
                                       </div>
                                     )}
+
                                     {index < alert.properties.length - 1 && (
-                                      <div className="border-b border-[var(--color-border-light)] my-3"></div>
+                                      <div className="border-b border-gray-200 my-3"></div>
                                     )}
                                   </div>
                                 );

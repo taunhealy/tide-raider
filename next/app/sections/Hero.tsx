@@ -33,53 +33,9 @@ export default function HeroSection({ data }: HeroProps) {
   const overlayRef = useRef(null);
   const textRef = useRef<HTMLDivElement>(null);
   const xRef = useRef<HTMLDivElement>(null);
-
-  useEffect(() => {
-    gsap.registerPlugin(ScrollTrigger);
-
-    const ctx = gsap.context(() => {
-      // Only create timeline if elements exist
-      if (
-        imageRef.current &&
-        overlayRef.current &&
-        textRef.current &&
-        xRef.current
-      ) {
-        const tl = gsap.timeline({
-          scrollTrigger: {
-            trigger: sectionRef.current,
-            start: "top top",
-            end: "bottom top",
-            scrub: true,
-          },
-        });
-
-        tl.to([imageRef.current, overlayRef.current], {
-          opacity: 0,
-          duration: 1,
-        });
-
-        gsap.from(textRef.current, {
-          opacity: 0,
-          y: 50,
-          duration: 1.5,
-          ease: "power4.out",
-        });
-
-        gsap.from(xRef.current, {
-          opacity: 0,
-          scale: 0.8,
-          duration: 1.2,
-          delay: 0.3,
-        });
-      }
-    }, sectionRef);
-
-    return () => {
-      ScrollTrigger.getAll().forEach((trigger) => trigger.kill());
-      ctx.revert();
-    };
-  }, []);
+  const buttonRef = useRef<HTMLSpanElement>(null);
+  const buttonBgRef = useRef<HTMLDivElement>(null);
+  const highlightRef = useRef<HTMLDivElement>(null);
 
   if (!data) {
     return (
@@ -100,7 +56,7 @@ export default function HeroSection({ data }: HeroProps) {
       ref={sectionRef}
       className="relative w-full h-[100svh] min-h-[600px] overflow-hidden"
     >
-      <div className="relative w-full h-full z-99">
+      <div className="relative w-full h-full z-99 max-w-[1440px] mx-auto">
         {/* Neon Hearts */}
         <div className="absolute top-4 sm:top-6 md:top-8 right-4 sm:right-6 md:right-8 flex space-x-2 sm:space-x-3 md:space-x-4 z-20">
           {[1, 2, 3].map((i) => (
@@ -128,10 +84,10 @@ export default function HeroSection({ data }: HeroProps) {
           />
         </div>
 
-        {/* Left sidebar text */}
+        {/* Left sidebar text - moved closer to center */}
         <div
           ref={textRef}
-          className="absolute left-4 sm:left-6 md:left-[60px] top-1/2 -translate-y-1/2 pr-2 sm:pr-3 md:pr-4"
+          className="absolute left-8 sm:left-12 md:left-[120px] lg:left-[180px] top-1/2 -translate-y-1/2 pr-2 sm:pr-3 md:pr-4"
         >
           <div className="writing-mode-vertical-rl rotate-270 space-y-1.5 sm:space-y-2 md:space-y-4">
             <h2 className="font-primary font-bold text-2xl sm:text-3xl md:text-5xl lg:text-[64px] leading-none tracking-tighter text-white">
@@ -143,13 +99,39 @@ export default function HeroSection({ data }: HeroProps) {
           </div>
         </div>
 
-        {/* Arcade Button */}
-        <div className="absolute top-1/2 right-4 sm:right-8 md:right-16 -translate-y-1/2 h-12 sm:h-16 md:h-24 w-48 sm:w-64 md:w-96">
-          <Link href="/raid" className="group relative bg-transparent z-10">
-            <span className="relative z-20 text-lg sm:text-xl md:text-3xl lg:text-4xl font-primary font-semibold tracking-wider text-white px-6 sm:px-8 md:px-16 py-2 sm:py-3 md:py-4 inline-block transform perspective-[400px] rotate-x-[10deg] neon-text animate-neon-pulse">
+        {/* Game Start Button - moved closer to center */}
+        <div className="absolute top-1/2 right-8 sm:right-12 md:right-[120px] lg:right-[180px] -translate-y-1/2 flex flex-col items-start">
+          <Link
+            href="/raid"
+            className="group relative rounded-xl overflow-hidden transition-transform duration-300 hover:scale-110"
+          >
+            <div
+              ref={buttonBgRef}
+              className="absolute inset-0 bg-gradient-to-br from-brand-3 to-brand-2 blur-sm group-hover:blur-md transition-all duration-500 ease-in-out"
+            />
+            <span
+              ref={buttonRef}
+              className="relative z-20 text-lg sm:text-xl md:text-3xl lg:text-4xl font-primary font-bold tracking-wider text-white 
+              px-8 sm:px-10 md:px-20 py-3 sm:py-4 md:py-5 
+              inline-block 
+              bg-gradient-to-br from-brand-3 to-brand-2
+              border border-white/30
+              shadow-lg shadow-brand-3/25
+              transition-all duration-500 ease-in-out
+              group-hover:shadow-xl group-hover:shadow-[var(--color-tertiary)]/20
+              origin-center
+              animate-bounce-cartoon
+              overflow-hidden"
+            >
               START
             </span>
           </Link>
+          <span
+            className="text-sm md:text-base font-primary font-medium text-white/90 mt-3 
+            tracking-wider animate-pulse self-start drop-shadow-[0_1px_2px_rgba(0,0,0,0.5)]"
+          >
+            your journey.
+          </span>
         </div>
       </div>
     </section>

@@ -880,7 +880,7 @@ export default function BeachContainer({
         </aside>
 
         {/* Main Content and Right Sidebar */}
-        <div className="grid grid-cols-1 lg:grid-cols-[1fr_350px] xl:grid-cols-[1fr_400px] gap-4 sm:gap-6 lg:gap-[30px] xl:gap-[54px] flex-1 overflow-hidden">
+        <div className="grid grid-cols-1 xl:grid-cols-[1fr_400px] gap-4 sm:gap-6 lg:gap-[30px] xl:gap-[54px] flex-1 overflow-hidden">
           <main className="min-w-0 overflow-y-auto">
             {/* Header Section */}
             <div className="flex flex-col gap-4 sm:gap-6 mb-6 sm:mb-9">
@@ -1248,117 +1248,119 @@ export default function BeachContainer({
             )}
           </main>
 
-          {/* Right Sidebar - Make it full width on mobile, adjust for iPad */}
-          <aside className="hidden sm:block bg-[var(--color-bg-primary)] p-4 sm:p-6 rounded-lg shadow-sm h-fit order-first lg:order-last mb-6 sm:mb-9 lg:mb-0">
-            {/* Single Responsive Forecast Widget - Hidden on mobile */}
-            <div
-              className="bg-white p-6 rounded-lg shadow-sm min-h-[300px]"
-              data-forecast-widget
-            >
-              <div className="flex items-center justify-between mb-6">
-                <h3 className="text-[21px] heading-6 text-gray-800 font-primary">
-                  Today's Forecast
-                </h3>
-                <div className="flex items-center gap-2">
-                  {/* Source Toggle Buttons */}
-                  <div className="flex rounded-[21px] bg-gray-100 p-1"></div>
-                  <div className="font-primary text-black bg-gray-100 px-3 py-1 rounded-[21px] text-sm">
-                    8AM
+          {/* Right Sidebar - Hidden on all devices below xl breakpoint */}
+          {typeof window !== "undefined" && (
+            <aside className="hidden xl:block bg-[var(--color-bg-primary)] p-4 sm:p-6 rounded-lg shadow-sm h-fit order-first xl:order-last mb-6 sm:mb-9 xl:mb-0">
+              {/* Single Responsive Forecast Widget - Hidden on mobile and iPad */}
+              <div
+                className="bg-white p-6 rounded-lg shadow-sm min-h-[300px]"
+                data-forecast-widget
+              >
+                <div className="flex items-center justify-between mb-6">
+                  <h3 className="text-[21px] heading-6 text-gray-800 font-primary">
+                    Today's Forecast
+                  </h3>
+                  <div className="flex items-center gap-2">
+                    {/* Source Toggle Buttons */}
+                    <div className="flex rounded-[21px] bg-gray-100 p-1"></div>
+                    <div className="font-primary text-black bg-gray-100 px-3 py-1 rounded-[21px] text-sm">
+                      8AM
+                    </div>
                   </div>
                 </div>
-              </div>
 
-              {/* Responsive Grid Layout */}
-              <div className="grid grid-cols-2 gap-4">
-                {isLoading ? (
-                  <div className="col-span-2 flex items-center justify-center p-8">
-                    <RandomLoader isLoading={isLoading} />
-                  </div>
-                ) : !windData ? (
-                  <div className="col-span-2 flex items-center justify-center p-6">
-                    <span className="text-gray-600 font-primary text-center">
-                      No forecast data available. Please select a region to view
-                      forecast.
-                    </span>
-                  </div>
-                ) : (
-                  <>
-                    {/* Wind Direction */}
-                    <div className="bg-white p-4 rounded-lg border border-gray-200 shadow-sm hover:shadow-md transition-shadow duration-200 aspect-square flex flex-col">
-                      <label className="text-xs text-gray-500 uppercase tracking-wide mb-2 font-primary font-medium">
-                        Wind
-                      </label>
-                      <div className="flex-1 flex flex-col items-center justify-center">
-                        <div className="space-y-2 text-center">
+                {/* Responsive Grid Layout */}
+                <div className="grid grid-cols-2 gap-4">
+                  {isLoading ? (
+                    <div className="col-span-2 flex items-center justify-center p-8">
+                      <RandomLoader isLoading={isLoading} />
+                    </div>
+                  ) : !windData ? (
+                    <div className="col-span-2 flex items-center justify-center p-6">
+                      <span className="text-gray-600 font-primary text-center">
+                        No forecast data available. Please select a region to
+                        view forecast.
+                      </span>
+                    </div>
+                  ) : (
+                    <>
+                      {/* Wind Direction */}
+                      <div className="bg-white p-4 rounded-lg border border-gray-200 shadow-sm hover:shadow-md transition-shadow duration-200 aspect-square flex flex-col">
+                        <label className="text-xs text-gray-500 uppercase tracking-wide mb-2 font-primary font-medium">
+                          Wind
+                        </label>
+                        <div className="flex-1 flex flex-col items-center justify-center">
+                          <div className="space-y-2 text-center">
+                            <span className="text-2xl font-semibold text-gray-800 font-primary">
+                              {degreesToCardinal(
+                                parseFloat(windData.windDirection)
+                              ) || "N/A"}
+                            </span>
+                            <span className="block text-sm text-gray-600 font-primary">
+                              {windData.windDirection.toFixed(1)}°
+                            </span>
+                            <span className="block text-sm text-gray-600 font-primary">
+                              {windData.windSpeed || "N/A"} kts
+                            </span>
+                          </div>
+                        </div>
+                      </div>
+
+                      {/* Swell Height */}
+                      <div className="bg-white p-4 rounded-lg border border-gray-200 shadow-sm hover:shadow-md transition-shadow duration-200 aspect-square flex flex-col">
+                        <label className="text-xs text-gray-500 uppercase tracking-wide mb-2 font-primary font-medium">
+                          Swell Height
+                        </label>
+                        <div className="flex-1 flex flex-col items-center justify-center">
                           <span className="text-2xl font-semibold text-gray-800 font-primary">
-                            {degreesToCardinal(
-                              parseFloat(windData.windDirection)
-                            ) || "N/A"}
-                          </span>
-                          <span className="block text-sm text-gray-600 font-primary">
-                            {windData.windDirection.toFixed(1)}°
-                          </span>
-                          <span className="block text-sm text-gray-600 font-primary">
-                            {windData.windSpeed || "N/A"} kts
+                            {windData.swellHeight || "N/A"}m
                           </span>
                         </div>
                       </div>
-                    </div>
 
-                    {/* Swell Height */}
-                    <div className="bg-white p-4 rounded-lg border border-gray-200 shadow-sm hover:shadow-md transition-shadow duration-200 aspect-square flex flex-col">
-                      <label className="text-xs text-gray-500 uppercase tracking-wide mb-2 font-primary font-medium">
-                        Swell Height
-                      </label>
-                      <div className="flex-1 flex flex-col items-center justify-center">
-                        <span className="text-2xl font-semibold text-gray-800 font-primary">
-                          {windData.swellHeight || "N/A"}m
-                        </span>
-                      </div>
-                    </div>
-
-                    {/* Swell Period */}
-                    <div className="bg-white p-4 rounded-lg border border-gray-200 shadow-sm hover:shadow-md transition-shadow duration-200 aspect-square flex flex-col">
-                      <label className="text-xs text-gray-500 uppercase tracking-wide mb-2 font-primary font-medium">
-                        Swell Period
-                      </label>
-                      <div className="flex-1 flex flex-col items-center justify-center">
-                        <span className="text-2xl font-semibold text-gray-800 font-primary">
-                          {windData.swellPeriod || "N/A"}s
-                        </span>
-                      </div>
-                    </div>
-
-                    {/* Swell Direction */}
-                    <div className="bg-white p-4 rounded-lg border border-gray-200 shadow-sm hover:shadow-md transition-shadow duration-200 aspect-square flex flex-col">
-                      <label className="text-xs text-gray-500 uppercase tracking-wide mb-2 font-primary font-medium">
-                        Swell Direction
-                      </label>
-                      <div className="flex-1 flex flex-col items-center justify-center">
-                        <div className="space-y-2 text-center">
+                      {/* Swell Period */}
+                      <div className="bg-white p-4 rounded-lg border border-gray-200 shadow-sm hover:shadow-md transition-shadow duration-200 aspect-square flex flex-col">
+                        <label className="text-xs text-gray-500 uppercase tracking-wide mb-2 font-primary font-medium">
+                          Swell Period
+                        </label>
+                        <div className="flex-1 flex flex-col items-center justify-center">
                           <span className="text-2xl font-semibold text-gray-800 font-primary">
-                            {degreesToCardinal(windData.swellDirection) ||
-                              "N/A"}
-                          </span>
-                          <span className="block text-sm text-gray-600 font-primary">
-                            {windData.swellDirection || "N/A"}°
+                            {windData.swellPeriod || "N/A"}s
                           </span>
                         </div>
                       </div>
-                    </div>
-                  </>
-                )}
+
+                      {/* Swell Direction */}
+                      <div className="bg-white p-4 rounded-lg border border-gray-200 shadow-sm hover:shadow-md transition-shadow duration-200 aspect-square flex flex-col">
+                        <label className="text-xs text-gray-500 uppercase tracking-wide mb-2 font-primary font-medium">
+                          Swell Direction
+                        </label>
+                        <div className="flex-1 flex flex-col items-center justify-center">
+                          <div className="space-y-2 text-center">
+                            <span className="text-2xl font-semibold text-gray-800 font-primary">
+                              {degreesToCardinal(windData.swellDirection) ||
+                                "N/A"}
+                            </span>
+                            <span className="block text-sm text-gray-600 font-primary">
+                              {windData.swellDirection || "N/A"}°
+                            </span>
+                          </div>
+                        </div>
+                      </div>
+                    </>
+                  )}
+                </div>
               </div>
-            </div>
-            <div className="mt-4">
-              <div className="hidden lg:block">
-                <FunFacts />
+              <div className="mt-4">
+                <div className="block">
+                  <FunFacts />
+                </div>
+                <div className="block">
+                  <Insights region={selectedRegion || "Western Cape"} />
+                </div>
               </div>
-              <div className="hidden lg:block">
-                <Insights region={selectedRegion || "Western Cape"} />
-              </div>
-            </div>
-          </aside>
+            </aside>
+          )}
         </div>
       </div>
 

@@ -104,11 +104,11 @@ export default function HeroProduct({ data }: { data?: any }) {
   // Update loading state
   const isLoading = regionQueries.some((query) => query.isLoading);
 
-  const imageRef = useRef(null);
-  const alertCardRef = useRef(null);
-  const logCardRef = useRef(null);
-  const bellIconRef = useRef(null);
-  const bookIconRef = useRef(null);
+  const imageRef = useRef<HTMLImageElement>(null);
+  const alertCardRef = useRef<HTMLDivElement>(null);
+  const logCardRef = useRef<HTMLDivElement>(null);
+  const bellIconRef = useRef<SVGSVGElement>(null);
+  const bookIconRef = useRef<SVGSVGElement>(null);
 
   useEffect(() => {
     if (imageRef.current) {
@@ -130,7 +130,7 @@ export default function HeroProduct({ data }: { data?: any }) {
         duration: 0,
       });
 
-      // Create a timeline for continuous animation
+      // Create a timeline for continuous animation with jingle effect
       const bellTl = gsap.timeline({ repeat: -1 });
 
       bellTl
@@ -141,18 +141,24 @@ export default function HeroProduct({ data }: { data?: any }) {
           duration: 1,
           ease: "power1.inOut",
         })
+        // Add more pronounced jingle effect
         .to(bellIconRef.current, {
-          rotation: 35,
+          rotation: 30,
           duration: 0.1,
           ease: "power1.inOut",
         })
         .to(bellIconRef.current, {
-          rotation: 55,
+          rotation: 60,
           duration: 0.1,
           ease: "power1.inOut",
         })
         .to(bellIconRef.current, {
-          rotation: 35,
+          rotation: 30,
+          duration: 0.1,
+          ease: "power1.inOut",
+        })
+        .to(bellIconRef.current, {
+          rotation: 60,
           duration: 0.1,
           ease: "power1.inOut",
         })
@@ -288,6 +294,99 @@ export default function HeroProduct({ data }: { data?: any }) {
           y: 20,
           immediateRender: false,
         });
+    }
+  }, []);
+
+  // Add GSAP animation for the star icons
+  useEffect(() => {
+    if (logCardRef.current) {
+      // Select all star icons within the log card
+      const stars = logCardRef.current.querySelectorAll(".star-icons svg");
+
+      if (stars.length) {
+        // Create a staggered animation for the stars
+        const starsTl = gsap.timeline({ repeat: -1 });
+
+        starsTl
+          .to(stars, {
+            scale: 1.3,
+            fill: "var(--color-alert-icon-rating)",
+            stagger: 0.1,
+            duration: 0.2,
+            ease: "back.out(1.7)",
+          })
+          .to(stars, {
+            scale: 1,
+            stagger: 0.1,
+            duration: 0.2,
+            ease: "power1.out",
+          })
+          .to({}, { duration: 1.5 }); // Pause before repeating
+      }
+    }
+  }, []);
+
+  // Add staggered highlight effect for forecast properties in alert card
+  useEffect(() => {
+    if (alertCardRef.current) {
+      // Select all forecast property items in the alert card
+      const forecastItems = alertCardRef.current.querySelectorAll(
+        ".bg-blue-100, .bg-cyan-100"
+      );
+
+      if (forecastItems.length) {
+        // Create a staggered highlight animation
+        const highlightTl = gsap.timeline({ repeat: -1 });
+
+        highlightTl
+          .to(forecastItems, {
+            backgroundColor: "rgba(var(--color-tertiary-rgb), 0.3)",
+            boxShadow: "0 0 8px rgba(var(--color-tertiary-rgb), 0.5)",
+            stagger: 0.8,
+            duration: 0.5,
+            ease: "power1.inOut",
+          })
+          .to(forecastItems, {
+            backgroundColor: "",
+            boxShadow: "none",
+            stagger: 0.8,
+            duration: 0.5,
+            ease: "power1.inOut",
+          })
+          .to({}, { duration: 1 }); // Pause before repeating
+      }
+    }
+  }, []);
+
+  // Add staggered highlight effect for forecast properties in log card
+  useEffect(() => {
+    if (logCardRef.current) {
+      // Select all forecast property items in the log card
+      const logItems = logCardRef.current.querySelectorAll(
+        ".bg-blue-100, .bg-cyan-100"
+      );
+
+      if (logItems.length) {
+        // Create a staggered highlight animation
+        const logHighlightTl = gsap.timeline({ repeat: -1 });
+
+        logHighlightTl
+          .to(logItems, {
+            backgroundColor: "rgba(var(--color-secondary-rgb), 0.3)",
+            boxShadow: "0 0 8px rgba(var(--color-secondary-rgb), 0.5)",
+            stagger: 0.8,
+            duration: 0.5,
+            ease: "power1.inOut",
+          })
+          .to(logItems, {
+            backgroundColor: "",
+            boxShadow: "none",
+            stagger: 0.8,
+            duration: 0.5,
+            ease: "power1.inOut",
+          })
+          .to({}, { duration: 1 }); // Pause before repeating
+      }
     }
   }, []);
 

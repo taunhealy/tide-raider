@@ -156,17 +156,6 @@ export default function BeachCard({
     router.replace(`?${params.toString()}`, { scroll: false });
   };
 
-  const handleCardClick = (e: React.MouseEvent) => {
-    // Don't open modal if text is selected
-    const selection = window.getSelection();
-    if (selection && selection.toString().length > 0) {
-      return;
-    }
-
-    if (shouldBeLocked) return;
-    handleOpenModal();
-  };
-
   return (
     <>
       {/* Main Card Container */}
@@ -185,7 +174,6 @@ export default function BeachCard({
           ${shouldBeLocked ? "opacity-70" : ""}
           ${isLocalLoading ? "animate-pulse" : ""}
         `}
-        onClick={handleCardClick}
       >
         <div className="p-4 md:p-6">
           {isLocalLoading ? (
@@ -258,6 +246,7 @@ export default function BeachCard({
                           className="text-base sm:text-[21px] font-primary font-semibold text-[var(--color-text-primary)] flex items-center gap-2 cursor-pointer transition-colors duration-300 hover:text-[var(--color-tertiary)]"
                           onClick={(e) => {
                             e.stopPropagation();
+                            if (shouldBeLocked) return;
                             handleOpenModal(e);
                           }}
                         >

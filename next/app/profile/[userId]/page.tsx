@@ -90,8 +90,8 @@ export default function ProfilePage() {
   const isOwnProfile = session?.user?.id?.toString() === userId;
 
   return (
-    <div className="container mx-auto p-6 font-primary">
-      <div className="flex flex-col sm:flex-row gap-6">
+    <div className="max-w-screen-xl mx-auto px-4 sm:px-6 py-6 font-primary">
+      <div className="flex flex-col xs:flex-row gap-4 xs:gap-6">
         <div className="flex-1">
           <ProfileHeader
             userId={userId}
@@ -105,42 +105,48 @@ export default function ProfilePage() {
             }
           />
 
-          <div className="flex gap-4 mb-6 overflow-x-auto">
+          <div className="flex gap-2 mb-4 overflow-x-auto px-2">
             <Button
               variant={activeTab === "account" ? "default" : "outline"}
               onClick={() => setActiveTab("account")}
+              className="text-sm xs:text-base px-3 py-1.5"
             >
               Profile
             </Button>
             <Button
               variant={activeTab === "favourites" ? "default" : "outline"}
               onClick={() => setActiveTab("favourites")}
+              className="text-sm xs:text-base px-3 py-1.5"
             >
               Favourites
             </Button>
             <Button
               variant={activeTab === "logs" ? "default" : "outline"}
               onClick={() => setActiveTab("logs")}
+              className="text-sm xs:text-base px-3 py-1.5"
             >
               Logs
             </Button>
             <Button
               variant={activeTab === "chronicles" ? "default" : "outline"}
               onClick={() => setActiveTab("chronicles")}
+              className="text-sm xs:text-base px-3 py-1.5"
             >
               Chronicles
             </Button>
             <Button
               variant={activeTab === "rentals" ? "default" : "outline"}
               onClick={() => setActiveTab("rentals")}
+              className="text-sm xs:text-base px-3 py-1.5"
             >
               Rentals
             </Button>
           </div>
 
-          <div className="min-h-[400px] w-full overflow-auto">
+          <div className="min-h-[300px] w-full overflow-auto">
             {activeTab === "account" && (
               <BioSection
+                className="px-2 sm:px-4"
                 initialBio={userData?.bio}
                 initialLink={userData?.link}
                 isOwnProfile={isOwnProfile}
@@ -149,23 +155,26 @@ export default function ProfilePage() {
             )}
 
             {activeTab === "favourites" && (
-              <FavouriteSurfVideosSidebar userId={userId} />
+              <FavouriteSurfVideosSidebar
+                userId={userId}
+                className="px-2 sm:px-4"
+              />
             )}
 
             {activeTab === "logs" && (
-              <div className="w-full overflow-x-auto px-4">
+              <div className="w-full overflow-x-auto px-2 sm:px-4">
                 <ClientProfileLogs beaches={[]} userId={userId} />
               </div>
             )}
 
             {activeTab === "chronicles" && (
-              <div className="w-full overflow-x-auto px-4">
+              <div className="w-full overflow-x-auto px-2 sm:px-4">
                 <StoriesContainer beaches={[]} userId={userId} />
               </div>
             )}
 
             {activeTab === "rentals" && (
-              <div className="w-full overflow-x-auto px-4">
+              <div className="w-full overflow-x-auto px-2 sm:px-4">
                 <UserRentals userId={userId} isOwnProfile={isOwnProfile} />
               </div>
             )}
@@ -174,8 +183,8 @@ export default function ProfilePage() {
 
         {/* Image Column - Only show for Profile and Favourites tabs */}
         {["account", "favourites"].includes(activeTab) && (
-          <div className="flex-none w-full sm:w-[800px] relative h-[600px]">
-            <div className="absolute inset-0 overflow-hidden rounded-md">
+          <div className="flex-none w-full xs:w-full sm:w-[400px] lg:w-[500px] relative h-[400px] xs:h-[500px] sm:h-[600px] mt-4 xs:mt-0">
+            <div className="absolute inset-0 overflow-hidden rounded-lg">
               {data?.heroImage?.image ? (
                 <Image
                   src={
@@ -184,8 +193,8 @@ export default function ProfilePage() {
                   }
                   alt={data?.heroImage?.alt || "Profile background"}
                   fill
-                  className="object-cover"
-                  sizes="(max-width: 768px) 100vw, 500px"
+                  className="object-cover rounded-lg"
+                  sizes="(max-width: 640px) 100vw, 50vw"
                 />
               ) : (
                 <div className="w-full h-full bg-gray-200 flex items-center justify-center">

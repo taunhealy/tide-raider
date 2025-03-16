@@ -11,8 +11,10 @@ import Image from "next/image";
 
 export default function FavouriteSurfVideosSidebar({
   userId,
+  className
 }: {
   userId?: string;
+  className?: string;
 }) {
   const { data: session } = useSession();
   const [favorites, setFavorites] = useState<Favorite[]>([]);
@@ -98,7 +100,7 @@ export default function FavouriteSurfVideosSidebar({
   };
 
   return (
-    <div className="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden max-w-[540px]">
+    <div className={`bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden max-w-[540px] ${className}`}>
       <div className="p-6 border-b border-gray-200 ">
         <div className="flex justify-between items-left ">
           <h6 className="text-base font-medium text-gray-900 font-primary max-w-[32ch]">

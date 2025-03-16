@@ -7,17 +7,21 @@ import Textarea from "../ui/textarea";
 import { Input } from "../ui/input";
 import { Button } from "../ui/Button";
 
+interface BioSectionProps {
+  initialBio?: string;
+  initialLink?: string;
+  isOwnProfile: boolean;
+  userId: string;
+  className?: string;
+}
+
 export default function BioSection({
   initialBio = "",
   initialLink = "",
   isOwnProfile,
   userId,
-}: {
-  initialBio?: string;
-  initialLink?: string;
-  isOwnProfile: boolean;
-  userId: string;
-}) {
+  className,
+}: BioSectionProps) {
   const queryClient = useQueryClient();
 
   const updateBioMutation = useMutation({
@@ -66,7 +70,7 @@ export default function BioSection({
   });
 
   return (
-    <div className="space-y-2 max-w-[540px]">
+    <div className={`space-y-2 max-w-[540px] ${className || ""}`}>
       <h3 className="text-lg font-semibold font-primary mb-2">About</h3>
       {isOwnProfile ? (
         <Textarea

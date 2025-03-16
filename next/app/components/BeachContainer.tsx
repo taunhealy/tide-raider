@@ -78,6 +78,9 @@ interface FilterType {
 
 type FilterKeys = keyof FilterType;
 
+// Add this constant at the top of the file with other constants
+const LOCAL_STORAGE_REGION_KEY = "lastSelectedRegion";
+
 export default function BeachContainer({
   initialBeaches,
   blogPosts,
@@ -176,17 +179,32 @@ export default function BeachContainer({
       // Update selected region if it exists
       if (defaultFilters.region?.length > 0) {
         setSelectedRegion(defaultFilters.region[0]);
+        localStorage.setItem(
+          LOCAL_STORAGE_REGION_KEY,
+          defaultFilters.region[0]
+        );
       }
     }
   }, [defaultFilters]);
 
-  // 1. Remove URL parameter dependency for selectedRegion
-  const [selectedRegion, setSelectedRegion] = useState<string>(""); // Initialize with empty string
+  // 1. Modify the selectedRegion state to check localStorage on initialization
+  const [selectedRegion, setSelectedRegion] = useState<string>(() => {
+    // Only run in browser environment
+    if (typeof window !== "undefined") {
+      return localStorage.getItem(LOCAL_STORAGE_REGION_KEY) || "";
+    }
+    return "";
+  });
 
-  // Move this function above updateFilters
+  // 2. Update handleRegionChange to save to localStorage
   const handleRegionChange = (newRegion: string) => {
     setSelectedRegion(newRegion);
     updateFilters("region", [newRegion]); // Update filters to match
+
+    // Save to localStorage
+    if (typeof window !== "undefined" && newRegion) {
+      localStorage.setItem(LOCAL_STORAGE_REGION_KEY, newRegion);
+    }
   };
 
   // Update dependency array to remove handleRegionChange since it's defined above
@@ -535,9 +553,14 @@ export default function BeachContainer({
   const { data: beachCounts } = useQuery({
     queryKey: ["beachCounts", selectedRegion],
     queryFn: async () => {
+      // Only proceed if selectedRegion has a value
+      if (!selectedRegion) {
+        return {};
+      }
+
       const today = new Date().toISOString().split("T")[0];
       const response = await fetch(
-        `/api/beach-counts?region=${selectedRegion}&date=${today}`
+        `/api/beach-counts?region=${encodeURIComponent(selectedRegion)}&date=${today}`
       );
       const data = await response.json();
 
@@ -556,6 +579,7 @@ export default function BeachContainer({
       }
       return {};
     },
+    // Only enable the query when selectedRegion has a value
     enabled: !!selectedRegion,
   });
 
@@ -694,6 +718,137 @@ export default function BeachContainer({
     }
   }, [initialBeaches]);
 
+  // Add this state and function for geolocation
+  const [isGettingLocation, setIsGettingLocation] = useState(false);
+
+  // Replace getUserLocation function with this simpler version
+  const getUserLocation = useCallback(async () => {
+    setIsGettingLocation(true);
+
+    try {
+      const response = await fetch("/api/user-location");
+      if (!response.ok) {
+        throw new Error("Failed to get location");
+      }
+      return await response.json();
+    } catch (error) {
+      console.error("Location error:", error);
+      return null;
+    } finally {
+      setIsGettingLocation(false);
+    }
+  }, []);
+
+  // 3. Modify the geolocation effect to check localStorage first
+  useEffect(() => {
+    // Only try to get location if:
+    // 1. No URL parameters are set
+    // 2. No default filters are loaded yet
+    // 3. No region is selected
+    if (!searchParams.toString() && !defaultFilters && !selectedRegion) {
+      const initializeLocationBasedFilters = async () => {
+        // First check localStorage
+        const savedRegion = localStorage.getItem(LOCAL_STORAGE_REGION_KEY);
+
+        if (savedRegion) {
+          console.log("Using saved region from localStorage:", savedRegion);
+
+          // Find the beach with this region to get continent and country
+          const regionBeach = initialBeaches.find(
+            (b) => b.region === savedRegion
+          );
+
+          if (regionBeach) {
+            const newFilters = { ...filters };
+            newFilters.region = [savedRegion as Region];
+            newFilters.country = [regionBeach.country];
+            newFilters.continent = [regionBeach.continent];
+
+            setFilters(newFilters);
+            setSelectedRegion(savedRegion);
+
+            // Update URL with location filters
+            const params = new URLSearchParams();
+            if (newFilters.continent.length)
+              params.set("continent", newFilters.continent.join(","));
+            if (newFilters.country.length)
+              params.set("country", newFilters.country.join(","));
+            if (newFilters.region.length)
+              params.set("region", newFilters.region.join(","));
+
+            window.history.replaceState(
+              {},
+              "",
+              `${window.location.pathname}?${params.toString()}`
+            );
+
+            return;
+          }
+        }
+
+        // If no localStorage or invalid region, try geolocation
+        try {
+          const nearestRegionData = await getUserLocation();
+
+          if (nearestRegionData && nearestRegionData.region) {
+            console.log("Found nearest region:", nearestRegionData);
+
+            // Update filters with nearest region
+            const newFilters = { ...filters };
+
+            if (nearestRegionData.continent) {
+              newFilters.continent = [nearestRegionData.continent];
+            }
+
+            if (nearestRegionData.country) {
+              newFilters.country = [nearestRegionData.country];
+            }
+
+            if (nearestRegionData.region) {
+              newFilters.region = [nearestRegionData.region as Region];
+              setSelectedRegion(nearestRegionData.region);
+
+              // Save to localStorage for future visits
+              localStorage.setItem(
+                LOCAL_STORAGE_REGION_KEY,
+                nearestRegionData.region
+              );
+            }
+
+            setFilters(newFilters);
+
+            // Update URL with location filters
+            const params = new URLSearchParams();
+            if (newFilters.continent.length)
+              params.set("continent", newFilters.continent.join(","));
+            if (newFilters.country.length)
+              params.set("country", newFilters.country.join(","));
+            if (newFilters.region.length)
+              params.set("region", newFilters.region.join(","));
+
+            window.history.replaceState(
+              {},
+              "",
+              `${window.location.pathname}?${params.toString()}`
+            );
+          }
+        } catch (error) {
+          console.error("Geolocation error:", error);
+          // Geolocation failed - we already tried localStorage, so nothing more to do
+        }
+      };
+
+      initializeLocationBasedFilters();
+    }
+  }, [
+    searchParams,
+    defaultFilters,
+    selectedRegion,
+    getUserLocation,
+    filters,
+    initialBeaches,
+  ]);
+
   return (
     <div className="bg-[var(--color-bg-secondary)] p-4 sm:p-6 mx-auto relative min-h-[calc(100vh-72px)] flex flex-col">
       {/* Main Layout */}
@@ -786,6 +941,13 @@ export default function BeachContainer({
                   </button>
                 </div>
               </div>
+
+              {isGettingLocation && (
+                <div className="inline-flex items-center gap-2 text-sm text-gray-600 font-primary mt-2">
+                  <div className="animate-spin h-4 w-4 border-2 border-gray-300 border-t-[var(--color-tertiary)] rounded-full"></div>
+                  <span>Finding nearby surf spots...</span>
+                </div>
+              )}
             </div>
 
             {viewMode === "list" ? (
@@ -844,7 +1006,7 @@ export default function BeachContainer({
                     </div>
                   ) : !windData ? (
                     <div className="text-yellow-600 font-primary text-sm">
-                      No forecast data, please adjust filters.
+                      Please adjust filters to view a region's forecast.
                     </div>
                   ) : (
                     <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4 font-primary bg-gray-50 px-4 py-3 rounded-lg border border-gray-200">
@@ -1087,8 +1249,8 @@ export default function BeachContainer({
           </main>
 
           {/* Right Sidebar - Make it full width on mobile, adjust for iPad */}
-          <aside className="bg-[var(--color-bg-primary)] p-4 sm:p-6 rounded-lg shadow-sm h-fit order-first lg:order-last mb-6 sm:mb-9 lg:mb-0">
-            {/* Single Responsive Forecast Widget */}
+          <aside className="hidden sm:block bg-[var(--color-bg-primary)] p-4 sm:p-6 rounded-lg shadow-sm h-fit order-first lg:order-last mb-6 sm:mb-9 lg:mb-0">
+            {/* Single Responsive Forecast Widget - Hidden on mobile */}
             <div
               className="bg-white p-6 rounded-lg shadow-sm min-h-[300px]"
               data-forecast-widget
@@ -1113,28 +1275,28 @@ export default function BeachContainer({
                     <RandomLoader isLoading={isLoading} />
                   </div>
                 ) : !windData ? (
-                  <div className="col-span-2 flex items-center justify-center p-8">
-                    <span className="text-gray-600 font-primary">
-                      No forecast data available, please adjust filters.
+                  <div className="col-span-2 flex items-center justify-center p-6">
+                    <span className="text-gray-600 font-primary text-center">
+                      No forecast data available. Please select a region to view
+                      forecast.
                     </span>
                   </div>
                 ) : (
                   <>
                     {/* Wind Direction */}
-                    <div className="bg-gray-50 p-4 rounded-lg border border-gray-100 aspect-square flex flex-col">
-                      <label
-                        className={cn(
-                          "text-sm text-gray-500 uppercase tracking-wide mb-2 font-primary"
-                        )}
-                      >
+                    <div className="bg-white p-4 rounded-lg border border-gray-200 shadow-sm hover:shadow-md transition-shadow duration-200 aspect-square flex flex-col">
+                      <label className="text-xs text-gray-500 uppercase tracking-wide mb-2 font-primary font-medium">
                         Wind
                       </label>
                       <div className="flex-1 flex flex-col items-center justify-center">
                         <div className="space-y-2 text-center">
-                          <span className="text-xl font-semibold text-gray-800 font-primary">
+                          <span className="text-2xl font-semibold text-gray-800 font-primary">
                             {degreesToCardinal(
                               parseFloat(windData.windDirection)
                             ) || "N/A"}
+                          </span>
+                          <span className="block text-sm text-gray-600 font-primary">
+                            {windData.windDirection.toFixed(1)}°
                           </span>
                           <span className="block text-sm text-gray-600 font-primary">
                             {windData.windSpeed || "N/A"} kts
@@ -1144,54 +1306,42 @@ export default function BeachContainer({
                     </div>
 
                     {/* Swell Height */}
-                    <div className="bg-gray-50 p-4 rounded-lg border border-gray-100 aspect-square flex flex-col">
-                      <label
-                        className={cn(
-                          "text-sm text-gray-500 uppercase tracking-wide mb-2 font-primary"
-                        )}
-                      >
+                    <div className="bg-white p-4 rounded-lg border border-gray-200 shadow-sm hover:shadow-md transition-shadow duration-200 aspect-square flex flex-col">
+                      <label className="text-xs text-gray-500 uppercase tracking-wide mb-2 font-primary font-medium">
                         Swell Height
                       </label>
                       <div className="flex-1 flex flex-col items-center justify-center">
-                        <span className="text-xl font-semibold text-gray-800 font-primary">
+                        <span className="text-2xl font-semibold text-gray-800 font-primary">
                           {windData.swellHeight || "N/A"}m
                         </span>
                       </div>
                     </div>
 
                     {/* Swell Period */}
-                    <div className="bg-gray-50 p-4 rounded-lg border border-gray-100 aspect-square flex flex-col">
-                      <label
-                        className={cn(
-                          "text-sm text-gray-500 font-primary uppercase tracking-wide mb-2"
-                        )}
-                      >
+                    <div className="bg-white p-4 rounded-lg border border-gray-200 shadow-sm hover:shadow-md transition-shadow duration-200 aspect-square flex flex-col">
+                      <label className="text-xs text-gray-500 uppercase tracking-wide mb-2 font-primary font-medium">
                         Swell Period
                       </label>
                       <div className="flex-1 flex flex-col items-center justify-center">
-                        <span className="text-xl font-semibold text-gray-800 font-primary">
+                        <span className="text-2xl font-semibold text-gray-800 font-primary">
                           {windData.swellPeriod || "N/A"}s
                         </span>
                       </div>
                     </div>
 
                     {/* Swell Direction */}
-                    <div className="bg-gray-50 p-4 rounded-lg border border-gray-100 aspect-square flex flex-col">
-                      <label
-                        className={cn(
-                          "text-sm text-gray-500 uppercase tracking-wide mb-2 font-primary"
-                        )}
-                      >
+                    <div className="bg-white p-4 rounded-lg border border-gray-200 shadow-sm hover:shadow-md transition-shadow duration-200 aspect-square flex flex-col">
+                      <label className="text-xs text-gray-500 uppercase tracking-wide mb-2 font-primary font-medium">
                         Swell Direction
                       </label>
                       <div className="flex-1 flex flex-col items-center justify-center">
                         <div className="space-y-2 text-center">
-                          <span className="text-xl font-semibold text-gray-800 font-primary">
-                            {windData.swellDirection || "N/A"}°
-                          </span>
-                          <span className="block text-sm text-gray-600 font-primary">
+                          <span className="text-2xl font-semibold text-gray-800 font-primary">
                             {degreesToCardinal(windData.swellDirection) ||
                               "N/A"}
+                          </span>
+                          <span className="block text-sm text-gray-600 font-primary">
+                            {windData.swellDirection || "N/A"}°
                           </span>
                         </div>
                       </div>

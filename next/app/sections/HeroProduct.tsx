@@ -978,7 +978,7 @@ export default function HeroProduct({ data }: { data?: any }) {
                 board performance, and personal achievements to improve your
                 surfing.
               </p>
-              <Link href="/logbook">
+              <Link href="/raidlogs">
                 <Button
                   variant="default"
                   size="default"

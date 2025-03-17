@@ -803,7 +803,7 @@ export default function HeroProduct({ data }: { data?: any }) {
         </div>
 
         {/* Alerts Feature Promotion with improved alignment */}
-        <div className="mb-16 md:mb-20 lg:mb-24 bg-gradient-to-r from-[var(--color-tertiary-light)] to-[var(--color-tertiary)] rounded-xl p-8 md:p-10 lg:p-12 border-b border-gray-200">
+        <div className="mb-16 md:mb-20 lg:mb-24 bg-gradient-to-r from-[var(--color-tertiary-light)] to-[var(--color-tertiary)] rounded-xl p-8 md:p-10 lg:p-12 border-b border-gray-400">
           <div className="flex flex-col md:flex-row items-center justify-between max-w-6xl mx-auto">
             <div className="w-full md:w-1/2 lg:w-2/5 flex items-center justify-center md:justify-start order-2 md:order-1 mt-8 md:mt-0">
               <div
@@ -885,7 +885,7 @@ export default function HeroProduct({ data }: { data?: any }) {
                 Get alerted to great conditions
               </h3>
               <p className="font-primary text-sm md:text-base mb-6 max-w-[540px] font-normal">
-                Get notified when your favorite spots are firing. Set up custom
+                Get notified when your favourite spots are firing. Set up custom
                 alerts based on swell size, wind direction, star ratings and
                 more.
               </p>

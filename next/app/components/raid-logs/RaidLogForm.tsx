@@ -449,7 +449,9 @@ export function RaidLogForm({
 
                   <div className="p-2 border rounded-md flex justify-between items-center">
                     <span className="font-primary">
-                      {selectedBeach ? selectedBeach.name : "Choose a beach..."}
+                      {selectedBeach
+                        ? selectedBeach.name
+                        : "Search for a beach..."}
                     </span>
                     {selectedBeach && (
                       <button

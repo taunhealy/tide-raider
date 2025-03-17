@@ -233,7 +233,7 @@ export default async function BlogPost({
                           <div className="relative aspect-[16/9]">
                             <Image
                               src={
-                                image.uploadedImage?.asset?.url ||
+                                urlForImage(image.uploadedImage)?.url() ||
                                 "/images/placeholder.jpg"
                               }
                               alt={image.uploadedImage?.alt || ""}

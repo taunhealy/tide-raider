@@ -889,13 +889,15 @@ export default function HeroProduct({ data }: { data?: any }) {
                 alerts based on swell size, wind direction, star ratings and
                 more.
               </p>
-              <Button
-                variant="default"
-                size="default"
-                className="font-primary text-base"
-              >
-                Set Up Alerts
-              </Button>
+              <Link href="/alerts">
+                <Button
+                  variant="default"
+                  size="default"
+                  className="font-primary text-base"
+                >
+                  Set Up Alerts
+                </Button>
+              </Link>
             </div>
           </div>
         </div>
@@ -976,13 +978,15 @@ export default function HeroProduct({ data }: { data?: any }) {
                 board performance, and personal achievements to improve your
                 surfing.
               </p>
-              <Button
-                variant="default"
-                size="default"
-                className="font-primary text-base"
-              >
-                Start Your Log Book
-              </Button>
+              <Link href="/logbook">
+                <Button
+                  variant="default"
+                  size="default"
+                  className="font-primary text-base"
+                >
+                  Start Your Log Book
+                </Button>
+              </Link>
             </div>
           </div>
         </div>

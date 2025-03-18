@@ -207,9 +207,9 @@ export const beachData: Beach[] = [
     distanceFromCT: 40,
     optimalWindDirections: ["SE", "SSE", "ESE", "S"],
     optimalSwellDirections: {
-      min: 255,
-      max: 285,
-      cardinal: "W",
+      min: 220,
+      max: 245,
+      cardinal: "SW",
     },
     bestSeasons: ["winter"],
     optimalTide: "All",
@@ -217,7 +217,7 @@ export const beachData: Beach[] = [
     difficulty: "Intermediate",
     waveType: "Beach Break",
     swellSize: {
-      min: 1.8,
+      min: 1.6,
       max: 5.0,
     },
     idealSwellPeriod: {

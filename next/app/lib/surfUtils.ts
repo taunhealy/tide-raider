@@ -192,6 +192,19 @@ export function isBeachSuitable(
     } else {
       score = Math.max(0, score - 6);
     }
+  } else {
+    // Add bonus points for exceptionally good swell periods
+    // For periods in the upper half of the ideal range
+    const midPoint =
+      (beach.idealSwellPeriod.min + beach.idealSwellPeriod.max) / 2;
+    if (conditions.swellPeriod > midPoint) {
+      // Add up to 2 bonus points for excellent swell periods
+      const bonusRatio =
+        (conditions.swellPeriod - midPoint) /
+        (beach.idealSwellPeriod.max - midPoint);
+      const bonus = Math.min(2, Math.max(0, bonusRatio * 2));
+      score = Math.min(10, score + bonus);
+    }
   }
 
   // Normalize score to 5-point scale

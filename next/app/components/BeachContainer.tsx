@@ -851,7 +851,7 @@ export default function BeachContainer({
                     </div>
                   ) : !windData ? (
                     <div className="text-yellow-600 font-primary text-sm">
-                      Please adjust filters to view a region's forecast.
+                      Please select a region to view a region's forecast.
                     </div>
                   ) : (
                     <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4 font-primary bg-gray-50 px-4 py-3 rounded-lg border border-gray-200">

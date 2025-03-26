@@ -41,7 +41,8 @@ export default function SurfForecastWidget({
   if (!forecast) {
     return (
       <div>
-        Sorry, no forecast data available. Please adjust filters or refresh.
+        Sorry, no forecast data available. Please adjust filters, select a
+        region or refresh.
       </div>
     );
   }

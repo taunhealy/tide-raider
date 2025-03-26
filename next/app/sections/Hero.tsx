@@ -89,7 +89,7 @@ export default function HeroSection({ data }: HeroProps) {
           ref={textRef}
           className="absolute left-8 sm:left-12 md:left-[120px] lg:left-[180px] top-1/2 -translate-y-1/2 pr-2 sm:pr-3 md:pr-4"
         >
-          <div className="writing-mode-vertical-rl rotate-270 space-y-1.5 sm:space-y-2 md:space-y-4">
+          <div className="writing-mode-vertical-rl rotate-270 space-y-1 sm:space-y-1.5 md:space-y-2">
             <h2 className="font-primary font-bold text-2xl sm:text-3xl md:text-5xl lg:text-[64px] leading-none tracking-tighter text-white">
               {data?.heroHeading}
             </h2>

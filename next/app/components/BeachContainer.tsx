@@ -24,7 +24,7 @@ import {
   List,
   X,
 } from "lucide-react";
-import Insights from "./Insights";
+
 import { INITIAL_FILTERS } from "@/app/lib/constants";
 import RegionFilter from "./RegionFilter";
 import SearchBar from "./SearchBar";
@@ -48,6 +48,7 @@ import SponsorContainer from "./SponsorContainer";
 import FavouriteSurfVideosSidebar from "@/app/components/FavouriteSurfVideosSidebar";
 import { useSurfConditions } from "@/app/hooks/useSurfConditions";
 import { RandomLoader } from "./ui/random-loader";
+import RegionalHighScores from "@/app/components/RegionalHighScores";
 
 interface BeachContainerProps {
   initialBeaches: Beach[];
@@ -321,7 +322,7 @@ export default function BeachContainer({
           beach.name.toLowerCase().includes(query) ||
           beach.region.toLowerCase().includes(query) ||
           beach.description.toLowerCase().includes(query) ||
-          beach.location.toLowerCase().includes(query);
+          (beach.location && beach.location.toLowerCase().includes(query));
 
         // Check videos if they exist
         const videoTitlesMatch =
@@ -331,6 +332,9 @@ export default function BeachContainer({
 
         return mainPropertiesMatch || videoTitlesMatch;
       });
+
+      // Add debug logging for search results
+      console.log(`Search for "${query}" found ${filtered.length} matches`);
     }
 
     // Apply continent filter (single select)
@@ -1117,7 +1121,7 @@ export default function BeachContainer({
                       <RandomLoader isLoading={isLoading} />
                     </div>
                   ) : !windData ? (
-                    <div className="col-span-2 flex items-center justify-center p-6">
+                    <div className="col-span-2 flex items-center justify-left p-6">
                       <span className="text-gray-600 font-primary text-center">
                         No forecast data available. Please select a region to
                         view forecast.
@@ -1193,12 +1197,17 @@ export default function BeachContainer({
                 </div>
               </div>
               <div className="mt-4">
+                {selectedRegion && (
+                  <RegionalHighScores
+                    beaches={initialBeaches}
+                    selectedRegion={selectedRegion}
+                    onBeachClick={handleBeachClick}
+                  />
+                )}
                 <div className="block">
                   <FunFacts />
                 </div>
-                <div className="block">
-                  <Insights region={selectedRegion || "Western Cape"} />
-                </div>
+                <div className="block"></div>
               </div>
             </aside>
           )}

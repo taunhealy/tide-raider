@@ -125,7 +125,13 @@ function MediaGridBase({ videos = [], beach }: MediaGridProps) {
               return (
                 <a
                   key={`service-${index}`}
-                  href={service.url || "/advertising"}
+                  href={
+                    service.url
+                      ? service.url
+                      : service.isAd
+                        ? "/advertising"
+                        : `https://www.google.com/maps/search/${encodeURIComponent(service.name + " " + beach.region)}`
+                  }
                   target="_blank"
                   rel="noopener noreferrer"
                   className={`

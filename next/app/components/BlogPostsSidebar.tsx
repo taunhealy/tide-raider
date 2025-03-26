@@ -180,7 +180,7 @@ export default function BlogPostsSidebar({
             </h3>
             <Link
               href="/blog?category=travel"
-              className="text-main hover:text-[var(--color-text-secondary)] hover:underline transition-colors font-primary"
+              className="text-[12px] hover:text-[var(--color-text-secondary)] hover:underline transition-colors font-primary"
             >
               View All
             </Link>
@@ -258,7 +258,7 @@ export default function BlogPostsSidebar({
           <h3 className="heading-6">Recent Posts</h3>
           <Link
             href="/blog"
-            className="text-main hover:text-[var(--color-text-secondary)] hover:underline transition-colors font-primary"
+            className="text-[12px] hover:text-[var(--color-text-secondary)] hover:underline transition-colors font-primary"
           >
             View All
           </Link>
@@ -280,7 +280,7 @@ export default function BlogPostsSidebar({
         </h3>
         <Link
           href="/blog"
-          className="text-main hover:text-[var(--color-text-secondary)] hover:underline transition-colors"
+          className="text-[12px] hover:text-[var(--color-text-secondary)] hover:underline transition-colors"
         >
           View All
         </Link>

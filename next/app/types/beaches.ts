@@ -205,15 +205,15 @@ export const beachData: Beach[] = [
     region: "Western Cape",
     location: "Kommetjie",
     distanceFromCT: 40,
-    optimalWindDirections: ["SE", "SSE", "ESE", "S"],
+    optimalWindDirections: ["SE", "SSE", "S"],
     optimalSwellDirections: {
-      min: 220,
+      min: 225,
       max: 245,
       cardinal: "SW",
     },
     bestSeasons: ["winter"],
     optimalTide: "All",
-    description: "Consistent waves, good for all levels",
+    description: "Consistent waves, good for intermediate/advanced surfers",
     difficulty: "Intermediate",
     waveType: "Beach Break",
     swellSize: {
@@ -271,7 +271,7 @@ export const beachData: Beach[] = [
     optimalWindDirections: ["SE", "E"],
     optimalSwellDirections: {
       min: 225,
-      max: 250,
+      max: 245,
       cardinal: "SW",
     },
     bestSeasons: ["winter"],
@@ -326,10 +326,10 @@ export const beachData: Beach[] = [
     region: "Western Cape",
     location: "Bloubergstrand",
     distanceFromCT: 35,
-    optimalWindDirections: ["SE", "SSE", "S"],
+    optimalWindDirections: ["SE", "SSE", "ESE"],
     optimalSwellDirections: {
       min: 225,
-      max: 315,
+      max: 245,
     },
     bestSeasons: ["winter"],
     optimalTide: "Mid",
@@ -770,8 +770,8 @@ export const beachData: Beach[] = [
     distanceFromCT: 85,
     optimalWindDirections: ["SE", "SSE"],
     optimalSwellDirections: {
-      min: 200.5,
-      max: 245.5,
+      min: 215,
+      max: 235,
       cardinal: "SW",
     },
     bestSeasons: ["sumer"],
@@ -1614,8 +1614,8 @@ export const beachData: Beach[] = [
     distanceFromCT: 35,
     optimalWindDirections: ["NW", "W"],
     optimalSwellDirections: {
-      min: 90,
-      max: 120,
+      min: 130,
+      max: 155,
     },
     bestSeasons: ["winter"],
     optimalTide: "Low",
@@ -1624,7 +1624,7 @@ export const beachData: Beach[] = [
     difficulty: "Intermediate",
     waveType: "Point Break",
     swellSize: {
-      min: 1.3,
+      min: 1.6,
       max: 3.0, // Was 0.6
     },
     idealSwellPeriod: {
@@ -1671,8 +1671,8 @@ export const beachData: Beach[] = [
     distanceFromCT: 30,
     optimalWindDirections: ["NE", "E"],
     optimalSwellDirections: {
-      min: 150,
-      max: 190,
+      min: 220,
+      max: 230,
     },
     bestSeasons: ["winter"],
     optimalTide: "Low to Mid",
@@ -1762,50 +1762,14 @@ export const beachData: Beach[] = [
         title: "SURFING ON THE WILDSIDE OF BUFFELSBAY (Vlog 02)",
         platform: "youtube",
       },
+      {
+        url: "https://www.youtube.com/watch?v=ALpwacrc40I&ab_channel=cape%7Cdoctor",
+        title: "SURFING CAPE of STORMS AFRICA | Buffels 2023 09 16 ",
+        platform: "youtube",
+      },
     ],
   },
-  {
-    id: "hawston",
-    name: "Hawston 💀🔫",
-    continent: "Africa",
-    country: "South Africa",
-    region: "Western Cape",
-    location: "Hawston",
-    distanceFromCT: 35,
-    optimalWindDirections: ["NW", "W"],
-    optimalSwellDirections: {
-      min: 225,
-      max: 315,
-    },
-    bestSeasons: ["winter"],
-    optimalTide: "Low",
-    description:
-      "Powerful reef break near Hermanus. Works best in winter swells. High crime risk area.",
-    difficulty: "Advanced",
-    waveType: "Reef Break",
-    swellSize: {
-      min: 1.5,
-      max: 3,
-    },
-    idealSwellPeriod: {
-      min: 12,
-      max: 24,
-    },
-    waterTemp: {
-      summer: 16,
-      winter: 12,
-    },
-    hazards: ["Rocks", "Strong currents", "Sharks", "Remote location"],
-    crimeLevel: "High",
-    sharkAttack: {
-      hasAttack: false,
-    },
-    image: "",
-    coordinates: {
-      lat: -34.1123,
-      lng: 18.4876,
-    },
-  },
+
   {
     id: "yzerfontein",
     name: "Yzerfontein",
@@ -2547,8 +2511,8 @@ export const beachData: Beach[] = [
     distanceFromCT: 35,
     optimalWindDirections: ["WNW", "NW", "W"], // Added WNW as it's offshore here
     optimalSwellDirections: {
-      min: 225,
-      max: 315,
+      min: 135,
+      max: 155,
     },
     bestSeasons: ["winter"],
     optimalTide: "All",
@@ -2557,7 +2521,7 @@ export const beachData: Beach[] = [
     difficulty: "Beginner",
     waveType: "Beach Break",
     swellSize: {
-      min: 1.3,
+      min: 1.8,
       max: 5.6,
     },
     idealSwellPeriod: {
@@ -4335,7 +4299,7 @@ export const beachData: Beach[] = [
     distanceFromCT: 40,
     optimalWindDirections: ["SE", "SSE"],
     optimalSwellDirections: {
-      min: 157.5,
+      min: 220.5,
       max: 247.5,
     },
     bestSeasons: ["winter"],
@@ -4458,49 +4422,6 @@ export const beachData: Beach[] = [
     image: "",
     coordinates: {
       lat: -34.1234, // Please update with actual coordinates
-      lng: 18.4567,
-    },
-  },
-  {
-    id: "gerickes-point",
-    name: "Gerickes Point",
-    continent: "Africa",
-    country: "South Africa",
-    region: "Western Cape",
-    location: "Sedgefield",
-    distanceFromCT: 485, // Approximate distance
-    optimalWindDirections: ["E"], // East as specified
-    optimalSwellDirections: {
-      min: 170, // South swell as specified
-      max: 190,
-      cardinal: "S",
-    },
-    bestSeasons: ["winter", "summer"], // Fairly consistent year-round
-    optimalTide: "Mid", // Using mid tide as default since not specified
-    description:
-      "Highly rated point break known for its fairly consistent waves. Works best with South swell and East winds. Located near Sedgefield, this spot offers quality waves when conditions align.",
-    difficulty: "Intermediate",
-    waveType: "Point Break",
-    swellSize: {
-      min: 1.6,
-      max: 4.0,
-    },
-    idealSwellPeriod: {
-      min: 12,
-      max: 18,
-    },
-    waterTemp: {
-      summer: 23, // Based on provided current temp
-      winter: 17,
-    },
-    hazards: ["Rocks", "Strong currents", "Remote location"],
-    crimeLevel: "Low",
-    sharkAttack: {
-      hasAttack: false,
-    },
-    image: "",
-    coordinates: {
-      lat: -34.1234,
       lng: 18.4567,
     },
   },

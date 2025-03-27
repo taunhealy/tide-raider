@@ -217,8 +217,8 @@ export const beachData: Beach[] = [
     difficulty: "Intermediate",
     waveType: "Beach Break",
     swellSize: {
-      min: 1.6,
-      max: 5.0,
+      min: 1.8,
+      max: 6.0,
     },
     idealSwellPeriod: {
       min: 12,
@@ -2452,55 +2452,7 @@ export const beachData: Beach[] = [
       lng: 18.4876,
     },
   },
-  {
-    id: "st-james",
-    name: "St James",
-    continent: "Africa",
-    country: "South Africa",
-    region: "Western Cape",
-    location: "False Bay",
-    distanceFromCT: 30,
-    optimalWindDirections: ["WNW", "NW", "W"], // Added WNW as it's offshore here
-    optimalSwellDirections: {
-      min: 225,
-      max: 315,
-    },
-    bestSeasons: ["winter"],
-    optimalTide: "Mid",
-    description:
-      "Small reef break next to tidal pool. Protected spot good for beginners when small.",
-    difficulty: "Beginner",
-    waveType: "Reef Break",
-    swellSize: {
-      min: 1.3,
-      max: 4.6,
-    },
-    idealSwellPeriod: {
-      min: 12,
-      max: 24,
-    },
-    waterTemp: {
-      summer: 18,
-      winter: 14,
-    },
-    hazards: ["Rocks", "Sharks", "Shallow reef"],
-    crimeLevel: "Low",
-    sharkAttack: {
-      hasAttack: true,
-      incidents: [
-        {
-          date: "2004-09-13",
-          outcome: "Fatal",
-          details: "Fatal attack on spearfisherman",
-        },
-      ],
-    },
-    image: "",
-    coordinates: {
-      lat: -34.1123,
-      lng: 18.4876,
-    },
-  },
+
   {
     id: "fish-hoek",
     name: "Fish Hoek",

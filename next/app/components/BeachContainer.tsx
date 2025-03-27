@@ -35,7 +35,7 @@ import { useSearchParams } from "next/navigation";
 import BlogPostsSidebar from "./BlogPostsSidebar";
 import GoldSeeker from "./GoldSeeker";
 import BeachFeedback from "./BeachFeedback";
-import RegionalSidebar from "@/app/components/RegionalSidebar";
+import RegionalSidebar from "@/app/components/RegionalServicesSidebar";
 import type { Ad } from "@/app/types/ads";
 import EventsSidebar from "./EventsSidebar";
 import { beachData, REGIONS } from "@/app/types/beaches";
@@ -49,6 +49,7 @@ import FavouriteSurfVideosSidebar from "@/app/components/FavouriteSurfVideosSide
 import { useSurfConditions } from "@/app/hooks/useSurfConditions";
 import { RandomLoader } from "./ui/random-loader";
 import RegionalHighScores from "@/app/components/RegionalHighScores";
+import AdventureExperiences from "@/app/components/AdventureExperiences";
 
 interface BeachContainerProps {
   initialBeaches: Beach[];
@@ -724,10 +725,6 @@ export default function BeachContainer({
             <QuestLogSidebar />
             <EventsSidebar />
             <BeachFeedback beaches={initialBeaches} />
-            <RegionalSidebar
-              selectedRegion={selectedRegion || "Western Cape"}
-              ads={availableAds}
-            />
           </div>
         </aside>
 
@@ -1204,6 +1201,11 @@ export default function BeachContainer({
                     onBeachClick={handleBeachClick}
                   />
                 )}
+                <AdventureExperiences />
+                <RegionalSidebar
+                  selectedRegion={selectedRegion || "Western Cape"}
+                  ads={availableAds}
+                />
                 <div className="block">
                   <FunFacts />
                 </div>

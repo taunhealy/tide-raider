@@ -79,6 +79,7 @@ interface TabsTriggerProps {
   className?: string;
   children: React.ReactNode;
   onClick?: () => void;
+  title: string;
 }
 
 const TabsTrigger = ({

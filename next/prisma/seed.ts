@@ -92,7 +92,7 @@ async function seedBeaches() {
       const regionId = beach.region.toLowerCase().replace(/\s+/g, "-");
 
       // Format the beach data according to your schema
-      const beachData = {
+      const beachDataForPrisma = {
         id: beachId,
         name: beach.name,
         continent: beach.continent || "",
@@ -112,7 +112,9 @@ async function seedBeaches() {
         waterTemp: beach.waterTemp || {},
         hazards: beach.hazards || [],
         crimeLevel: beach.crimeLevel || "",
-        sharkAttack: beach.sharkAttack || {},
+        sharkAttack: beach.sharkAttack
+          ? JSON.parse(JSON.stringify(beach.sharkAttack))
+          : null,
         image: beach.image || null,
         coordinates: beach.coordinates || {},
         videos: beach.videos || {},
@@ -127,7 +129,7 @@ async function seedBeaches() {
 
       // Create the beach
       await prisma.beach.create({
-        data: beachData,
+        data: beachDataForPrisma,
       });
 
       createdCount++;

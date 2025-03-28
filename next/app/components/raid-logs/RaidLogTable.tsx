@@ -679,7 +679,11 @@ export default function RaidLogTable({
             }}
           >
             <TabsList className="grid w-[180px] grid-cols-2">
-              <TabsTrigger value="card" className="flex items-center gap-2">
+              <TabsTrigger
+                value="card"
+                className="flex items-center gap-2"
+                title="Card View"
+              >
                 <LayoutGrid className="h-4 w-4" />
                 <span className="text-sm font-primary">Cards</span>
               </TabsTrigger>
@@ -689,6 +693,7 @@ export default function RaidLogTable({
                   "flex items-center gap-2",
                   isMobile && "opacity-50 pointer-events-none"
                 )}
+                title="Table View"
               >
                 <TableIcon className="h-4 w-4" />
                 <span className="text-sm font-primary">Table</span>

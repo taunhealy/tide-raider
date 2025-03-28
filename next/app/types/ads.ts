@@ -50,7 +50,7 @@ export interface Ad {
   customCategory?: string;
   linkUrl: string;
   imageUrl?: string | null;
-  regionId: number;
+  regionId: string | number;
   country?: string | null;
   status: string;
   startDate: Date;
@@ -66,6 +66,8 @@ export interface Ad {
   _count?: {
     clicks: number;
   };
+  region?: string;
+  description?: string;
 }
 
 export interface AdImpression {

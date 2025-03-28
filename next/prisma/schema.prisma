@@ -23,14 +23,15 @@ model BeachGoodRating {
 }
 
 model AdRequest {
-  id                    String   @id
+  id                    String         @id
   companyName           String
   contactEmail          String
   imageUrl              String?
   linkUrl               String
+  description           String?
   status                String
-  createdAt             DateTime @default(now())
-  updatedAt             DateTime @updatedAt
+  createdAt             DateTime       @default(now())
+  updatedAt             DateTime       @updatedAt
   rejectionReason       String?
   userId                String?
   category              String
@@ -45,9 +46,11 @@ model AdRequest {
   variantId             String?
   paypalSubscriptionId  String?
   ad                    Ad?
-  region                Region   @relation(fields: [regionId], references: [id])
-  user                  User?    @relation(fields: [userId], references: [id])
+  region                Region         @relation(fields: [regionId], references: [id])
+  user                  User?          @relation(fields: [userId], references: [id])
   notifications         Notification[]
+  categoryType          String?        @default("local")
+  customCategory        String?
 
   @@index([regionId])
   @@index([category])
@@ -59,6 +62,7 @@ model Ad {
   requestId            String              @unique
   companyName          String
   title                String?
+  description          String?
   category             String
   linkUrl              String
   imageUrl             String?
@@ -77,6 +81,8 @@ model Ad {
   beachConnections     AdBeachConnection[]
   clicks               AdClick[]
   notifications        Notification[]
+  categoryType         String?             @default("local")
+  customCategory       String?
 
   @@index([regionId])
   @@index([category])
@@ -107,6 +113,8 @@ model User {
   skillLevel           SkillLevel?
   createdAt            DateTime            @default(now())
   updatedAt            DateTime            @updatedAt
+  lemonCustomerId      String?
+  lemonSubscriptionId  String?
   savedFilters         Json?
   hasActiveTrial       Boolean             @default(false)
   hasTrialEnded        Boolean             @default(false)
@@ -127,6 +135,7 @@ model User {
   events               Event[]
   logEntries           LogEntry[]
   membership           Membership?
+  notifications        Notification[]
   rentalChatMessages   RentalChatMessage[]
   rentalItems          RentalItem[]
   ownedItemRequests    RentalItemRequest[] @relation("OwnerItemRequests")
@@ -137,7 +146,6 @@ model User {
   surfSafaris          SurfSafariListing[]
   favorites            UserFavorite[]
   filters              UserFilters?
-  notifications        Notification[]
 
   @@index([email])
   @@index([skillLevel])
@@ -161,29 +169,29 @@ model Event {
 }
 
 model LogEntry {
-  id           String    @id @default(uuid())
-  date         DateTime  @db.Date
+  id           String     @id @default(uuid())
+  date         DateTime   @db.Date
   surferName   String?
   surferEmail  String?
   beachName    String?
-  surferRating Int @default(0)
+  surferRating Int        @default(0)
   comments     String?
-  createdAt    DateTime  @default(now())
-  updatedAt    DateTime  @updatedAt
+  createdAt    DateTime   @default(now())
+  updatedAt    DateTime   @updatedAt
   imageUrl     String?
-  isPrivate    Boolean   @default(false)
-  isAnonymous  Boolean   @default(false)
+  isPrivate    Boolean    @default(false)
+  isAnonymous  Boolean    @default(false)
   continent    String?
   country      String?
   region       String?
   waveType     String?
   beachId      String?
-  forecastId   String?
-  forecast     ForecastA? @relation(fields: [forecastId], references: [id])
   userId       String?    @map("user_id")
-  beach        Beach?     @relation(fields: [beachId], references: [id])
-  user         User?      @relation(fields: [userId], references: [id])
+  forecastId   String?
   alerts       Alert[]
+  beach        Beach?     @relation(fields: [beachId], references: [id])
+  forecast     ForecastA? @relation(fields: [forecastId], references: [id])
+  user         User?      @relation(fields: [userId], references: [id])
 
   @@index([isPrivate])
   @@index([userId])
@@ -349,8 +357,8 @@ model Board {
 }
 
 model ForecastA {
-  id             String    @id @default(uuid())
-  date           DateTime  @db.Date
+  id             String     @id @default(uuid())
+  date           DateTime   @db.Date
   region         String
   createdAt      DateTime   @default(now())
   updatedAt      DateTime   @updatedAt
@@ -359,8 +367,8 @@ model ForecastA {
   swellHeight    Float      @default(0)
   swellPeriod    Int        @default(0)
   swellDirection Float      @default(0)
-  logEntries     LogEntry[]
   alerts         Alert[]
+  logEntries     LogEntry[]
 
   @@unique([date, region])
 }
@@ -561,27 +569,26 @@ model AdClick {
 }
 
 model Alert {
-  id                String    @id @default(uuid())
-  name              String
-  region            String
-  forecastDate      DateTime  @db.Date
-  properties        Json
+  id                 String              @id @default(uuid())
+  name               String
+  region             String
+  properties         Json
   notificationMethod String
-  contactInfo       String
-  active            Boolean   @default(true)
-  userId            String
-  logEntryId        String?
-  alertType         String    @default("variables")
-  starRating        String?
-  forecastId        String?
-  forecast          ForecastA? @relation(fields: [forecastId], references: [id])
-  logEntry          LogEntry?  @relation(fields: [logEntryId], references: [id])
-  createdAt         DateTime @default(now())
-  updatedAt         DateTime @updatedAt
-  
-  user              User     @relation(fields: [userId], references: [id])
-  notifications     AlertNotification[]
-  checks            AlertCheck[]
+  contactInfo        String
+  active             Boolean             @default(true)
+  userId             String
+  createdAt          DateTime            @default(now())
+  updatedAt          DateTime            @updatedAt
+  logEntryId         String?
+  alertType          String              @default("variables")
+  starRating         String?
+  forecastDate       DateTime            @db.Date
+  forecastId         String?
+  forecast           ForecastA?          @relation(fields: [forecastId], references: [id])
+  logEntry           LogEntry?           @relation(fields: [logEntryId], references: [id])
+  user               User                @relation(fields: [userId], references: [id])
+  checks             AlertCheck[]
+  notifications      AlertNotification[]
 }
 
 model AlertCheck {
@@ -590,9 +597,8 @@ model AlertCheck {
   checkedAt DateTime @default(now())
   success   Boolean
   details   String?
-  
   alert     Alert    @relation(fields: [alertId], references: [id])
-  
+
   @@index([alertId])
   @@index([checkedAt])
 }
@@ -600,17 +606,16 @@ model AlertCheck {
 model AlertNotification {
   id            String         @id @default(uuid())
   alertId       String
-  alertName     String?
-  region        String?
-  beachId       String?
-  beachName     String?
   success       Boolean
   details       String?
   createdAt     DateTime       @default(now())
-  
+  alertName     String?
+  beachId       String?
+  beachName     String?
+  region        String?
   alert         Alert          @relation(fields: [alertId], references: [id])
   notifications Notification[]
-  
+
   @@index([alertId])
   @@index([createdAt])
   @@index([region])
@@ -618,23 +623,22 @@ model AlertNotification {
 }
 
 model Notification {
-  id                 String             @id @default(uuid())
-  userId             String
-  type               String             // "ALERT", "AD", "RENTAL", etc.
-  title              String
-  message            String
-  read               Boolean            @default(false)
-  createdAt          DateTime           @default(now())
-  updatedAt          DateTime           @updatedAt
-  alertNotificationId String?           // Optional reference to AlertNotification
-  adId               String?            // Optional reference to Ad
-  adRequestId        String?            // Optional reference to AdRequest
-  
-  user               User               @relation(fields: [userId], references: [id], onDelete: Cascade)
-  alertNotification  AlertNotification? @relation(fields: [alertNotificationId], references: [id])
-  ad                 Ad?                @relation(fields: [adId], references: [id])
-  adRequest          AdRequest?         @relation(fields: [adRequestId], references: [id])
-  
+  id                  String             @id @default(uuid())
+  userId              String
+  type                String
+  title               String
+  message             String
+  read                Boolean            @default(false)
+  createdAt           DateTime           @default(now())
+  updatedAt           DateTime           @updatedAt
+  alertNotificationId String?
+  adId                String?
+  adRequestId         String?
+  ad                  Ad?                @relation(fields: [adId], references: [id])
+  adRequest           AdRequest?         @relation(fields: [adRequestId], references: [id])
+  alertNotification   AlertNotification? @relation(fields: [alertNotificationId], references: [id])
+  user                User               @relation(fields: [userId], references: [id], onDelete: Cascade)
+
   @@index([userId])
   @@index([type])
   @@index([read])

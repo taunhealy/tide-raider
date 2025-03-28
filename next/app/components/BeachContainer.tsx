@@ -40,7 +40,7 @@ import type { Ad } from "@/app/types/ads";
 import EventsSidebar from "./EventsSidebar";
 import { beachData, REGIONS } from "@/app/types/beaches";
 import { format } from "date-fns";
-import QuestLogSidebar from "./QuestLogSidebar";
+import QuestLogSidebar from "./RaidLogSidebar";
 import StickyForecastWidget from "./StickyForecastWidget";
 import { toast } from "sonner";
 import Link from "next/link";
@@ -720,9 +720,10 @@ export default function BeachContainer({
             />
           </div>
           <div className="space-y-6">
+            <QuestLogSidebar />
             <FavouriteSurfVideosSidebar />
             <GoldSeeker />
-            <QuestLogSidebar />
+
             <EventsSidebar />
             <BeachFeedback beaches={initialBeaches} />
           </div>

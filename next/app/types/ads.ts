@@ -29,7 +29,7 @@ export interface AdRequest {
   categoryData?: any;
   googleAdsCampaignId?: string | null;
   googleAdsContribution: number;
-  regionId: string;
+  regionId: number;
   title?: string | null;
   yearlyPrice: number;
   startDate: Date;
@@ -46,9 +46,11 @@ export interface Ad {
   companyName: string;
   title?: string | null;
   category: string;
+  categoryType?: string;
+  customCategory?: string;
   linkUrl: string;
   imageUrl?: string | null;
-  regionId: string;
+  regionId: number;
   country?: string | null;
   status: string;
   startDate: Date;
@@ -75,20 +77,26 @@ export interface AdImpression {
 }
 
 export interface AdvertisingFormData {
-  companyName: string; // Required - Business name
-  websiteUrl: string; // Required - Website URL
+  companyName: string;
+  websiteUrl: string;
+  description?: string;
+  customCategory?: string;
 }
 
 export interface CreateAdRequestPayload {
   title: string;
-  companyName?: string;
-  contactEmail?: string;
+  companyName: string;
+  contactEmail: string;
   linkUrl: string;
+  description?: string;
   category: string;
+  categoryType: "local" | "adventure";
+  customCategory?: string;
   regionId: string;
   targetedBeaches: string[];
-  status?: string;
-  yearlyPrice?: number;
+  status: string;
+  yearlyPrice: number;
+  imageUrl?: string | null;
 }
 
 export interface Service {

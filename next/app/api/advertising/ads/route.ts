@@ -7,14 +7,70 @@ export async function GET(request: Request) {
   const { searchParams } = new URL(request.url);
   const beachId = searchParams.get("beachId");
   const id = searchParams.get("id");
+  const type = searchParams.get("type");
+  const category = searchParams.get("category");
 
-  // If beachId is provided, get ads for that beach
-  if (beachId) {
+  // If requesting adventure ads
+  if (type === "adventure") {
     try {
-      // Get active ads for this beach
+      // Get active adventure ads
       const ads = await prisma.ad.findMany({
         where: {
           status: "active",
+          categoryType: "adventure",
+          endDate: {
+            gte: new Date(), // Only show ads that haven't expired
+          },
+        },
+        orderBy: {
+          createdAt: "desc", // Show newest ads first
+        },
+        select: {
+          id: true,
+          companyName: true,
+          title: true,
+          description: true,
+          category: true,
+          linkUrl: true,
+          imageUrl: true,
+          status: true,
+        },
+      });
+
+      return NextResponse.json({ ads: ads || [] });
+    } catch (error) {
+      console.error("Error fetching adventure ads:", error);
+      return NextResponse.json(
+        { error: "Failed to fetch ads", ads: [] },
+        { status: 500 }
+      );
+    }
+  }
+
+  // If beachId is provided, get ads for that beach
+  if (beachId && category) {
+    try {
+      // First check if the beach exists in the database
+      const beach = await prisma.beach.findUnique({
+        where: { id: beachId },
+        select: { id: true, name: true },
+      });
+
+      if (!beach) {
+        console.log(`Beach ${beachId} not found in database`);
+        return NextResponse.json({
+          available: false,
+          beachExists: false,
+          message: "Beach not found in database. Please select a valid beach.",
+        });
+      }
+
+      // Check if there are any active ads for this beach and category
+      const ads = await prisma.ad.findMany({
+        where: {
+          status: "active",
+          category: category,
+          categoryType: type || "local",
           beachConnections: {
             some: {
               beachId: beachId,
@@ -24,17 +80,32 @@ export async function GET(request: Request) {
             gte: new Date(), // Only show ads that haven't expired
           },
         },
-        orderBy: {
-          createdAt: "desc", // Show newest ads first
+        select: {
+          id: true,
+          companyName: true,
+          title: true,
+          description: true,
+          category: true,
+          linkUrl: true,
+          imageUrl: true,
+          status: true,
         },
       });
 
-      // Ensure we're returning an array
-      return NextResponse.json({ ads: ads || [] });
+      // Return availability information
+      return NextResponse.json({
+        ads: ads || [],
+        available: ads.length === 0,
+        beachExists: true,
+      });
     } catch (error) {
-      console.error("Error fetching beach ads:", error);
+      console.error("Error checking availability:", error);
       return NextResponse.json(
-        { error: "Failed to fetch ads", ads: [] },
+        {
+          error: "Failed to check availability",
+          available: false,
+          hasError: true,
+        },
         { status: 500 }
       );
     }
@@ -103,17 +174,24 @@ export async function POST(request: Request) {
 
   try {
     const data = await request.json();
+    console.log("Received ad creation request with data:", data);
+
     const {
       title,
       companyName,
       contactEmail,
       linkUrl,
+      description,
       category,
+      categoryType,
+      customCategory,
       regionId,
       targetedBeaches,
       yearlyPrice,
-      websiteUrl,
+      imageUrl,
     } = data;
+
+    console.log("Processing ad with image URL:", imageUrl);
 
     // Create ad request and ad together in a transaction
     const result = await prisma.$transaction(async (prisma) => {
@@ -124,8 +202,11 @@ export async function POST(request: Request) {
           companyName,
           title: companyName,
           contactEmail: session.user.email || "",
-          linkUrl: websiteUrl || linkUrl,
+          linkUrl: linkUrl,
+          description,
           category,
+          categoryType: categoryType || "local",
+          customCategory,
           regionId,
           yearlyPrice,
           status: "PENDING",
@@ -136,8 +217,11 @@ export async function POST(request: Request) {
           categoryData: {
             location: [regionId],
           },
+          imageUrl: imageUrl || null, // Ensure imageUrl is saved
         },
       });
+
+      console.log("Created ad request:", adRequest.id);
 
       // Create the ad with beach connections
       const ad = await prisma.ad.create({
@@ -145,8 +229,12 @@ export async function POST(request: Request) {
           requestId: adRequest.id,
           companyName,
           title,
+          description,
           category,
-          linkUrl: websiteUrl || linkUrl,
+          categoryType: categoryType || "local",
+          customCategory,
+          linkUrl,
+          imageUrl: imageUrl || null, // Ensure imageUrl is saved
           regionId,
           status: "pending",
           startDate: new Date(),
@@ -160,39 +248,24 @@ export async function POST(request: Request) {
         },
       });
 
-      // Send email notification to admin
-      if (process.env.ADMIN_EMAIL) {
-        try {
-          await fetch("/api/email/send", {
-            method: "POST",
-            headers: {
-              "Content-Type": "application/json",
-            },
-            body: JSON.stringify({
-              to: process.env.ADMIN_EMAIL,
-              subject: "New Ad Created",
-              text: `A new ad has been created:
-                Company: ${companyName}
-                Category: ${category}
-                Region: ${regionId}
-                Beach: ${targetedBeaches.join(", ")}
-                View in dashboard: ${process.env.NEXTAUTH_URL}/dashboard/admin/ads
-              `,
-            }),
-          });
-        } catch (error) {
-          console.error("Failed to send admin notification email:", error);
-          // Don't fail the request if email fails
-        }
-      }
+      console.log("Created ad:", ad.id, "with imageUrl:", imageUrl);
 
-      return { adRequest, ad, adId: ad.id };
+      return { adRequest, ad };
     });
 
-    return NextResponse.json(result);
+    return NextResponse.json({
+      success: true,
+      adId: result.ad.id,
+      requestId: result.adRequest.id,
+    });
   } catch (error) {
     console.error("Error creating ad:", error);
-    return NextResponse.json({ error: "Failed to create ad" }, { status: 500 });
+    return NextResponse.json(
+      {
+        error: error instanceof Error ? error.message : "Failed to create ad",
+      },
+      { status: 500 }
+    );
   }
 }
 

@@ -1,154 +1,157 @@
-require("./seeds/ads");
-
 import { PrismaClient } from "@prisma/client";
 import { beachData } from "../app/types/beaches";
-import { RentalItemType, PACKAGE_PRICES } from "../app/lib/rentals/constants";
 
 const prisma = new PrismaClient();
 
-async function main() {
-  console.log("Starting seed script...");
+async function seedRegions() {
+  console.log("Cleaning up existing regions with incorrect format...");
 
-  // Use the specific user ID
-  const userId = "cm7r7r1440000v0h0ew4kmvdq";
+  // Delete regions with non-hyphenated IDs or spaces (the incorrect ones)
+  const allRegions = await prisma.region.findMany();
+  for (const region of allRegions) {
+    if (region.id.includes(" ") || region.id !== region.id.toLowerCase()) {
+      console.log(`Deleting region: ${region.id} (${region.name})`);
 
-  console.log(`Looking for user with ID: ${userId}`);
-  const user = await prisma.user.findUnique({
-    where: { id: userId },
-  });
-
-  if (!user) {
-    console.error(
-      `User with ID ${userId} not found. Please provide a valid user ID.`
-    );
-    process.exit(1);
-  }
-
-  console.log(`Found user: ${user.name} (${user.email})`);
-
-  // Select a few beaches for the rental item
-  const selectedBeaches = beachData.slice(0, 3); // Take first 3 beaches
-  console.log("Selected beaches for rental item:");
-  selectedBeaches.forEach((beach) =>
-    console.log(`- ${beach.name} (ID: ${beach.id})`)
-  );
-
-  // Ensure the beaches exist in the database
-  for (const beach of selectedBeaches) {
-    console.log(`Checking if beach exists: ${beach.name}`);
-    const existingBeach = await prisma.beach.findUnique({
-      where: { id: beach.id },
-    });
-
-    if (!existingBeach) {
-      console.log(
-        `Beach not found, checking if region exists: ${beach.region}`
-      );
-      // Check if region exists
-      const existingRegion = await prisma.region.findUnique({
-        where: { id: beach.region },
-      });
-
-      // Create region if it doesn't exist
-      if (!existingRegion) {
-        console.log(`Creating region: ${beach.region}`);
-        await prisma.region.create({
-          data: {
-            id: beach.region,
-            name: beach.region,
-            country: beach.country || "",
-            continent: beach.continent || "",
-          },
+      try {
+        await prisma.region.delete({
+          where: { id: region.id },
         });
+      } catch (error) {
+        console.error(`Failed to delete region ${region.id}:`, error);
       }
-
-      // Create the beach
-      console.log(`Creating beach: ${beach.name}`);
-      await prisma.beach.create({
-        data: {
-          id: beach.id,
-          name: beach.name,
-          location: beach.location || "",
-          country: beach.country || "",
-          regionId: beach.region,
-          continent: beach.continent || "",
-          distanceFromCT: beach.distanceFromCT || 0,
-          optimalWindDirections: beach.optimalWindDirections || [],
-          optimalSwellDirections: beach.optimalSwellDirections || {},
-          bestSeasons: beach.bestSeasons || [],
-          optimalTide: beach.optimalTide || "",
-          description: beach.description || "",
-          difficulty: beach.difficulty || "",
-          waveType: beach.waveType || "",
-          swellSize: beach.swellSize || {},
-          idealSwellPeriod: beach.idealSwellPeriod || {},
-          waterTemp: beach.waterTemp || {},
-          hazards: beach.hazards || [],
-          crimeLevel: beach.crimeLevel || "",
-          sharkAttack: beach.sharkAttack
-            ? JSON.parse(JSON.stringify(beach.sharkAttack))
-            : {},
-          coordinates: beach.coordinates || {},
-          image: beach.image,
-          profileImage: beach.profileImage,
-          videos: beach.videos || {},
-        },
-      });
-    } else {
-      console.log(`Beach already exists: ${beach.name}`);
     }
   }
 
-  // Create Jet Ski rental item
-  console.log("Creating Jet Ski rental item...");
-  const jetSkiSpecs = {
-    make: "Sea-Doo",
-    model: "WAKE PRO",
-    year: 2023,
-    horsepower: 230,
-    fuelCapacity: 70,
-    riderCapacity: 3,
-  };
+  // Extract unique regions from beach data
+  const uniqueRegions = [
+    ...new Set(beachData.map((beach: any) => beach.region)),
+  ];
+  console.log(`Found ${uniqueRegions.length} unique regions in beach data`);
 
-  const jetSki = await prisma.rentalItem.create({
-    data: {
-      name: "WAKE PRO",
-      description:
-        "THE WAKE PRO MODEL DELIVERS THE MOST STABLE RIDE IN THE INDUSTRY. WITH EXTRA SPACE FOR SET-UP, EASY BOARDING, AND A SERIOUS 100W BLUETOOTH AUDIO SYSTEM, THESE MODELS AREN'T KIDDING AROUND.",
-      rentPrice: 150,
-      images: [
-        "https://example.com/wake-pro-1.jpg",
-        "https://example.com/wake-pro-2.jpg",
-      ],
-      thumbnail: "https://example.com/wake-pro-thumbnail.jpg",
-      itemType: "JET_SKI",
-      specifications: jetSkiSpecs,
-      isActive: true,
-      userId: userId,
-      availableBeaches: {
-        create: selectedBeaches.map((beach) => ({
-          beachId: beach.id,
-        })),
-      },
-    },
-    include: {
-      availableBeaches: {
-        include: {
-          beach: true,
-        },
-      },
-    },
-  });
+  // Format regions according to database schema
+  const regionsToCreate = uniqueRegions.map((regionName) => ({
+    id: regionName.toLowerCase().replace(/\s+/g, "-"),
+    name: regionName,
+    country:
+      beachData.find((beach) => beach.region === regionName)?.country || "",
+    continent:
+      beachData.find((beach) => beach.region === regionName)?.continent || "",
+  }));
 
-  console.log(`Created Jet Ski with ID: ${jetSki.id}`);
-  console.log("Jet Ski details:", JSON.stringify(jetSki, null, 2));
+  // Only create regions that don't already exist
+  let createdCount = 0;
+  let skippedCount = 0;
 
-  console.log("Seed script completed successfully!");
+  for (const region of regionsToCreate) {
+    // Check if region with this ID already exists
+    const existingRegion = await prisma.region.findUnique({
+      where: { id: region.id },
+    });
+
+    if (existingRegion) {
+      // Skip existing region
+      skippedCount++;
+    } else {
+      // Create new region
+      await prisma.region.create({
+        data: region,
+      });
+      createdCount++;
+    }
+  }
+
+  console.log(
+    `Seeded ${createdCount} new regions, skipped ${skippedCount} existing regions`
+  );
+}
+
+async function seedBeaches() {
+  console.log("Starting beach seeding...");
+
+  // Process each beach from the beach data
+  let createdCount = 0;
+  let skippedCount = 0;
+  let errorCount = 0;
+
+  for (const beach of beachData) {
+    try {
+      // Format the beach ID
+      const beachId = beach.name.toLowerCase().replace(/\s+/g, "-");
+
+      // Check if beach already exists
+      const existingBeach = await prisma.beach.findUnique({
+        where: { id: beachId },
+      });
+
+      if (existingBeach) {
+        skippedCount++;
+        continue;
+      }
+
+      // Get the region ID
+      const regionId = beach.region.toLowerCase().replace(/\s+/g, "-");
+
+      // Format the beach data according to your schema
+      const beachData = {
+        id: beachId,
+        name: beach.name,
+        continent: beach.continent || "",
+        country: beach.country || "",
+        regionId: regionId,
+        location: beach.location || "",
+        distanceFromCT: beach.distanceFromCT || 0,
+        optimalWindDirections: beach.optimalWindDirections || [],
+        optimalSwellDirections: beach.optimalSwellDirections || {},
+        bestSeasons: beach.bestSeasons || [],
+        optimalTide: beach.optimalTide || "",
+        description: beach.description || "",
+        difficulty: beach.difficulty || "",
+        waveType: beach.waveType || "",
+        swellSize: beach.swellSize || {},
+        idealSwellPeriod: beach.idealSwellPeriod || {},
+        waterTemp: beach.waterTemp || {},
+        hazards: beach.hazards || [],
+        crimeLevel: beach.crimeLevel || "",
+        sharkAttack: beach.sharkAttack || {},
+        image: beach.image || null,
+        coordinates: beach.coordinates || {},
+        videos: beach.videos || {},
+        profileImage: beach.profileImage || null,
+        advertisingPrice: beach.advertisingPrice || null,
+        coffeeShop: beach.coffeeShop || {},
+        hasSharkAlert: beach.hasSharkAlert || false,
+        bestMonthOfYear: beach.bestMonthOfYear || null,
+        isHiddenGem: beach.isHiddenGem || false,
+        sheltered: beach.sheltered || false,
+      };
+
+      // Create the beach
+      await prisma.beach.create({
+        data: beachData,
+      });
+
+      createdCount++;
+    } catch (error) {
+      console.error(`Error seeding beach ${beach.name}:`, error);
+      errorCount++;
+    }
+  }
+
+  console.log(
+    `Seeded ${createdCount} new beaches, skipped ${skippedCount} existing beaches, encountered ${errorCount} errors`
+  );
+}
+
+async function main() {
+  console.log("Starting seed operation...");
+  await seedRegions();
+  await seedBeaches();
+  console.log("Seed operation completed");
 }
 
 main()
   .catch((e) => {
-    console.error("Error in seed script:", e);
+    console.error("Error during seed operation:", e);
     process.exit(1);
   })
   .finally(async () => {

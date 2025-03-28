@@ -3,7 +3,7 @@ export const AD_CATEGORIES = {
     id: "surf_camp",
     label: "Surf Camp",
     emoji: "🏄‍♂️",
-    monthlyPrice: 500,
+    monthlyPrice: 250,
     fields: ["title", "websiteUrl"],
     adPosition: "sidebar",
   },
@@ -19,7 +19,7 @@ export const AD_CATEGORIES = {
     id: "beer",
     label: "Beer",
     emoji: "🍺",
-    monthlyPrice: 500,
+    monthlyPrice: 250,
     fields: ["title", "websiteUrl"],
     adPosition: "sidebar",
   },
@@ -63,9 +63,62 @@ export const AD_CATEGORIES = {
     fields: ["title", "websiteUrl"],
     adPosition: "sidebar",
   },
+  OTHER: {
+    id: "other",
+    label: "Other Service",
+    emoji: "🔧",
+    monthlyPrice: 250,
+    fields: ["title", "websiteUrl", "customCategory"],
+    adPosition: "sidebar",
+  },
 } as const;
 
 export type AdCategory = keyof typeof AD_CATEGORIES;
+
+export const ADVENTURE_AD_CATEGORIES = {
+  KAYAKING: {
+    id: "kayaking",
+    label: "Kayaking",
+    emoji: "🚣",
+    monthlyPrice: 250,
+    fields: ["title", "websiteUrl"],
+    adPosition: "adventure",
+  },
+  DIVING: {
+    id: "diving",
+    label: "Diving",
+    emoji: "🤿",
+    monthlyPrice: 250,
+    fields: ["title", "websiteUrl"],
+    adPosition: "adventure",
+  },
+  PARAGLIDING: {
+    id: "paragliding",
+    label: "Paragliding",
+    emoji: "🪂",
+    monthlyPrice: 250,
+    fields: ["title", "websiteUrl"],
+    adPosition: "adventure",
+  },
+  VAN_LIFE: {
+    id: "van_life",
+    label: "Van Life",
+    emoji: "🚐",
+    monthlyPrice: 250,
+    fields: ["title", "websiteUrl"],
+    adPosition: "adventure",
+  },
+  OTHER_ADVENTURE: {
+    id: "other_adventure",
+    label: "Other Adventure",
+    emoji: "🏄‍♂️",
+    monthlyPrice: 250,
+    fields: ["title", "websiteUrl", "customCategory"],
+    adPosition: "adventure",
+  },
+} as const;
+
+export type AdventureAdCategory = keyof typeof ADVENTURE_AD_CATEGORIES;
 
 export const GOOGLE_ADS_CONFIG = {
   dailyBudget: 23, // Combined daily budget from all contributions

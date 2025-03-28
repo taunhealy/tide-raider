@@ -228,4 +228,18 @@ export const REGION_CONFIGS: RegionSourceConfig[] = [
       scraper: scraperA,
     },
   },
+  {
+    region: "Central Morocco",
+    sourceA: {
+      url: "https://www.windfinder.com/forecast/taghazout",
+      scraper: scraperA,
+    },
+  },
+  {
+    region: "Morocco",
+    sourceA: {
+      url: "https://www.windfinder.com/forecast/taghazout",
+      scraper: scraperA,
+    },
+  },
 ];

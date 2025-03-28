@@ -40,17 +40,27 @@ const ADVENTURE_CATEGORIES: AdventureCategory[] = [
         title: "Ocean Kayaking Tour",
         location: "Cape Town",
         description: "Explore the coastline with expert guides",
-        imageUrl: "/images/adventures/kayaking-1.jpg",
-        rating: 4.8,
+        imageUrl: "https://media.tideraider.com/kayaking-2.webp",
         price: "R650",
         url: "/adventures/kayaking/ocean-tour",
+        rating: 4.7,
       },
       {
         id: "kay-2",
         title: "Sunset Paddle Experience",
         location: "Langebaan",
         description: "Peaceful evening kayaking with stunning views",
-        imageUrl: "/images/adventures/kayaking-2.jpg",
+        imageUrl: "https://media.tideraider.com/kayaking-1.webp",
+        rating: 4.7,
+        price: "R550",
+        url: "/adventures/kayaking/sunset-paddle",
+      },
+      {
+        id: "kay-3",
+        title: "Hout Bay Coastal Kayaking",
+        location: "Hout Bay",
+        description: "Explore the coast of Chappies via Kayak!",
+        imageUrl: "https://media.tideraider.com/kayaking-3.webp",
         rating: 4.7,
         price: "R550",
         url: "/adventures/kayaking/sunset-paddle",
@@ -67,7 +77,7 @@ const ADVENTURE_CATEGORIES: AdventureCategory[] = [
         title: "Reef Diving Adventure",
         location: "Sodwana Bay",
         description: "Discover vibrant coral reefs and marine life",
-        imageUrl: "/images/adventures/diving-1.jpg",
+        imageUrl: "https://media.tideraider.com/diving-1.webp",
         rating: 4.9,
         price: "R1200",
         url: "/adventures/diving/reef-adventure",
@@ -77,10 +87,22 @@ const ADVENTURE_CATEGORIES: AdventureCategory[] = [
         title: "Shipwreck Exploration",
         location: "False Bay",
         description: "Dive among historic shipwrecks with certified guides",
-        imageUrl: "/images/adventures/diving-2.jpg",
+        imageUrl:
+          "https://media.tideraider.com/kiril-dobrev-8cQpL8kGqso-unsplash.jpg",
         rating: 4.6,
         price: "R1500",
         url: "/adventures/diving/shipwreck",
+      },
+      {
+        id: "div-3",
+        title: "Night Diving Experience",
+        location: "Aliwal Shoal",
+        description:
+          "Explore the underwater world after dark with specialized equipment",
+        imageUrl: "https://media.tideraider.com/diving-3.webp",
+        rating: 4.8,
+        price: "R1800",
+        url: "/adventures/diving/night-dive",
       },
     ],
   },
@@ -94,7 +116,7 @@ const ADVENTURE_CATEGORIES: AdventureCategory[] = [
         title: "Coastal Paragliding",
         location: "Lion's Head",
         description: "Soar above the coastline with breathtaking views",
-        imageUrl: "/images/adventures/paragliding-1.jpg",
+        imageUrl: "https://media.tideraider.com/paragliding-1.webp",
         rating: 4.9,
         price: "R1800",
         url: "/adventures/paragliding/coastal",
@@ -104,37 +126,49 @@ const ADVENTURE_CATEGORIES: AdventureCategory[] = [
         title: "Tandem Mountain Flight",
         location: "Hermanus",
         description: "Experience the thrill with a professional pilot",
-        imageUrl: "/images/adventures/paragliding-2.jpg",
+        imageUrl: "https://media.tideraider.com/paragliding-2.webp",
         rating: 4.7,
         price: "R1600",
         url: "/adventures/paragliding/tandem",
       },
+      {
+        id: "para-3",
+        title: "Cape Town Paragliding Tour",
+        location: "Cape Town",
+        description: "Glide through the sky as the sun sets over the ocean",
+        imageUrl: "https://media.tideraider.com/paragliding-3.webp",
+        rating: 4.8,
+        price: "R1750",
+        url: "/adventures/paragliding/sunset-tour",
+      },
     ],
   },
   {
-    id: "shark-cage",
-    label: "Shark Cage",
-    emoji: "🦈",
+    id: "van-life",
+    label: "Van Life",
+    emoji: "🚐",
     adventures: [
       {
-        id: "shark-1",
-        title: "Great White Encounter",
-        location: "Gansbaai",
-        description: "Face-to-face with great white sharks in a secure cage",
-        imageUrl: "/images/adventures/shark-1.jpg",
+        id: "van-1",
+        title: "Coastal Road Trip",
+        location: "Garden Route",
+        description:
+          "Explore South Africa's stunning coastline in a fully equipped camper van",
+        imageUrl: "https://media.tideraider.com/van-life-1.webp",
         rating: 4.8,
-        price: "R2200",
-        url: "/adventures/shark-cage/great-white",
+        price: "R1800/day",
+        url: "/adventures/van-life/coastal-trip",
       },
       {
-        id: "shark-2",
-        title: "Shark Research Expedition",
-        location: "Mossel Bay",
-        description: "Join marine biologists studying shark behavior",
-        imageUrl: "/images/adventures/shark-2.jpg",
+        id: "van-2",
+        title: "Mountain Explorer Package",
+        location: "Drakensberg",
+        description:
+          "Adventure through mountain passes with comfortable overnight stays",
+        imageUrl: "https://media.tideraider.com/van-life-2.webp",
         rating: 4.6,
-        price: "R2500",
-        url: "/adventures/shark-cage/research",
+        price: "R2100/day",
+        url: "/adventures/van-life/mountain-explorer",
       },
     ],
   },
@@ -143,7 +177,8 @@ const ADVENTURE_CATEGORIES: AdventureCategory[] = [
 export default function AdventureExperiences() {
   const [activeTab, setActiveTab] = useState(ADVENTURE_CATEGORIES[0].id);
   const [isMounted, setIsMounted] = useState(false);
-  const errorImagePath = "/images/placeholder.jpg"; // Updated placeholder path
+  const errorImagePath = "https://media.tideraider.com/placeholder.jpg"; // Updated placeholder path
+  const [adventureAds, setAdventureAds] = useState<any[]>([]);
 
   // Use a ref to track if the effect has run
   const effectRan = useRef(false);
@@ -162,6 +197,23 @@ export default function AdventureExperiences() {
         effectRan.current = false;
       }
     };
+  }, []);
+
+  // Fetch adventure ads
+  useEffect(() => {
+    async function fetchAdventureAds() {
+      try {
+        const response = await fetch(`/api/advertising/ads?type=adventure`);
+        const data = await response.json();
+        if (data.ads) {
+          setAdventureAds(data.ads);
+        }
+      } catch (error) {
+        console.error("Error fetching adventure ads:", error);
+      }
+    }
+
+    fetchAdventureAds();
   }, []);
 
   // Return null or a loading state during server-side rendering
@@ -239,14 +291,70 @@ export default function AdventureExperiences() {
                 </div>
               </Link>
             ))}
-            <div className="text-center pt-2">
-              <Link
-                href={`/adventures/${category.id}`}
-                className="text-sm text-black hover:underline font-primary"
-              >
-                View all {category.label.toLowerCase()} experiences →
-              </Link>
-            </div>
+
+            {/* Sponsored adventure ads */}
+            {adventureAds
+              .filter(
+                (ad) => ad.category.toLowerCase() === category.id.toLowerCase()
+              )
+              .map((ad) => (
+                <Link
+                  href={ad.linkUrl}
+                  key={ad.id}
+                  className="block"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  onClick={() => {
+                    // Record ad click
+                    fetch(`/api/advertising/click?id=${ad.id}`, {
+                      method: "POST",
+                    });
+                  }}
+                >
+                  <div className="group flex flex-col bg-white rounded-lg border border-gray-200 overflow-hidden hover:shadow-md transition-shadow duration-200">
+                    <div className="relative h-40 w-full">
+                      <div className="absolute inset-0 bg-gray-200 animate-pulse"></div>
+                      {ad.imageUrl ? (
+                        <Image
+                          src={ad.imageUrl}
+                          alt={ad.title || ad.companyName}
+                          fill
+                          className="object-cover group-hover:scale-105 transition-transform duration-300"
+                          onError={(e) => {
+                            const target = e.target as HTMLImageElement;
+                            target.src = errorImagePath;
+                          }}
+                        />
+                      ) : (
+                        <Image
+                          src={errorImagePath}
+                          alt={ad.title || ad.companyName}
+                          fill
+                          className="object-cover"
+                        />
+                      )}
+                      <div className="absolute top-2 right-2 bg-yellow-100 text-yellow-800 text-xs px-2 py-1 rounded font-primary">
+                        Sponsored
+                      </div>
+                    </div>
+                    <div className="p-4">
+                      <div className="flex justify-between items-start mb-2">
+                        <h4 className="font-primary font-medium text-gray-900 group-hover:text-black/80 transition-colors">
+                          {ad.title || ad.companyName}
+                        </h4>
+                      </div>
+                      <div className="flex items-center mb-2">
+                        <span className="text-sm text-gray-600 font-primary">
+                          {ad.companyName}
+                        </span>
+                      </div>
+                      <p className="text-sm text-gray-600 font-primary line-clamp-2">
+                        {ad.description || "Sponsored adventure experience"}
+                      </p>
+                    </div>
+                  </div>
+                </Link>
+              ))}
           </TabsContent>
         ))}
       </Tabs>

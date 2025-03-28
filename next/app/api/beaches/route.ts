@@ -3,11 +3,11 @@ import { prisma } from "@/app/lib/prisma";
 
 export async function GET(request: Request) {
   const url = new URL(request.url);
-  const region = url.searchParams.get("region");
+  const regionId = url.searchParams.get("regionId");
 
-  if (!region) {
+  if (!regionId) {
     return NextResponse.json(
-      { error: "Region parameter is required" },
+      { error: "regionId parameter is required" },
       { status: 400 }
     );
   }
@@ -15,16 +15,29 @@ export async function GET(request: Request) {
   try {
     const beaches = await prisma.beach.findMany({
       where: {
-        regionId: region,
+        regionId: regionId,
       },
       select: {
         id: true,
         name: true,
         regionId: true,
+        region: {
+          select: {
+            name: true,
+          },
+        },
       },
     });
 
-    return NextResponse.json(beaches);
+    // Format the response to include region name
+    const formattedBeaches = beaches.map((beach) => ({
+      id: beach.id,
+      name: beach.name,
+      region: beach.region.name,
+      regionId: beach.regionId,
+    }));
+
+    return NextResponse.json({ beaches: formattedBeaches });
   } catch (error) {
     console.error("Error fetching beaches:", error);
     return NextResponse.json(

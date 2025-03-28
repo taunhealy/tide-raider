@@ -10,9 +10,6 @@ export async function GET() {
         name: true,
         country: true,
       },
-      orderBy: {
-        name: "asc",
-      },
     });
 
     return NextResponse.json(regions);

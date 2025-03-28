@@ -3,6 +3,7 @@ import { getServerSession } from "next-auth/next";
 import { authOptions } from "@/app/lib/authOptions";
 import { prisma } from "@/app/lib/prisma";
 import { AD_CATEGORIES } from "@/app/lib/advertising/constants";
+import { ADVENTURE_AD_CATEGORIES } from "@/app/lib/advertising/constants";
 
 export async function POST(request: Request) {
   const session = await getServerSession(authOptions);
@@ -78,10 +79,17 @@ export async function POST(request: Request) {
       });
     }
 
-    // Get monthly price from category
-    const monthlyPrice =
-      AD_CATEGORIES[ad.category as keyof typeof AD_CATEGORIES]?.monthlyPrice ||
-      0;
+    // Get monthly price based on category type and category
+    let monthlyPrice = 0;
+    const categoryType = ad.categoryType || "local";
+
+    if (categoryType === "adventure") {
+      monthlyPrice =
+        ADVENTURE_AD_CATEGORIES[ad.category as keyof typeof ADVENTURE_AD_CATEGORIES]?.monthlyPrice || 0;
+    } else {
+      monthlyPrice =
+        AD_CATEGORIES[ad.category as keyof typeof AD_CATEGORIES]?.monthlyPrice || 0;
+    }
 
     console.log("Monthly price:", monthlyPrice);
 

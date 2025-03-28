@@ -3,6 +3,7 @@ import { getServerSession } from "next-auth";
 import { authOptions } from "@/app/lib/authOptions";
 import { S3Client, PutObjectCommand } from "@aws-sdk/client-s3";
 import Sharp from "sharp";
+import { v4 as uuidv4 } from "uuid";
 // Add environment variable validation at the top
 if (
   !process.env.R2_ACCOUNT_ID ||
@@ -89,3 +90,9 @@ export async function POST(req: NextRequest) {
     );
   }
 }
+
+export const config = {
+  api: {
+    bodyParser: false,
+  },
+};

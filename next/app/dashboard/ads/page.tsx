@@ -8,6 +8,7 @@ import { useQuery } from "@tanstack/react-query";
 import { Ad } from "@/app/types/ads";
 import { AdCard } from "@/app/components/advertising/AdCard";
 import { useSession } from "next-auth/react";
+import { Button } from "@/app/components/ui/Button";
 
 export default function ManageAdsPage() {
   const [activeTab, setActiveTab] = useState("ads");
@@ -48,8 +49,8 @@ export default function ManageAdsPage() {
     <div className="max-w-7xl mx-auto p-6 font-primary">
       <div className="flex justify-between items-center mb-6">
         <h1 className="text-3xl font-bold">Manage Your Ads</h1>
-        <Link href="/advertising" className="btn-primary">
-          Create New Ad
+        <Link href="/advertising">
+          <Button variant="outline">Create New Ad</Button>
         </Link>
       </div>
 
@@ -108,7 +109,13 @@ export default function ManageAdsPage() {
                             {ad.status.charAt(0).toUpperCase() +
                               ad.status.slice(1)}
                           </span>
-                          <span className="text-sm text-gray-500">Edit Ad</span>
+                          <Link
+                            href={`/dashboard/ads/${ad.id}/edit`}
+                            className="text-sm text-gray-400 hover:text-gray-200"
+                            onClick={(e) => e.stopPropagation()}
+                          >
+                            Edit Ad
+                          </Link>
                         </div>
                       </div>
                     </div>
@@ -122,8 +129,8 @@ export default function ManageAdsPage() {
               <p className="text-gray-600 mb-6">
                 Start promoting your business with targeted ads!
               </p>
-              <Link href="/advertising" className="btn-primary">
-                Create Your First Ad
+              <Link href="/advertising">
+                <Button variant="outline">Create Your First Ad</Button>
               </Link>
             </div>
           )}

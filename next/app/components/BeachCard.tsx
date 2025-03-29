@@ -175,11 +175,11 @@ export default function BeachCard({
           ${isLocalLoading ? "animate-pulse" : ""}
         `}
       >
-        <div className="p-4 md:p-6">
+        <div className="px-4 py-3 md:px-6 md:py-4">
           {isLocalLoading ? (
             <ConditionsSkeleton />
           ) : (
-            <div className="space-y-4">
+            <div className="space-y-3 md:space-y-4">
               <div className="flex items-center justify-between">
                 {/* Wave Type Icon and Beach Details */}
                 <div className="flex items-center gap-2 md:gap-3">
@@ -243,7 +243,7 @@ export default function BeachCard({
                     <>
                       <div>
                         <h4
-                          className="text-base sm:text-[21px] font-primary font-semibold text-[var(--color-text-primary)] flex items-center gap-2 cursor-pointer transition-colors duration-300 hover:text-[var(--color-tertiary)]"
+                          className="text-lg font-primary font-semibold text-[var(--color-text-primary)] md:text-xl flex items-center gap-2 cursor-pointer transition-colors duration-300 hover:text-[var(--color-tertiary)]"
                           onClick={(e) => {
                             e.stopPropagation();
                             if (shouldBeLocked) return;
@@ -267,7 +267,7 @@ export default function BeachCard({
                             </span>
                           )}
                         </h4>
-                        <h6 className="text-[12px] sm:text-[12px] font-primary text-[var(--color-text-secondary)]">
+                        <h6 className="text-xs md:text-sm font-primary text-[var(--color-text-secondary)]">
                           {beach.region}
                         </h6>
                       </div>
@@ -299,7 +299,7 @@ export default function BeachCard({
               </div>
 
               {/* Suitability Rating and Conditions */}
-              <div className="mt-2 md:mt-4">
+              <div className="mt-1 md:mt-3">
                 {isLoading ? (
                   <ConditionsSkeleton />
                 ) : windData ? (
@@ -329,11 +329,11 @@ export default function BeachCard({
                     </div>
 
                     {/* Current Conditions */}
-                    <div className="text-sm flex flex-col gap-1 md:gap-2">
-                      <h6 className="text-sm md:text-base font-primary">
+                    <div className="text-sm flex flex-col gap-1">
+                      <h6 className="text-base font-primary md:text-md mb-2 md:mb-3">
                         Current Conditions:
                       </h6>
-                      <ul className="space-y-2">
+                      <ul className="space-y-1.5">
                         {getConditionReasons(
                           beach,
                           windData,
@@ -341,7 +341,7 @@ export default function BeachCard({
                         ).optimalConditions.map((condition, index, array) => (
                           <li
                             key={index}
-                            className={`flex items-center gap-2 md:gap-4 pb-1 md:pb-2 ${
+                            className={`flex items-center gap-1 md:gap-2 pb-1 ${
                               index !== array.length - 1
                                 ? "border-b border-gray-200"
                                 : ""
@@ -399,34 +399,26 @@ export default function BeachCard({
                   </div>
                 ) : (
                   // Show optimal conditions when no windData is available
-                  <div className="text-sm flex flex-col gap-1 md:gap-2">
-                    <p className="text-sm md:text-base font-semibold font-primary">
+                  <div className="text-sm flex flex-col gap-1">
+                    <p className="text-base font-semibold font-primary md:text-lg">
                       Optimal Conditions:
                     </p>
                     <ul className="space-y-1">
-                      <li className="text-main flex items-center font-primary gap-2 text-gray-600 text-main mb-1">
-                        <span className="font-medium font-primary">
-                          Wind Direction:
-                        </span>{" "}
+                      <li className="text-xs md:text-sm flex items-center gap-1 font-primary text-gray-600">
+                        <span className="font-medium">Wind Direction:</span>
                         {beach.optimalWindDirections.join(", ")}
                       </li>
-                      <li className="text-main flex items-center font-primary gap-2 text-gray-600 text-main mb-1">
-                        <span className="font-medium font-primary">
-                          Swell Direction:
-                        </span>{" "}
+                      <li className="text-xs md:text-sm flex items-center gap-1 font-primary text-gray-600">
+                        <span className="font-medium">Swell Direction:</span>
                         {beach.optimalSwellDirections.min}° -{" "}
                         {beach.optimalSwellDirections.max}°
                       </li>
-                      <li className="text-main flex items-center gap-2 font-primary text-gray-600 text-main mb-1">
-                        <span className="font-medium font-primary">
-                          Wave Size:
-                        </span>{" "}
+                      <li className="text-xs md:text-sm flex items-center gap-1 font-primary text-gray-600">
+                        <span className="font-medium">Wave Size:</span>
                         {beach.swellSize.min}m - {beach.swellSize.max}m
                       </li>
-                      <li className="text-main flex items-center gap-2 font-primary text-gray-600 text-main mb-1">
-                        <span className="font-medium font-primary">
-                          Swell Period:
-                        </span>{" "}
+                      <li className="text-xs md:text-sm flex items-center gap-1 font-primary text-gray-600">
+                        <span className="font-medium">Swell Period:</span>
                         {beach.idealSwellPeriod.min}s -{" "}
                         {beach.idealSwellPeriod.max}s
                       </li>
@@ -437,7 +429,7 @@ export default function BeachCard({
 
               {/* Media Grid - Now inside the card */}
               {!shouldBeLocked && beach.videos && beach.videos.length > 0 && (
-                <div className="mt-2">
+                <div className="mt-3 md:mt-4">
                   <MediaGrid beach={beach} videos={beach.videos} />
                 </div>
               )}

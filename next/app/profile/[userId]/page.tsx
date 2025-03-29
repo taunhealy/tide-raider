@@ -56,6 +56,16 @@ export default function ProfilePage() {
     },
   });
 
+  // Fetch beaches from the database
+  const { data: beaches = [] } = useQuery({
+    queryKey: ["beaches"],
+    queryFn: async () => {
+      const res = await fetch("/api/beaches");
+      if (!res.ok) throw new Error("Failed to fetch beaches");
+      return res.json();
+    },
+  });
+
   const updateNationality = async (countryCode: string) => {
     try {
       const res = await fetch(`/api/user/${userId}/nationality`, {
@@ -163,13 +173,13 @@ export default function ProfilePage() {
 
             {activeTab === "logs" && (
               <div className="w-full overflow-x-auto px-2 sm:px-4">
-                <ClientProfileLogs beaches={[]} userId={userId} />
+                <ClientProfileLogs beaches={beaches} userId={userId} />
               </div>
             )}
 
             {activeTab === "chronicles" && (
               <div className="w-full overflow-x-auto px-2 sm:px-4">
-                <StoriesContainer beaches={[]} userId={userId} />
+                <StoriesContainer beaches={beaches} userId={userId} />
               </div>
             )}
 

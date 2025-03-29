@@ -119,7 +119,7 @@ export function RoleManager({
               }}
               className="rounded border-gray-300"
             />
-            <span className="font-primary">{role.label}</span>
+            <span className="font-primary text-[14px]">{role.label}</span>
           </label>
         ))}
       </div>

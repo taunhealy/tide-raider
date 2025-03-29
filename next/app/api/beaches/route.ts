@@ -5,39 +5,39 @@ export async function GET(request: Request) {
   const url = new URL(request.url);
   const regionId = url.searchParams.get("regionId");
 
-  if (!regionId) {
-    return NextResponse.json(
-      { error: "regionId parameter is required" },
-      { status: 400 }
-    );
-  }
-
   try {
-    const beaches = await prisma.beach.findMany({
-      where: {
-        regionId: regionId,
-      },
-      select: {
-        id: true,
-        name: true,
-        regionId: true,
-        region: {
-          select: {
-            name: true,
-          },
-        },
-      },
-    });
+    let beaches;
 
-    // Format the response to include region name
+    if (regionId) {
+      // If regionId is provided, filter beaches by region
+      beaches = await prisma.beach.findMany({
+        where: {
+          regionId: regionId,
+        },
+        include: {
+          region: true,
+        },
+      });
+    } else {
+      // If no regionId, return all beaches
+      beaches = await prisma.beach.findMany({
+        include: {
+          region: true,
+        },
+      });
+    }
+
+    // Format the response to include region information
     const formattedBeaches = beaches.map((beach) => ({
       id: beach.id,
       name: beach.name,
-      region: beach.region.name,
       regionId: beach.regionId,
+      region: beach.region?.name || "",
+      country: beach.region?.country || beach.country || "",
+      continent: beach.region?.continent || beach.continent || "",
     }));
 
-    return NextResponse.json({ beaches: formattedBeaches });
+    return NextResponse.json(formattedBeaches);
   } catch (error) {
     console.error("Error fetching beaches:", error);
     return NextResponse.json(

@@ -2,7 +2,7 @@ import { NextResponse } from "next/server";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/app/lib/authOptions";
 import { prisma } from "@/app/lib/prisma";
-import { beachData } from "@/app/types/beaches";
+
 export async function GET() {
   try {
     const stories = await prisma.story.findMany({
@@ -19,6 +19,25 @@ export async function GET() {
           select: {
             id: true,
             name: true,
+            regionId: true,
+            country: true,
+            continent: true,
+            region: {
+              select: {
+                id: true,
+                name: true,
+                country: true,
+                continent: true,
+              },
+            },
+          },
+        },
+        region: {
+          select: {
+            id: true,
+            name: true,
+            country: true,
+            continent: true,
           },
         },
       },
@@ -27,7 +46,24 @@ export async function GET() {
       },
     });
 
-    return NextResponse.json(stories);
+    // Transform the data to match the expected Story type
+    const formattedStories = stories.map((story) => ({
+      ...story,
+      beach: story.beach
+        ? {
+            id: story.beach.id,
+            name: story.beach.name,
+            region: story.beach.region?.name || story.region?.name || "",
+            country: story.beach.country || story.region?.country || "",
+            continent: story.beach.continent || story.region?.continent || "",
+          }
+        : undefined,
+      date: story.date.toISOString(),
+      createdAt: story.createdAt.toISOString(),
+      updatedAt: story.updatedAt.toISOString(),
+    }));
+
+    return NextResponse.json(formattedStories);
   } catch (error) {
     console.error("Failed to fetch stories:", error);
     return NextResponse.json(
@@ -65,58 +101,19 @@ export async function POST(request: Request) {
 
     // For non-custom beaches, ensure the beach exists in the database
     if (!isCustomBeach && beach !== "other") {
-      const beachDataEntry = beachData.find((b) => b.id === beach);
-      if (!beachDataEntry) {
+      const beachExists = await prisma.beach.findUnique({
+        where: { id: beach },
+      });
+
+      if (!beachExists) {
         return NextResponse.json(
-          { error: "Selected beach not found in beach data" },
+          { error: "Selected beach not found in database" },
           { status: 400 }
         );
       }
-
-      // Create the region record if it doesn't exist
-      await prisma.region.upsert({
-        where: { id: beachDataEntry.region },
-        update: {},
-        create: {
-          id: beachDataEntry.region,
-          name: beachDataEntry.region,
-          country: beachDataEntry.country || "",
-          continent: beachDataEntry.continent || null,
-        },
-      });
-
-      // Create the beach record if it doesn't exist
-      await prisma.beach.upsert({
-        where: { id: beach },
-        update: {},
-        create: {
-          id: beachDataEntry.id,
-          name: beachDataEntry.name,
-          regionId: beachDataEntry.region,
-          country: beachDataEntry.country || "",
-          continent: beachDataEntry.continent || "",
-          // Add other required fields with default values
-          location: "",
-          distanceFromCT: 0,
-          optimalWindDirections: [],
-          optimalSwellDirections: {},
-          bestSeasons: [],
-          optimalTide: "",
-          description: "",
-          difficulty: "",
-          waveType: "",
-          swellSize: {},
-          idealSwellPeriod: {},
-          waterTemp: {},
-          hazards: [],
-          crimeLevel: "",
-          sharkAttack: {},
-          coordinates: {},
-        },
-      });
     }
 
-    // Create the story with region relation if beach is specified
+    // Create the story with beach and region relations if beach is specified
     const storyData: any = {
       title,
       date: new Date(date),
@@ -129,9 +126,18 @@ export async function POST(request: Request) {
     };
 
     if (!isCustomBeach && beach !== "other") {
-      const beachDataEntry = beachData.find((b) => b.id === beach);
-      storyData.beach = { connect: { id: beach } };
-      storyData.region = { connect: { id: beachDataEntry?.region } };
+      // Get beach data from database
+      const beachData = await prisma.beach.findUnique({
+        where: { id: beach },
+        include: { region: true },
+      });
+
+      if (beachData) {
+        storyData.beach = { connect: { id: beach } };
+        if (beachData.regionId) {
+          storyData.region = { connect: { id: beachData.regionId } };
+        }
+      }
     }
 
     const story = await prisma.story.create({
@@ -145,12 +151,34 @@ export async function POST(request: Request) {
             image: true,
           },
         },
-        beach: true,
+        beach: {
+          include: {
+            region: true,
+          },
+        },
         region: true,
       },
     });
 
-    return NextResponse.json(story);
+    // Format the response to match the expected Story type
+    const formattedStory = {
+      ...story,
+      beach: story.beach
+        ? {
+            id: story.beach.id,
+            name: story.beach.name,
+            region: story.beach.region?.name || story.region?.name || "",
+            country: story.beach.region?.country || story.region?.country || "",
+            continent:
+              story.beach.region?.continent || story.region?.continent || "",
+          }
+        : undefined,
+      date: story.date.toISOString(),
+      createdAt: story.createdAt.toISOString(),
+      updatedAt: story.updatedAt.toISOString(),
+    };
+
+    return NextResponse.json(formattedStory);
   } catch (error) {
     console.error("Failed to create story:", error);
     return NextResponse.json(

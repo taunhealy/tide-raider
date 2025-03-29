@@ -126,12 +126,6 @@ export default function HeroSection({ data }: HeroProps) {
               START
             </span>
           </Link>
-          <span
-            className="text-sm md:text-base font-primary font-medium text-white/90 mt-3 
-            tracking-wider animate-pulse self-start drop-shadow-[0_1px_2px_rgba(0,0,0,0.5)]"
-          >
-            your journey.
-          </span>
         </div>
       </div>
     </section>

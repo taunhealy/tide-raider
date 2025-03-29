@@ -20,7 +20,14 @@ import { useQueries } from "@tanstack/react-query";
 import { Button } from "@/app/components/ui/Button";
 import { urlForImage } from "@/app/lib/urlForImage";
 import Link from "next/link";
-import { Bell, Star, ImageIcon } from "lucide-react";
+import {
+  Bell,
+  Star,
+  ImageIcon,
+  MapPin,
+  Calendar,
+  ExternalLink,
+} from "lucide-react";
 
 const FEATURED_BEACHES = [
   "jeffreys-bay",
@@ -505,7 +512,7 @@ export default function HeroProduct({ data }: { data?: any }) {
                             >
                               {/* Mobile button text - Improved centering */}
                               <div className="md:hidden p-3 text-center flex-1 flex flex-col justify-center">
-                                <h3 className="font-primary text-sm font-medium text-gray-900">
+                                <h3 className="font-primary text-sm font-medium text-white">
                                   {beach.name}
                                 </h3>
                                 <p className="font-primary text-xs text-gray-600">
@@ -595,19 +602,15 @@ export default function HeroProduct({ data }: { data?: any }) {
                           ))}
                         </div>
                       ) : currentBeachData && surfData?.[selectedBeachId] ? (
-                        <ul className="space-y-2">
+                        <ul className="space-y-0 divide-y divide-gray-100">
                           {getConditionReasons(
                             beaches.find((b) => b.id === selectedBeachId)!,
                             surfData[selectedBeachId]!,
                             false
-                          ).optimalConditions.map((condition, index, array) => (
+                          ).optimalConditions.map((condition, index) => (
                             <li
                               key={index}
-                              className={`flex items-center gap-4 pb-2 ${
-                                index !== array.length - 1
-                                  ? "border-b border-gray-200"
-                                  : ""
-                              }`}
+                              className="flex items-center gap-4 py-3"
                             >
                               <span className="inline-flex items-center justify-center w-4 h-4">
                                 {condition.isMet ? (
@@ -703,7 +706,7 @@ export default function HeroProduct({ data }: { data?: any }) {
                         <div className="flex flex-col gap-2 md:gap-4 lg:gap-6">
                           <div className="w-full md:w-2/3 lg:w-1/2">
                             {selectedBeachId && surfData?.[selectedBeachId] && (
-                              <div className="bg-white/5 backdrop-blur-sm p-2 md:p-3 lg:p-4 rounded-xl border border-white/20">
+                              <div className="bg-black/30 backdrop-blur-md p-2 md:p-3 lg:p-4 rounded-xl border border-white/20">
                                 <div className="gap-2 md:gap-3 mb-1 md:mb-2 lg:mb-3 flex items-center">
                                   <span className="text-xs md:text-sm lg:text-base font-medium text-white font-primary">
                                     Today's Rating
@@ -723,20 +726,21 @@ export default function HeroProduct({ data }: { data?: any }) {
                                   </span>
                                 </div>
                                 <p className="text-xs md:text-sm mb-3 md:mb-4 text-white/80">
-                                  {(() => {
-                                    const score =
-                                      getBeachScore(selectedBeachId);
-                                    const display = score
-                                      ? getScoreDisplay(score.score)
-                                      : null;
-                                    const conditions =
-                                      surfData?.[selectedBeachId];
+                                  <span className="bg-black/40 px-2 py-1 rounded-md inline-block">
+                                    {(() => {
+                                      const score =
+                                        getBeachScore(selectedBeachId);
+                                      const display = score
+                                        ? getScoreDisplay(score.score)
+                                        : null;
 
-                                    return display?.description;
-                                  })()}
+                                      // Replace description with star rating
+                                      return display?.stars || "⭐";
+                                    })()}
+                                  </span>
                                 </p>
                                 <div className="space-y-1.5 md:space-y-3 text-[10px] md:text-xs bg-black/20 rounded-md p-3 md:p-4">
-                                  <p className="flex items-center gap-2 text-white/90 font-primary">
+                                  <p className="flex items-center gap-2 text-white/90 font-primary pb-1.5 border-b border-white/10">
                                     <span
                                       className="inline-flex"
                                       title={`Wind Speed: ${surfData?.[selectedBeachId]?.windSpeed < 5 ? "Light" : surfData?.[selectedBeachId]?.windSpeed < 12 ? "Moderate" : surfData?.[selectedBeachId]?.windSpeed < 20 ? "Strong" : "Very Strong"}`}
@@ -754,7 +758,7 @@ export default function HeroProduct({ data }: { data?: any }) {
                                       kts
                                     </span>
                                   </p>
-                                  <p className="flex items-center gap-2 text-white/90 font-primary">
+                                  <p className="flex items-center gap-2 text-white/90 font-primary py-1.5 border-b border-white/10">
                                     <span
                                       className="inline-flex font-primary"
                                       title={`Swell Height: ${surfData?.[selectedBeachId]?.swellHeight < 0.5 ? "Flat" : surfData?.[selectedBeachId]?.swellHeight < 1 ? "Small" : surfData?.[selectedBeachId]?.swellHeight < 2 ? "Medium" : "Large"}`}
@@ -770,7 +774,7 @@ export default function HeroProduct({ data }: { data?: any }) {
                                       s
                                     </span>
                                   </p>
-                                  <p className="flex items-center gap-2 text-white/90 font-primary">
+                                  <p className="flex items-center gap-2 text-white/90 font-primary pt-1.5">
                                     <span
                                       className="inline-flex font-primary"
                                       title={`Swell Direction: ${surfData?.[selectedBeachId]?.swellDirection}`}

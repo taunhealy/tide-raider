@@ -79,6 +79,12 @@ export default async function AdDetailPage({
             Back to Ads
           </Link>
           <Link
+            href={`/dashboard/ads/${ad.id}/edit`}
+            className="btn-secondary px-4 py-2 rounded-md"
+          >
+            Edit Ad
+          </Link>
+          <Link
             href="/advertising"
             className="btn-primary px-4 py-2 rounded-md"
           >
@@ -91,7 +97,9 @@ export default async function AdDetailPage({
         <div className="lg:col-span-2">
           <div className="bg-[var(--color-bg-primary)] rounded-lg shadow-sm p-6 mb-6 border border-[var(--color-border-light)]">
             <div className="mb-6">
-              <h2 className="heading-5 mb-4">Ad Preview</h2>
+              <div className="flex justify-between items-center mb-4">
+                <h2 className="heading-5">Ad Preview</h2>
+              </div>
               {ad.imageUrl ? (
                 <div className="aspect-video bg-gray-100 relative overflow-hidden rounded-lg mb-4">
                   <img
@@ -108,21 +116,28 @@ export default async function AdDetailPage({
                 </div>
               )}
 
-              <h3 className="font-bold text-xl mb-2">
-                {ad.title || ad.companyName}
-              </h3>
-              <a
-                href={ad.linkUrl}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="text-blue-600 hover:underline mb-4 block"
-              >
-                {ad.linkUrl}
-              </a>
+              <div className="mb-2">
+                <h3 className="font-bold text-xl">
+                  {ad.title || ad.companyName}
+                </h3>
+              </div>
+
+              <div className="mb-4">
+                <a
+                  href={ad.linkUrl}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="text-blue-600 hover:underline block"
+                >
+                  {ad.linkUrl}
+                </a>
+              </div>
             </div>
 
             <div className="border-t pt-6">
-              <h2 className="heading-5 mb-4">Ad Details</h2>
+              <div className="flex justify-between items-center mb-4">
+                <h2 className="heading-5">Ad Details</h2>
+              </div>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
                   <p className="text-sm text-gray-500">Category</p>

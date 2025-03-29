@@ -254,45 +254,7 @@ export default function AdventureExperiences() {
             value={category.id}
             className="space-y-4"
           >
-            {category.adventures.map((adventure) => (
-              <Link href={adventure.url} key={adventure.id} className="block">
-                <div className="group flex flex-col bg-white rounded-lg border border-gray-200 overflow-hidden hover:shadow-md transition-shadow duration-200">
-                  <div className="relative h-40 w-full">
-                    <div className="absolute inset-0 bg-gray-200 animate-pulse"></div>
-                    <Image
-                      src={adventure.imageUrl}
-                      alt={adventure.title}
-                      fill
-                      className="object-cover group-hover:scale-105 transition-transform duration-300"
-                      onError={(e) => {
-                        const target = e.target as HTMLImageElement;
-                        target.src = errorImagePath;
-                      }}
-                    />
-                  </div>
-                  <div className="p-4">
-                    <div className="flex justify-between items-start mb-2">
-                      <h4 className="font-primary font-medium text-gray-900 group-hover:text-black/80 transition-colors">
-                        {adventure.title}
-                      </h4>
-                      <span className="font-primary text-sm font-semibold text-black/80">
-                        {adventure.price}
-                      </span>
-                    </div>
-                    <div className="flex items-center mb-2">
-                      <span className="text-sm text-gray-600 font-primary">
-                        {adventure.location}
-                      </span>
-                    </div>
-                    <p className="text-sm text-gray-600 font-primary line-clamp-2">
-                      {adventure.description}
-                    </p>
-                  </div>
-                </div>
-              </Link>
-            ))}
-
-            {/* Sponsored adventure ads */}
+            {/* Sponsored adventure ads - now displayed first */}
             {adventureAds
               .filter(
                 (ad) => ad.category.toLowerCase() === category.id.toLowerCase()
@@ -355,6 +317,45 @@ export default function AdventureExperiences() {
                   </div>
                 </Link>
               ))}
+
+            {/* Regular adventure listings - now displayed after sponsored ads */}
+            {category.adventures.map((adventure) => (
+              <Link href={adventure.url} key={adventure.id} className="block">
+                <div className="group flex flex-col bg-white rounded-lg border border-gray-200 overflow-hidden hover:shadow-md transition-shadow duration-200">
+                  <div className="relative h-40 w-full">
+                    <div className="absolute inset-0 bg-gray-200 animate-pulse"></div>
+                    <Image
+                      src={adventure.imageUrl}
+                      alt={adventure.title}
+                      fill
+                      className="object-cover group-hover:scale-105 transition-transform duration-300"
+                      onError={(e) => {
+                        const target = e.target as HTMLImageElement;
+                        target.src = errorImagePath;
+                      }}
+                    />
+                  </div>
+                  <div className="p-4">
+                    <div className="flex justify-between items-start mb-2">
+                      <h4 className="font-primary font-medium text-gray-900 group-hover:text-black/80 transition-colors">
+                        {adventure.title}
+                      </h4>
+                      <span className="font-primary text-sm font-semibold text-black/80">
+                        {adventure.price}
+                      </span>
+                    </div>
+                    <div className="flex items-center mb-2">
+                      <span className="text-sm text-gray-600 font-primary">
+                        {adventure.location}
+                      </span>
+                    </div>
+                    <p className="text-sm text-gray-600 font-primary line-clamp-2">
+                      {adventure.description}
+                    </p>
+                  </div>
+                </div>
+              </Link>
+            ))}
           </TabsContent>
         ))}
       </Tabs>

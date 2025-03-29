@@ -34,7 +34,7 @@ function MediaGridBase({ videos = [], beach }: MediaGridProps) {
   const adventureAds = ads.filter((ad) => ad.categoryType === "adventure");
 
   // Prepare local services (coffee shops, shapers, etc.)
-  const services = [
+  const regularServices = [
     ...(beach.coffeeShop || []).map((shop) => ({
       type: "coffee_shop",
       name: shop.name,
@@ -56,37 +56,75 @@ function MediaGridBase({ videos = [], beach }: MediaGridProps) {
       url: beer.url,
       isAd: false,
     })),
-    // Add local ads with consistent structure
-    ...localAds.map((ad) => ({
-      type: ad.category,
-      name: ad.title || ad.companyName,
-      category:
-        AD_CATEGORIES[ad.category as keyof typeof AD_CATEGORIES]?.label ||
-        ad.customCategory ||
-        ad.category,
-      url: ad.linkUrl,
-      isAd: true,
-      adId: ad.id,
-    })),
   ];
 
+  // Convert local ads to service format
+  const localAdServices = localAds.map((ad) => ({
+    type: ad.category,
+    name: ad.title || ad.companyName,
+    category:
+      AD_CATEGORIES[ad.category as keyof typeof AD_CATEGORIES]?.label ||
+      ad.customCategory ||
+      ad.category,
+    url: ad.linkUrl,
+    isAd: true,
+    adId: ad.id,
+  }));
+
+  // Interleave ads with regular services (1 ad per 5 items)
+  const services = [];
+  const adInterval = 5;
+  let adIndex = 0;
+
+  // Add regular services with ads interspersed
+  for (let i = 0; i < regularServices.length; i++) {
+    services.push(regularServices[i]);
+
+    // After every 4 regular services, add an ad if available
+    if ((i + 1) % (adInterval - 1) === 0 && adIndex < localAdServices.length) {
+      services.push(localAdServices[adIndex]);
+      adIndex++;
+    }
+  }
+
+  // Add any remaining ads at the end
+  while (adIndex < localAdServices.length) {
+    services.push(localAdServices[adIndex]);
+    adIndex++;
+  }
+
   // Prepare adventure services
-  const adventureServices = [
-    // Add adventure ads with consistent structure
-    ...adventureAds.map((ad) => ({
-      type: ad.category,
-      name: ad.title || ad.companyName,
-      category:
-        ADVENTURE_AD_CATEGORIES[
-          ad.category as keyof typeof ADVENTURE_AD_CATEGORIES
-        ]?.label ||
-        ad.customCategory ||
-        ad.category,
-      url: ad.linkUrl,
-      isAd: true,
-      adId: ad.id,
-    })),
-  ];
+  // Convert adventure ads to service format
+  const adventureAdServices = adventureAds.map((ad) => ({
+    type: ad.category,
+    name: ad.title || ad.companyName,
+    category:
+      ADVENTURE_AD_CATEGORIES[
+        ad.category as keyof typeof ADVENTURE_AD_CATEGORIES
+      ]?.label ||
+      ad.customCategory ||
+      ad.category,
+    url: ad.linkUrl,
+    isAd: true,
+    adId: ad.id,
+  }));
+
+  // For adventure experiences, we need to ensure they appear at a 1-in-5 ratio
+  // with the videos (since videos are the regular content in this case)
+  const adventureServices = [];
+  let adventureAdIndex = 0;
+
+  // Only add adventure ads if we have videos and ads
+  if (videos.length > 0 && adventureAdServices.length > 0) {
+    // Add one adventure ad for every 5 videos
+    for (
+      let i = 0;
+      i < Math.min(adventureAdServices.length, Math.ceil(videos.length / 5));
+      i++
+    ) {
+      adventureServices.push(adventureAdServices[i]);
+    }
+  }
 
   if (!videos.length && !services.length && !adventureServices.length)
     return null;

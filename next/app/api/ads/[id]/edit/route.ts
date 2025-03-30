@@ -16,6 +16,14 @@ export async function GET(
   try {
     const ad = await prisma.ad.findUnique({
       where: { id: params.id },
+      include: {
+        region: true,
+        beachConnections: {
+          include: {
+            beach: true,
+          },
+        },
+      },
     });
 
     if (!ad) {
@@ -26,7 +34,17 @@ export async function GET(
       return NextResponse.json({ error: "Unauthorized" }, { status: 403 });
     }
 
-    return NextResponse.json(ad);
+    // Transform the data to include region and beaches
+    const responseData = {
+      ...ad,
+      region: ad.region.name,
+      beaches: ad.beachConnections.map((bc) => ({
+        id: bc.beachId,
+        name: bc.beach.name,
+      })),
+    };
+
+    return NextResponse.json(responseData);
   } catch (error) {
     console.error("Error fetching ad:", error);
     return NextResponse.json(
@@ -58,6 +76,7 @@ export async function PATCH(
         id: true,
         userId: true,
         imageUrl: true,
+        beachConnections: true,
       },
     });
 
@@ -70,6 +89,13 @@ export async function PATCH(
     }
 
     console.log("Existing image URL:", existingAd.imageUrl);
+
+    // In your PATCH handler, add a console log to see what's happening
+    console.log("Original category:", data.category);
+    console.log(
+      "Transformed category:",
+      data.category.toLowerCase().replace(/_/g, "-")
+    );
 
     // Create an update object with explicit typing
     const updateData: {
@@ -85,7 +111,10 @@ export async function PATCH(
       title: data.title,
       companyName: data.companyName,
       linkUrl: data.linkUrl,
-      category: data.category,
+      category:
+        typeof data.category === "string"
+          ? data.category.toLowerCase().replace(/_/g, "-")
+          : data.category,
       regionId: data.regionId,
       categoryType: data.categoryType,
       imageUrl: data.imageUrl, // Always include imageUrl in the update
@@ -96,17 +125,59 @@ export async function PATCH(
       updateData.description = data.description;
     }
 
+    console.log("Final category being saved:", updateData.category);
+
     console.log("Update data being sent to Prisma:", updateData);
 
-    // Update the ad
+    // First, update the ad details
     const updatedAd = await prisma.ad.update({
       where: { id: params.id },
       data: updateData,
     });
 
-    console.log("Updated ad with new image URL:", updatedAd.imageUrl);
+    // Then, handle beach connections if targetedBeaches is provided
+    if (data.targetedBeaches && Array.isArray(data.targetedBeaches)) {
+      console.log("Updating targeted beaches:", data.targetedBeaches);
 
-    return NextResponse.json(updatedAd);
+      // Delete existing beach connections
+      await prisma.adBeachConnection.deleteMany({
+        where: { adId: params.id },
+      });
+
+      // Create new beach connection - only use the first beach in the array
+      if (data.targetedBeaches.length > 0) {
+        // Only create a connection for the first beach in the array
+        const targetBeachId = data.targetedBeaches[0];
+
+        await prisma.adBeachConnection.create({
+          data: {
+            adId: params.id,
+            beachId: targetBeachId,
+          },
+        });
+
+        console.log(
+          `Created single beach connection for beach ID: ${targetBeachId}`
+        );
+      }
+    }
+
+    // Fetch the updated ad with beach connections
+    const finalAd = await prisma.ad.findUnique({
+      where: { id: params.id },
+      include: {
+        beachConnections: {
+          include: {
+            beach: true,
+          },
+        },
+      },
+    });
+
+    console.log("Updated ad with new image URL:", updatedAd.imageUrl);
+    console.log("Updated beach connections:", finalAd?.beachConnections.length);
+
+    return NextResponse.json(finalAd);
   } catch (error) {
     console.error("Error updating ad:", error);
     return NextResponse.json(

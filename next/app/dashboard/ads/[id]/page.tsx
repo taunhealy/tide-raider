@@ -41,6 +41,7 @@ export default async function AdDetailPage({
   const ad = await prisma.ad.findUnique({
     where: { id: params.id },
     include: {
+      region: true,
       adRequest: true,
       beachConnections: {
         include: {
@@ -147,7 +148,11 @@ export default async function AdDetailPage({
                 </div>
                 <div>
                   <p className="text-sm text-gray-500">Region</p>
-                  <p className="font-medium">{ad.regionId}</p>
+                  <p className="font-medium">
+                    {ad.region?.name ||
+                      ad.regionId.charAt(0).toUpperCase() +
+                        ad.regionId.slice(1).toLowerCase()}
+                  </p>
                 </div>
                 <div>
                   <p className="text-sm text-gray-500">Status</p>

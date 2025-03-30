@@ -45,12 +45,17 @@ export interface Ad {
   requestId: string;
   companyName: string;
   title?: string | null;
+  description?: string | null;
   category: string;
   categoryType?: string;
   customCategory?: string;
   linkUrl: string;
   imageUrl?: string | null;
-  regionId: string | number;
+  regionId: string;
+  region?: {
+    id: string;
+    name: string;
+  };
   country?: string | null;
   status: string;
   startDate: Date;
@@ -62,12 +67,16 @@ export interface Ad {
   targetedBeaches?: string[];
   adRequest?: AdRequest;
   isAd?: boolean;
-  beachConnections?: Array<{ beachId: string }>;
+  beachConnections?: Array<{
+    beachId: string;
+    id?: string;
+    adId?: string;
+    createdAt?: Date;
+    updatedAt?: Date;
+  }>;
   _count?: {
     clicks: number;
   };
-  region?: string;
-  description?: string;
 }
 
 export interface AdImpression {
@@ -83,6 +92,8 @@ export interface AdvertisingFormData {
   websiteUrl: string;
   description?: string;
   customCategory?: string;
+  regionId?: string;
+  targetedBeaches?: string[];
 }
 
 export interface CreateAdRequestPayload {

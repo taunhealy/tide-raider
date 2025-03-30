@@ -164,7 +164,12 @@ interface Beach {
   regionId: string; // This is the region ID
 }
 
-export default function AdvertisingForm() {
+// Add adId prop to component
+interface Props {
+  adId?: string;
+}
+
+export default function AdvertisingForm({ adId }: Props) {
   const { data: session } = useSession();
   const [adType, setAdType] = useState<"local" | "adventure">("local");
   const [selectedCategory, setSelectedCategory] = useState<AdCategory | null>(
@@ -181,6 +186,7 @@ export default function AdvertisingForm() {
     websiteUrl: "",
     description: "",
     customCategory: "",
+    targetedBeaches: [],
   });
   const [imageFile, setImageFile] = useState<File | null>(null);
   const [imagePreview, setImagePreview] = useState<string | null>(null);
@@ -522,28 +528,64 @@ export default function AdvertisingForm() {
     }
   };
 
-  // When fetching beaches
-  const { data: beaches = [], isLoading: isLoadingBeaches } = useQuery<Beach[]>(
-    {
-      queryKey: ["beaches", selectedRegion],
-      queryFn: async () => {
-        if (!selectedRegion) return [];
-
+  // Add effect to load existing ad data
+  useEffect(() => {
+    if (adId) {
+      const loadAdData = async () => {
         try {
-          const res = await fetch(`/api/beaches?regionId=${selectedRegion}`);
-          if (!res.ok) {
-            throw new Error("Failed to fetch beaches");
+          const response = await fetch(`/api/ads/${adId}/edit`);
+          if (!response.ok) throw new Error("Failed to load ad");
+          const adData = await response.json();
+
+          // Set form state from existing data
+          setFormData({
+            companyName: adData.companyName,
+            websiteUrl: adData.linkUrl,
+            description: adData.description || "",
+            customCategory: adData.customCategory || "",
+            targetedBeaches: adData.targetedBeaches || [],
+          });
+
+          // Set region and beach
+          setSelectedRegion(adData.regionId);
+          setSelectedBeach(adData.beaches[0]?.id);
+
+          // Set category based on categoryType
+          if (adData.categoryType === "local") {
+            setSelectedCategory(adData.category as AdCategory);
+          } else {
+            setSelectedAdventureCategory(
+              adData.category as AdventureAdCategory
+            );
           }
-          const data = await res.json();
-          return data.beaches || [];
+
+          // Set image preview if exists
+          if (adData.imageUrl) {
+            setImagePreview(adData.imageUrl);
+          }
         } catch (error) {
-          console.error("Error fetching beaches:", error);
-          return [];
+          console.error("Error loading ad data:", error);
+          toast.error("Failed to load ad data");
         }
-      },
-      enabled: !!selectedRegion,
+      };
+
+      loadAdData();
     }
-  );
+  }, [adId]);
+
+  // Add this query to fetch beaches when a region is selected
+  const { data: beaches = [], isLoading: isLoadingBeaches } = useQuery({
+    queryKey: ["beaches", selectedRegion],
+    queryFn: async () => {
+      if (!selectedRegion) return [];
+      const response = await fetch(`/api/beaches?regionId=${selectedRegion}`);
+      if (!response.ok) {
+        throw new Error("Failed to fetch beaches");
+      }
+      return response.json();
+    },
+    enabled: !!selectedRegion, // Only run when selectedRegion is available
+  });
 
   // Make sure to add null checks when using beaches
   const beachOptions = Array.isArray(beaches)
@@ -982,6 +1024,42 @@ export default function AdvertisingForm() {
               </p>
             )}
         </div>
+
+        {formData.regionId && (
+          <div className="mb-4">
+            <label className="block text-sm font-medium mb-1">
+              Target Beach
+            </label>
+            {beaches.length > 0 ? (
+              <select
+                name="targetedBeaches"
+                value={formData.targetedBeaches?.[0] || ""}
+                onChange={(e) => {
+                  const beachId = e.target.value;
+                  setFormData((prev) => ({
+                    ...prev,
+                    targetedBeaches: beachId ? [beachId] : [],
+                  }));
+                }}
+                className="w-full p-2 border border-gray-300 rounded-md"
+                required
+              >
+                <option value="">Select a beach</option>
+                {beaches.map((beach: any) => (
+                  <option key={beach.id} value={beach.id}>
+                    {beach.name}
+                  </option>
+                ))}
+              </select>
+            ) : (
+              <div className="text-sm text-gray-500 p-2 border border-gray-200 rounded-md bg-gray-50">
+                {isLoadingBeaches
+                  ? "Loading beaches..."
+                  : "No beaches found for this region"}
+              </div>
+            )}
+          </div>
+        )}
       </form>
     </div>
   );

@@ -40,7 +40,7 @@ const getActiveAds = cache(async () => {
         title: true,
         regionId: true,
         region: {
-          select: { name: true },
+          select: { name: true, id: true },
         },
         startDate: true,
         endDate: true,
@@ -56,7 +56,7 @@ const getActiveAds = cache(async () => {
     return ads.map((ad) => ({
       ...ad,
       isAd: true as const,
-      region: ad.region.name,
+      region: { id: ad.regionId, name: ad.region.name },
     }));
   } catch (error) {
     console.error("Ads fetch error:", error);

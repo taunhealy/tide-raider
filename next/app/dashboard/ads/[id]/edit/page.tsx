@@ -24,7 +24,12 @@ export default function EditAdPage({ params }: { params: { id: string } }) {
     regionId: "",
     categoryType: "local", // Default to local, will be updated when ad loads
     description: "", // Add description field
+    targetedBeaches: [] as string[], // Add this for targeted beaches
   });
+  const [filteredRegions, setFilteredRegions] = useState<any[]>([]);
+  const [beaches, setBeaches] = useState<any[]>([]);
+  const [filteredBeaches, setFilteredBeaches] = useState<any[]>([]);
+  const [beachSearchTerm, setBeachSearchTerm] = useState("");
 
   // Fetch ad data
   const { data: ad, isLoading } = useQuery({
@@ -32,25 +37,76 @@ export default function EditAdPage({ params }: { params: { id: string } }) {
     queryFn: async () => {
       const response = await fetch(`/api/ads/${params.id}/edit`);
       if (!response.ok) throw new Error("Failed to fetch ad");
+      const data = await response.json();
+      return {
+        ...data,
+        region: data.region || { id: data.regionId, name: data.regionId },
+      };
+    },
+  });
+
+  // Fetch regions
+  const { data: regions } = useQuery({
+    queryKey: ["regions"],
+    queryFn: async () => {
+      const response = await fetch("/api/regions");
+      if (!response.ok) throw new Error("Failed to fetch regions");
       return response.json();
     },
   });
 
+  // Add a new query to fetch beaches
+  const { data: beachesData } = useQuery({
+    queryKey: ["beaches", formData.regionId],
+    queryFn: async () => {
+      if (!formData.regionId) return [];
+      const response = await fetch(
+        `/api/beaches?regionId=${formData.regionId}`
+      );
+      if (!response.ok) throw new Error("Failed to fetch beaches");
+      return response.json();
+    },
+    enabled: !!formData.regionId, // Only run when regionId is available
+  });
+
+  // Update beaches when beachesData changes
+  useEffect(() => {
+    if (beachesData) {
+      setBeaches(beachesData);
+    }
+  }, [beachesData]);
+
   // Update form data when ad data is loaded
   useEffect(() => {
     if (ad) {
+      const targetedBeachIds =
+        ad.beachConnections?.map((connection: any) => connection.beachId) || [];
+
       setFormData({
         title: ad.title || "",
         companyName: ad.companyName || "",
         linkUrl: ad.linkUrl || "",
         imageUrl: ad.imageUrl || "",
         category: ad.category || "",
-        regionId: ad.regionId || "",
-        categoryType: ad.categoryType || "local", // Get the category type from the ad
-        description: ad.description || "", // Get description from the ad
+        regionId: ad.region?.id || ad.regionId,
+        categoryType: ad.categoryType || "local",
+        description: ad.description || "",
+        targetedBeaches: targetedBeachIds,
       });
     }
   }, [ad]);
+
+  // Filter beaches based on search term
+  useEffect(() => {
+    if (beaches.length > 0 && beachSearchTerm) {
+      const filtered = beaches.filter((beach: any) =>
+        beach.name.toLowerCase().includes(beachSearchTerm.toLowerCase())
+      );
+      setFilteredBeaches(filtered);
+    } else {
+      setFilteredBeaches([]);
+    }
+  }, [beachSearchTerm, beaches]);
 
   // Update ad mutation
   const updateAdMutation = useMutation({
@@ -152,14 +208,15 @@ export default function EditAdPage({ params }: { params: { id: string } }) {
       title: formData.title,
       companyName: formData.companyName,
       linkUrl: formData.linkUrl,
-      imageUrl: formData.imageUrl, // Ensure this is included
+      imageUrl: formData.imageUrl,
       category: formData.category,
       regionId: formData.regionId,
       categoryType: formData.categoryType,
-      description: formData.description, // Include description in submission
+      description: formData.description,
+      targetedBeaches: formData.targetedBeaches, // Include targeted beaches
     };
 
-    console.log("Submitting data with imageUrl:", dataToSubmit.imageUrl);
+    console.log("Submitting data:", dataToSubmit);
 
     updateAdMutation.mutate(dataToSubmit);
   };
@@ -178,6 +235,27 @@ export default function EditAdPage({ params }: { params: { id: string } }) {
       categoryType: type,
       category: "", // Reset category when switching types
     }));
+  };
+
+  // Add a handler for toggling beach selection
+  const toggleBeachSelection = (beachId: string) => {
+    setFormData((prev) => {
+      const isSelected = prev.targetedBeaches.includes(beachId);
+
+      if (isSelected) {
+        // Remove beach if already selected
+        return {
+          ...prev,
+          targetedBeaches: prev.targetedBeaches.filter((id) => id !== beachId),
+        };
+      } else {
+        // Add beach if not selected
+        return {
+          ...prev,
+          targetedBeaches: [...prev.targetedBeaches, beachId],
+        };
+      }
+    });
   };
 
   if (isLoading) {
@@ -339,6 +417,179 @@ export default function EditAdPage({ params }: { params: { id: string } }) {
                     )}
               </select>
             </div>
+
+            <div>
+              <label className="block text-sm font-medium mb-1">Region</label>
+              <div className="relative">
+                <div className="relative mb-2">
+                  <input
+                    type="text"
+                    placeholder="Search regions..."
+                    className="w-full p-2 pl-9 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200"
+                    onChange={(e) => {
+                      const searchTerm = e.target.value.toLowerCase();
+                      if (regions) {
+                        const filtered = regions.filter((region: any) =>
+                          region.name.toLowerCase().includes(searchTerm)
+                        );
+                        setFilteredRegions(filtered);
+                      }
+                    }}
+                  />
+                  <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    className="h-5 w-5 absolute left-2 top-1/2 transform -translate-y-1/2 text-gray-400"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                    stroke="currentColor"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"
+                    />
+                  </svg>
+                </div>
+
+                {filteredRegions.length > 0 && (
+                  <div className="absolute z-10 w-full mt-1 bg-white border border-gray-300 rounded-md shadow-lg max-h-60 overflow-y-auto">
+                    {filteredRegions.map((region: any) => (
+                      <div
+                        key={region.id}
+                        className="p-2 hover:bg-gray-100 cursor-pointer"
+                        onClick={() => {
+                          setFormData((prev) => ({
+                            ...prev,
+                            regionId: region.id,
+                          }));
+                          setFilteredRegions([]);
+                        }}
+                      >
+                        {region.name
+                          .split(" ")
+                          .map(
+                            (word: string) =>
+                              word.charAt(0).toUpperCase() +
+                              word.slice(1).toLowerCase()
+                          )
+                          .join(" ")}
+                      </div>
+                    ))}
+                  </div>
+                )}
+
+                <select
+                  name="regionId"
+                  value={formData.regionId}
+                  onChange={handleChange}
+                  className="w-full p-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200"
+                  required
+                >
+                  <option value="">Select a region</option>
+                  {regions?.map((region: any) => (
+                    <option key={region.id} value={region.id}>
+                      {region.name
+                        .split(" ")
+                        .map(
+                          (word: string) =>
+                            word.charAt(0).toUpperCase() +
+                            word.slice(1).toLowerCase()
+                        )
+                        .join(" ")}
+                    </option>
+                  ))}
+                </select>
+              </div>
+            </div>
+
+            {formData.regionId && (
+              <div>
+                <label className="block text-sm font-medium mb-1">
+                  Targeted Beaches
+                </label>
+                <div className="relative">
+                  <div className="relative mb-2">
+                    <input
+                      type="text"
+                      placeholder="Search beaches..."
+                      className="w-full p-2 pl-9 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200"
+                      value={beachSearchTerm}
+                      onChange={(e) => setBeachSearchTerm(e.target.value)}
+                    />
+                    <svg
+                      xmlns="http://www.w3.org/2000/svg"
+                      className="h-5 w-5 absolute left-2 top-1/2 transform -translate-y-1/2 text-gray-400"
+                      fill="none"
+                      viewBox="0 0 24 24"
+                      stroke="currentColor"
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth={2}
+                        d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"
+                      />
+                    </svg>
+                  </div>
+
+                  {filteredBeaches.length > 0 && (
+                    <div className="absolute z-10 w-full mt-1 bg-white border border-gray-300 rounded-md shadow-lg max-h-60 overflow-y-auto">
+                      {filteredBeaches.map((beach: any) => (
+                        <div
+                          key={beach.id}
+                          className={`p-2 hover:bg-gray-100 cursor-pointer flex items-center ${
+                            formData.targetedBeaches.includes(beach.id)
+                              ? "bg-blue-50"
+                              : ""
+                          }`}
+                          onClick={() => toggleBeachSelection(beach.id)}
+                        >
+                          <input
+                            type="checkbox"
+                            checked={formData.targetedBeaches.includes(
+                              beach.id
+                            )}
+                            onChange={() => {}}
+                            className="mr-2"
+                          />
+                          {beach.name}
+                        </div>
+                      ))}
+                    </div>
+                  )}
+
+                  <div className="mt-2 border border-gray-300 rounded-md p-2 max-h-40 overflow-y-auto">
+                    <div className="flex flex-wrap gap-2">
+                      {beaches
+                        .filter((beach: any) =>
+                          formData.targetedBeaches.includes(beach.id)
+                        )
+                        .map((beach: any) => (
+                          <div
+                            key={beach.id}
+                            className="bg-blue-100 text-blue-800 px-2 py-1 rounded-full text-sm flex items-center"
+                          >
+                            {beach.name}
+                            <button
+                              type="button"
+                              className="ml-1 text-blue-600 hover:text-blue-800"
+                              onClick={() => toggleBeachSelection(beach.id)}
+                            >
+                              ×
+                            </button>
+                          </div>
+                        ))}
+                      {formData.targetedBeaches.length === 0 && (
+                        <p className="text-gray-500 text-sm">
+                          No beaches selected
+                        </p>
+                      )}
+                    </div>
+                  </div>
+                </div>
+              </div>
+            )}
 
             <div className="flex justify-end mt-4">
               <Button

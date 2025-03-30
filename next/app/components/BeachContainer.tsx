@@ -1202,7 +1202,7 @@ export default function BeachContainer({
                     onBeachClick={handleBeachClick}
                   />
                 )}
-                <AdventureExperiences />
+                <AdventureExperiences selectedRegion={selectedRegion} />
                 <RegionalSidebar
                   selectedRegion={selectedRegion || "Western Cape"}
                   ads={availableAds}

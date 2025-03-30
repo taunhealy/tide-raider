@@ -37,7 +37,10 @@ export function AdCard({ ad }: AdCardProps) {
               {ad.title || ad.companyName}
             </h3>
             <p className="text-sm text-gray-500 mb-2">
-              {category?.label || ad.category}
+              {category?.label || ad.category} ·{" "}
+              {ad.region?.name ||
+                ad.regionId.charAt(0).toUpperCase() +
+                  ad.regionId.slice(1).toLowerCase()}
             </p>
           </div>
           <span className="bg-blue-100 text-black text-xs px-2 py-1 rounded">

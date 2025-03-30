@@ -174,10 +174,14 @@ const ADVENTURE_CATEGORIES: AdventureCategory[] = [
   },
 ];
 
-export default function AdventureExperiences() {
+export default function AdventureExperiences({
+  selectedRegion,
+}: {
+  selectedRegion: string;
+}) {
   const [activeTab, setActiveTab] = useState(ADVENTURE_CATEGORIES[0].id);
   const [isMounted, setIsMounted] = useState(false);
-  const errorImagePath = "https://media.tideraider.com/placeholder.jpg"; // Updated placeholder path
+  const errorImagePath = "https://media.tideraider.com/placeholder.jpg";
   const [adventureAds, setAdventureAds] = useState<any[]>([]);
 
   // Use a ref to track if the effect has run
@@ -199,14 +203,65 @@ export default function AdventureExperiences() {
     };
   }, []);
 
-  // Fetch adventure ads
+  // Update fetch to include region parameter
   useEffect(() => {
     async function fetchAdventureAds() {
       try {
-        const response = await fetch(`/api/advertising/ads?type=adventure`);
+        if (!selectedRegion) {
+          setAdventureAds([]);
+          return;
+        }
+
+        console.log("Fetching adventure ads for region:", selectedRegion);
+
+        // First get the region ID if we have a region name
+        let regionId = selectedRegion;
+
+        // Check if selectedRegion is a name rather than ID
+        if (
+          selectedRegion &&
+          !selectedRegion.match(
+            /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i
+          )
+        ) {
+          // Fetch region ID by name
+          const regionsResponse = await fetch(
+            `/api/regions?name=${encodeURIComponent(selectedRegion)}`
+          );
+          const regionsData = await regionsResponse.json();
+
+          if (regionsData.length > 0) {
+            regionId = regionsData[0].id;
+          } else {
+            console.warn(`Region not found for name: ${selectedRegion}`);
+            setAdventureAds([]);
+            return;
+          }
+        }
+
+        // Now fetch ads with the correct region ID
+        const response = await fetch(
+          `/api/advertising/ads?type=adventure&regionId=${regionId}`
+        );
         const data = await response.json();
+        console.log("Received adventure ads:", data);
+
         if (data.ads) {
           setAdventureAds(data.ads);
+          console.log("Set adventure ads:", data.ads);
+
+          // Set active tab to the category of the first ad if there are any ads
+          if (data.ads.length > 0 && data.ads[0].category) {
+            const adCategory = data.ads[0].category.toLowerCase();
+            // Check if this category exists in our ADVENTURE_CATEGORIES
+            const categoryExists = ADVENTURE_CATEGORIES.some(
+              (cat) => cat.id.toLowerCase() === adCategory
+            );
+
+            if (categoryExists) {
+              setActiveTab(adCategory);
+            }
+          }
         }
       } catch (error) {
         console.error("Error fetching adventure ads:", error);
@@ -214,7 +269,12 @@ export default function AdventureExperiences() {
     }
 
     fetchAdventureAds();
-  }, []);
+  }, [selectedRegion]);
+
+  // Add a useEffect to log when ads change
+  useEffect(() => {
+    console.log("Adventure ads state updated:", adventureAds);
+  }, [adventureAds]);
 
   // Return null or a loading state during server-side rendering
   if (!isMounted) {
@@ -232,7 +292,8 @@ export default function AdventureExperiences() {
       </div>
 
       <Tabs
-        defaultValue={ADVENTURE_CATEGORIES[0].id}
+        defaultValue={activeTab}
+        value={activeTab}
         onValueChange={setActiveTab}
       >
         <TabsList className="flex flex-wrap gap-2 mb-4">
@@ -254,12 +315,15 @@ export default function AdventureExperiences() {
             value={category.id}
             className="space-y-4"
           >
-            {/* Sponsored adventure ads - now displayed first */}
-            {adventureAds
-              .filter(
-                (ad) => ad.category.toLowerCase() === category.id.toLowerCase()
-              )
-              .map((ad) => (
+            {/* Sponsored adventure ads */}
+            {adventureAds.map((ad) => {
+              // Check if this category should show this ad
+              const shouldShow =
+                ad.category.toLowerCase() === category.id.toLowerCase();
+
+              if (!shouldShow) return null;
+
+              return (
                 <Link
                   href={ad.linkUrl}
                   key={ad.id}
@@ -271,6 +335,7 @@ export default function AdventureExperiences() {
                     fetch(`/api/advertising/click?id=${ad.id}`, {
                       method: "POST",
                     });
+                    console.log("Ad clicked:", ad);
                   }}
                 >
                   <div className="group flex flex-col bg-white rounded-lg border border-gray-200 overflow-hidden hover:shadow-md transition-shadow duration-200">
@@ -302,7 +367,7 @@ export default function AdventureExperiences() {
                     <div className="p-4">
                       <div className="flex justify-between items-start mb-2">
                         <h4 className="font-primary font-medium text-gray-900 group-hover:text-black/80 transition-colors">
-                          {ad.title || ad.companyName}
+                          {ad.title}
                         </h4>
                       </div>
                       <div className="flex items-center mb-2">
@@ -316,7 +381,8 @@ export default function AdventureExperiences() {
                     </div>
                   </div>
                 </Link>
-              ))}
+              );
+            })}
 
             {/* Regular adventure listings - now displayed after sponsored ads */}
             {category.adventures.map((adventure) => (

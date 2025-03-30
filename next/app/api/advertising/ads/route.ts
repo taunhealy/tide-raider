@@ -4,159 +4,63 @@ import { getServerSession } from "next-auth";
 import { authOptions } from "@/app/lib/authOptions";
 
 export async function GET(request: Request) {
-  const { searchParams } = new URL(request.url);
-  const beachId = searchParams.get("beachId");
-  const id = searchParams.get("id");
-  const type = searchParams.get("type");
-  const category = searchParams.get("category");
-
-  // If requesting adventure ads
-  if (type === "adventure") {
-    try {
-      // Get active adventure ads
-      const ads = await prisma.ad.findMany({
-        where: {
-          status: "active",
-          categoryType: "adventure",
-          endDate: {
-            gte: new Date(), // Only show ads that haven't expired
-          },
-        },
-        orderBy: {
-          createdAt: "desc", // Show newest ads first
-        },
-        select: {
-          id: true,
-          companyName: true,
-          title: true,
-          description: true,
-          category: true,
-          linkUrl: true,
-          imageUrl: true,
-          status: true,
-        },
-      });
-
-      return NextResponse.json({ ads: ads || [] });
-    } catch (error) {
-      console.error("Error fetching adventure ads:", error);
-      return NextResponse.json(
-        { error: "Failed to fetch ads", ads: [] },
-        { status: 500 }
-      );
-    }
-  }
-
-  // If beachId is provided, get ads for that beach
-  if (beachId && category) {
-    try {
-      // First check if the beach exists in the database
-      const beach = await prisma.beach.findUnique({
-        where: { id: beachId },
-        select: { id: true, name: true },
-      });
-
-      if (!beach) {
-        console.log(`Beach ${beachId} not found in database`);
-        return NextResponse.json({
-          available: false,
-          beachExists: false,
-          message: "Beach not found in database. Please select a valid beach.",
-        });
-      }
-
-      // Check if there are any active ads for this beach and category
-      const ads = await prisma.ad.findMany({
-        where: {
-          status: "active",
-          category: category,
-          categoryType: type || "local",
-          beachConnections: {
-            some: {
-              beachId: beachId,
-            },
-          },
-          endDate: {
-            gte: new Date(), // Only show ads that haven't expired
-          },
-        },
-        select: {
-          id: true,
-          companyName: true,
-          title: true,
-          description: true,
-          category: true,
-          linkUrl: true,
-          imageUrl: true,
-          status: true,
-        },
-      });
-
-      // Return availability information
-      return NextResponse.json({
-        ads: ads || [],
-        available: ads.length === 0,
-        beachExists: true,
-      });
-    } catch (error) {
-      console.error("Error checking availability:", error);
-      return NextResponse.json(
-        {
-          error: "Failed to check availability",
-          available: false,
-          hasError: true,
-        },
-        { status: 500 }
-      );
-    }
-  }
-
-  // If id is provided, get a specific ad
-  if (id) {
-    try {
-      const ad = await prisma.ad.findUnique({
-        where: { id },
-        include: { adRequest: true, beachConnections: true },
-      });
-
-      if (!ad) {
-        return NextResponse.json({ error: "Ad not found" }, { status: 404 });
-      }
-
-      return NextResponse.json(ad);
-    } catch (error) {
-      console.error("Error fetching ad:", error);
-      return NextResponse.json(
-        { error: "Failed to fetch ad" },
-        { status: 500 }
-      );
-    }
-  }
-
-  // If no specific parameters, return all ads (with proper authorization)
-  const session = await getServerSession(authOptions);
-  if (!session?.user) {
-    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-  }
+  const url = new URL(request.url);
+  const beachId = url.searchParams.get("beachId");
+  const regionId = url.searchParams.get("regionId");
+  const normalizedRegionId = regionId
+    ? regionId.toLowerCase().replace(/ /g, "-")
+    : null;
+  const type = url.searchParams.get("type") || null; // Make type optional
 
   try {
-    const ads = await prisma.ad.findMany({
+    // Build the query
+    const query: any = {
       where: {
-        userId: session.user.id,
+        status: "active",
       },
       include: {
-        adRequest: true,
-        beachConnections: true,
         _count: {
           select: {
             clicks: true,
           },
         },
+        beachConnections: true, // Include beach connections
       },
-      orderBy: {
-        createdAt: "desc",
-      },
-    });
+    };
+
+    // Add categoryType filter only if type is provided
+    if (type) {
+      query.where.categoryType = type;
+    }
+
+    // Add beach filter if provided
+    if (beachId) {
+      query.where.beachConnections = {
+        some: {
+          beachId: beachId,
+        },
+      };
+    }
+
+    // Add region filter if provided
+    if (normalizedRegionId) {
+      query.where.regionId = normalizedRegionId;
+    }
+
+    console.log("Prisma query:", JSON.stringify(query, null, 2));
+
+    const ads = await prisma.ad.findMany(query);
+
+    console.log(`Found ${ads.length} ads matching criteria`);
+    if (ads.length > 0) {
+      console.log("First ad:", JSON.stringify(ads[0], null, 2));
+
+      // Access beachConnections safely with optional chaining
+      const connections = (ads[0] as any).beachConnections;
+      if (connections) {
+        console.log("Beach connections:", JSON.stringify(connections, null, 2));
+      }
+    }
 
     return NextResponse.json({ ads });
   } catch (error) {
@@ -176,14 +80,22 @@ export async function POST(request: Request) {
     const data = await request.json();
     console.log("Received ad creation request with data:", data);
 
+    // Add category transformation here
+    const category =
+      typeof data.category === "string"
+        ? data.category.toLowerCase().replace(/_/g, "-")
+        : data.category;
+
+    console.log("Original category:", data.category);
+    console.log("Transformed category:", category);
+
     const {
       title,
       companyName,
       contactEmail,
       linkUrl,
       description,
-      category,
-      categoryType,
+      // Use the transformed category
       customCategory,
       regionId,
       targetedBeaches,
@@ -204,8 +116,9 @@ export async function POST(request: Request) {
           contactEmail: session.user.email || "",
           linkUrl: linkUrl,
           description,
+          // Use the transformed category
           category,
-          categoryType: categoryType || "local",
+          categoryType: data.categoryType || "local",
           customCategory,
           regionId,
           yearlyPrice,
@@ -230,8 +143,9 @@ export async function POST(request: Request) {
           companyName,
           title,
           description,
+          // Use the transformed category
           category,
-          categoryType: categoryType || "local",
+          categoryType: data.categoryType || "local",
           customCategory,
           linkUrl,
           imageUrl: imageUrl || null, // Ensure imageUrl is saved
@@ -249,6 +163,7 @@ export async function POST(request: Request) {
       });
 
       console.log("Created ad:", ad.id, "with imageUrl:", imageUrl);
+      console.log("Ad category saved as:", ad.category);
 
       return { adRequest, ad };
     });

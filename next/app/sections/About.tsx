@@ -1,44 +1,104 @@
 // app/sections/About.tsx
 import Image from "next/image";
+import Link from "next/link";
+import { Button } from "@/app/components/ui/Button";
+import { urlForImage } from "@/app/lib/urlForImage";
 
 interface AboutProps {
-  data?: {
+  data: {
     aboutHeading?: string;
     aboutDescription1?: string;
-    aboutDescription1Image?: string;
+    aboutDescription1Image?: any;
     aboutDescription2?: string;
-    aboutDescription2Image?: string;
+    aboutDescription2Image?: any;
   };
 }
 
 export default function About({ data }: AboutProps) {
   return (
-    <section className="bg-white py-8 sm:py-12 md:py-16 lg:py-20">
-      <div className="container mx-auto px-4 sm:px-6 lg:px-8">
+    <section className="pt-16 pb-24 md:pt-20 md:pb-32 px-4 md:px-8 lg:px-16 bg-[var(--color-bg-primary)]">
+      <div className="container mx-auto max-w-[1440px]">
+        <div className="mb-12 md:mb-16 lg:mb-20 w-full md:w-2/3">
+          <h3 className="font-primary text-xl md:text-2xl lg:text-3xl font-semibold mb-2 text-black">
+            {data?.aboutHeading || "About Tide Raider"}
+          </h3>
+          <p className="font-primary text-sm md:text-base mb-6 max-w-[540px] font-normal">
+            Experience, share, inspire.
+          </p>
+        </div>
+
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 sm:gap-8 md:gap-12">
           <div className="order-2 lg:order-1">
-            {data?.aboutDescription1Image && (
-              <Image
-                src={data.aboutDescription1Image}
-                alt="About section image 1"
-                width={600}
-                height={400}
-                className="w-full h-auto rounded-lg shadow-md object-cover"
-                sizes="(max-width: 1024px) 100vw, 50vw"
-              />
-            )}
+            <div className="relative h-[240px] md:h-[400px] lg:h-[540px] rounded-2xl overflow-hidden">
+              <div
+                className="absolute inset-0 bg-gradient-to-br from-white to-gray-800/30 backdrop-blur-lg rounded-xl border border-[var(--color-tertiary)]/40 flex items-center justify-center"
+                style={{
+                  boxShadow:
+                    "0 0 20px rgba(28, 217, 255, 0.25), 0 8px 32px rgba(0, 0, 0, 0.15)",
+                }}
+              >
+                <div className="absolute inset-0 bg-gradient-to-b from-transparent via-[var(--color-tertiary)]/5 to-transparent"></div>
+
+                <div
+                  className="relative w-[85%] h-[85%] rounded-lg overflow-hidden border border-[var(--color-tertiary)]/70"
+                  style={{
+                    boxShadow: "0 0 15px rgba(28, 217, 255, 0.3)",
+                  }}
+                >
+                  <Image
+                    src="https://media.tideraider.com/Leonardo_Phoenix_10_Reminiscent_of_Studio_Ghiblis_style_of_a_3.webp"
+                    alt="Studio Ghibli-style illustration for About section"
+                    fill
+                    sizes="(max-width: 768px) 100vw, 50vw"
+                    className="object-cover object-center"
+                    priority
+                  />
+                </div>
+
+                <div className="absolute top-4 left-4 w-3 h-3 bg-[var(--color-tertiary)] rounded-full opacity-90"></div>
+                <div className="absolute bottom-4 right-4 w-3 h-3 bg-[var(--color-tertiary)] rounded-full opacity-70"></div>
+                <div className="absolute top-4 right-4 w-2 h-2 bg-white rounded-full opacity-70"></div>
+                <div className="absolute bottom-4 left-4 w-2 h-2 bg-white rounded-full opacity-70"></div>
+              </div>
+            </div>
           </div>
 
-          <div className="order-1 lg:order-2">
-            <h2 className="font-primary text-2xl sm:text-3xl md:text-4xl font-bold mb-4 sm:mb-6 md:mb-8">
-              {data?.aboutHeading}
-            </h2>
-            <p className="font-primary text-base sm:text-lg text-gray-700 mb-4 sm:mb-6">
-              {data?.aboutDescription1}
-            </p>
-            <p className="font-primary text-base sm:text-lg text-gray-700">
-              {data?.aboutDescription2}
-            </p>
+          <div className="order-1 lg:order-2 flex flex-col justify-center">
+            <div className="bg-white/90 backdrop-blur-md rounded-lg md:rounded-xl p-6 md:p-8 lg:p-10 shadow-sm border border-gray-100">
+              <h2 className="font-primary text-xl md:text-2xl lg:text-3xl font-semibold mb-4 md:mb-6">
+                A Cycle Of Experiencing & Sharing
+              </h2>
+              <p className="font-primary text-base md:text-lg text-gray-700 mb-6">
+                Sharing stories, whether that's a log entry of text or images,
+                can inspire and motivate others to experience the beauty of the
+                ocean. Tide Raider is a platform for surfers and surf
+                photographers to discover and explore the top breaks of a region
+                and share their experience with others.
+              </p>
+
+              <div className="mt-8 pt-6 border-t border-white backdrop-blur-sm">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div className="bg-white-50/80 backdrop-blur-sm p-4 rounded-lg">
+                    <h3 className="font-primary text-lg font-medium mb-2">
+                      Surfers
+                    </h3>
+                    <p className="font-primary text-sm text-gray-600">
+                      Exploring breaks, riding with unfamiliar people, sharing
+                      good waves.
+                    </p>
+                  </div>
+                  <div className="bg-gray-50/80 backdrop-blur-sm p-4 rounded-lg">
+                    <h3 className="font-primary text-lg font-medium mb-2">
+                      Photographers
+                    </h3>
+                    <p className="font-primary text-sm text-gray-600">
+                      Surf photographers are an integral part of inspiring and
+                      empowering epic journeys.
+                    </p>
+                  </div>
+                </div>
+              </div>
+            </div>
           </div>
         </div>
       </div>

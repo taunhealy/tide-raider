@@ -545,7 +545,7 @@ export default function HeroSection({ data }: HeroProps) {
   return (
     <section
       ref={sectionRef}
-      className="relative w-full h-[100svh] min-h-[600px] overflow-hidden"
+      className="relative w-full h-[100svh] min-h-[600px] overflow-hidden px-4 sm:px-6 md:px-8 lg:px-16"
     >
       <div className="relative w-full h-full z-99 max-w-[1440px] mx-auto">
         {/* Neon Hearts */}

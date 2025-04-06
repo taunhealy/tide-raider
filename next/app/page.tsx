@@ -3,6 +3,7 @@ import HeroBlogSection from "@/app/sections/HeroBlog";
 import HeroSection from "./sections/Hero";
 import HeroImage from "./sections/HeroImage";
 import HeroProduct from "./sections/HeroProduct";
+import About from "./sections/About";
 
 export const revalidate = 0;
 
@@ -35,7 +36,12 @@ const extendedLandingPageQuery = `{
     heroImage,
     heroFooterImage,
     heroAlertImage,
-    heroLogBookImage
+    heroLogBookImage,
+    aboutHeading,
+    aboutDescription1,
+    aboutDescription1Image,
+    aboutDescription2,
+    aboutDescription2Image
   }
 }`;
 
@@ -57,6 +63,15 @@ async function getHomeContent() {
           heroLogBookImage: content.landingPage.heroLogBookImage,
         }
       : null,
+    about: content.landingPage
+      ? {
+          aboutHeading: content.landingPage.aboutHeading,
+          aboutDescription1: content.landingPage.aboutDescription1,
+          aboutDescription1Image: content.landingPage.aboutDescription1Image,
+          aboutDescription2: content.landingPage.aboutDescription2,
+          aboutDescription2Image: content.landingPage.aboutDescription2Image,
+        }
+      : null,
     blog: blogData,
   };
 }
@@ -71,6 +86,7 @@ export default async function HomePage() {
   return (
     <main>
       {content.hero && <HeroSection data={content.hero} />}
+      {content.about && <About data={content.about} />}
       <HeroProduct data={content.hero} />
       <HeroBlogSection data={content.blog} />
       {content.hero && <HeroImage data={content.hero} />}

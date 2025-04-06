@@ -55,17 +55,51 @@ export default function HeroProduct({ data }: { data?: any }) {
   const regions = [...new Set(beaches.map((b) => b.region))];
   const initialRegion = regions[0];
 
-  // Replace the two separate queries with a single query function
+  // Add a new state for tracking scraping process
+  const [isScrapingData, setIsScrapingData] = useState(false);
+  const [scrapingProgress, setScrapingProgress] = useState(0);
+  const [scrapingStatus, setScrapingStatus] = useState("");
+
+  // Replace the fetchRegionData function to include scraping indicators
   const fetchRegionData = async (region: string) => {
     if (!region) return null;
     try {
+      setIsScrapingData(true);
+      setScrapingStatus(`Fetching data for ${region}...`);
+      setScrapingProgress(10);
+
       const res = await fetch(
         `/api/surf-conditions?region=${encodeURIComponent(region)}`
       );
+
+      setScrapingProgress(30);
+      setScrapingStatus("Processing surf data...");
+
       if (!res.ok) throw new Error(`HTTP error! status: ${res.status}`);
-      return res.json();
+
+      setScrapingProgress(60);
+      setScrapingStatus("Analyzing conditions...");
+
+      const data = await res.json();
+
+      setScrapingProgress(90);
+      setScrapingStatus("Finalizing results...");
+
+      // Short delay to show the completion state
+      setTimeout(() => {
+        setScrapingProgress(100);
+        setScrapingStatus("Complete!");
+        setIsScrapingData(false);
+      }, 500);
+
+      return data;
     } catch (error) {
       console.error(`Error fetching surf conditions for ${region}:`, error);
+      setScrapingStatus(
+        `Error: ${error instanceof Error ? error.message : "Unknown error"}`
+      );
+      setScrapingProgress(100);
+      setIsScrapingData(false);
       return null;
     }
   };
@@ -458,8 +492,8 @@ export default function HeroProduct({ data }: { data?: any }) {
             {/* Slider Section */}
             <div className="w-full lg:w-2/5">
               <div className="relative">
-                {isLoading ? (
-                  // Loading skeleton
+                {isLoading || isScrapingData ? (
+                  // Enhanced Loading skeleton with scraping progress
                   <div className="animate-pulse">
                     <div className="h-[200px] bg-gray-200 rounded-lg mb-4" />
                     <div className="space-y-4">
@@ -467,6 +501,29 @@ export default function HeroProduct({ data }: { data?: any }) {
                       <div className="h-4 bg-gray-200 rounded w-1/2" />
                       <div className="h-4 bg-gray-200 rounded w-2/3" />
                     </div>
+
+                    {/* Scraping Progress Indicator */}
+                    {isScrapingData && (
+                      <div className="mt-6 bg-white rounded-lg p-4 shadow-sm border border-gray-100">
+                        <div className="flex items-center justify-between mb-2">
+                          <h4 className="font-primary text-sm font-medium text-gray-800">
+                            Fetching Surf Data
+                          </h4>
+                          <span className="text-xs font-primary text-gray-500">
+                            {scrapingProgress}%
+                          </span>
+                        </div>
+                        <div className="w-full bg-gray-200 rounded-full h-2.5">
+                          <div
+                            className="bg-[var(--color-tertiary)] h-2.5 rounded-full transition-all duration-300"
+                            style={{ width: `${scrapingProgress}%` }}
+                          ></div>
+                        </div>
+                        <p className="mt-2 text-xs font-primary text-gray-600">
+                          {scrapingStatus}
+                        </p>
+                      </div>
+                    )}
                   </div>
                 ) : (
                   <div className="flex items-center">
@@ -534,14 +591,14 @@ export default function HeroProduct({ data }: { data?: any }) {
                                     />
                                   ) : (
                                     <div className="w-full h-full bg-gray-200 flex items-center justify-center">
-                                      <span className="text-gray-400">
+                                      <span className="text-white">
                                         No image available
                                       </span>
                                     </div>
                                   )}
                                 </div>
                                 <div className="text-left p-1.5">
-                                  <h3 className="font-primary text-sm md:text-xs font-medium mb-0.5">
+                                  <h3 className="font-primary text-white text-sm md:text-xs font-medium mb-0.5">
                                     {beach.name}
                                   </h3>
                                   <p className="font-primary text-xs md:text-[10px] text-[var(--color-text-secondary)]">
@@ -673,13 +730,140 @@ export default function HeroProduct({ data }: { data?: any }) {
 
             {/* Right side - Image and content */}
             <div className="w-full lg:w-3/5 relative mt-6 lg:mt-0">
-              {isLoading ? (
+              {isLoading || isScrapingData ? (
                 <div className="animate-pulse">
                   <div className="h-[240px] md:h-[400px] lg:h-[540px] bg-gray-200 rounded-2xl mb-4 md:mb-6" />
                   <div className="space-y-4">
                     <div className="h-6 bg-gray-200 rounded w-1/4" />
                     <div className="h-20 bg-gray-200 rounded w-1/3" />
                   </div>
+
+                  {/* Additional scraping details for larger screens */}
+                  {isScrapingData && (
+                    <div className="hidden md:block mt-6 bg-white/90 backdrop-blur-sm rounded-lg p-6 shadow-md border border-gray-200 max-w-md">
+                      <h4 className="font-primary text-base font-medium text-gray-800 mb-4">
+                        Surf Data Collection in Progress
+                      </h4>
+                      <ul className="space-y-3">
+                        <li className="flex items-start gap-3">
+                          <div
+                            className={`mt-0.5 w-5 h-5 rounded-full flex items-center justify-center ${scrapingProgress >= 25 ? "bg-[var(--color-tertiary)]" : "bg-gray-200"}`}
+                          >
+                            {scrapingProgress >= 25 && (
+                              <svg
+                                className="w-3 h-3 text-white"
+                                fill="none"
+                                viewBox="0 0 24 24"
+                                stroke="currentColor"
+                              >
+                                <path
+                                  strokeLinecap="round"
+                                  strokeLinejoin="round"
+                                  strokeWidth={3}
+                                  d="M5 13l4 4L19 7"
+                                />
+                              </svg>
+                            )}
+                          </div>
+                          <div>
+                            <p className="font-primary text-sm font-medium">
+                              Fetching forecast data
+                            </p>
+                            <p className="font-primary text-xs text-gray-500">
+                              Connecting to weather services
+                            </p>
+                          </div>
+                        </li>
+                        <li className="flex items-start gap-3">
+                          <div
+                            className={`mt-0.5 w-5 h-5 rounded-full flex items-center justify-center ${scrapingProgress >= 50 ? "bg-[var(--color-tertiary)]" : "bg-gray-200"}`}
+                          >
+                            {scrapingProgress >= 50 && (
+                              <svg
+                                className="w-3 h-3 text-white"
+                                fill="none"
+                                viewBox="0 0 24 24"
+                                stroke="currentColor"
+                              >
+                                <path
+                                  strokeLinecap="round"
+                                  strokeLinejoin="round"
+                                  strokeWidth={3}
+                                  d="M5 13l4 4L19 7"
+                                />
+                              </svg>
+                            )}
+                          </div>
+                          <div>
+                            <p className="font-primary text-sm font-medium">
+                              Processing conditions
+                            </p>
+                            <p className="font-primary text-xs text-gray-500">
+                              Analyzing wind and swell data
+                            </p>
+                          </div>
+                        </li>
+                        <li className="flex items-start gap-3">
+                          <div
+                            className={`mt-0.5 w-5 h-5 rounded-full flex items-center justify-center ${scrapingProgress >= 75 ? "bg-[var(--color-tertiary)]" : "bg-gray-200"}`}
+                          >
+                            {scrapingProgress >= 75 && (
+                              <svg
+                                className="w-3 h-3 text-white"
+                                fill="none"
+                                viewBox="0 0 24 24"
+                                stroke="currentColor"
+                              >
+                                <path
+                                  strokeLinecap="round"
+                                  strokeLinejoin="round"
+                                  strokeWidth={3}
+                                  d="M5 13l4 4L19 7"
+                                />
+                              </svg>
+                            )}
+                          </div>
+                          <div>
+                            <p className="font-primary text-sm font-medium">
+                              Calculating surf quality
+                            </p>
+                            <p className="font-primary text-xs text-gray-500">
+                              Determining optimal conditions
+                            </p>
+                          </div>
+                        </li>
+                        <li className="flex items-start gap-3">
+                          <div
+                            className={`mt-0.5 w-5 h-5 rounded-full flex items-center justify-center ${scrapingProgress >= 100 ? "bg-[var(--color-tertiary)]" : "bg-gray-200"}`}
+                          >
+                            {scrapingProgress >= 100 && (
+                              <svg
+                                className="w-3 h-3 text-white"
+                                fill="none"
+                                viewBox="0 0 24 24"
+                                stroke="currentColor"
+                              >
+                                <path
+                                  strokeLinecap="round"
+                                  strokeLinejoin="round"
+                                  strokeWidth={3}
+                                  d="M5 13l4 4L19 7"
+                                />
+                              </svg>
+                            )}
+                          </div>
+                          <div>
+                            <p className="font-primary text-sm font-medium">
+                              Finalizing results
+                            </p>
+                            <p className="font-primary text-xs text-gray-500">
+                              Preparing surf recommendations
+                            </p>
+                          </div>
+                        </li>
+                      </ul>
+                    </div>
+                  )}
                 </div>
               ) : (
                 <div className="relative h-[240px] md:h-[400px] lg:h-[540px] mb-4 md:mb-6 rounded-2xl overflow-hidden">
@@ -695,11 +879,6 @@ export default function HeroProduct({ data }: { data?: any }) {
                           className="object-cover"
                           priority
                         />
-                      </div>
-                      <div className="absolute top-3 md:top-4 left-4 md:left-6">
-                        <h2 className="font-primary text-[14px] md:text-[16px] font-medium text-[var(--color-secondary)]">
-                          {currentBeach?.name}
-                        </h2>
                       </div>
 
                       <div className="absolute bottom-3 md:bottom-4 lg:bottom-5 left-3 md:left-4 lg:left-6 right-3 md:right-4 lg:right-6">

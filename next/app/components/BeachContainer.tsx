@@ -1094,19 +1094,26 @@ export default function BeachContainer({
           {/* Right Sidebar - Hidden on all devices below xl breakpoint */}
           {typeof window !== "undefined" && (
             <aside className="hidden xl:block bg-[var(--color-bg-primary)] p-4 sm:p-6 rounded-lg shadow-sm h-fit order-first xl:order-last mb-6 sm:mb-9 xl:mb-0">
-              {/* Single Responsive Forecast Widget - Hidden on mobile and iPad */}
+              {/* Single Responsive Forecast Widget - Styled with game UI design */}
               <div
-                className="bg-white p-6 rounded-lg shadow-sm min-h-[300px]"
+                className="bg-gradient-to-br from-gray-900/95 to-gray-800/95 backdrop-blur-md rounded-lg shadow-xl border border-gray-700 p-6"
+                style={{
+                  borderColor: "rgba(28, 217, 255, 0.4)",
+                  boxShadow:
+                    "0 0 20px rgba(28, 217, 255, 0.25), 0 8px 32px rgba(0, 0, 0, 0.15)",
+                }}
                 data-forecast-widget
               >
-                <div className="flex items-center justify-between mb-6">
-                  <h3 className="text-[21px] heading-6 text-gray-800 font-primary">
-                    Today's Forecast
-                  </h3>
-                  <div className="flex items-center gap-2">
-                    {/* Source Toggle Buttons */}
-                    <div className="flex rounded-[21px] bg-gray-100 p-1"></div>
-                    <div className="font-primary text-black bg-gray-100 px-3 py-1 rounded-[21px] text-sm">
+                <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-6">
+                  <div className="bg-gradient-to-r from-gray-800 to-gray-700 rounded-lg px-5 py-2 inline-block relative border-l-2 border-r-2 border-[var(--color-tertiary)]">
+                    <div className="absolute -left-1 top-1/2 -translate-y-1/2 w-2 h-2 bg-[var(--color-tertiary)] rounded-full"></div>
+                    <div className="absolute -right-1 top-1/2 -translate-y-1/2 w-2 h-2 bg-[var(--color-tertiary)] rounded-full"></div>
+                    <h3 className="font-primary font-bold text-lg md:text-xl text-white tracking-wider">
+                      TODAY'S FORECAST
+                    </h3>
+                  </div>
+                  <div className="flex items-center justify-end">
+                    <div className="font-primary text-[var(--color-tertiary)] bg-gray-800/80 px-4 py-1.5 rounded-[21px] text-sm border border-[var(--color-tertiary)]/30 shadow-[0_0_10px_rgba(28,217,255,0.2)]">
                       8AM
                     </div>
                   </div>
@@ -1119,8 +1126,8 @@ export default function BeachContainer({
                       <RandomLoader isLoading={isLoading} />
                     </div>
                   ) : !windData ? (
-                    <div className="col-span-2 flex items-center justify-left p-6">
-                      <span className="text-gray-600 font-primary text-center">
+                    <div className="col-span-2 flex items-center justify-center p-6">
+                      <span className="text-gray-300 font-primary text-center">
                         No forecast data available. Please select a region to
                         view forecast.
                       </span>
@@ -1128,67 +1135,75 @@ export default function BeachContainer({
                   ) : (
                     <>
                       {/* Wind Direction */}
-                      <div className="bg-white p-4 rounded-lg border border-gray-200 shadow-sm hover:shadow-md transition-shadow duration-200 aspect-square flex flex-col">
-                        <label className="text-xs text-gray-500 uppercase tracking-wide mb-2 font-primary font-medium">
+                      <div className="bg-gray-800/80 backdrop-blur-sm p-4 rounded-lg border border-gray-700 shadow-md hover:shadow-lg transition-shadow duration-200 aspect-square flex flex-col relative group">
+                        <div className="absolute top-0 left-0 w-full h-[1px] bg-gradient-to-r from-transparent via-[var(--color-tertiary)]/50 to-transparent"></div>
+                        <label className="text-xs text-[var(--color-tertiary)] uppercase tracking-wide mb-2 font-primary font-medium">
                           Wind
                         </label>
                         <div className="flex-1 flex flex-col items-center justify-center">
                           <div className="space-y-2 text-center">
-                            <span className="text-2xl font-semibold text-gray-800 font-primary">
+                            <span className="text-2xl font-semibold text-white font-primary">
                               {degreesToCardinal(
                                 parseFloat(windData.windDirection)
                               ) || "N/A"}
                             </span>
-                            <span className="block text-sm text-gray-600 font-primary">
+                            <span className="block text-sm text-gray-300 font-primary">
                               {windData.windDirection.toFixed(1)}°
                             </span>
-                            <span className="block text-sm text-gray-600 font-primary">
+                            <span className="block text-sm text-gray-300 font-primary">
                               {windData.windSpeed || "N/A"} kts
                             </span>
                           </div>
                         </div>
+                        <div className="absolute inset-0 border border-[var(--color-tertiary)]/0 group-hover:border-[var(--color-tertiary)]/30 rounded-lg transition-all duration-300"></div>
                       </div>
 
                       {/* Swell Height */}
-                      <div className="bg-white p-4 rounded-lg border border-gray-200 shadow-sm hover:shadow-md transition-shadow duration-200 aspect-square flex flex-col">
-                        <label className="text-xs text-gray-500 uppercase tracking-wide mb-2 font-primary font-medium">
+                      <div className="bg-gray-800/80 backdrop-blur-sm p-4 rounded-lg border border-gray-700 shadow-md hover:shadow-lg transition-shadow duration-200 aspect-square flex flex-col relative group">
+                        <div className="absolute top-0 left-0 w-full h-[1px] bg-gradient-to-r from-transparent via-[var(--color-tertiary)]/50 to-transparent"></div>
+                        <label className="text-xs text-[var(--color-tertiary)] uppercase tracking-wide mb-2 font-primary font-medium">
                           Swell Height
                         </label>
                         <div className="flex-1 flex flex-col items-center justify-center">
-                          <span className="text-2xl font-semibold text-gray-800 font-primary">
+                          <span className="text-2xl font-semibold text-white font-primary">
                             {windData.swellHeight || "N/A"}m
                           </span>
                         </div>
+                        <div className="absolute inset-0 border border-[var(--color-tertiary)]/0 group-hover:border-[var(--color-tertiary)]/30 rounded-lg transition-all duration-300"></div>
                       </div>
 
                       {/* Swell Period */}
-                      <div className="bg-white p-4 rounded-lg border border-gray-200 shadow-sm hover:shadow-md transition-shadow duration-200 aspect-square flex flex-col">
-                        <label className="text-xs text-gray-500 uppercase tracking-wide mb-2 font-primary font-medium">
+                      <div className="bg-gray-800/80 backdrop-blur-sm p-4 rounded-lg border border-gray-700 shadow-md hover:shadow-lg transition-shadow duration-200 aspect-square flex flex-col relative group">
+                        <div className="absolute top-0 left-0 w-full h-[1px] bg-gradient-to-r from-transparent via-[var(--color-tertiary)]/50 to-transparent"></div>
+                        <label className="text-xs text-[var(--color-tertiary)] uppercase tracking-wide mb-2 font-primary font-medium">
                           Swell Period
                         </label>
                         <div className="flex-1 flex flex-col items-center justify-center">
-                          <span className="text-2xl font-semibold text-gray-800 font-primary">
+                          <span className="text-2xl font-semibold text-white font-primary">
                             {windData.swellPeriod || "N/A"}s
                           </span>
                         </div>
+                        <div className="absolute inset-0 border border-[var(--color-tertiary)]/0 group-hover:border-[var(--color-tertiary)]/30 rounded-lg transition-all duration-300"></div>
                       </div>
 
                       {/* Swell Direction */}
-                      <div className="bg-white p-4 rounded-lg border border-gray-200 shadow-sm hover:shadow-md transition-shadow duration-200 aspect-square flex flex-col">
-                        <label className="text-xs text-gray-500 uppercase tracking-wide mb-2 font-primary font-medium">
+                      <div className="bg-gray-800/80 backdrop-blur-sm p-4 rounded-lg border border-gray-700 shadow-md hover:shadow-lg transition-shadow duration-200 aspect-square flex flex-col relative group">
+                        <div className="absolute top-0 left-0 w-full h-[1px] bg-gradient-to-r from-transparent via-[var(--color-tertiary)]/50 to-transparent"></div>
+                        <label className="text-xs text-[var(--color-tertiary)] uppercase tracking-wide mb-2 font-primary font-medium">
                           Swell Direction
                         </label>
                         <div className="flex-1 flex flex-col items-center justify-center">
                           <div className="space-y-2 text-center">
-                            <span className="text-2xl font-semibold text-gray-800 font-primary">
+                            <span className="text-2xl font-semibold text-white font-primary">
                               {degreesToCardinal(windData.swellDirection) ||
                                 "N/A"}
                             </span>
-                            <span className="block text-sm text-gray-600 font-primary">
+                            <span className="block text-sm text-gray-300 font-primary">
                               {windData.swellDirection || "N/A"}°
                             </span>
                           </div>
                         </div>
+                        <div className="absolute inset-0 border border-[var(--color-tertiary)]/0 group-hover:border-[var(--color-tertiary)]/30 rounded-lg transition-all duration-300"></div>
                       </div>
                     </>
                   )}

@@ -46,7 +46,7 @@ export default function About({ data }: AboutProps) {
                   }}
                 >
                   <Image
-                    src="https://media.tideraider.com/Leonardo_Phoenix_10_Reminiscent_of_Studio_Ghiblis_style_of_a_3.webp"
+                    src="https://media.tideraider.com/Leonardo_Phoenix_10_A_majestic_worn_leatherbound_log_book_lies_0.webp"
                     alt="Studio Ghibli-style illustration for About section"
                     fill
                     sizes="(max-width: 768px) 100vw, 50vw"
@@ -64,16 +64,17 @@ export default function About({ data }: AboutProps) {
           </div>
 
           <div className="order-1 lg:order-2 flex flex-col justify-center">
-            <div className="bg-white/90 backdrop-blur-md rounded-lg md:rounded-xl p-6 md:p-8 lg:p-10 shadow-sm border border-gray-100">
+            <div className="bg-white/90 backdrop-blur-md rounded-lg md:rounded-xl p-6 md:p-8 lg:p-10 shadow-sm border border-gray-100 max-w-[540px]">
               <h2 className="font-primary text-xl md:text-2xl lg:text-3xl font-semibold mb-4 md:mb-6">
-                A Cycle Of Experiencing & Sharing
+                Experience & Share.
               </h2>
               <p className="font-primary text-base md:text-lg text-gray-700 mb-6">
-                Sharing stories, whether that's a log entry of text or images,
-                can inspire and motivate others to experience the beauty of the
-                ocean. Tide Raider is a platform for surfers and surf
-                photographers to discover and explore the top breaks of a region
-                and share their experience with others.
+                Sharing stories inspires and motivates us to get out there.
+              </p>
+              <p className="font-primary text-base md:text-lg text-gray-700 mb-6">
+                Tide Raider is a platform for surfers and surf photographers to
+                explore different places, and share their experiences with
+                others.
               </p>
 
               <div className="mt-8 pt-6 border-t border-white backdrop-blur-sm">

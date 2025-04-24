@@ -818,18 +818,39 @@ export default function BeachContainer({
                               ? "ring-2 ring-[var(--color-bg-tertiary)]"
                               : "border border-gray-200"
                           }
+                          bg-gray-100
                         `}
                       >
+                        {/* Explicit loading state */}
+                        <div className="absolute inset-0 flex items-center justify-center bg-gray-200 animate-pulse z-10">
+                          <span className="text-xs text-gray-500 font-primary">
+                            {waveType}
+                          </span>
+                        </div>
+
                         <Image
                           src={WAVE_TYPE_ICONS[waveType as WaveType]}
                           alt={`${waveType} icon`}
                           fill
-                          className="object-cover"
-                          placeholder="blur"
-                          blurDataURL="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNk+P+/HgAFdwI2QOQvhwAAAABJRU5ErkJggg=="
+                          className="object-cover z-20"
+                          sizes="(max-width: 640px) 60px, (max-width: 1024px) 70px, 80px"
+                          priority={
+                            filters.waveType.includes(waveType) ||
+                            waveTypes.indexOf(waveType) < 3
+                          }
+                          quality={80}
+                          onLoad={(e) => {
+                            // Hide the loading state when image loads
+                            const target = e.target as HTMLImageElement;
+                            target.style.zIndex = "20";
+                            target.previousElementSibling?.classList.add(
+                              "hidden"
+                            );
+                          }}
                         />
+
                         {/* Hover overlay */}
-                        <div className="absolute inset-0 flex items-center justify-center opacity-0 hover:opacity-100 transition-opacity duration-300">
+                        <div className="absolute inset-0 flex items-center justify-center opacity-0 hover:opacity-100 transition-opacity duration-300 z-30">
                           <div className="absolute inset-0 bg-black opacity-30"></div>
                           <div className="absolute inset-0 bg-[var(--color-tertiary)] opacity-50"></div>
                           <span className="relative z-10 text-white text-xs font-medium px-2 text-center font-primary">

@@ -59,6 +59,11 @@ const nextConfig = {
   },
   experimental: {
     serverComponentsExternalPackages: ["@sparticuz/chromium"],
+    turbo: {
+      resolveAlias: {
+        // Add font resolution aliases if needed
+      },
+    },
   },
   transpilePackages: [
     "@sanity/ui",

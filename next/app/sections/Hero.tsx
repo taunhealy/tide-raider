@@ -572,6 +572,8 @@ export default function HeroSection({ data }: HeroProps) {
             sizes="100vw"
             className="object-cover"
             ref={imageRef}
+            placeholder="blur"
+            blurDataURL="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNk+P+/HgAFdwI2QOQvhwAAAABJRU5ErkJggg=="
           />
         </div>
 

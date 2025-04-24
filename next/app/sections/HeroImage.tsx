@@ -43,6 +43,8 @@ export default function HeroImage({ data }: HeroFooterImageProps) {
             className="object-cover"
             priority
             sizes="100vw"
+            placeholder="blur"
+            blurDataURL="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNk+P+/HgAFdwI2QOQvhwAAAABJRU5ErkJggg=="
           />
         ) : (
           <div className="w-full h-full flex items-center justify-center bg-gray-800">

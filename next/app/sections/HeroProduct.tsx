@@ -878,6 +878,8 @@ export default function HeroProduct({ data }: { data?: any }) {
                           sizes="(max-width: 900px) 20vw, 80vw"
                           className="object-cover"
                           priority
+                          placeholder="blur"
+                          blurDataURL="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNk+P+/HgAFdwI2QOQvhwAAAABJRU5ErkJggg=="
                         />
                       </div>
 

@@ -91,6 +91,8 @@ export default function BeachDetailsModal({
                 alt={`${beach.waveType || "Default"} icon`}
                 fill
                 className="object-cover"
+                placeholder="blur"
+                blurDataURL="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNk+P+/HgAFdwI2QOQvhwAAAABJRU5ErkJggg=="
               />
             </div>
             <DialogTitle className="text-lg font-semibold font-primary">
@@ -110,6 +112,8 @@ export default function BeachDetailsModal({
             className="object-cover rounded-lg"
             sizes="(max-width: 768px) 100vw, 800px"
             priority
+            placeholder="blur"
+            blurDataURL="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNk+P+/HgAFdwI2QOQvhwAAAABJRU5ErkJggg=="
           />
         </div>
 

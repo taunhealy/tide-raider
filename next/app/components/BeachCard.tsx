@@ -199,6 +199,8 @@ export default function BeachCard({
                       alt={`${beach.waveType || "Default"} icon`}
                       fill
                       className="object-cover"
+                      placeholder="blur"
+                      blurDataURL="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNk+P+/HgAFdwI2QOQvhwAAAABJRU5ErkJggg=="
                     />
                     {beach.waveType && (
                       <div

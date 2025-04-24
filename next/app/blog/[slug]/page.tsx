@@ -239,6 +239,8 @@ export default async function BlogPost({
                               alt={image.uploadedImage?.alt || ""}
                               fill
                               className="object-cover rounded-lg"
+                              placeholder="blur"
+                              blurDataURL="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNk+P+/HgAFdwI2QOQvhwAAAABJRU5ErkJggg=="
                             />
                           </div>
                           {image.uploadedImage?.caption && (

@@ -50,6 +50,7 @@ import { useSurfConditions } from "@/app/hooks/useSurfConditions";
 import { RandomLoader } from "./ui/random-loader";
 import RegionalHighScores from "@/app/components/RegionalHighScores";
 import AdventureExperiences from "@/app/components/AdventureExperiences";
+import DataLoadingProgress from "@/app/components/DataLoadingProgress";
 
 interface BeachContainerProps {
   initialBeaches: Beach[];
@@ -90,6 +91,12 @@ export default function BeachContainer({
   const [minPoints, setMinPoints] = useState(0);
   const searchParams = useSearchParams();
   const queryClient = useQueryClient();
+  const [isMounted, setIsMounted] = useState(false);
+
+  // Use effect to set mounted state
+  useEffect(() => {
+    setIsMounted(true);
+  }, []);
 
   // Fetch default filters
   const { data: defaultFilters, isLoading: isLoadingDefaults } = useQuery({
@@ -179,6 +186,7 @@ export default function BeachContainer({
 
   // Update selectedRegion state initialization (remove localStorage check)
   const [selectedRegion, setSelectedRegion] = useState<string>("");
+  const [isLoadingRegion, setIsLoadingRegion] = useState(false);
 
   // Update handleRegionChange (remove localStorage setItem)
   const handleRegionChange = (newRegion: string) => {
@@ -186,6 +194,14 @@ export default function BeachContainer({
     const newFilters = { ...filters };
     newFilters.region = [newRegion as Region];
     setFilters(newFilters);
+
+    // Set loading state
+    setIsLoadingRegion(true);
+
+    // Reset loading state after data is loaded or after timeout
+    setTimeout(() => {
+      setIsLoadingRegion(false);
+    }, 3500);
   };
 
   // Update dependency array to remove handleRegionChange since it's defined above
@@ -865,7 +881,10 @@ export default function BeachContainer({
                 {/* Forecast widget - Improve mobile layout */}
                 <div className="mb-6">
                   {isLoading ? (
-                    <RandomLoader isLoading={isLoading} />
+                    <div className="space-y-4">
+                      <RandomLoader isLoading={isLoading} />
+                      <DataLoadingProgress isLoading={isLoading} />
+                    </div>
                   ) : windError ? (
                     <div className="text-red-600 font-primary text-sm">
                       Forecast loading failed
@@ -964,6 +983,13 @@ export default function BeachContainer({
                     isLoading={isAllDataLoading}
                   />
                 </div>
+
+                {/* Show loading progress when loading a region */}
+                {isLoadingRegion && (
+                  <div className="mb-6">
+                    <DataLoadingProgress isLoading={true} />
+                  </div>
+                )}
 
                 {filteredBeaches.length === 0 ? (
                   <div className="text-center py-8">
@@ -1115,7 +1141,7 @@ export default function BeachContainer({
           </main>
 
           {/* Right Sidebar - Hidden on all devices below xl breakpoint */}
-          {typeof window !== "undefined" && (
+          {isMounted && (
             <aside className="hidden xl:block bg-[var(--color-bg-primary)] p-4 sm:p-6 rounded-lg shadow-sm h-fit order-first xl:order-last mb-6 sm:mb-9 xl:mb-0">
               {/* Single Responsive Forecast Widget - Styled with game UI design */}
               <div
@@ -1144,11 +1170,7 @@ export default function BeachContainer({
 
                 {/* Responsive Grid Layout */}
                 <div className="grid grid-cols-2 gap-4">
-                  {isLoading ? (
-                    <div className="col-span-2 flex items-center justify-center p-8">
-                      <RandomLoader isLoading={isLoading} />
-                    </div>
-                  ) : !windData ? (
+                  {!windData ? (
                     <div className="col-span-2 flex items-center justify-center p-6">
                       <span className="text-gray-300 font-primary text-center">
                         No forecast data available. Please select a region to
@@ -1290,6 +1312,7 @@ export default function BeachContainer({
             filters={filters}
             onSaveDefault={handleSaveDefault}
             isLoadingDefaults={isLoadingDefaults}
+            onRegionChange={handleRegionChange}
           />
         </div>
       </div>

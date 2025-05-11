@@ -332,9 +332,6 @@ export default function BeachCard({
 
                     {/* Current Conditions */}
                     <div className="text-sm flex flex-col gap-1">
-                      <h6 className="text-base font-primary md:text-md mb-2 md:mb-3">
-                        Current Conditions:
-                      </h6>
                       <ul className="space-y-1.5">
                         {getConditionReasons(
                           beach,

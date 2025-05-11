@@ -42,6 +42,7 @@ interface SidebarFilterProps {
   filters: FilterType;
   onSaveDefault: (filters: FilterType) => Promise<void>;
   isLoadingDefaults?: boolean;
+  onRegionChange?: (region: string) => void;
 }
 
 export default function SidebarFilter({
@@ -52,6 +53,7 @@ export default function SidebarFilter({
   filters,
   onSaveDefault,
   isLoadingDefaults,
+  onRegionChange,
 }: SidebarFilterProps) {
   const FILTERS_STORAGE_KEY = "surfspot_filters";
 
@@ -137,6 +139,15 @@ export default function SidebarFilter({
     }
   };
 
+  const handleRegionClick = (region: string) => {
+    // We'll just update the filters here without triggering the loading animation
+    // Don't call onRegionChange from the sidebar filter
+    // This way, only clicks from the main region filter will show the animation
+
+    // If you need to do something else with the region, do it here
+    console.log(`Region selected from sidebar: ${region}`);
+  };
+
   return (
     <div className="p-9 bg-[var(--color-bg-secondary)] rounded-lg">
       {/* Region Selection Filter */}
@@ -164,6 +175,7 @@ export default function SidebarFilter({
                       ? [...filters.region, region]
                       : filters.region.filter((r) => r !== region);
                     updateFilters("region", newRegions);
+                    // Don't call handleRegionClick or onRegionChange here
                   }}
                 />
                 {region}

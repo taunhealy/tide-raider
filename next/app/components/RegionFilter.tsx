@@ -11,6 +11,7 @@ import { Region } from "@/app/types/beaches";
 import { cn } from "@/app/lib/utils";
 import { useQuery } from "@tanstack/react-query";
 import RegionFilterButton from "@/app/components/RegionFilterButton";
+import DataLoadingProgress from "@/app/components/DataLoadingProgress";
 
 interface SavedFilters {
   continents: string[];
@@ -90,6 +91,7 @@ const RegionFilter = memo(function RegionFilter({
   const [count, setCount] = useState<number>(0);
   const [regionCounts, setRegionCounts] = useState<Record<string, number>>({});
   const [isLoadingCounts, setIsLoadingCounts] = useState(true);
+  const [loadingRegion, setLoadingRegion] = useState<string | null>(null);
 
   useEffect(() => {
     if (isPro && initialSavedFilters) {
@@ -208,8 +210,17 @@ const RegionFilter = memo(function RegionFilter({
   };
 
   const handleRegionClick = (region: string) => {
+    // Set the loading region to trigger the loading UI
+    setLoadingRegion(region);
+
+    // Call the handlers
     onRegionClick(region);
     onRegionChange(region);
+
+    // Reset loading state after a delay (or you can tie this to actual data loading completion)
+    setTimeout(() => {
+      setLoadingRegion(null);
+    }, 3500); // Adjust timing as needed
   };
 
   // Memoize the region buttons to prevent unnecessary re-renders
@@ -219,7 +230,7 @@ const RegionFilter = memo(function RegionFilter({
         key={region}
         region={region}
         isSelected={selectedRegion === region}
-        onClick={() => onRegionChange(region)}
+        onClick={() => handleRegionClick(region)}
         count={selectedRegion === region ? regionCount : undefined}
         isLoading={selectedRegion === region ? isCountLoading : false}
       />
@@ -230,6 +241,7 @@ const RegionFilter = memo(function RegionFilter({
     regionCount,
     isCountLoading,
     onRegionChange,
+    onRegionClick,
   ]);
 
   return (
@@ -293,7 +305,14 @@ const RegionFilter = memo(function RegionFilter({
 
           {/* Regions */}
           {visibleRegions.length > 0 && (
-            <div className="flex flex-wrap gap-2 mb-4">{regionButtons}</div>
+            <>
+              <div className="flex flex-wrap gap-2 mb-4">{regionButtons}</div>
+
+              {/* Show loading progress when a region is being loaded */}
+              {loadingRegion && (
+                <DataLoadingProgress isLoading={true} className="mt-4" />
+              )}
+            </>
           )}
 
           {renderSaveButton()}

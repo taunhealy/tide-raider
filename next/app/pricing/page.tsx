@@ -188,29 +188,28 @@ export default function PricingPage() {
                       "text-[32px] font-semibold text-[var(--color-text-primary)] font-primary"
                     )}
                   >
-                    R{data?.price || ""}
+                    R30
                   </span>
                   <span className="text-main text-[var(--color-text-secondary)]">
-                    {data?.priceSubtext || "Monthly Payment"}
+                    per month
                   </span>
                 </div>
               </div>
 
               <div className="px-[32px] py-[32px] bg-white">
                 <ul className="space-y-[16px] mb-[32px]">
-                  {(
-                    data?.features || [
-                      "Access to all surf spots with 3+ star ratings",
-                      "14-day free trial",
-                      "Cancel anytime",
-                    ]
-                  ).map((feature) => (
+                  {[
+                    "Access to all surf spots with 5 star ratings",
+                    "Set alerts",
+                    "Cancel anytime",
+                    "14-day free trial",
+                  ].map((feature) => (
                     <li
                       key={feature}
                       className={cn("flex items-start gap-[8px]")}
                     >
                       <Check className="h-5 w-5 text-[var(--color-text-primary)] mt-[2px]" />
-                      <span className="text-main text-[var(--color-text-secondary)]">
+                      <span className="text-main text-[var(--color-text-secondary)] font-primary">
                         {feature}
                       </span>
                     </li>

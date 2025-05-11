@@ -132,8 +132,8 @@ export const beachData: Beach[] = [
     distanceFromCT: 25,
     optimalWindDirections: ["NW", "N", "NE"],
     optimalSwellDirections: {
-      min: 225,
-      max: 247.5,
+      min: 120,
+      max: 150,
     }, // single closing brace for optimalSwellDirections
     bestSeasons: ["winter"], // continue with the rest of the properties
     optimalTide: "All",
@@ -141,7 +141,7 @@ export const beachData: Beach[] = [
     difficulty: "Beginner",
     waveType: "Beach Break",
     swellSize: {
-      min: 1.7,
+      min: 1.4,
       max: 4.0,
     },
     idealSwellPeriod: {
@@ -619,8 +619,8 @@ export const beachData: Beach[] = [
     distanceFromCT: 35,
     optimalWindDirections: ["WNW", "NW"], // Simplified to primary optimal wind
     optimalSwellDirections: {
-      min: 135,
-      max: 165,
+      min: 120,
+      max: 160,
       cardinal: "SE", // Keeping the cardinal direction as SE
     },
     bestSeasons: ["winter"],
@@ -1614,8 +1614,8 @@ export const beachData: Beach[] = [
     distanceFromCT: 35,
     optimalWindDirections: ["NW", "W"],
     optimalSwellDirections: {
-      min: 130,
-      max: 155,
+      min: 120,
+      max: 160,
     },
     bestSeasons: ["winter"],
     optimalTide: "Low",
@@ -2463,7 +2463,7 @@ export const beachData: Beach[] = [
     distanceFromCT: 35,
     optimalWindDirections: ["WNW", "NW", "W"], // Added WNW as it's offshore here
     optimalSwellDirections: {
-      min: 135,
+      min: 120,
       max: 155,
     },
     bestSeasons: ["winter"],

@@ -39,10 +39,10 @@ export default function QuestLogSidebar() {
     <div className="bg-[var(--color-bg-primary)] p-6 rounded-lg shadow-sm border border-gray-200">
       <div className="flex items-center justify-between mb-4">
         <h3 className={`text-lg font-semibold text-gray-800 font-primary`}>
-          Latest Session
+          Latest Log Entry
         </h3>
         <Link
-          href="/quest-log"
+          href="/raidlogs"
           className="text-sm text-[var(--color-text-secondary)] hover:underline font-primary"
         >
           View All

@@ -75,7 +75,7 @@ export default function RegionalSidebar({
               href="/advertising"
               className={`block bg-[var(--color-bg-primary)] rounded-lg p-6 text-center hover:bg-gray-50 transition-colors border border-gray-200 ${
                 categoryInfo?.id === "clown"
-                  ? "border-pink-300 border-[1px]"
+                  ? "border-white-300 border-[1px]"
                   : ""
               }`}
             >

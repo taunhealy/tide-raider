@@ -10,6 +10,7 @@ import {
   Bell,
   Image as ImageIcon,
   MessageCircle,
+  Eye,
 } from "lucide-react";
 import { cn } from "@/app/lib/utils";
 import {
@@ -897,10 +898,8 @@ export default function RaidLogTable({
                           href={
                             hasAccess ? `/raidlogs/${entry.id}` : "/pricing"
                           }
-                          className="text-sm text-brand-3 hover:underline font-primary"
-                        >
-                          View details →
-                        </Link>
+                          className="text-sm text-gray-500 hover:text-gray-700 font-primary flex items-center gap-1"
+                        ></Link>
                       </div>
                     </div>
                   ) : (
@@ -913,10 +912,8 @@ export default function RaidLogTable({
                           href={
                             hasAccess ? `/raidlogs/${entry.id}` : "/pricing"
                           }
-                          className="text-sm text-brand-3 hover:underline font-primary"
-                        >
-                          View details →
-                        </Link>
+                          className="text-sm text-gray-500 hover:text-gray-700 font-primary flex items-center gap-1"
+                        ></Link>
                       </div>
                     </div>
                   )}

@@ -199,8 +199,8 @@ export default function PricingPage() {
               <div className="px-[32px] py-[32px] bg-white">
                 <ul className="space-y-[16px] mb-[32px]">
                   {[
-                    "Access to all surf spots with 5 star ratings",
-                    "Set alerts",
+                    "Set alerts (SMS/Email reminders)",
+                    "Access multiple data sources",
                     "Cancel anytime",
                     "14-day free trial",
                   ].map((feature) => (

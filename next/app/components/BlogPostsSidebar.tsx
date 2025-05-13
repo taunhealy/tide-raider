@@ -131,14 +131,14 @@ export default function BlogPostsSidebar({
     return (
       <div className="bg-[var(--color-bg-primary)] p-6 rounded-lg shadow-sm mb-6">
         <div className="flex items-center justify-between mb-6">
-          <h3 className="heading-6">
+          <h3 className="heading-6 mr-4">
             {selectedCountry
               ? `Posts from ${HARDCODED_COUNTRIES.find((c) => c.id === selectedCountry)?.name || selectedCountry}`
               : "Recent Posts"}
           </h3>
           <Link
             href="/blog"
-            className="text-[12px] hover:text-[var(--color-text-secondary)] hover:underline transition-colors"
+            className="text-[12px] hover:text-[var(--color-text-secondary)] hover:underline transition-colors font-primary ml-2 whitespace-nowrap"
           >
             View All
           </Link>
@@ -171,16 +171,16 @@ export default function BlogPostsSidebar({
       return (
         <div className="bg-[var(--color-bg-primary)] p-6 rounded-lg shadow-sm mb-6">
           <div className="flex items-center justify-between mb-6">
-            <h3 className="heading-6">
+            <h3 className="heading-6 mr-4">
               {selectedCountry
                 ? `Travel Posts`
                 : selectedContinent
-                  ? `No posts for ${selectedContinent}. Showing travel posts instead:`
+                  ? `Travel Posts`
                   : "Travel Posts"}
             </h3>
             <Link
               href="/blog?category=travel"
-              className="text-[12px] hover:text-[var(--color-text-secondary)] hover:underline transition-colors font-primary"
+              className="text-[12px] hover:text-[var(--color-text-secondary)] hover:underline transition-colors font-primary ml-2 whitespace-nowrap"
             >
               View All
             </Link>
@@ -243,9 +243,7 @@ export default function BlogPostsSidebar({
               ))}
             </div>
           ) : (
-            <p className="text-main text-sm font-primary">
-              No travel posts available yet.
-            </p>
+            <p className="text-main text-sm font-primary">No travel posts.</p>
           )}
         </div>
       );
@@ -255,17 +253,19 @@ export default function BlogPostsSidebar({
     return (
       <div className="bg-[var(--color-bg-primary)] p-6 rounded-lg shadow-sm mb-6">
         <div className="flex items-center justify-between mb-6">
-          <h3 className="heading-6">Recent Posts</h3>
+          <h3 className="heading-6 mr-4">
+            {selectedCountry
+              ? `Posts from ${HARDCODED_COUNTRIES.find((c) => c.id === selectedCountry)?.name || selectedCountry}`
+              : "Recent Posts"}
+          </h3>
           <Link
             href="/blog"
-            className="text-[12px] hover:text-[var(--color-text-secondary)] hover:underline transition-colors font-primary"
+            className="text-[12px] hover:text-[var(--color-text-secondary)] hover:underline transition-colors font-primary ml-2 whitespace-nowrap"
           >
             View All
           </Link>
         </div>
-        <p className="text-main text-sm font-primary">
-          No posts available yet.
-        </p>
+        <p className="text-main text-sm font-primary">No posts yet.</p>
       </div>
     );
   }
@@ -273,14 +273,14 @@ export default function BlogPostsSidebar({
   return (
     <div className="bg-[var(--color-bg-primary)] p-6 rounded-lg shadow-sm mb-6">
       <div className="flex items-center justify-between mb-6">
-        <h3 className="heading-6">
+        <h3 className="heading-6 mr-4">
           {selectedCountry
             ? `Posts from ${HARDCODED_COUNTRIES.find((c) => c.id === selectedCountry)?.name || selectedCountry}`
             : "Recent Posts"}
         </h3>
         <Link
           href="/blog"
-          className="text-[12px] hover:text-[var(--color-text-secondary)] hover:underline transition-colors"
+          className="text-[12px] hover:text-[var(--color-text-secondary)] hover:underline transition-colors font-primary ml-2 whitespace-nowrap"
         >
           View All
         </Link>
